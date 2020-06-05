@@ -1,0 +1,530 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.guitool.api_tree_node &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.guitool.api_tree_node</h1><div class="highlight"><pre>
+<span></span><span class="c1"># TODO: Rename api_item_model</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="k">import</span> <span class="n">GeneratorType</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">rrr</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">TREE_NODE_BASE</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span>
+<span class="c1">#TREE_NODE_BASE = object</span>
+<span class="n">VERBOSE_TREE_NODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verb-qt-tree&#39;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="TreeNode"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode">[docs]</a><span class="k">class</span> <span class="nc">TreeNode</span><span class="p">(</span><span class="n">TREE_NODE_BASE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cyth:</span>
+<span class="sd">        cdef:</span>
+<span class="sd">            long id_, level</span>
+<span class="sd">            list child_nodes</span>
+<span class="sd">            TreeNode parent_node</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#__slots__ = (&#39;id_&#39;, &#39;parent_node&#39;, &#39;child_nodes&#39;, &#39;level&#39;,)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">parent_node</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+        <span class="n">TREE_NODE_BASE</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent_node</span><span class="p">)</span>
+        <span class="c1">#super(TreeNode, self).__init__(parent_node)</span>
+        <span class="c1">#if TREE_NODE_BASE is not object:</span>
+        <span class="c1">#if VERBOSE_TREE_NODE:</span>
+        <span class="c1">#    print(&#39;[TreeNode] __init__&#39;)</span>
+        <span class="c1">#super(TreeNode, self).__init__(parent=parent_node)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id_</span> <span class="o">=</span> <span class="n">id_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent_node</span> <span class="o">=</span> <span class="n">parent_node</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#print(&#39;[guitool] DELETING THE TREE NODE!:&#39;)</span>
+        <span class="k">if</span> <span class="n">VERBOSE_TREE_NODE</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[guitool] DELETING THE TREE NODE!: id_=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &lt;CYTH returns=&quot;TreeNode&quot;&gt;</span>
+<span class="sd">        cdef long index</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_child</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TreeNode.set_children"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.set_children">[docs]</a>    <span class="k">def</span> <span class="nf">set_children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_nodes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &lt;CYTH returns=&quot;void&quot;&gt; &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span> <span class="o">=</span> <span class="n">child_nodes</span></div>
+
+<div class="viewcode-block" id="TreeNode.get_children"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &lt;/CYTH returns=&quot;list&quot;&gt; &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lazy_checks</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span></div>
+
+<div class="viewcode-block" id="TreeNode.child_index"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.child_index">[docs]</a>    <span class="k">def</span> <span class="nf">child_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_node</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &lt;CYTH returns=long&gt;</span>
+<span class="sd">        cdef TreeNode child_node</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lazy_checks</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">child_node</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TreeNode.get_child"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_child">[docs]</a>    <span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &lt;CYTH returns=&quot;TreeNode&quot;&gt;</span>
+<span class="sd">        cdef long index</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lazy_checks</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TreeNode.get_parent"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_parent">[docs]</a>    <span class="k">def</span> <span class="nf">get_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &lt;CYTH returns=&quot;TreeNode&quot;&gt; &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_node</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Error getting parent&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1">#print(ex)</span>
+            <span class="c1">#print(&#39;[tree_node] dir(self)=&#39;)</span>
+            <span class="c1">#print(dir(self))</span>
+            <span class="c1">#print(&#39;[tree_node] self.__dict__=&#39;)</span>
+            <span class="c1">#print(utool.repr2(self.__dict__))</span>
+            <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="TreeNode.get_num_children"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_num_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &lt;CYTH returns=long&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lazy_checks</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TreeNode.get_id"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns python internal id of this class</span>
+<span class="sd">        &lt;CYTH returns=&quot;long&quot;&gt; &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_</span></div>
+
+<div class="viewcode-block" id="TreeNode.get_row"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_row</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the row_index of this node w.r.t its parent.</span>
+
+<span class="sd">        cdef list sibling_nodes</span>
+<span class="sd">        cdef long row</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sibling_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_node</span><span class="o">.</span><span class="n">child_nodes</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">sibling_nodes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">row</span></div>
+
+<div class="viewcode-block" id="TreeNode.get_level"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_level">[docs]</a>    <span class="k">def</span> <span class="nf">get_level</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &lt;CYTH returns=&quot;long&quot;&gt; &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span></div>
+
+<div class="viewcode-block" id="TreeNode.find_row_from_id"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.find_row_from_id">[docs]</a>    <span class="k">def</span> <span class="nf">find_row_from_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        given an id (like an wbia rowid) find the row of this item</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">()</span>
+        <span class="n">id_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">child</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">]</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">row</span></div>
+
+<div class="viewcode-block" id="TreeNode.lazy_checks"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.lazy_checks">[docs]</a>    <span class="k">def</span> <span class="nf">lazy_checks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># If the child is a generator, then the TreeNode hasn&#39;t been created yet</span>
+        <span class="c1"># so create it</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span><span class="p">,</span> <span class="n">GeneratorType</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[tree_node] lazy evaluation level=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
+            <span class="c1">#print(&#39;[tree_node] lazy evaluation level=%r&#39; % self.level)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="tree_node_string"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.tree_node_string">[docs]</a><span class="k">def</span> <span class="nf">tree_node_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">charids</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">id_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; makes a recrusive string representation of a treee</span>
+
+<span class="sd">    HACK:if charids is 2  uses ordinals instead of characters</span>
+<span class="sd">    if charirsd is True triesto use Numbers</span>
+<span class="sd">    otherwise uses nondetermensitic python ids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">last</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">charids</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">id_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">id_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">id_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+    <span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_level</span><span class="p">()</span>
+    <span class="n">id_self</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="n">id_parent</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parent</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">charids</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">id_parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">id_dict</span><span class="p">:</span>
+            <span class="n">id_dict</span><span class="p">[</span><span class="n">id_parent</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">id_self</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">id_dict</span><span class="p">:</span>
+            <span class="n">id_dict</span><span class="p">[</span><span class="n">id_self</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">id_self</span> <span class="o">=</span> <span class="n">id_dict</span><span class="p">[</span><span class="n">id_self</span><span class="p">]</span>
+        <span class="n">id_parent</span> <span class="o">=</span> <span class="n">id_dict</span><span class="p">[</span><span class="n">id_parent</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">charids</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1">#if ord(last[0]) &lt; 255:</span>
+        <span class="c1">#    last[0] = [0]</span>
+        <span class="k">if</span> <span class="n">id_parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">id_dict</span><span class="p">:</span>
+            <span class="n">id_dict</span><span class="p">[</span><span class="n">id_parent</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">id_self</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">id_dict</span><span class="p">:</span>
+            <span class="n">id_dict</span><span class="p">[</span><span class="n">id_self</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">id_self</span> <span class="o">=</span> <span class="n">id_dict</span><span class="p">[</span><span class="n">id_self</span><span class="p">]</span>
+        <span class="n">id_parent</span> <span class="o">=</span> <span class="n">id_dict</span><span class="p">[</span><span class="n">id_parent</span><span class="p">]</span>
+    <span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">id_self</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">id_parent</span><span class="p">))</span>
+    <span class="n">self_str</span> <span class="o">=</span> <span class="p">(</span><span class="n">indent</span> <span class="o">+</span> <span class="s2">&quot;TreeNode(id_=</span><span class="si">%r</span><span class="s2">, level=</span><span class="si">%r</span><span class="s2">, self=</span><span class="si">%s</span><span class="s2">, parent_node=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">tup</span><span class="p">)</span>
+    <span class="n">child_strs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tree_node_string</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span> <span class="o">+</span> <span class="s1">&#39;    &#39;</span><span class="p">,</span> <span class="n">charids</span><span class="o">=</span><span class="n">charids</span><span class="p">,</span> <span class="n">id_dict</span><span class="o">=</span><span class="n">id_dict</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="n">last</span><span class="p">)</span>
+                  <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">()]</span>
+    <span class="n">str_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">self_str</span><span class="p">]</span> <span class="o">+</span> <span class="n">child_strs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">str_</span></div>
+
+
+<span class="k">def</span> <span class="nf">_populate_tree_iterative</span><span class="p">(</span><span class="n">root_node</span><span class="p">,</span> <span class="n">num_levels</span><span class="p">,</span> <span class="n">ider_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Iteratively builds the tree structure. I dont quite trust this yet</span>
+<span class="sd">    #@cython.boundscheck(False)</span>
+<span class="sd">    #@cython.wraparound(False)</span>
+
+<span class="sd">    Cyth::</span>
+<span class="sd">        @returns(TreeNode)</span>
+<span class="sd">        &lt;CYTH returns=&quot;TreeNode&quot;&gt;</span>
+<span class="sd">        cdef:</span>
+<span class="sd">            TreeNode parent_node</span>
+<span class="sd">            size_t level</span>
+<span class="sd">            size_t ix</span>
+<span class="sd">            size_t sx</span>
+<span class="sd">            long id_</span>
+<span class="sd">            list root_ids</span>
+<span class="sd">            list parent_node_list</span>
+<span class="sd">            list ids_list</span>
+<span class="sd">            list id_list</span>
+<span class="sd">            list next_ids</span>
+<span class="sd">            list node_list</span>
+<span class="sd">            list new_node_lists</span>
+<span class="sd">            list new_ids_lists</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        root_node (?):</span>
+<span class="sd">        num_levels (?):</span>
+<span class="sd">        ider_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.guitool.api_tree_node --test-_populate_tree_iterative</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool.api_tree_node import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool import api_tree_node  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(ut.get_argval(&#39;--db&#39;, str, default=&#39;testdb1&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ider_list = [ibs.get_valid_nids, ibs.get_name_aids]</span>
+<span class="sd">        &gt;&gt;&gt; num_levels = len(ider_list)</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; root_node = TreeNode(-1, None, -1)</span>
+<span class="sd">        &gt;&gt;&gt; api_tree_node._populate_tree_iterative(root_node, num_levels, ider_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; self = root_node</span>
+<span class="sd">        &gt;&gt;&gt; infostr = api_tree_node.tree_node_string(root_node, charids=2)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ut.truncate_str(infostr, maxlen=2000))</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hashstr(infostr)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">root_ids</span> <span class="o">=</span> <span class="n">ider_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]()</span>
+    <span class="n">parent_node_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">root_node</span><span class="p">]</span>
+    <span class="n">ids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">root_ids</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">VERBOSE_TREE_NODE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_populate_tree_iterative&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;root_ids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">root_ids</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;num_levels = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_levels</span><span class="p">,))</span>
+    <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_levels</span><span class="p">):</span>
+        <span class="c1">#print(&#39;------------ level=%r -----------&#39; % (level,))</span>
+        <span class="c1">#print(utool.repr2(locals()))</span>
+        <span class="n">new_node_lists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">new_ids_lists</span>  <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">parent_node</span><span class="p">,</span> <span class="n">id_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parent_node_list</span><span class="p">,</span> <span class="n">ids_list</span><span class="p">):</span>
+            <span class="c1">#pass</span>
+            <span class="c1">#assert isinstance(parent_node, TreeNode), &#39;%r\n%s&#39; % (parent_node,</span>
+            <span class="c1">#                                                      utool.repr2(locals()))</span>
+            <span class="n">node_list</span> <span class="o">=</span>  <span class="p">[</span><span class="n">TreeNode</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">parent_node</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span> <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">id_list</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">level</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">num_levels</span><span class="p">:</span>
+                <span class="n">child_ider</span> <span class="o">=</span> <span class="n">ider_list</span><span class="p">[</span><span class="n">level</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">next_ids</span> <span class="o">=</span>  <span class="n">child_ider</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span>
+                <span class="c1">#[child_ider(id_) for id_ in child_ids]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">next_ids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">parent_node</span><span class="o">.</span><span class="n">set_children</span><span class="p">(</span><span class="n">node_list</span><span class="p">)</span>
+            <span class="n">new_node_lists</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">node_list</span><span class="p">)</span>
+            <span class="n">new_ids_lists</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">next_ids</span><span class="p">)</span>
+        <span class="n">parent_node_list</span> <span class="o">=</span> <span class="n">new_node_lists</span>
+        <span class="n">ids_list</span> <span class="o">=</span> <span class="n">new_ids_lists</span>
+
+
+<span class="k">def</span> <span class="nf">_populate_tree_recursive</span><span class="p">(</span><span class="n">parent_node</span><span class="p">,</span> <span class="n">child_ids</span><span class="p">,</span> <span class="n">num_levels</span><span class="p">,</span> <span class="n">ider_list</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively builds the tree structure</span>
+
+<span class="sd">    Cyth::</span>
+<span class="sd">        &lt;CYTH returns=&quot;TreeNode&quot;&gt;</span>
+<span class="sd">        cdef:</span>
+<span class="sd">            size_t ix</span>
+<span class="sd">            long id_</span>
+<span class="sd">            list child_nodes</span>
+<span class="sd">            TreeNode next_node</span>
+<span class="sd">            list next_ids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool.api_tree_node import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool.api_tree_node import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool import api_tree_node  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(ut.get_argval(&#39;--db&#39;, str, default=&#39;testdb1&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ider_list = [ibs.get_valid_nids, ibs.get_name_aids]</span>
+<span class="sd">        &gt;&gt;&gt; num_levels = len(ider_list)</span>
+<span class="sd">        &gt;&gt;&gt; root_node = TreeNode(-1, None, -1)</span>
+<span class="sd">        &gt;&gt;&gt; if num_levels == 0:</span>
+<span class="sd">        &gt;&gt;&gt;     root_id_list = []</span>
+<span class="sd">        &gt;&gt;&gt; else:</span>
+<span class="sd">        &gt;&gt;&gt;     root_id_list = ider_list[0]()</span>
+<span class="sd">        &gt;&gt;&gt; root_node = TreeNode(-1, None, -1)</span>
+<span class="sd">        &gt;&gt;&gt; level = 0</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; api_tree_node._populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; self = root_node</span>
+<span class="sd">        &gt;&gt;&gt; infostr = api_tree_node.tree_node_string(root_node, charids=2)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ut.truncate_str(infostr, maxlen=2000))</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hashstr(infostr)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="n">num_levels</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">child_nodes</span> <span class="o">=</span> <span class="p">(</span><span class="n">TreeNode</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">parent_node</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span> <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">child_ids</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">child_ider</span> <span class="o">=</span> <span class="n">ider_list</span><span class="p">[</span><span class="n">level</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">child_nodes</span> <span class="o">=</span>  <span class="p">[</span><span class="n">_populate_tree_recursive</span><span class="p">(</span>
+            <span class="n">TreeNode</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">parent_node</span><span class="p">,</span> <span class="n">level</span><span class="p">),</span>
+            <span class="n">child_ider</span><span class="p">(</span><span class="n">id_</span><span class="p">),</span>
+            <span class="n">num_levels</span><span class="p">,</span>
+            <span class="n">ider_list</span><span class="p">,</span>
+            <span class="n">level</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">child_ids</span><span class="p">]</span>
+    <span class="n">parent_node</span><span class="o">.</span><span class="n">set_children</span><span class="p">(</span><span class="n">child_nodes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parent_node</span>
+
+
+<span class="k">def</span> <span class="nf">_populate_tree_recursive_lazy</span><span class="p">(</span><span class="n">parent_node</span><span class="p">,</span> <span class="n">child_ids</span><span class="p">,</span> <span class="n">num_levels</span><span class="p">,</span> <span class="n">ider_list</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively builds the tree structure</span>
+
+<span class="sd">    Cyth::</span>
+<span class="sd">        &lt;CYTH returns=&quot;TreeNode&quot;&gt;</span>
+<span class="sd">        cdef:</span>
+<span class="sd">            size_t ix</span>
+<span class="sd">            long id_</span>
+<span class="sd">            list child_nodes</span>
+<span class="sd">            TreeNode next_node</span>
+<span class="sd">            list next_ids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool.api_tree_node import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool import api_tree_node  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(ut.get_argval(&#39;--db&#39;, str, default=&#39;testdb1&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ider_list = [ibs.get_valid_nids, ibs.get_name_aids]</span>
+<span class="sd">        &gt;&gt;&gt; num_levels = len(ider_list)</span>
+<span class="sd">        &gt;&gt;&gt; root_node = TreeNode(-1, None, -1)</span>
+<span class="sd">        &gt;&gt;&gt; if num_levels == 0:</span>
+<span class="sd">        &gt;&gt;&gt;     root_id_list = []</span>
+<span class="sd">        &gt;&gt;&gt; else:</span>
+<span class="sd">        &gt;&gt;&gt;     root_id_list = ider_list[0]()</span>
+<span class="sd">        &gt;&gt;&gt; root_node = TreeNode(-1, None, -1)</span>
+<span class="sd">        &gt;&gt;&gt; level = 0</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; api_tree_node._populate_tree_recursive_lazy(root_node, root_id_list, num_levels, ider_list, level)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; self = root_node</span>
+<span class="sd">        &gt;&gt;&gt; infostr = api_tree_node.tree_node_string(root_node, charids=2)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ut.truncate_str(infostr, maxlen=2000))</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hashstr(infostr)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="n">num_levels</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">child_nodes_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">TreeNode</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">parent_node</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span> <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">child_ids</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">child_ider</span> <span class="o">=</span> <span class="n">ider_list</span><span class="p">[</span><span class="n">level</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">child_nodes_iter</span> <span class="o">=</span>  <span class="p">(</span>
+            <span class="n">_populate_tree_recursive</span><span class="p">(</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">parent_node</span><span class="p">,</span> <span class="n">level</span><span class="p">),</span> <span class="n">child_ider</span><span class="p">(</span><span class="n">id_</span><span class="p">),</span>
+                <span class="n">num_levels</span><span class="p">,</span> <span class="n">ider_list</span><span class="p">,</span> <span class="n">level</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">child_ids</span><span class="p">)</span>
+    <span class="c1"># seting children as an iterator triggers lazy loading</span>
+    <span class="n">parent_node</span><span class="o">.</span><span class="n">set_children</span><span class="p">(</span><span class="n">child_nodes_iter</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parent_node</span>
+
+
+<div class="viewcode-block" id="build_internal_structure"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.build_internal_structure">[docs]</a><span class="k">def</span> <span class="nf">build_internal_structure</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cyth:</span>
+<span class="sd">        &lt;CYTH returns=&quot;TreeNode&quot;&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#from wbia.guitool.api_item_model import *</span>
+    <span class="n">ider_list</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">iders</span>  <span class="c1"># an ider for each level</span>
+    <span class="n">ider_list</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_iders</span><span class="p">()</span>
+    <span class="n">num_levels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ider_list</span><span class="p">)</span>
+    <span class="c1">#USE_RECURSIVE = True</span>
+    <span class="n">USE_RECURSIVE</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">USE_RECURSIVE</span><span class="p">:</span>
+        <span class="c1"># I trust this code more although it is slightly slower</span>
+        <span class="k">if</span> <span class="n">num_levels</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">root_id_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">root_id_list</span> <span class="o">=</span> <span class="n">ider_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]()</span>
+        <span class="n">root_node</span> <span class="o">=</span> <span class="n">TreeNode</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1">#_populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)</span>
+        <span class="n">_populate_tree_recursive_lazy</span><span class="p">(</span><span class="n">root_node</span><span class="p">,</span> <span class="n">root_id_list</span><span class="p">,</span> <span class="n">num_levels</span><span class="p">,</span> <span class="n">ider_list</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># TODO: Vet this code a bit more.</span>
+        <span class="n">root_node</span> <span class="o">=</span> <span class="n">TreeNode</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">_populate_tree_iterative</span><span class="p">(</span><span class="n">root_node</span><span class="p">,</span> <span class="n">num_levels</span><span class="p">,</span> <span class="n">ider_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">VERBOSE_TREE_NODE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ider_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ider_list</span><span class="p">,))</span>
+        <span class="n">infostr</span> <span class="o">=</span> <span class="n">tree_node_string</span><span class="p">(</span><span class="n">root_node</span><span class="p">,</span> <span class="n">charids</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">infostr</span><span class="p">)</span>
+        <span class="c1"># print(ut.repr3(root_node.__dict__))</span>
+    <span class="c1">#assert root_node.__dict__, &quot;root_node.__dict__ is empty&quot;</span>
+    <span class="k">return</span> <span class="n">root_node</span></div>
+
+
+<div class="viewcode-block" id="build_scope_hack_list"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.build_scope_hack_list">[docs]</a><span class="k">def</span> <span class="nf">build_scope_hack_list</span><span class="p">(</span><span class="n">root_node</span><span class="p">,</span> <span class="n">scope_hack_list</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="n">scope_hack_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">root_node</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">root_node</span><span class="o">.</span><span class="n">get_children</span><span class="p">():</span>
+        <span class="n">build_scope_hack_list</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">scope_hack_list</span><span class="p">)</span></div>
+
+
+<span class="n">CYTHONIZED</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.guitool.api_tree_node</span>
+<span class="sd">        python -m wbia.guitool.api_tree_node --allexamples</span>
+<span class="sd">        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc</span>
+<span class="sd">        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc --db GZ_ALL</span>
+<span class="sd">        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc --db PZ_Master0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../guitool.html">wbia.guitool</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

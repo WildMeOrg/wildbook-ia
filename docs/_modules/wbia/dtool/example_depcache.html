@@ -1,0 +1,785 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.dtool.example_depcache &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.dtool.example_depcache</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CommandLine:</span>
+<span class="sd">    python -m dtool.example_depcache --exec-dummy_example_depcacahe --show</span>
+<span class="sd">    python -m dtool.depcache_control --exec-make_graph --show</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">wbia.dtool</span> <span class="k">import</span> <span class="n">depcache_control</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+
+
+<span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+    <span class="c1"># Example of global registration</span>
+    <span class="n">DUMMY_ROOT_TABLENAME</span> <span class="o">=</span> <span class="s1">&#39;dummy_annot&#39;</span>
+    <span class="n">_depcdecors</span> <span class="o">=</span> <span class="n">depcache_control</span><span class="o">.</span><span class="n">make_depcache_decors</span><span class="p">(</span><span class="n">DUMMY_ROOT_TABLENAME</span><span class="p">)</span>
+    <span class="n">register_preproc</span> <span class="o">=</span> <span class="n">_depcdecors</span><span class="p">[</span><span class="s1">&#39;preproc&#39;</span><span class="p">]</span>
+    <span class="n">register_subprop</span> <span class="o">=</span> <span class="n">_depcdecors</span><span class="p">[</span><span class="s1">&#39;subprop&#39;</span><span class="p">]</span>
+
+    <span class="nd">@register_preproc</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;dummy&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">DUMMY_ROOT_TABLENAME</span><span class="p">],</span>
+                      <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">dummy_global_preproc_func</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Requesting global dummy &#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">parent_rowids</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="s1">&#39;dummy&#39;</span>
+
+
+<div class="viewcode-block" id="DummyKptsConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyKptsConfig">[docs]</a><span class="k">class</span> <span class="nc">DummyKptsConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+<div class="viewcode-block" id="DummyKptsConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyKptsConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;adapt_shape&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;adapt_angle&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="DummyIndexerConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyIndexerConfig">[docs]</a><span class="k">class</span> <span class="nc">DummyIndexerConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;index_method&#39;</span><span class="p">,</span> <span class="s1">&#39;single&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;trees&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;algorithm&#39;</span><span class="p">,</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">),</span>
+    <span class="p">]</span></div>
+    <span class="c1"># FIXME: triggers duplicate error</span>
+    <span class="c1">#_sub_config_list = [</span>
+    <span class="c1">#    DummyKptsConfig</span>
+    <span class="c1">#]</span>
+
+
+<div class="viewcode-block" id="DummyNNConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyNNConfig">[docs]</a><span class="k">class</span> <span class="nc">DummyNNConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+<div class="viewcode-block" id="DummyNNConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyNNConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;Knorm&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;checks&#39;</span><span class="p">,</span> <span class="mi">800</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="DummySVERConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummySVERConfig">[docs]</a><span class="k">class</span> <span class="nc">DummySVERConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;sver_on&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;xy_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">01</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DummyChipConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyChipConfig">[docs]</a><span class="k">class</span> <span class="nc">DummyChipConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg = DummyChipConfig()</span>
+<span class="sd">        &gt;&gt;&gt; cfg.dim_size = 700</span>
+<span class="sd">        &gt;&gt;&gt; cfg.histeq = True</span>
+<span class="sd">        &gt;&gt;&gt; print(cfg)</span>
+<span class="sd">        &gt;&gt;&gt; cfg.histeq = False</span>
+<span class="sd">        &gt;&gt;&gt; print(cfg)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;resize_dim&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span>
+                     <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;heigh&#39;</span><span class="p">,</span> <span class="s1">&#39;diag&#39;</span><span class="p">]),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;dim_size&#39;</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="s1">&#39;sz&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;preserve_aspect&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;histeq&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ProbchipConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.ProbchipConfig">[docs]</a><span class="k">class</span> <span class="nc">ProbchipConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.example_depcache --exec-ProbchipConfig --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.depcache_control import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache import testdata_depc</span>
+<span class="sd">        &gt;&gt;&gt; depc = testdata_depc()</span>
+<span class="sd">        &gt;&gt;&gt; table = depc[&#39;probchip&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; exec(ut.execstr_funckw(table.get_rowid), globals())</span>
+<span class="sd">        &gt;&gt;&gt; config = table.configclass(testerror=True)</span>
+<span class="sd">        &gt;&gt;&gt; root_rowids = [1, 2, 3]</span>
+<span class="sd">        &gt;&gt;&gt; parent_rowids = list(zip(root_rowids))</span>
+<span class="sd">        &gt;&gt;&gt; proptup_gen = list(table.preproc_func(depc, root_rowids, config))</span>
+<span class="sd">        &gt;&gt;&gt; pc_rowids = depc.get_rowids(&#39;probchip&#39;, root_rowids, config)</span>
+<span class="sd">        &gt;&gt;&gt; prop_list2 = depc.get(&#39;probchip&#39;, root_rowids, config=config, read_extern=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(prop_list2)</span>
+<span class="sd">        &gt;&gt;&gt; #depc.new_request(&#39;probchip&#39;, [1, 2, 3])</span>
+<span class="sd">        &gt;&gt;&gt; fg_rowids = depc.get_rowids(&#39;fgweight&#39;, root_rowids, config)</span>
+<span class="sd">        &gt;&gt;&gt; fg = depc.get(&#39;fgweight&#39;, root_rowids, config=config)</span>
+<span class="sd">        &gt;&gt;&gt; #############</span>
+<span class="sd">        &gt;&gt;&gt; config = table.configclass(testerror=False)</span>
+<span class="sd">        &gt;&gt;&gt; root_rowids = [1, 2, 3]</span>
+<span class="sd">        &gt;&gt;&gt; parent_rowids = list(zip(root_rowids))</span>
+<span class="sd">        &gt;&gt;&gt; proptup_gen = list(table.preproc_func(depc, root_rowids, config))</span>
+<span class="sd">        &gt;&gt;&gt; pc_rowids2 = depc.get_rowids(&#39;probchip&#39;, root_rowids, config)</span>
+<span class="sd">        &gt;&gt;&gt; prop_list2 = depc.get(&#39;probchip&#39;, root_rowids, config=config, read_extern=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(prop_list2)</span>
+<span class="sd">        &gt;&gt;&gt; #depc.new_request(&#39;probchip&#39;, [1, 2, 3])</span>
+<span class="sd">        &gt;&gt;&gt; fg_rowids2 = depc.get_rowids(&#39;fgweight&#39;, root_rowids, config)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;testerror&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="s1">&#39;.png&#39;</span><span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DummyVsManyConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyVsManyConfig">[docs]</a><span class="k">class</span> <span class="nc">DummyVsManyConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="c1"># Different pipeline components can go here as well as dependencies</span>
+    <span class="c1"># that were not explicitly enumerated in the tree structure</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1">#ut.ParamInfo(&#39;score_method&#39;, &#39;csum&#39;),</span>
+        <span class="c1"># should this be the only thing here?</span>
+        <span class="c1">#ut.ParamInfo(&#39;daids&#39;, None),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;distinctiveness_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># I guess different annots might want different configs ...</span>
+        <span class="n">DummyChipConfig</span><span class="p">,</span>
+        <span class="n">DummyKptsConfig</span><span class="p">,</span>
+        <span class="n">DummyIndexerConfig</span><span class="p">,</span>
+        <span class="n">DummyNNConfig</span><span class="p">,</span>
+        <span class="n">DummySVERConfig</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DummyVsOneConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyVsOneConfig">[docs]</a><span class="k">class</span> <span class="nc">DummyVsOneConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+<div class="viewcode-block" id="DummyVsOneConfig.get_sub_config_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyVsOneConfig.get_sub_config_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_sub_config_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Different pipeline components can go here</span>
+        <span class="c1"># as well as dependencies that were not</span>
+        <span class="c1"># explicitly enumerated in the tree structure</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="c1"># I guess different annots might want different configs ...</span>
+            <span class="n">DummyChipConfig</span><span class="p">,</span>
+            <span class="n">DummyKptsConfig</span><span class="p">,</span>
+            <span class="n">DummyIndexerConfig</span><span class="p">,</span>
+            <span class="n">DummyNNConfig</span><span class="p">,</span>
+            <span class="n">DummySVERConfig</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="DummyVsOneConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyVsOneConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;distinctiveness_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ratio_thresh&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="DummyVsOneRequest"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyVsOneRequest">[docs]</a><span class="k">class</span> <span class="nc">DummyVsOneRequest</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">VsOneSimilarityRequest</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DummyVsManyRequest"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyVsManyRequest">[docs]</a><span class="k">class</span> <span class="nc">DummyVsManyRequest</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">VsManySimilarityRequest</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; algo_config = DummyVsManyConfig()</span>
+<span class="sd">        &gt;&gt;&gt; print(algo_config)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DummyAnnotMatch"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyAnnotMatch">[docs]</a><span class="k">class</span> <span class="nc">DummyAnnotMatch</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">MatchResult</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DummyVsOneMatch"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyVsOneMatch">[docs]</a><span class="k">class</span> <span class="nc">DummyVsOneMatch</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">AlgoResult</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fm</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">-vs-</span><span class="si">%d</span><span class="s1">) </span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">daid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">score</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="testdata_depc"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.testdata_depc">[docs]</a><span class="k">def</span> <span class="nf">testdata_depc</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example of local registration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_valid_test_imgkeys</span><span class="p">(),</span>
+                         <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">dummy_root</span> <span class="o">=</span> <span class="s1">&#39;dummy_annot&#39;</span>
+
+    <span class="k">def</span> <span class="nf">get_root_uuid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hashable_to_uuid</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="c1"># put the test cache in the dtool repo</span>
+    <span class="n">dtool_repo</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">dtool</span><span class="p">))</span>
+    <span class="n">cache_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dtool_repo</span><span class="p">,</span> <span class="s1">&#39;DEPCACHE&#39;</span><span class="p">)</span>
+
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">DependencyCache</span><span class="p">(</span>
+        <span class="n">root_tablename</span><span class="o">=</span><span class="n">dummy_root</span><span class="p">,</span> <span class="n">default_fname</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span>
+        <span class="n">cache_dpath</span><span class="o">=</span><span class="n">cache_dpath</span><span class="p">,</span>
+        <span class="n">get_root_uuid</span><span class="o">=</span><span class="n">get_root_uuid</span><span class="p">,</span>
+        <span class="c1">#root_asobject=root_asobject,</span>
+        <span class="n">use_globals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span>
+                           <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">],</span>
+                           <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">)],</span>
+                           <span class="n">configclass</span><span class="o">=</span><span class="n">DummyChipConfig</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">dummy_preproc_chip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">annot_rowid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TODO: Infer properties from docstr?</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            depc (dtool.DependencyCache):</span>
+<span class="sd">            annot_rowid_list (list): list of annot rowids</span>
+<span class="sd">            config (dict): config dictionary</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple : ((int, int), (&#39;extern&#39;, vt.imread))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Demonstates using asobject to get input to function as a dictionary</span>
+        <span class="c1"># of properties</span>
+        <span class="c1">#for annot in annot_list:</span>
+        <span class="c1">#print(&#39;[preproc] Computing chips of aid=%r&#39; % (aid,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc] Computing chips&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">annot_rowid_list</span><span class="p">:</span>
+            <span class="c1">#aid = annot[&#39;aid&#39;]</span>
+            <span class="c1">#chip_fpath = annot[&#39;gpath&#39;]</span>
+            <span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">gpath_list</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+            <span class="c1">#w, h = vt.image.open_image_size(chip_fpath)</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">)</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">chip</span><span class="p">)</span>
+            <span class="c1">#size = (w, h)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dummpy preproc chip yeilds&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;* chip_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip_fpath</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;* size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">size</span><span class="p">,))</span>
+            <span class="c1">#yield size, chip_fpath</span>
+            <span class="k">yield</span> <span class="n">size</span><span class="p">,</span> <span class="n">chip</span>
+
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+        <span class="s1">&#39;probchip&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span>
+        <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">)],</span>
+        <span class="n">configclass</span><span class="o">=</span><span class="n">ProbchipConfig</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">def</span> <span class="nf">dummy_preproc_probchip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc] Computing probchip&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">root_rowids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;testerror&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">rowid</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Test error yeilds None on even rowids</span>
+                    <span class="k">yield</span> <span class="kc">None</span>
+                    <span class="k">continue</span>
+            <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">rowid</span><span class="p">)</span>
+            <span class="n">probchip</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
+            <span class="c1">#probchip = np.zeros((64, 64))</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="n">rowid</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">size</span><span class="p">,</span> <span class="n">probchip</span>
+
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+        <span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;chip&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="c1">#default_onthefly=True,</span>
+        <span class="n">configclass</span><span class="o">=</span><span class="n">DummyKptsConfig</span><span class="p">,</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;Used to store individual chip features (ellipses)&#39;</span><span class="p">,)</span>
+    <span class="k">def</span> <span class="nf">dummy_preproc_kpts</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">chip_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+        <span class="n">adapt_shape</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;adapt_shape&#39;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc] Computing kpts&#39;</span><span class="p">)</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">chip_rowids</span><span class="p">,</span> <span class="s1">&#39;chip_rowids&#39;</span><span class="p">)</span>
+        <span class="c1"># This is in here to attempt to trigger a failure of the chips dont</span>
+        <span class="c1"># exist and the feature cache is called.</span>
+        <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="n">chip_rowids</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">,</span>
+                                          <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;computing featurse from chip_fpath_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,))</span>
+
+        <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">chip_rowids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">adapt_shape</span><span class="p">:</span>
+                <span class="n">kpts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">7</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span> <span class="o">+</span> <span class="n">rowid</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kpts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">7</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span> <span class="o">+</span> <span class="n">rowid</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">num</span>
+
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="s1">&#39;descriptor&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;vecs&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],)</span>
+    <span class="k">def</span> <span class="nf">dummy_preproc_vecs</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">kp_rowid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc] Computing vecs&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">kp_rowid</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">7</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">,</span>
+
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;fgweight&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],)</span>
+    <span class="k">def</span> <span class="nf">dummy_preproc_fgweight</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">kpts_rowid</span><span class="p">,</span> <span class="n">probchip_rowid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc] Computing fgweight&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rowid1</span><span class="p">,</span> <span class="n">rowid2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">kpts_rowid</span><span class="p">,</span> <span class="n">probchip_rowid</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">7</span> <span class="o">+</span> <span class="n">rowid1</span><span class="p">),</span>
+
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+        <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span> <span class="n">coltypes</span><span class="o">=</span><span class="n">DummyAnnotMatch</span><span class="p">,</span>
+        <span class="n">requestclass</span><span class="o">=</span><span class="n">DummyVsManyRequest</span><span class="p">,</span> <span class="n">configclass</span><span class="o">=</span><span class="n">DummyVsManyConfig</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">vsmany_matching</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.base --exec-VsManySimilarityRequest</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;RUNNING DUMMY VSMANY ALGO&#39;</span><span class="p">)</span>
+        <span class="n">daids</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">daids</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
+
+        <span class="n">sver_on</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">dummy_sver_cfg</span><span class="p">[</span><span class="s1">&#39;sver_on&#39;</span><span class="p">]</span>
+        <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaids</span><span class="p">))</span>  <span class="c1"># NOQA</span>
+        <span class="c1">#dummy_preproc_kpts</span>
+        <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaids</span><span class="p">:</span>
+            <span class="n">dnid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="n">unique_nids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">sver_on</span><span class="p">:</span>
+                <span class="n">annot_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">]</span>
+                <span class="n">name_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">annot_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">,</span> <span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="o">.</span><span class="mi">9</span><span class="p">]</span>
+                <span class="n">name_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">]</span>
+            <span class="n">annot_match</span> <span class="o">=</span> <span class="n">DummyAnnotMatch</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">,</span>
+                                          <span class="n">annot_score_list</span><span class="p">,</span> <span class="n">unique_nids</span><span class="p">,</span>
+                                          <span class="n">name_score_list</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">annot_match</span>
+
+    <span class="n">SIMPLE</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">SIMPLE</span><span class="p">:</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;chipmask&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;mask&#39;</span><span class="p">],</span>
+            <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">)])</span>
+        <span class="k">def</span> <span class="nf">dummy_manual_chipmask</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+            <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">interact_impaint</span>
+            <span class="n">mask_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">cache_dpath</span><span class="p">,</span> <span class="s1">&#39;ManualChipMask&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">mask_dpath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Requesting user defined chip mask&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">parent_rowids</span><span class="p">:</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">[</span><span class="n">rowid</span><span class="p">])</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">interact_impaint</span><span class="o">.</span><span class="n">impaint_mask2</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+                <span class="n">mask_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">mask_dpath</span><span class="p">,</span> <span class="s1">&#39;mask</span><span class="si">%d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rowid</span><span class="p">,))</span>
+                <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">mask_fpath</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+                <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">mask_fpath</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;notchdata&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],)</span>
+        <span class="k">def</span> <span class="nf">dummy_preproc_notch</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc] Computing notch&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">parent_rowids</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">5</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">),</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="s1">&#39;keypoint&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="s1">&#39;eggs&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;vector&#39;</span><span class="p">,</span> <span class="s1">&#39;textdata&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">readfrom</span><span class="p">)],</span>
+            <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;I dont like spam&#39;</span><span class="p">,)</span>
+        <span class="k">def</span> <span class="nf">dummy_preproc_spam</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;config&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc] Computing spam&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="s1">&#39;tmp.txt&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">lorium_ipsum</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span>
+                <span class="n">uuid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_zero_uuid</span><span class="p">()</span>
+                <span class="n">vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="mi">3665</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">uuid</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span> <span class="s1">&#39;tmp.txt&#39;</span><span class="p">)</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="s1">&#39;nnindexer&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint*&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;flann&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">str</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="n">configclass</span><span class="o">=</span><span class="n">DummyIndexerConfig</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">def</span> <span class="nf">dummy_preproc_indexer</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;COMPUTING DUMMY INDEXER&#39;</span><span class="p">)</span>
+            <span class="c1">#assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
+            <span class="k">for</span> <span class="n">parent_rowids</span> <span class="ow">in</span> <span class="n">parent_rowids_list</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="s1">&#39;really cool flann object&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">),)</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="s1">&#39;notchpair&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="s1">&#39;notch&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;pairscore&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="c1">#configclass=DummyIndexerConfig,</span>
+        <span class="p">)</span>
+        <span class="k">def</span> <span class="nf">dummy_notchpair</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;COMPUTING MULTITEST 1 &#39;</span><span class="p">)</span>
+            <span class="c1">#assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
+            <span class="k">for</span> <span class="n">nn1</span><span class="p">,</span> <span class="n">nn2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">nn1</span> <span class="o">+</span> <span class="n">nn2</span><span class="p">,)</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="s1">&#39;multitest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="s1">&#39;fgweight*&#39;</span><span class="p">,</span> <span class="s1">&#39;notchpair*&#39;</span><span class="p">,</span> <span class="s1">&#39;notchpair*&#39;</span><span class="p">,</span> <span class="s1">&#39;notchpair&#39;</span><span class="p">,</span> <span class="s1">&#39;nnindexer&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">str</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="c1">#configclass=DummyIndexerConfig,</span>
+        <span class="p">)</span>
+        <span class="k">def</span> <span class="nf">dummy_multitest</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;COMPUTING MULTITEST 1 &#39;</span><span class="p">)</span>
+            <span class="c1">#assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="s1">&#39;cool multi object&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),)</span>
+
+        <span class="c1"># TEST MULTISET DEPENDENCIES</span>
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="s1">&#39;multitest_score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;multitest&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="c1">#configclass=DummyIndexerConfig,</span>
+        <span class="p">)</span>
+        <span class="k">def</span> <span class="nf">dummy_multitest_score</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;COMPUTING DEPENDENCY OF MULTITEST 1 &#39;</span><span class="p">)</span>
+            <span class="c1">#assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
+            <span class="k">for</span> <span class="n">parent_rowids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">parent_rowids</span><span class="p">,)</span>
+
+        <span class="c1"># TEST MULTISET DEPENDENCIES</span>
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="s1">&#39;multitest_score_x&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;multitest_score&#39;</span><span class="p">,</span> <span class="s1">&#39;multitest_score&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="c1">#configclass=DummyIndexerConfig,</span>
+        <span class="p">)</span>
+        <span class="k">def</span> <span class="nf">multitest_score_x</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;hack&#39;</span><span class="p">)</span>
+        <span class="c1"># REGISTER MATCHING ALGORITHMS</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;neighbs&#39;</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qx2_idx&#39;</span><span class="p">,</span> <span class="s1">&#39;qx2_dist&#39;</span><span class="p">],</span>
+                               <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+                               <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="s1">&#39;nnindexer&#39;</span><span class="p">,</span> <span class="s1">&#39;nnindexer&#39;</span><span class="p">])</span>
+        <span class="k">def</span> <span class="nf">neighbs</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            CommandLine:</span>
+<span class="sd">                python -m dtool.base --exec-VsManySimilarityRequest</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1">#dummy_preproc_kpts</span>
+            <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qaid</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qaid</span><span class="p">])</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;neighbs_score&#39;</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qx2_dist&#39;</span><span class="p">],</span>
+                               <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+                               <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;neighbs&#39;</span><span class="p">])</span>
+        <span class="k">def</span> <span class="nf">neighbs_score</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            CommandLine:</span>
+<span class="sd">                python -m dtool.base --exec-VsManySimilarityRequest</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;hack&#39;</span><span class="p">)</span>
+
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="s1">&#39;vsone&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">dummy_root</span><span class="p">,</span> <span class="n">dummy_root</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;match_obj&#39;</span><span class="p">,</span> <span class="s1">&#39;fm&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">DummyVsOneMatch</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+            <span class="n">requestclass</span><span class="o">=</span><span class="n">DummyVsOneRequest</span><span class="p">,</span>
+            <span class="n">configclass</span><span class="o">=</span><span class="n">DummyVsOneConfig</span><span class="p">,</span>
+            <span class="n">chunksize</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="k">def</span> <span class="nf">compute_vsone_matching</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            CommandLine:</span>
+<span class="sd">                python -m dtool.base --exec-VsOneSimilarityRequest</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;RUNNING DUMMY VSONE ALGO&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="n">DummyVsOneMatch</span><span class="p">()</span>
+                <span class="n">match</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid</span>
+                <span class="n">match</span><span class="o">.</span><span class="n">daid</span> <span class="o">=</span> <span class="n">daid</span>
+                <span class="n">match</span><span class="o">.</span><span class="n">fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+                <span class="n">score</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">qaid</span> <span class="o">+</span> <span class="n">daid</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">match</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">fm</span><span class="p">)</span>
+
+    <span class="c1"># table = depc[&#39;spam&#39;]</span>
+    <span class="c1"># print(ut.repr2(table.get_addtable_kw(), nl=2))</span>
+    <span class="n">depc</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+    <span class="c1"># table.print_schemadef()</span>
+    <span class="c1"># print(table.db.get_schema_current_autogeneration_str())</span>
+    <span class="k">return</span> <span class="n">depc</span></div>
+
+
+<div class="viewcode-block" id="example_getter_methods"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.example_getter_methods">[docs]</a><span class="k">def</span> <span class="nf">example_getter_methods</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    example of different ways to get data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">+---&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Running getter example&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * tablename=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * root_rowids=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">tablename</span><span class="p">)))</span>
+
+    <span class="c1"># You can get a reference to data rows using the &quot;root&quot; (dummy_annot) rowids</span>
+    <span class="c1"># By default, if the data has not been computed, then it will be computed</span>
+    <span class="c1"># for you. But if you specify ensure=False, None will be returned if the data</span>
+    <span class="c1"># has not been computed yet.</span>
+    <span class="n">tbl_rowids</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=False)&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tbl_rowids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">),))</span>
+    <span class="c1">#assert tbl_rowids[0] is None</span>
+
+    <span class="c1"># The default is for the data to be computed though. Manaual interactions will</span>
+    <span class="c1"># launch as necessary.</span>
+    <span class="n">tbl_rowids</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=True)&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tbl_rowids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">),))</span>
+    <span class="k">assert</span> <span class="n">tbl_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="c1"># Now the data is cached and will not need to be computed again</span>
+    <span class="n">tbl_rowids</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+    <span class="k">assert</span> <span class="n">tbl_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="c1"># Can lookup a table, which can access data directly.  The rowids can be</span>
+    <span class="c1"># used to lookup data values directly. By default all data in a row is</span>
+    <span class="c1"># returned.</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">depc</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
+    <span class="n">datas</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+
+    <span class="c1"># But you can also ask for a specific column</span>
+    <span class="n">col1</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">col1_data</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">,</span> <span class="n">col1</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+
+    <span class="c1"># In the case of external columns:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">extern_columns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">excol</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">extern_columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># you can lookup the value of the external data very simply</span>
+        <span class="n">extern_data</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">,</span> <span class="p">(</span><span class="n">excol</span><span class="p">,))</span>  <span class="c1"># NOQA</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extern_data = table.get_row_data(tbl_rowids, (excol,))&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">varinfo_str</span><span class="p">(</span><span class="n">extern_data</span><span class="p">,</span> <span class="s1">&#39;extern_data&#39;</span><span class="p">))</span>
+        <span class="c1"># you can lookup the hidden paths as follows</span>
+        <span class="n">extern_paths</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">,</span> <span class="p">(</span><span class="n">excol</span> <span class="o">+</span> <span class="n">dtool</span><span class="o">.</span><span class="n">depcache_table</span><span class="o">.</span><span class="n">EXTERN_SUFFIX</span><span class="p">,))</span>  <span class="c1"># NOQA</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extern_paths = table.get_row_data(tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,))&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">varinfo_str</span><span class="p">(</span><span class="n">extern_paths</span><span class="p">,</span> <span class="s1">&#39;extern_paths&#39;</span><span class="p">))</span>
+
+    <span class="c1"># But you can also just the root rowids directly. This is the simplest way</span>
+    <span class="c1"># to access data and really &quot;all you need to know&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">col1</span><span class="p">,</span> <span class="n">col2</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">datas</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">))</span>  <span class="c1"># NOQA</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L__&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_getters"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.test_getters">[docs]</a><span class="k">def</span> <span class="nf">test_getters</span><span class="p">(</span><span class="n">depc</span><span class="p">):</span>
+    <span class="c1"># One input = one output</span>
+    <span class="n">chip</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[test] chip.sum() = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+
+    <span class="n">col_tup_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[test] col_tup_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_tup_list</span><span class="p">,))</span>
+
+    <span class="n">col_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;size&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[test] col_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_list</span><span class="p">,))</span>
+
+    <span class="n">col</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[test] col = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,))</span>
+
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[test] cols = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cols</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">chip_dict</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;chip_dict = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip_dict</span><span class="p">,))</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">chip_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">varinfo_str</span><span class="p">(</span><span class="n">chip_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="s1">&#39;chip_dict[&quot;</span><span class="si">%s</span><span class="s1">&quot;]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,)))</span>
+        <span class="c1"># print(&#39;chip_dict[&quot;chip&quot;] = %s&#39; % (ut.trunc_repr(chip_dict[&#39;chip&#39;]),))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;chip_dict = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip_dict</span><span class="p">,))</span></div>
+
+
+<div class="viewcode-block" id="dummy_example_depcacahe"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.dummy_example_depcacahe">[docs]</a><span class="k">def</span> <span class="nf">dummy_example_depcacahe</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.example_depcache --exec-dummy_example_depcacahe</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; depc = dummy_example_depcacahe()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># fname = &#39;dummy_default_depcache&#39;</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;:memory:&#39;</span>
+
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">testdata_depc</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+    <span class="n">tablename</span> <span class="o">=</span> <span class="s1">&#39;fgweight&#39;</span>
+    <span class="c1"># print(&#39;[test] fgweight_path =\n%s&#39; % (ut.repr3(depc.get_dependencies(tablename), nl=1),))</span>
+    <span class="c1"># print(&#39;[test] keypoint =\n%s&#39; % (ut.repr3(depc.get_dependencies(&#39;keypoint&#39;), nl=1),))</span>
+    <span class="c1"># print(&#39;[test] descriptor =\n%s&#39; % (ut.repr3(depc.get_dependencies(&#39;descriptor&#39;), nl=1),))</span>
+    <span class="c1"># print(&#39;[test] spam =\n%s&#39; % (ut.repr3(depc.get_dependencies(&#39;spam&#39;), nl=1),))</span>
+
+    <span class="n">root_rowids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+    <span class="n">desc_rowids</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="s1">&#39;descriptor&#39;</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="n">depc</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>  <span class="c1"># NOQA</span>
+
+    <span class="c1">#example_getter_methods(depc, &#39;vsmany&#39;, root_rowids)</span>
+    <span class="c1"># example_getter_methods(depc, &#39;chipmask&#39;, root_rowids)</span>
+    <span class="c1"># example_getter_methods(depc, &#39;keypoint&#39;, root_rowids)</span>
+    <span class="c1"># example_getter_methods(depc, &#39;chip&#39;, root_rowids)</span>
+
+    <span class="n">test_getters</span><span class="p">(</span><span class="n">depc</span><span class="p">)</span>
+
+    <span class="c1">#import wbia.plottool as pt</span>
+    <span class="c1"># pt.ensureqt()</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">make_graph</span><span class="p">()</span>  <span class="c1"># NOQA</span>
+    <span class="c1">#pt.show_nx(graph)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---------- 111 -----------&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Try testing the algorithm</span>
+    <span class="n">req</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">new_request</span><span class="p">(</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;req = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">req</span><span class="p">,))</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---------- 222 -----------&#39;</span><span class="p">)</span>
+
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sver_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+    <span class="n">req</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">new_request</span><span class="p">(</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="p">[</span><span class="n">root_rowids</span><span class="p">],</span> <span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---------- 333 -----------&#39;</span><span class="p">)</span>
+
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sver_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;adapt_shape&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+    <span class="n">req</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">new_request</span><span class="p">(</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---------- 444 -----------&#39;</span><span class="p">)</span>
+
+    <span class="n">req</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">new_request</span><span class="p">(</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+    <span class="c1">#ut.InstanceList(</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">fname_to_db</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1">#db_list = ut.InstanceList(depc.fname_to_db.values())</span>
+    <span class="c1">#db_list.print_table_csv(&#39;config&#39;, exclude_columns=&#39;config_strid&#39;)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config table&#39;</span><span class="p">)</span>
+    <span class="n">tablename</span> <span class="o">=</span> <span class="s1">&#39;config&#39;</span>
+    <span class="n">column_list</span><span class="p">,</span> <span class="n">column_names</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_column_data</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span>
+                                                         <span class="p">[</span><span class="s1">&#39;config_strid&#39;</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">interleave</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;, &#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))))</span>
+                     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[[</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">column_list</span><span class="p">]))]))</span>
+
+    <span class="k">return</span> <span class="n">depc</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.example_depcache</span>
+<span class="sd">        python -m dtool.example_depcache --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

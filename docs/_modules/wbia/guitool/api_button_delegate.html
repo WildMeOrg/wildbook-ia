@@ -1,0 +1,294 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.guitool.api_button_delegate &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.guitool.api_button_delegate</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtWidgets</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">guitool_components</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="c1">#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, &#39;[APIButtonWidget]&#39;, DEBUG=False)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[api_button_delegate]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+<span class="c1">#DELEGATE_BASE = QtWidgets.QItemDelegate</span>
+<span class="n">DELEGATE_BASE</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyledItemDelegate</span>
+
+
+<div class="viewcode-block" id="rgb_to_qcolor"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.rgb_to_qcolor">[docs]</a><span class="k">def</span> <span class="nf">rgb_to_qcolor</span><span class="p">(</span><span class="n">rgb</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="o">*</span><span class="n">rgb</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="rgb_to_qbrush"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.rgb_to_qbrush">[docs]</a><span class="k">def</span> <span class="nf">rgb_to_qbrush</span><span class="p">(</span><span class="n">rgb</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QBrush</span><span class="p">(</span><span class="n">rgb_to_qcolor</span><span class="p">(</span><span class="n">rgb</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="paint_button"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.paint_button">[docs]</a><span class="k">def</span> <span class="nf">paint_button</span><span class="p">(</span><span class="n">painter</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;button&#39;</span><span class="p">,</span> <span class="n">pressed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bgcolor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">fgcolor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clicked</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">button</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1">#http://www.qtcentre.org/archive/index.php/t-31029.html</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyleOptionButton</span><span class="p">()</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">rect</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">rect</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">palette</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">palette</span>
+    <span class="k">if</span> <span class="n">pressed</span><span class="p">:</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyle</span><span class="o">.</span><span class="n">State_Enabled</span> <span class="o">|</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyle</span><span class="o">.</span><span class="n">State_Sunken</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyle</span><span class="o">.</span><span class="n">State_Enabled</span> <span class="o">|</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyle</span><span class="o">.</span><span class="n">State_Raised</span>
+
+    <span class="c1">#style = QtGui.Q Application.style()</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">button</span><span class="o">.</span><span class="n">style</span><span class="p">()</span>
+    <span class="n">style</span><span class="o">.</span><span class="n">drawControl</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyle</span><span class="o">.</span><span class="n">CE_PushButton</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">painter</span><span class="p">,</span> <span class="n">button</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="APIButtonDelegate"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.APIButtonDelegate">[docs]</a><span class="k">class</span> <span class="nc">APIButtonDelegate</span><span class="p">(</span><span class="n">DELEGATE_BASE</span><span class="p">):</span>
+    <span class="n">button_clicked</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;parent must be a view&#39;</span>
+        <span class="n">DELEGATE_BASE</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="c1"># FIXME: I don&#39;t like this state in the delegate, as it renders all</span>
+        <span class="c1"># buttons</span>
+        <span class="n">dgt</span><span class="o">.</span><span class="n">_pressed</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">dgt</span><span class="o">.</span><span class="n">button_clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dgt</span><span class="o">.</span><span class="n">on_button_click</span><span class="p">)</span>
+
+<div class="viewcode-block" id="APIButtonDelegate.get_index_butkw"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.APIButtonDelegate.get_index_butkw">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_butkw</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The model data for a button should be a (text, callback) tuple.  OR</span>
+<span class="sd">        it could be a function which accepts an qtindex and returns a button &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">)</span>
+        <span class="c1"># Get info</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">buttontup</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">elif</span> <span class="n">utool</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="n">buttontup</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;bad type&#39;</span><span class="p">)</span>
+        <span class="n">text</span><span class="p">,</span> <span class="n">callback</span> <span class="o">=</span> <span class="n">buttontup</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">butkw</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1">#&#39;parent&#39;: dgt.parent(),</span>
+            <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+            <span class="s1">&#39;clicked&#39;</span><span class="p">:</span> <span class="n">callback</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buttontup</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">butkw</span><span class="p">[</span><span class="s1">&#39;bgcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buttontup</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">butkw</span><span class="p">[</span><span class="s1">&#39;fgcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">butkw</span></div>
+
+<div class="viewcode-block" id="APIButtonDelegate.paint"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.APIButtonDelegate.paint">[docs]</a>    <span class="k">def</span> <span class="nf">paint</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">painter</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="n">butkw</span> <span class="o">=</span> <span class="n">dgt</span><span class="o">.</span><span class="n">get_index_butkw</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="c1"># FIXME: I don&#39;t want to create a widget each time just</span>
+        <span class="c1"># so I can access the button&#39;s style</span>
+        <span class="n">button</span> <span class="o">=</span> <span class="n">guitool_components</span><span class="o">.</span><span class="n">newButton</span><span class="p">(</span><span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+        <span class="n">pressed</span> <span class="o">=</span> <span class="n">dgt</span><span class="o">.</span><span class="n">is_qtindex_pressed</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">dgt</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+        <span class="n">paint_button</span><span class="p">(</span><span class="n">painter</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">button</span><span class="o">=</span><span class="n">button</span><span class="p">,</span> <span class="n">pressed</span><span class="o">=</span><span class="n">pressed</span><span class="p">,</span>
+                     <span class="n">view</span><span class="o">=</span><span class="n">view</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+        <span class="n">painter</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="APIButtonDelegate.is_qtindex_pressed"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.APIButtonDelegate.is_qtindex_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">is_qtindex_pressed</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dgt</span><span class="o">.</span><span class="n">_pressed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dgt</span><span class="o">.</span><span class="n">_pressed</span> <span class="o">==</span> <span class="p">(</span><span class="n">qtindex</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="APIButtonDelegate.on_button_click"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.APIButtonDelegate.on_button_click">[docs]</a>    <span class="nd">@QtCore</span><span class="o">.</span><span class="n">pyqtSlot</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_button_click</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pressed button&#39;</span><span class="p">)</span>
+        <span class="n">butkw</span> <span class="o">=</span> <span class="n">dgt</span><span class="o">.</span><span class="n">get_index_butkw</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="n">callback</span> <span class="o">=</span> <span class="n">butkw</span><span class="p">[</span><span class="s1">&#39;clicked&#39;</span><span class="p">]</span>
+        <span class="n">callback</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="APIButtonDelegate.editorEvent"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.APIButtonDelegate.editorEvent">[docs]</a>    <span class="k">def</span> <span class="nf">editorEvent</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+        <span class="c1"># http://stackoverflow.com/questions/14585575/button-delegate-issue</span>
+        <span class="c1">#print(&#39;editor event&#39;)</span>
+        <span class="n">event_type</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">event_type</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QEvent</span><span class="o">.</span><span class="n">MouseButtonPress</span><span class="p">:</span>
+            <span class="c1"># store the position that is clicked</span>
+            <span class="n">dgt</span><span class="o">.</span><span class="n">_pressed</span> <span class="o">=</span> <span class="p">(</span><span class="n">qtindex</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;store&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QEvent</span><span class="o">.</span><span class="n">MouseButtonRelease</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dgt</span><span class="o">.</span><span class="n">is_qtindex_pressed</span><span class="p">(</span><span class="n">qtindex</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;emit&#39;</span><span class="p">)</span>
+                <span class="n">dgt</span><span class="o">.</span><span class="n">button_clicked</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">dgt</span><span class="o">.</span><span class="n">_pressed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># different place.</span>
+                <span class="c1"># force a repaint on the pressed cell by emitting a dataChanged</span>
+                <span class="c1"># Note: This is probably not the best idea</span>
+                <span class="c1"># but I&#39;ve yet to find a better solution.</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;repaint&#39;</span><span class="p">)</span>
+                <span class="n">oldIndex</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="o">*</span><span class="n">dgt</span><span class="o">.</span><span class="n">_pressed</span><span class="p">)</span>
+                <span class="n">dgt</span><span class="o">.</span><span class="n">_pressed</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">oldIndex</span><span class="p">,</span> <span class="n">oldIndex</span><span class="p">)</span>
+                <span class="k">pass</span>
+            <span class="n">dgt</span><span class="o">.</span><span class="n">_pressed</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="c1">#print(&#39;mouse release&#39;)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QEvent</span><span class="o">.</span><span class="n">Leave</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;leave&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QEvent</span><span class="o">.</span><span class="n">MouseButtonDblClick</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;doubleclick&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;event_type = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">event_type</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">DELEGATE_BASE</span><span class="o">.</span><span class="n">editorEvent</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span></div></div>
+
+
+<span class="c1">## graveyard:</span>
+<span class="c1">#    #opt = QtWidgets.QStyleOptionViewItemV4(option)</span>
+<span class="c1">#    #opt.initFrom(button)</span>
+<span class="c1">#    #painter.drawRect(option.rect)</span>
+<span class="c1">#    #print(style)</span>
+<span class="c1">#    #if view is not None:</span>
+<span class="c1">#    #view.style</span>
+<span class="c1">#    ## FIXME: I cant set the colors!</span>
+<span class="c1">#    #if bgcolor is not None:</span>
+<span class="c1">#    #    opt.palette.setCurrentColorGroup(QtGui.QPalette.Normal)</span>
+<span class="c1">#    #    opt.palette.setBrush(QtGui.QPalette.Normal, QtGui.QPalette.Button, rgb_to_qbrush(bgcolor))</span>
+<span class="c1">#    #    opt.palette.setBrush(QtGui.QPalette.Base, rgb_to_qbrush(bgcolor))</span>
+<span class="c1">#    #    opt.palette.setBrush(QtGui.QPalette.Window, rgb_to_qbrush(bgcolor))</span>
+<span class="c1">#    #    opt.palette.setBrush(QtGui.QPalette.ButtonText, rgb_to_qbrush(bgcolor))</span>
+<span class="c1">#    #    #</span>
+<span class="c1">#    #    opt.palette.setColor(QtGui.QPalette.Normal, QtGui.QPalette.Button, rgb_to_qcolor(bgcolor))</span>
+<span class="c1">#    #    opt.palette.setColor(QtGui.QPalette.Base, rgb_to_qcolor(bgcolor))</span>
+<span class="c1">#    #    opt.palette.setColor(QtGui.QPalette.Window, rgb_to_qcolor(bgcolor))</span>
+<span class="c1">#    #    opt.palette.setColor(QtGui.QPalette.ButtonText, rgb_to_qcolor(bgcolor))</span>
+<span class="c1">#        #painter.setBrush(rgb_to_qbrush(bgcolor))</span>
+<span class="c1">#    #if fgcolor is not None:</span>
+<span class="c1">#    #    opt.palette.setBrush(QtGui.QPalette.Normal, QtGui.QPalette.ButtonText, rgb_to_qbrush(fgcolor))</span>
+<span class="c1">#        #if not qtindex.isValid():</span>
+<span class="c1">#        #    return None</span>
+<span class="c1">#        #if view.indexWidget(qtindex):</span>
+<span class="c1">#        #    return</span>
+<span class="c1">#        #else:</span>
+<span class="c1">#        #    view.setIndexWidget(qtindex, button)</span>
+<span class="c1">#        #    # The view already has a button</span>
+<span class="c1">#        #    # NOTE: this requires model::qtindex to be overwritten</span>
+<span class="c1">#        #    # and return model.createIndex(row, col, object) where</span>
+<span class="c1">#        #    # object is specified.</span>
+<span class="c1">#        #    view.setIndexWidget(qtindex, None)</span>
+<span class="c1">#        #    button = QtWidgets.QPushButton(text, view, clicked=view.cellButtonClicked)</span>
+
+<span class="c1">#    #        pass</span>
+<span class="c1">#    #    #       dgt._pressed = (qtindex.row(), qtindex.column())</span>
+<span class="c1">#    #    #       return True</span>
+<span class="c1">#    #        pass</span>
+<span class="c1">#    #    else:</span>
+<span class="c1">#    #        pass</span>
+<span class="c1">#    #    #       if dgt._pressed == (qtindex.row(), qtindex.column()):</span>
+<span class="c1">#    #    #           # we are at the same place, so emit</span>
+<span class="c1">#    #    #           dgt.button_clicked.emit(*dgt._pressed)</span>
+<span class="c1">#    #    #       elif dgt._pressed:</span>
+<span class="c1">#    #    #           # different place.</span>
+<span class="c1">#    #    #           # force a repaint on the pressed cell by emitting a dataChanged</span>
+<span class="c1">#    #    #           # Note: This is probably not the best idea</span>
+<span class="c1">#    #    #           # but I&#39;ve yet to find a better solution.</span>
+<span class="c1">#    #    #           oldIndex = qtindex.model().qtindex(*dgt._pressed)</span>
+<span class="c1">#    #    #           dgt._pressed = None</span>
+<span class="c1">#    #    #           qtindex.model().dataChanged.emit(oldIndex, oldIndex)</span>
+<span class="c1">#    #    #       dgt._pressed = None</span>
+<span class="c1">#    #    #       return True</span>
+<span class="c1">#    #    #   else:</span>
+<span class="c1">#    #    # default editor event;</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../guitool.html">wbia.guitool</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

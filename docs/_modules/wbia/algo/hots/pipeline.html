@@ -1,0 +1,1632 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.algo.hots.pipeline &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.algo.hots.pipeline</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Hotspotter pipeline module</span>
+
+<span class="sd">Module Notation and Concepts::</span>
+<span class="sd">    PREFIXES:</span>
+<span class="sd">    qaid2_XXX - prefix mapping query chip index to</span>
+<span class="sd">    qfx2_XXX  - prefix mapping query chip feature index to</span>
+
+<span class="sd">     * nns    - a (qfx2_idx, qfx2_dist) tuple</span>
+
+<span class="sd">     * idx    - the index into the nnindexers descriptors</span>
+<span class="sd">     * qfx    - query feature index wrt the query chip</span>
+<span class="sd">     * dfx    - query feature index wrt the database chip</span>
+<span class="sd">     * dist   - the distance to a corresponding feature</span>
+<span class="sd">     * fm     - a list of feature match pairs / correspondences (qfx, dfx)</span>
+<span class="sd">     * fsv    - a score vector of a corresponding feature</span>
+<span class="sd">     * valid  - a valid bit for a corresponding feature</span>
+
+<span class="sd">    PIPELINE_VARS::</span>
+<span class="sd">    nns_list - maping from query chip index to nns</span>
+<span class="sd">     * qfx2_idx   - ranked list of query feature indexes to database feature indexes</span>
+<span class="sd">     * qfx2_dist - ranked list of query feature indexes to database feature indexes</span>
+
+<span class="sd">    * qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)</span>
+<span class="sd">             = qaid2_nnfiltagg[qaid]</span>
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    To see the ouput of a complete pipeline run use</span>
+
+<span class="sd">    # Set to whichever database you like</span>
+<span class="sd">    python main.py --db PZ_MTEST --setdb</span>
+<span class="sd">    python main.py --db NAUT_test --setdb</span>
+<span class="sd">    python main.py --db testdb1 --setdb</span>
+
+<span class="sd">    # Then run whichever configuration you like</span>
+<span class="sd">    python main.py --query 1 --yes --noqcache -t default:codename=vsmany</span>
+<span class="sd">    python main.py --query 1 --yes --noqcache -t default:codename=vsmany_nsum</span>
+
+<span class="sd">TODO:</span>
+<span class="sd">    * Don&#39;t preload the nn-indexer in case the nearest neighbors have already</span>
+<span class="sd">    been computed?</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">hstypes</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">chip_match</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">nn_weights</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">scoring</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1">#=================</span>
+<span class="c1"># Globals</span>
+<span class="c1">#=================</span>
+
+<span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># References: tauday.com</span>
+<span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--quiet-query&#39;</span><span class="p">)</span>
+<span class="n">DEBUG_PIPELINE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--debug-pipeline&#39;</span><span class="p">,</span> <span class="s1">&#39;--debug-pipe&#39;</span><span class="p">))</span>
+<span class="n">VERB_PIPELINE</span> <span class="o">=</span>  <span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verbose-pipeline&#39;</span><span class="p">,</span> <span class="s1">&#39;--verb-pipe&#39;</span><span class="p">)))</span>
+<span class="n">VERYVERBOSE_PIPELINE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--very-verbose-pipeline&#39;</span><span class="p">,</span> <span class="s1">&#39;--very-verb-pipe&#39;</span><span class="p">))</span>
+
+<span class="n">USE_HOTSPOTTER_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache-hs&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_CACHE</span>
+<span class="n">USE_NN_MID_CACHE</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="kc">True</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">())</span> <span class="ow">and</span>
+    <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache-nnmid&#39;</span><span class="p">)</span> <span class="ow">and</span>
+    <span class="n">USE_HOTSPOTTER_CACHE</span>
+<span class="p">)</span>
+<span class="n">USE_NN_MID_CACHE</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="n">NN_LBL</span>      <span class="o">=</span> <span class="s1">&#39;Assign NN:       &#39;</span>
+<span class="n">FILT_LBL</span>    <span class="o">=</span> <span class="s1">&#39;Filter NN:       &#39;</span>
+<span class="n">WEIGHT_LBL</span>  <span class="o">=</span> <span class="s1">&#39;Weight NN:       &#39;</span>
+<span class="n">BUILDCM_LBL</span> <span class="o">=</span> <span class="s1">&#39;Build Chipmatch: &#39;</span>
+<span class="n">SVER_LVL</span>    <span class="o">=</span> <span class="s1">&#39;SVER:            &#39;</span>
+
+<span class="n">PROGKW</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="c1"># Internal tuples denoting return types</span>
+<span class="n">WeightRet_</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;weight_ret&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;filtkey_list&#39;</span><span class="p">,</span> <span class="s1">&#39;filtweights_list&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;filtvalids_list&#39;</span><span class="p">,</span> <span class="s1">&#39;filtnormks_list&#39;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="Neighbors"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.Neighbors">[docs]</a><span class="k">class</span> <span class="nc">Neighbors</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;qaid&#39;</span><span class="p">,</span> <span class="s1">&#39;qfx_list&#39;</span><span class="p">,</span> <span class="s1">&#39;neighb_idxs&#39;</span><span class="p">,</span> <span class="s1">&#39;neighb_dists&#39;</span><span class="p">]</span>
+
+    <span class="c1"># TODO: replace with named tuple?</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">qfxs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qfx_list</span> <span class="o">=</span> <span class="n">qfxs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighb_idxs</span> <span class="o">=</span> <span class="n">idxs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighb_dists</span> <span class="o">=</span> <span class="n">dists</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_query_feats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">qfx_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qfx_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_dists</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_dists</span><span class="p">)[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;(qaid=</span><span class="si">%r</span><span class="s1">,nQfxs=</span><span class="si">%r</span><span class="s1">,nNbs=</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_query_feats</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">state</span><span class="p">)</span></div>
+
+
+<span class="c1">#@profile</span>
+<div class="viewcode-block" id="request_wbia_query_L0"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.request_wbia_query_L0">[docs]</a><span class="k">def</span> <span class="nf">request_wbia_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Driver logic of query pipeline</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Make sure _pipeline_helpres.testrun_pipeline_upto reflects what happens</span>
+<span class="sd">        in this function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (wbia.IBEISController): IBEIS database object to be queried.</span>
+<span class="sd">            technically this object already lives inside of qreq_.</span>
+<span class="sd">        qreq_ (wbia.QueryRequest): hyper-parameters. use</span>
+<span class="sd">            ``ibs.new_query_request`` to create one</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: cm_list containing ``wbia.ChipMatch`` objects</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --show</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --show</span>
+
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db testdb1 --qaid 325</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db testdb3 --qaid 325</span>
+<span class="sd">        # background match</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db NNP_Master3 --qaid 12838</span>
+
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_MTEST -a timectrl:qindex=0:256</span>
+<span class="sd">        python    -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256</span>
+<span class="sd">        utprof.py -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.init.main_helpers.testdata_qreq_(a=[&#39;default:qindex=0:2,dindex=0:10&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; print(qreq_.qparams.query_cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = request_wbia_query_L0(ibs, qreq_, verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.ishow_analysis(qreq_, fnum=0, make_figtitle=True)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Load data for nearest neighbors</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">[hs] +--- STARTING HOTSPOTTER PIPELINE ---&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">(),</span> <span class="s1">&#39;[hs] &#39;</span><span class="p">))</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">(),</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;pipeline qaids&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">(),</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;pipeline daids&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s1">&#39;smk&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.hots.smk</span> <span class="k">import</span> <span class="n">smk_match</span>
+        <span class="c1"># Alternative to naive bayes matching:</span>
+        <span class="c1"># Selective match kernel</span>
+        <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch_FILT_</span> <span class="o">=</span> <span class="n">smk_match</span><span class="o">.</span><span class="n">execute_smk_L5</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;vsone&#39;</span><span class="p">,</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">]:</span>
+        <span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">!=</span> <span class="s1">&#39;vsone&#39;</span><span class="p">,</span> <span class="s1">&#39;pipeline no longer supports vsone&#39;</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">initialize_subhooks</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_preload</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="p">(</span><span class="n">verbose</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">))</span>
+        <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">Kpad_list</span> <span class="o">=</span> <span class="n">build_impossible_daids_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+
+        <span class="c1"># Nearest neighbors (nns_list)</span>
+        <span class="c1"># a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)</span>
+        <span class="c1"># * query descriptors assigned to database descriptors</span>
+        <span class="c1"># * FLANN used here</span>
+        <span class="n">nns_list</span> <span class="o">=</span> <span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">,</span>
+                                     <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="c1"># Remove Impossible Votes</span>
+        <span class="c1"># a nnfilt object is an ndarray qfx2_valid</span>
+        <span class="c1"># * marks matches to the same image as invalid</span>
+        <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="n">baseline_neighbor_filter</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span>
+                                                 <span class="n">impossible_daids_list</span><span class="p">,</span>
+                                                 <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="c1"># Nearest neighbors weighting / scoring (filtweights_list)</span>
+        <span class="c1"># filtweights_list maps qaid to filtweights which is a dict</span>
+        <span class="c1"># that maps a filter name to that query&#39;s weights for that filter</span>
+        <span class="n">weight_ret</span> <span class="o">=</span> <span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span>
+                                      <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span> <span class="n">filtnormks_list</span> <span class="o">=</span> <span class="n">weight_ret</span>
+
+        <span class="c1"># Nearest neighbors to chip matches (cm_list)</span>
+        <span class="c1"># * Initial scoring occurs</span>
+        <span class="c1"># * vsone un-swapping occurs here</span>
+        <span class="n">cm_list_FILT</span> <span class="o">=</span> <span class="n">build_chipmatches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span>
+                                         <span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span>
+                                         <span class="n">filtnormks_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;invalid pipeline root </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
+
+    <span class="c1"># Spatial verification (cm_list) (TODO: cython)</span>
+    <span class="c1"># * prunes chip results and feature matches</span>
+    <span class="c1"># TODO: allow for reweighting of feature matches to happen.</span>
+    <span class="n">cm_list_SVER</span> <span class="o">=</span> <span class="n">spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_FILT</span><span class="p">,</span>
+                                        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cm_list_FILT</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">filtnorm_aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+        <span class="c1"># assert cm_list_SVER[0].filtnorm_aids is not None</span>
+
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list_SVER</span>
+    <span class="c1"># Final Scoring</span>
+    <span class="n">score_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_method</span>
+    <span class="n">scoring</span><span class="o">.</span><span class="n">score_chipmatch_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">score_method</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">VERB_PIPELINE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] L___ FINISHED HOTSPOTTER PIPELINE ___&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cm_list</span></div>
+
+<span class="c1">#============================</span>
+<span class="c1"># 0) Nearest Neighbors</span>
+<span class="c1">#============================</span>
+
+
+<div class="viewcode-block" id="build_impossible_daids_list"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.build_impossible_daids_list">[docs]</a><span class="k">def</span> <span class="nf">build_impossible_daids_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-build_impossible_daids_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     a=&#39;default:species=zebra_plains,qhackerrors=True&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     p=&#39;default:use_k_padding=True,can_match_sameimg=False,can_match_samename=False&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; impossible_daids_list = [x.tolist() for x in impossible_daids_list]</span>
+<span class="sd">        &gt;&gt;&gt; vals = ut.dict_subset(locals(), [&#39;impossible_daids_list&#39;, &#39;Kpad_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(vals, nl=1, explicit=True, nobr=True, strvals=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(qreq_.qaids == [1, 4, 5, 6])</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(qreq_.daids == [1, 2, 3, 4, 5, 6])</span>
+<span class="sd">        impossible_daids_list=[[1], [4], [5, 6], [5, 6]],</span>
+<span class="sd">        Kpad_list=[1, 1, 2, 2],</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 0) Build impossible matches&#39;</span><span class="p">)</span>
+
+    <span class="n">can_match_sameimg</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_sameimg</span>
+    <span class="n">can_match_samename</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_samename</span>
+    <span class="n">use_k_padding</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">use_k_padding</span>
+    <span class="n">can_match_self</span>     <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+    <span class="n">internal_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+    <span class="n">internal_data_nids</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">internal_daids</span><span class="p">)</span>
+
+    <span class="n">_impossible_daid_lists</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_match_self</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">can_match_sameimg</span> <span class="ow">and</span> <span class="n">can_match_samename</span><span class="p">:</span>
+            <span class="c1"># we can skip this if sameimg or samename is specified.</span>
+            <span class="c1"># it will cover this case for us</span>
+            <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="n">qaid</span><span class="p">]</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">internal_qaids</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_match_sameimg</span><span class="p">:</span>
+        <span class="c1"># slow way of getting contact_aids (now incorporates faster way)</span>
+        <span class="n">contact_aids_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_contact_aids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span>
+                                                             <span class="n">daid_list</span><span class="o">=</span><span class="n">internal_daids</span><span class="p">)</span>
+        <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contact_aids_list</span><span class="p">)</span>
+        <span class="n">EXTEND_TO_OTHER_CONTACT_GT</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># TODO: flag overlapping keypoints with another annot as likely to</span>
+        <span class="c1"># cause photobombs.</span>
+        <span class="c1"># Also cannot match any aids with a name of an annotation in this image</span>
+        <span class="k">if</span> <span class="n">EXTEND_TO_OTHER_CONTACT_GT</span><span class="p">:</span>
+            <span class="c1"># TODO: need a test set that can accomidate testing this case</span>
+            <span class="c1"># testdb1 might cut it if we spruced it up</span>
+            <span class="n">nonself_contact_aids</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">contact_aids_list</span><span class="p">,</span> <span class="n">internal_qaids</span><span class="p">)]</span>
+            <span class="n">nonself_contact_nids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">,</span> <span class="n">nonself_contact_aids</span><span class="p">)</span>
+            <span class="n">contact_aids_gt_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">internal_daids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span>
+                    <span class="n">vt</span><span class="o">.</span><span class="n">get_covered_mask</span><span class="p">(</span><span class="n">internal_data_nids</span><span class="p">,</span> <span class="n">nids</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">nonself_contact_nids</span>
+            <span class="p">]</span>
+            <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contact_aids_gt_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_match_samename</span><span class="p">:</span>
+        <span class="n">internal_data_nids</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">internal_daids</span><span class="p">)</span>
+        <span class="n">internal_query_nids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span>
+        <span class="n">gt_aids</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">internal_daids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">internal_data_nids</span> <span class="o">==</span> <span class="n">nid</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">internal_query_nids</span>
+        <span class="p">]</span>
+        <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">)</span>
+    <span class="c1"># TODO: add explicit not a match case in here</span>
+    <span class="n">_impossible_daids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">_impossible_daid_lists</span><span class="p">)))</span>
+    <span class="n">impossible_daids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">impossible_daids</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">impossible_daids</span> <span class="ow">in</span> <span class="n">_impossible_daids_list</span><span class="p">]</span>
+
+    <span class="c1"># TODO: we need to pad K for each bad annotation</span>
+    <span class="k">if</span> <span class="n">use_k_padding</span><span class="p">:</span>
+        <span class="n">Kpad_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># always at least pad K for self queries</span>
+        <span class="n">Kpad_list</span> <span class="o">=</span>  <span class="p">[</span>
+            <span class="mi">1</span> <span class="k">if</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">internal_daids</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">internal_qaids</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">Kpad_list</span></div>
+
+<span class="c1">#============================</span>
+<span class="c1"># 1) Nearest Neighbors</span>
+<span class="c1">#============================</span>
+
+
+<div class="viewcode-block" id="nearest_neighbor_cacheid2"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.nearest_neighbor_cacheid2">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">nearest_neighbor_cacheid2</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a hacky cacheid for neighbor configs.</span>
+<span class="sd">    DEPRICATE: This will be replaced by dtool caching</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+<span class="sd">        Kpad_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (nn_mid_cacheid_list, nn_cachedir)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --exec-nearest_neighbor_cacheid2</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --exec-nearest_neighbor_cacheid2 --superstrict</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(K=4, Knorm=1, checks=800, use_k_padding=False)</span>
+<span class="sd">        &gt;&gt;&gt; # test 1</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;testdb1&#39;, p=[p], qaid_override=[1, 2],</span>
+<span class="sd">        &gt;&gt;&gt;     daid_override=[1, 2, 3, 4, 5])</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Kpad_list, = ut.dict_take(locals_, [&#39;Kpad_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)</span>
+<span class="sd">        &gt;&gt;&gt; (nn_cachedir, nn_mid_cacheid_list) = tup</span>
+<span class="sd">        &gt;&gt;&gt; result1 = &#39;nn_mid_cacheid_list1 = &#39; + ut.repr2(nn_mid_cacheid_list, nl=1)</span>
+<span class="sd">        &gt;&gt;&gt; # test 2</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict2 = dict(K=2, Knorm=3, use_k_padding=True)</span>
+<span class="sd">        &gt;&gt;&gt; p2 = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[p2], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Kpad_list, = ut.dict_take(locals_, [&#39;Kpad_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)</span>
+<span class="sd">        &gt;&gt;&gt; (nn_cachedir, nn_mid_cacheid_list) = tup</span>
+<span class="sd">        &gt;&gt;&gt; result2 = &#39;nn_mid_cacheid_list2 = &#39; + ut.repr2(nn_mid_cacheid_list, nl=1)</span>
+<span class="sd">        &gt;&gt;&gt; result = result1 + &#39;\n&#39; + result2</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        nn_mid_cacheid_list1 = [</span>
+<span class="sd">            &#39;nnobj_8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6&#39;,</span>
+<span class="sd">            &#39;nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6&#39;,</span>
+<span class="sd">        ]</span>
+<span class="sd">        nn_mid_cacheid_list2 = [</span>
+<span class="sd">            &#39;nnobj_8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6&#39;,</span>
+<span class="sd">            &#39;nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6&#39;,</span>
+<span class="sd">        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="k">import</span> <span class="n">Config</span>
+    <span class="n">chip_cfgstr</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfgstr</span>
+    <span class="n">feat_cfgstr</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
+    <span class="n">flann_cfgstr</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_cfgstr</span>
+    <span class="n">requery</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">requery</span>
+    <span class="c1"># assert requery is False, &#39;can not be on yet&#39;</span>
+
+    <span class="n">internal_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+    <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">requery</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span>
+        <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span>
+            <span class="n">internal_daids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">requery</span><span class="p">:</span>
+        <span class="n">query_hashid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_pcc_uuids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># TODO: get attribute from qreq_, not wbia</span>
+        <span class="n">query_hashid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_visual_uuids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span>
+
+    <span class="n">HACK_KCFG</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">HACK_KCFG</span><span class="p">:</span>
+        <span class="c1"># hack config so we consolidate different k values</span>
+        <span class="c1"># (ie, K=2,Knorm=1 == K=1,Knorm=2)</span>
+        <span class="n">nn_cfgstr</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">NNConfig</span><span class="p">(</span><span class="o">**</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">)</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span>
+            <span class="n">ignore_keys</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;Knorm&#39;</span><span class="p">,</span> <span class="s1">&#39;use_k_padding&#39;</span><span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nn_cfgstr</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span>
+
+    <span class="n">aug_cfgstr</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;aug_quryside&#39;</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_rotation_heuristic</span>
+                  <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">nn_mid_cacheid</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">data_hashid</span><span class="p">,</span> <span class="n">nn_cfgstr</span><span class="p">,</span> <span class="n">chip_cfgstr</span><span class="p">,</span> <span class="n">feat_cfgstr</span><span class="p">,</span>
+                              <span class="n">flann_cfgstr</span><span class="p">,</span> <span class="n">aug_cfgstr</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;nn_mid_cacheid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_mid_cacheid</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">HACK_KCFG</span><span class="p">:</span>
+        <span class="n">kbase</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span><span class="p">)</span>
+        <span class="n">nn_mid_cacheid_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;nnobj_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_hashid</span><span class="p">)</span> <span class="o">+</span> <span class="n">nn_mid_cacheid</span> <span class="o">+</span> <span class="s1">&#39;_truek&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kbase</span> <span class="o">+</span> <span class="n">Kpad</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">query_hashid</span><span class="p">,</span> <span class="n">Kpad</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">query_hashid_list</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nn_mid_cacheid_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;nnobj_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_hashid</span><span class="p">)</span> <span class="o">+</span> <span class="n">nn_mid_cacheid</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">Kpad</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">query_hashid</span><span class="p">,</span> <span class="n">Kpad</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">query_hashid_list</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)]</span>
+
+    <span class="n">nn_cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_neighbor_cachedir</span><span class="p">()</span>
+    <span class="c1"># ut.unixjoin(qreq_.ibs.get_cachedir(), &#39;neighborcache2&#39;)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">nn_cachedir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;nn_mid_cacheid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_mid_cacheid</span><span class="p">,))</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">nn_cachedir</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span></div>
+
+
+<div class="viewcode-block" id="cachemiss_nn_compute_fn"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.cachemiss_nn_compute_fn">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">cachemiss_nn_compute_fn</span><span class="p">(</span><span class="n">flags_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span>
+                            <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">requery</span><span class="p">,</span>
+                            <span class="n">verbose</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Logic for computing neighbors if there is a cache miss</span>
+
+<span class="sd">    &gt;&gt;&gt; flags_list = [True] * len(Kpad_list)</span>
+<span class="sd">    &gt;&gt;&gt; flags_list = [True, False, True]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Cant do this here because of get_nn_aids. bleh</span>
+    <span class="c1"># Could make this slightly more efficient</span>
+    <span class="c1">#qreq_.load_indexer(verbose=verbose)</span>
+
+    <span class="c1">#internal_qaids = qreq_.get_internal_qaids()</span>
+    <span class="c1">#internal_qaids = internal_qaids.compress(flags_list)</span>
+
+    <span class="c1"># Get only the data that needs to be computed</span>
+    <span class="n">internal_qannots</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qannots</span>
+    <span class="n">internal_qannots</span> <span class="o">=</span> <span class="n">internal_qannots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">flags_list</span><span class="p">)</span>
+
+    <span class="n">Kpad_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">Kpad_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)</span>
+    <span class="c1"># do computation</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">requery</span><span class="p">:</span>
+        <span class="n">num_neighbors_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">K</span> <span class="o">+</span> <span class="n">Kpad</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="k">for</span> <span class="n">Kpad</span> <span class="ow">in</span> <span class="n">Kpad_list</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">num_neighbors_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">Kpad_list</span><span class="p">)</span>
+        <span class="n">Kpad_list</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Kpad_list</span><span class="p">)</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">()</span>
+    <span class="n">qvecs_list</span> <span class="o">=</span> <span class="n">internal_qannots</span><span class="o">.</span><span class="n">vecs</span>
+
+    <span class="n">qfxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qvecs</span><span class="p">))</span> <span class="k">for</span> <span class="n">qvecs</span> <span class="ow">in</span> <span class="n">qvecs_list</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">minscale_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">config2_</span><span class="o">.</span><span class="n">maxscale_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">min_</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span> <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">minscale_thresh</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">config2_</span><span class="o">.</span><span class="n">minscale_thresh</span>
+        <span class="n">max_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span> <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">maxscale_thresh</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">config2_</span><span class="o">.</span><span class="n">maxscale_thresh</span>
+        <span class="c1">#qkpts_list = qreq_.ibs.get_annot_kpts(internal_qaids, config2_=config2_)</span>
+        <span class="n">qkpts_list</span> <span class="o">=</span> <span class="n">internal_qannots</span><span class="o">.</span><span class="n">kpts</span>
+        <span class="n">qkpts_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">qkpts_list</span><span class="p">,</span> <span class="n">qfxs_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter</span>
+        <span class="n">scales_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_scales</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="k">for</span> <span class="n">kpts</span> <span class="ow">in</span> <span class="n">qkpts_list</span><span class="p">]</span>
+        <span class="c1"># Remove data under the threshold</span>
+        <span class="n">flags_list1</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">scales</span> <span class="o">&gt;=</span> <span class="n">min_</span><span class="p">,</span> <span class="n">scales</span> <span class="o">&lt;=</span> <span class="n">max_</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">scales</span> <span class="ow">in</span> <span class="n">scales_list</span><span class="p">]</span>
+        <span class="n">qvecs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">flags_list1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">qfxs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">qfxs_list</span><span class="p">,</span> <span class="n">flags_list1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">fgw_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1">#qfgw_list = qreq_.ibs.get_annot_fgweights(</span>
+        <span class="c1">#    internal_qaids, config2_=config2_)</span>
+        <span class="n">qfgw_list</span> <span class="o">=</span> <span class="n">internal_qannots</span><span class="o">.</span><span class="n">fgweights</span>
+        <span class="n">qfgw_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">qfgw_list</span><span class="p">,</span> <span class="n">qfxs_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">fgw_thresh</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">fgw_thresh</span>
+        <span class="n">flags_list2</span> <span class="o">=</span> <span class="p">[</span><span class="n">fgws</span> <span class="o">&gt;=</span> <span class="n">fgw_thresh</span> <span class="k">for</span> <span class="n">fgws</span> <span class="ow">in</span> <span class="n">qfgw_list</span><span class="p">]</span>
+        <span class="n">qfxs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">qfxs_list</span><span class="p">,</span> <span class="n">flags_list2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">qvecs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">flags_list2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] depth(qvecs_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">),))</span>
+    <span class="c1"># Mark progress ane execute nearest indexer nearest neighbor code</span>
+    <span class="n">prog_hook</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span>
+                 <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">requery</span><span class="p">:</span>
+        <span class="c1"># assert False, (</span>
+        <span class="c1">#     &#39;need to implement part where matches with the same name are not considered&#39;</span>
+        <span class="c1"># )</span>
+        <span class="n">qvec_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">NN_LBL</span><span class="p">,</span>
+                                    <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # Maybe some query vector stacking would help here</span>
+<span class="sd">        qvecs_stack = np.vstack(qvecs_list)</span>
+
+<span class="sd">        # Nope, really doesn&#39;t help that much</span>
+
+<span class="sd">        # For 100 annotations</span>
+<span class="sd">        %timeit np.vstack(qvecs_list)</span>
+<span class="sd">        # 100 loops, best of 3: 5.15 ms per loop</span>
+<span class="sd">        %timeit qreq_.indexer.knn(qvecs_stack, K)</span>
+<span class="sd">        # 1 loop, best of 3: 18.1 s per loop</span>
+<span class="sd">        %timeit [qreq_.indexer.knn(qfx2_vec, K) for qfx2_vec in qvecs_list]</span>
+<span class="sd">        # 1 loop, best of 3: 19.4 s per loop</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">idx_dist_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">requery_knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">impossible_daids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">impossible_daids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">qvec_iter</span><span class="p">,</span> <span class="n">num_neighbors_list</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span>
+                <span class="n">impossible_daids_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">qvec_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">NN_LBL</span><span class="p">,</span>
+                                    <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
+        <span class="n">idx_dist_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qvec_iter</span><span class="p">,</span> <span class="n">num_neighbors_list</span><span class="p">)]</span>
+
+    <span class="c1"># Move into new object structure</span>
+    <span class="n">nns_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Neighbors</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">qfxs</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfxs</span><span class="p">,</span> <span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">)</span> <span class="ow">in</span>
+                <span class="nb">zip</span><span class="p">(</span><span class="n">internal_qannots</span><span class="o">.</span><span class="n">aid</span><span class="p">,</span> <span class="n">qfxs_list</span><span class="p">,</span> <span class="n">idx_dist_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">nns_list</span></div>
+
+
+<div class="viewcode-block" id="nearest_neighbors"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.nearest_neighbors">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plain Nearest Neighbors</span>
+<span class="sd">    Tries to load nearest neighbors from a cache instead of recomputing them.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-nearest_neighbors</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100</span>
+<span class="sd">        utprof.py -m wbia.algo.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;testdb1&#39;, qaid_override=[1])</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Kpad_list, impossible_daids_list = ut.dict_take(</span>
+<span class="sd">        &gt;&gt;&gt;     locals_, [&#39;Kpad_list&#39;, &#39;impossible_daids_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns_list = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,</span>
+<span class="sd">        &gt;&gt;&gt;                              verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qreq_.internal_qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; nn = nns_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; (qfx2_idx, qfx2_dist) = nn</span>
+<span class="sd">        &gt;&gt;&gt; num_neighbors = Kpad_list[0] + qreq_.qparams.K + qreq_.qparams.Knorm</span>
+<span class="sd">        &gt;&gt;&gt; # Assert nns tuple is valid</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(qfx2_idx.shape, qfx2_dist.shape)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(qfx2_idx.shape[1], num_neighbors)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(qfx2_idx.shape[0], 1000, 3000)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;testdb1&#39;, qaid_override=[1])</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Kpad_list, impossible_daids_list = ut.dict_take(</span>
+<span class="sd">        &gt;&gt;&gt;     locals_, [&#39;Kpad_list&#39;, &#39;impossible_daids_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns_list = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,</span>
+<span class="sd">        &gt;&gt;&gt;                              verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qreq_.internal_qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; nn = nns_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; (qfx2_idx, qfx2_dist) = nn</span>
+<span class="sd">        &gt;&gt;&gt; num_neighbors = Kpad_list[0] + qreq_.qparams.K + qreq_.qparams.Knorm</span>
+<span class="sd">        &gt;&gt;&gt; # Assert nns tuple is valid</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(qfx2_idx.shape, qfx2_dist.shape)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(qfx2_idx.shape[1], num_neighbors)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(qfx2_idx.shape[0], 1000, 3000)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; custom_nid_lookup = {a: a for a in range(14)}</span>
+<span class="sd">        &gt;&gt;&gt; qreq1_ = wbia.testdata_qreq_(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;testdb1&#39;, t=[&#39;default:K=2,requery=True,can_match_samename=False&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     daid_override=[2, 3, 4, 5, 6, 7, 8],</span>
+<span class="sd">        &gt;&gt;&gt;     qaid_override=[2, 5, 1], custom_nid_lookup=custom_nid_lookup)</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq1_, &#39;nearest_neighbors&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Kpad_list, impossible_daids_list = ut.dict_take(</span>
+<span class="sd">        &gt;&gt;&gt;    locals_, [&#39;Kpad_list&#39;, &#39;impossible_daids_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns_list1 = nearest_neighbors(qreq1_, Kpad_list, impossible_daids_list,</span>
+<span class="sd">        &gt;&gt;&gt;                               verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; nn1 = nns_list1[0]</span>
+<span class="sd">        &gt;&gt;&gt; nnvalid0_list1 = baseline_neighbor_filter(qreq1_, nns_list1,</span>
+<span class="sd">        &gt;&gt;&gt;                                           impossible_daids_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(nnvalid0_list1[0]), (</span>
+<span class="sd">        &gt;&gt;&gt;  &#39;requery should never produce impossible results&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Compare versus not using requery</span>
+<span class="sd">        &gt;&gt;&gt; qreq2_ = wbia.testdata_qreq_(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;testdb1&#39;, t=[&#39;default:K=2,requery=False&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     daid_override=[1, 2, 3, 4, 5, 6, 7, 8],</span>
+<span class="sd">        &gt;&gt;&gt;     qaid_override=[2, 5, 1])</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq2_, &#39;nearest_neighbors&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Kpad_list, impossible_daids_list = ut.dict_take(</span>
+<span class="sd">        &gt;&gt;&gt;    locals_, [&#39;Kpad_list&#39;, &#39;impossible_daids_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns_list2 = nearest_neighbors(qreq2_, Kpad_list, impossible_daids_list,</span>
+<span class="sd">        &gt;&gt;&gt;                               verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; nn2 = nns_list2[0]</span>
+<span class="sd">        &gt;&gt;&gt; nn1.neighb_dists</span>
+<span class="sd">        &gt;&gt;&gt; nn2.neighb_dists</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; qreq1_ = wbia.testdata_qreq_(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;testdb1&#39;, t=[&#39;default:K=5,requery=True,can_match_samename=False&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     daid_override=[2, 3, 4, 5, 6, 7, 8],</span>
+<span class="sd">        &gt;&gt;&gt;     qaid_override=[2, 5, 1])</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq1_, &#39;nearest_neighbors&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Kpad_list, impossible_daids_list = ut.dict_take(</span>
+<span class="sd">        &gt;&gt;&gt;    locals_, [&#39;Kpad_list&#39;, &#39;impossible_daids_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns_list1 = nearest_neighbors(qreq1_, Kpad_list, impossible_daids_list,</span>
+<span class="sd">        &gt;&gt;&gt;                               verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; nn1 = nns_list1[0]</span>
+<span class="sd">        &gt;&gt;&gt; nnvalid0_list1 = baseline_neighbor_filter(qreq1_, nns_list1,</span>
+<span class="sd">        &gt;&gt;&gt;                                           impossible_daids_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(nnvalid0_list1[0]), &#39;should always be valid&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">K</span>           <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+    <span class="n">Knorm</span>       <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="n">requery</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">requery</span>
+    <span class="c1">#checks = qreq_.qparams.checks</span>
+    <span class="c1"># Get both match neighbors (including padding) and normalizing neighbors</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 1) Assign nearest neighbors: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span><span class="p">,))</span>
+
+    <span class="n">prog_hook</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span>
+                 <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">())</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">)</span>
+    <span class="c1"># For each internal query annotation</span>
+    <span class="c1"># Find the nearest neighbors of each descriptor vector</span>
+    <span class="c1">#USE_NN_MID_CACHE = ut.is_developer()</span>
+
+    <span class="n">use_cache</span> <span class="o">=</span> <span class="n">USE_NN_MID_CACHE</span>
+    <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+        <span class="n">nn_cachedir</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span> <span class="o">=</span> <span class="n">nearest_neighbor_cacheid2</span><span class="p">(</span>
+            <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># hacks</span>
+        <span class="n">nn_mid_cacheid_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">())</span>
+        <span class="n">nn_cachedir</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">nns_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tryload_cache_list_with_compute</span><span class="p">(</span>
+        <span class="n">use_cache</span><span class="p">,</span> <span class="n">nn_cachedir</span><span class="p">,</span> <span class="s1">&#39;neighbs4&#39;</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span><span class="p">,</span>
+        <span class="n">cachemiss_nn_compute_fn</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span>
+        <span class="n">Knorm</span><span class="p">,</span> <span class="n">requery</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nns_list</span></div>
+
+
+<span class="c1">#============================</span>
+<span class="c1"># 2) Remove Impossible Weights</span>
+<span class="c1">#============================</span>
+
+
+<div class="viewcode-block" id="baseline_neighbor_filter"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.baseline_neighbor_filter">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">baseline_neighbor_filter</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes matches to self, the same image, or the same name.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-baseline_neighbor_filter</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;baseline_neighbor_filter&#39;, defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     qaid_override=[1, 2, 3, 4],</span>
+<span class="sd">        &gt;&gt;&gt;     daid_override=list(range(1, 11)),</span>
+<span class="sd">        &gt;&gt;&gt;     p=[&#39;default:QRH=False,requery=False,can_match_samename=False&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     verbose=True)</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, impossible_daids_list = args</span>
+<span class="sd">        &gt;&gt;&gt; nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list,</span>
+<span class="sd">        &gt;&gt;&gt;                                          impossible_daids_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(nnvalid0_list), len(qreq_.qaids))</span>
+<span class="sd">        &gt;&gt;&gt; assert not np.any(nnvalid0_list[0][:, 0]), (</span>
+<span class="sd">        ...    &#39;first col should be all invalid because of self match&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; assert not np.all(nnvalid0_list[0][:, 1]), (</span>
+<span class="sd">        ...    &#39;second col should have some good matches&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nnvalid0_list[0].sum(), 1000, 10000)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 2) Baseline neighbor filter&#39;</span><span class="p">)</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="c1"># Find which annotations each query matched against</span>
+    <span class="n">neighb_aids_iter</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nn</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Knorm</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nn</span> <span class="ow">in</span> <span class="n">nns_list</span><span class="p">)</span>
+    <span class="n">filter_iter_</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">neighb_aids_iter</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">)</span>
+    <span class="n">prog_hook</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">()</span>
+    <span class="n">filter_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">filter_iter_</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">nns_list</span><span class="p">),</span>
+                                  <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">FILT_LBL</span><span class="p">,</span>
+                                  <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
+    <span class="c1"># Check to be sure that none of the matched annotations are in the impossible set</span>
+    <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_uncovered_mask</span><span class="p">(</span><span class="n">neighb_aids</span><span class="p">,</span> <span class="n">impossible_daids</span><span class="p">)</span>
+                     <span class="k">for</span> <span class="n">neighb_aids</span><span class="p">,</span> <span class="n">impossible_daids</span> <span class="ow">in</span> <span class="n">filter_iter</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nnvalid0_list</span></div>
+
+
+<span class="c1">#============================</span>
+<span class="c1"># 3) Nearest Neighbor weights</span>
+<span class="c1">#============================</span>
+
+
+<div class="viewcode-block" id="weight_neighbors"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.weight_neighbors">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">weight_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pipeline step 3 -</span>
+<span class="sd">    assigns weights to feature matches based on the active filter list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-weight_neighbors</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-weight_neighbors:0 --verbose --verbtd --ainfo --nocache --veryverbose</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-weight_neighbors:0 --show</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-weight_neighbors:1 --show</span>
+
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-weight_neighbors:0 --show -t default:lnbnn_normer=lnbnn_fg_0.9__featscore,lnbnn_norm_thresh=.9</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;weight_neighbors&#39;, defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     a=[&#39;default:qindex=0:3,dindex=0:5,hackerrors=False&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     p=[&#39;default:codename=vsmany,bar_l2_on=True,fg_on=False&#39;], verbose=True)</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = build_chipmatches(</span>
+<span class="sd">        &gt;&gt;&gt;     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,</span>
+<span class="sd">        &gt;&gt;&gt;     filtvalids_list, filtnormks_list, verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_name_nsum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; cm.ishow_analysis(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;weight_neighbors&#39;, defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     a=[&#39;default:qindex=0:3,dindex=0:5,hackerrors=False&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     p=[&#39;default:codename=vsmany,bar_l2_on=True,fg_on=False&#39;], verbose=True)</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret</span>
+<span class="sd">        &gt;&gt;&gt; nInternAids = len(qreq_.get_internal_qaids())</span>
+<span class="sd">        &gt;&gt;&gt; nFiltKeys = len(filtkey_list)</span>
+<span class="sd">        &gt;&gt;&gt; filtweight_depth = ut.depth_profile(filtweights_list)</span>
+<span class="sd">        &gt;&gt;&gt; filtvalid_depth = ut.depth_profile(filtvalids_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(nInternAids, len(filtweights_list))</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(nInternAids, len(filtvalids_list))</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ut.get_list_column(filtweight_depth, 0), [nFiltKeys] * nInternAids)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(filtvalid_depth, (nInternAids, nFiltKeys))</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(filtvalids_list, [[None, None], [None, None], [None, None]])</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(filtkey_list, [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.BARL2])</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = build_chipmatches(</span>
+<span class="sd">        &gt;&gt;&gt;     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,</span>
+<span class="sd">        &gt;&gt;&gt;     filtvalids_list, filtnormks_list, verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_name_nsum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; cm.ishow_analysis(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 3) Weight neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nnweight_cfgstr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] depth(nns_list) &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)))</span>
+
+    <span class="c1">#print(WEIGHT_LBL)</span>
+    <span class="c1">#intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,</span>
+    <span class="c1">#                                   **PROGKW)</span>
+
+    <span class="c1"># Build weights for each active filter</span>
+    <span class="n">filtkey_list</span>     <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_filtweight_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_filtvalid_list</span>  <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_filtnormk_list</span>  <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">config2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">config2_</span><span class="o">.</span><span class="n">sqrd_dist_on</span><span class="p">:</span>
+        <span class="c1"># Take the square root of the squared distances</span>
+        <span class="k">for</span> <span class="n">nns</span> <span class="ow">in</span> <span class="n">nns_list</span><span class="p">:</span>
+            <span class="n">nns</span><span class="o">.</span><span class="n">neighb_dists</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nns</span><span class="o">.</span><span class="n">neighb_dists</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
+        <span class="c1"># nns_list_ = [(neighb_idx, np.sqrt(neighb_dist.astype(np.float64)))</span>
+        <span class="c1">#              for neighb_idx, neighb_dist in nns_list]</span>
+        <span class="c1"># nns_list = nns_list_</span>
+
+    <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_on</span><span class="p">:</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;lnbnn&#39;</span>
+        <span class="n">lnbnn_weight_list</span><span class="p">,</span> <span class="n">normk_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
+            <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] normalizing feat scores&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ScoreNormalizer</span><span class="p">()</span>
+                <span class="c1"># qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span><span class="o">.</span><span class="n">fuzzyload</span><span class="p">(</span><span class="n">partial_cfgstr</span><span class="o">=</span><span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_normer</span><span class="p">)</span>
+
+            <span class="n">lnbnn_weight_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span><span class="o">.</span><span class="n">normalize_scores</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lnbnn_weight_list</span>
+            <span class="p">]</span>
+
+            <span class="c1"># Thresholding like a champ!</span>
+            <span class="n">lnbnn_norm_thresh</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_norm_thresh</span>
+            <span class="c1"># lnbnn_weight_list = [</span>
+            <span class="c1">#     s * [s &gt; lnbnn_norm_thresh] for s in lnbnn_weight_list</span>
+            <span class="c1"># ]</span>
+            <span class="n">lnbnn_isvalid</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="o">&gt;</span> <span class="n">lnbnn_norm_thresh</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lnbnn_weight_list</span><span class="p">]</span>
+            <span class="c1"># Softmaxing</span>
+            <span class="c1"># from scipy.special import expit</span>
+            <span class="c1"># y = expit(x * 6)</span>
+            <span class="c1"># lnbnn_weight_list = [</span>
+            <span class="c1">#     vt.logistic_01(s)</span>
+            <span class="c1">#     for s in lnbnn_weight_list</span>
+            <span class="c1"># ]</span>
+            <span class="n">filtname</span> <span class="o">+=</span> <span class="s1">&#39;_norm&#39;</span>
+            <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lnbnn_isvalid</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
+
+        <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lnbnn_weight_list</span><span class="p">)</span>
+        <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normk_list</span><span class="p">)</span>
+        <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">normonly_on</span><span class="p">:</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;normonly&#39;</span>
+        <span class="n">normonly_weight_list</span><span class="p">,</span> <span class="n">normk_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
+            <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normonly_weight_list</span><span class="p">)</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
+        <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normk_list</span><span class="p">)</span>
+        <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">bar_l2_on</span><span class="p">:</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;bar_l2&#39;</span>
+        <span class="n">bar_l2_weight_list</span><span class="p">,</span> <span class="n">normk_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
+            <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bar_l2_weight_list</span><span class="p">)</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
+        <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">ratio_thresh</span><span class="p">:</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;ratio&#39;</span>
+        <span class="n">ratio_weight_list</span><span class="p">,</span> <span class="n">normk_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
+            <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">ratio_isvalid</span>   <span class="o">=</span> <span class="p">[</span><span class="n">neighb_ratio</span> <span class="o">&lt;=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="k">for</span>
+                           <span class="n">neighb_ratio</span> <span class="ow">in</span> <span class="n">ratio_weight_list</span><span class="p">]</span>
+        <span class="c1"># HACK TO GET 1 - RATIO AS SCORE</span>
+        <span class="n">ratioscore_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">neighb_ratio</span><span class="p">)</span>
+                           <span class="k">for</span> <span class="n">neighb_ratio</span> <span class="ow">in</span> <span class="n">ratio_weight_list</span><span class="p">]</span>
+        <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ratioscore_list</span><span class="p">)</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ratio_isvalid</span><span class="p">)</span>
+        <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normk_list</span><span class="p">)</span>
+        <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
+    <span class="c1"># --simple weighted implm</span>
+    <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">const_on</span><span class="p">:</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;const&#39;</span>
+        <span class="n">constvote_weight_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
+            <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constvote_weight_list</span><span class="p">)</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
+        <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">fg_on</span><span class="p">:</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;fg&#39;</span>
+        <span class="n">fgvote_weight_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
+            <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fgvote_weight_list</span><span class="p">)</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
+        <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
+
+    <span class="c1"># Switch nested list structure from [filt, qaid] to [qaid, filt]</span>
+    <span class="n">nInternAids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)</span>
+    <span class="n">filtweights_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">_filtweight_list</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInternAids</span><span class="p">)]</span>
+    <span class="n">filtvalids_list</span> <span class="o">=</span> <span class="p">[[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="n">filtvalid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">filtvalid</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">filtvalid</span> <span class="ow">in</span> <span class="n">_filtvalid_list</span>
+    <span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInternAids</span><span class="p">)</span> <span class="p">]</span>
+
+    <span class="n">filtnormks_list</span> <span class="o">=</span> <span class="p">[[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="n">normk</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">normk</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">normk</span> <span class="ow">in</span> <span class="n">_filtnormk_list</span>
+    <span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInternAids</span><span class="p">)]</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtkey_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s1">&#39;no feature correspondece filter keys were specified&#39;</span><span class="p">)</span>
+
+    <span class="n">weight_ret</span> <span class="o">=</span> <span class="n">WeightRet_</span><span class="p">(</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span>
+                            <span class="n">filtnormks_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">weight_ret</span></div>
+
+
+<span class="c1">#============================</span>
+<span class="c1"># 4) Conversion from featurematches to chipmatches neighb -&gt; aid2</span>
+<span class="c1">#============================</span>
+
+
+<span class="c1">#@profile</span>
+<div class="viewcode-block" id="build_chipmatches"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.build_chipmatches">[docs]</a><span class="k">def</span> <span class="nf">build_chipmatches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">filtkey_list</span><span class="p">,</span>
+                      <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span> <span class="n">filtnormks_list</span><span class="p">,</span>
+                      <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pipeline step 4 - builds sparse chipmatches</span>
+
+<span class="sd">    Takes the dense feature matches from query feature to (what could be any)</span>
+<span class="sd">    database features and builds sparse matching pairs for each annotation to</span>
+<span class="sd">    annotation match.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia build_chipmatches</span>
+<span class="sd">        python -m wbia build_chipmatches:0 --show</span>
+<span class="sd">        python -m wbia build_chipmatches:1 --show</span>
+<span class="sd">        python -m wbia build_chipmatches:2 --show</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;build_chipmatches&#39;, p=[&#39;default:codename=vsmany&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; (nns_list, nnvalid0_list, filtkey_list, filtweights_list,</span>
+<span class="sd">        &gt;&gt;&gt; filtvalids_list, filtnormks_list) = args</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = build_chipmatches(qreq_, *args, verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; [cm.assert_self(qreq_) for cm in cm_list]</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; fm = cm.fm_list[cm.daid2_idx[2]]</span>
+<span class="sd">        &gt;&gt;&gt; num_matches = len(fm)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;vsmany num_matches = %r&#39; % num_matches)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(num_matches, 500, 2000, &#39;vsmany nmatches out of bounds&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_annot_csum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; cm_list[0].ishow_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # Test to make sure filtering by feature weights works</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;build_chipmatches&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     p=[&#39;default:codename=vsmany,fgw_thresh=.9&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; (nns_list, nnvalid0_list, filtkey_list, filtweights_list,</span>
+<span class="sd">        &gt;&gt;&gt;  filtvalids_list, filtnormks_list) = args</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = build_chipmatches(qreq_, *args, verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; [cm.assert_self(qreq_) for cm in cm_list]</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; fm = cm.fm_list[cm.daid2_idx[2]]</span>
+<span class="sd">        &gt;&gt;&gt; num_matches = len(fm)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;num_matches = %r&#39; % num_matches)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(num_matches, 100, 410, &#39;vsmany nmatches out of bounds&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_annot_csum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; cm_list[0].ishow_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;build_chipmatches&#39;, p=[&#39;default:requery=True&#39;], a=&#39;default&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; (nns_list, nnvalid0_list, filtkey_list, filtweights_list,</span>
+<span class="sd">        &gt;&gt;&gt; filtvalids_list, filtnormks_list) = args</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = build_chipmatches(qreq_, *args, verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; [cm.assert_self(qreq_) for cm in cm_list]</span>
+<span class="sd">        &gt;&gt;&gt; scoring.score_chipmatch_list(qreq_, cm_list, &#39;csum&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; for cm in cm_list:</span>
+<span class="sd">        &gt;&gt;&gt;     # should be positive for LNBNN</span>
+<span class="sd">        &gt;&gt;&gt;     assert np.all(cm.score_list[np.isfinite(cm.score_list)] &gt;= 0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span><span class="p">,</span> <span class="s1">&#39;can no longer do vsone in pipeline&#39;</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">pipeline_root</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 4) Building chipmatches </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pipeline_root</span><span class="p">,))</span>
+
+    <span class="c1"># Iterate over INTERNAL query annotation ids</span>
+    <span class="n">prog_hook</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">()</span>
+    <span class="n">nns_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">BUILDCM_LBL</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
+
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">get_sparse_matchinfo_nonagg</span><span class="p">(</span>
+            <span class="n">qreq_</span><span class="p">,</span> <span class="n">nns</span><span class="p">,</span> <span class="n">neighb_valid0</span><span class="p">,</span> <span class="n">neighb_score_list</span><span class="p">,</span>
+            <span class="n">neighb_valid_list</span><span class="p">,</span> <span class="n">neighb_normk_list</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span>
+            <span class="n">fsv_col_lbls</span><span class="o">=</span><span class="n">filtkey_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nns</span><span class="p">,</span> <span class="n">neighb_valid0</span><span class="p">,</span> <span class="n">neighb_score_list</span><span class="p">,</span> <span class="n">neighb_valid_list</span><span class="p">,</span> <span class="n">neighb_normk_list</span> <span class="ow">in</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">nns_iter</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span> <span class="n">filtnormks_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">cm_list</span></div>
+
+
+<span class="c1">#@profile</span>
+<div class="viewcode-block" id="get_sparse_matchinfo_nonagg"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.get_sparse_matchinfo_nonagg">[docs]</a><span class="k">def</span> <span class="nf">get_sparse_matchinfo_nonagg</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns</span><span class="p">,</span> <span class="n">neighb_valid0</span><span class="p">,</span>
+                                <span class="n">neighb_score_list</span><span class="p">,</span> <span class="n">neighb_valid_list</span><span class="p">,</span>
+                                <span class="n">neighb_normk_list</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">fsv_col_lbls</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    builds sparse iterator that generates feature match pairs, scores, and ranks</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ValidMatchTup_ : vmt a tuple of corresponding lists. Each item in the</span>
+<span class="sd">            list corresponds to a daid, dfx, scorevec, rank, norm_aid, norm_fx...</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg --show</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg:1 --show</span>
+
+<span class="sd">        utprof.py -m wbia.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;PZ_MTEST&#39;, p=[&#39;default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2,sqrd_dist_on=True&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm, fsv_col_lbls = args</span>
+<span class="sd">        &gt;&gt;&gt; cm = get_sparse_matchinfo_nonagg(qreq_, *args)</span>
+<span class="sd">        &gt;&gt;&gt; qannot = qreq_.ibs.annots([qaid], config=qreq_.qparams)</span>
+<span class="sd">        &gt;&gt;&gt; dannot = qreq_.ibs.annots(cm.daid_list, config=qreq_.qparams)</span>
+<span class="sd">        &gt;&gt;&gt; cm.assert_self(verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_annot_csum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Unpack neighbor ids, indices, filter scores, and flags</span>
+    <span class="n">indexer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span>
+    <span class="n">neighb_idx</span> <span class="o">=</span> <span class="n">nns</span><span class="o">.</span><span class="n">neighb_idxs</span>
+    <span class="n">neighb_nnidx</span> <span class="o">=</span> <span class="n">neighb_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[:</span><span class="o">-</span><span class="n">Knorm</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">qfx_list</span> <span class="o">=</span> <span class="n">nns</span><span class="o">.</span><span class="n">qfx_list</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">neighb_nnidx</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">neighb_daid</span> <span class="o">=</span> <span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">neighb_nnidx</span><span class="p">)</span>
+    <span class="n">neighb_dfx</span> <span class="o">=</span> <span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">neighb_nnidx</span><span class="p">)</span>
+
+    <span class="c1"># Determine matches that are valid using all measurements</span>
+    <span class="n">neighb_valid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">neighb_valid0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">neighb_valid_list</span><span class="p">)</span>
+    <span class="n">neighb_valid_agg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">neighb_valid_list_</span><span class="p">)</span>
+
+    <span class="c1"># We fill filter each relavant matrix by aggregate validity</span>
+    <span class="n">flat_validx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">neighb_valid_agg</span><span class="p">)</span>
+    <span class="c1"># Infer the valid internal query feature indexes and ranks</span>
+    <span class="n">valid_x</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor_divide</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+    <span class="n">valid_qfx</span>   <span class="o">=</span> <span class="n">qfx_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">valid_x</span><span class="p">)</span>
+    <span class="n">valid_rank</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FK_DTYPE</span><span class="p">)</span>
+    <span class="c1"># TODO: valid_qfx, valid_rank = np.unravel_index(flat_validx, (neighb_nnidx.shape[0], K))?</span>
+    <span class="c1"># Then take the valid indices from internal database</span>
+    <span class="c1"># annot_rowids, feature indexes, and all scores</span>
+    <span class="n">valid_daid</span>  <span class="o">=</span> <span class="n">neighb_daid</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">valid_dfx</span>   <span class="o">=</span> <span class="n">neighb_dfx</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">valid_scorevec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">neighb_score</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+         <span class="k">for</span> <span class="n">neighb_score</span> <span class="ow">in</span> <span class="n">neighb_score_list</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Incorporate Normalizers</span>
+    <span class="c1"># Normalizers for each weight filter that used a normalizer</span>
+    <span class="c1"># Determine which feature per annot was used as the normalizer for each filter</span>
+    <span class="c1"># Each non-None sub list is still in neighb_ format</span>
+    <span class="n">num_filts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighb_normk_list</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighb_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span>
+    <span class="n">norm_filtxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where_not_None</span><span class="p">(</span><span class="n">neighb_normk_list</span><span class="p">)</span>
+    <span class="n">num_normed_filts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">norm_filtxs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_normed_filts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">_normks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">neighb_normk_list</span><span class="p">,</span> <span class="n">norm_filtxs</span><span class="p">)</span>
+        <span class="c1"># Offset index to get flat normalizer positions</span>
+        <span class="n">_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">flat_normxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">_offset</span> <span class="o">+</span> <span class="n">neighb_normk</span> <span class="k">for</span> <span class="n">neighb_normk</span> <span class="ow">in</span> <span class="n">_normks</span><span class="p">]</span>
+        <span class="n">flat_normidxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">neighb_idx</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">ks</span><span class="p">)</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">flat_normxs</span><span class="p">]</span>
+        <span class="n">flat_norm_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>   <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">flat_normidxs</span><span class="p">]</span>
+        <span class="n">flat_norm_fxs</span>  <span class="o">=</span> <span class="p">[</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">flat_normidxs</span><span class="p">]</span>
+        <span class="c1"># Take the valid indicies</span>
+        <span class="n">_valid_norm_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aids</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">valid_x</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">flat_norm_aids</span><span class="p">]</span>
+        <span class="n">_valid_norm_fxs</span>  <span class="o">=</span> <span class="p">[</span><span class="n">fxs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">valid_x</span><span class="p">)</span>  <span class="k">for</span> <span class="n">fxs</span> <span class="ow">in</span> <span class="n">flat_norm_fxs</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_valid_norm_aids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">_valid_norm_fxs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">valid_norm_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ungroup</span><span class="p">([</span><span class="n">_valid_norm_aids</span><span class="p">],</span> <span class="p">[</span><span class="n">norm_filtxs</span><span class="p">],</span> <span class="n">num_filts</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">valid_norm_fxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ungroup</span><span class="p">([</span><span class="n">_valid_norm_fxs</span><span class="p">],</span> <span class="p">[</span><span class="n">norm_filtxs</span><span class="p">],</span> <span class="n">num_filts</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># ValidMatchTup_ = namedtuple(&#39;vmt&#39;, (  # valid_match_tup</span>
+    <span class="c1">#     &#39;daid&#39;, &#39;qfx&#39;, &#39;dfx&#39;, &#39;scorevec&#39;, &#39;rank&#39;, &#39;norm_aids&#39;, &#39;norm_fxs&#39;))</span>
+    <span class="c1"># vmt = ValidMatchTup_(valid_daid, valid_qfx, valid_dfx, valid_scorevec,</span>
+    <span class="c1">#                      valid_rank, valid_norm_aids, valid_norm_fxs)</span>
+    <span class="c1"># NOTE: CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE</span>
+    <span class="n">valid_fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">valid_qfx</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span>
+                               <span class="n">valid_dfx</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">valid_fm</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">c_contiguous</span><span class="p">,</span> <span class="s1">&#39;non-contiguous&#39;</span>
+    <span class="c1"># valid_fm = np.ascontiguousarray(valid_fm)</span>
+    <span class="n">daid_list</span><span class="p">,</span> <span class="n">daid_groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">valid_daid</span><span class="p">)</span>
+
+    <span class="n">fm_list</span>  <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">valid_fm</span><span class="p">,</span> <span class="n">daid_groupxs</span><span class="p">)</span>
+    <span class="n">fsv_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">valid_scorevec</span><span class="p">,</span> <span class="n">daid_groupxs</span><span class="p">)</span>
+    <span class="n">fk_list</span>  <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">valid_rank</span><span class="p">,</span> <span class="n">daid_groupxs</span><span class="p">)</span>
+
+    <span class="n">filtnorm_aids</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span>  <span class="c1"># [None] * len(daid_groupxs)</span>
+        <span class="k">if</span> <span class="n">aids</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">daid_groupxs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">valid_norm_aids</span><span class="p">]</span>
+
+    <span class="n">filtnorm_fxs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span>  <span class="c1"># [None] * len(daid_groupxs)</span>
+        <span class="k">if</span> <span class="n">fxs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">fxs</span><span class="p">,</span> <span class="n">daid_groupxs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">fxs</span> <span class="ow">in</span> <span class="n">valid_norm_fxs</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtnorm_aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">fsv_col_lbls</span><span class="p">),</span> <span class="s1">&#39;bad normer&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtnorm_fxs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">fsv_col_lbls</span><span class="p">),</span> <span class="s1">&#39;bad normer&#39;</span>
+
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="p">(</span><span class="n">nns</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fsv_list</span><span class="p">,</span> <span class="n">fk_list</span><span class="p">,</span>
+                              <span class="n">fsv_col_lbls</span><span class="o">=</span><span class="n">fsv_col_lbls</span><span class="p">,</span>
+                              <span class="n">filtnorm_aids</span><span class="o">=</span><span class="n">filtnorm_aids</span><span class="p">,</span>
+                              <span class="n">filtnorm_fxs</span><span class="o">=</span><span class="n">filtnorm_fxs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cm</span></div>
+
+
+<span class="c1">#============================</span>
+<span class="c1"># 5) Spatial Verification</span>
+<span class="c1">#============================</span>
+
+
+<div class="viewcode-block" id="spatial_verification"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.spatial_verification">[docs]</a><span class="k">def</span> <span class="nf">spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_FILT</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pipeline step 5 - spatially verify feature matches</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: cm_listSVER - new list of spatially verified chipmatches</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-spatial_verification --show</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-spatial_verification --show --qaid 1</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-spatial_verification:0</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;PZ_MTEST&#39;, qaid_list=[18])</span>
+<span class="sd">        &gt;&gt;&gt; scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; top_nids = cm.get_top_nids(6)</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cm_list_SVER = spatial_verification(qreq_, cm_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Test Results</span>
+<span class="sd">        &gt;&gt;&gt; cmSV = cm_list_SVER[0]</span>
+<span class="sd">        &gt;&gt;&gt; scoring.score_chipmatch_list(qreq_, cm_list_SVER, qreq_.qparams.score_method)  # HACK</span>
+<span class="sd">        &gt;&gt;&gt; top_nids_SV = cmSV.get_top_nids(6)</span>
+<span class="sd">        &gt;&gt;&gt; cm.print_csv(sort=True)</span>
+<span class="sd">        &gt;&gt;&gt; cmSV.print_csv(sort=False)</span>
+<span class="sd">        &gt;&gt;&gt; gt_daids  = np.intersect1d(cm.get_groundtruth_daids(), cmSV.get_groundtruth_daids())</span>
+<span class="sd">        &gt;&gt;&gt; fm_list   = cm.get_annot_fm(gt_daids)</span>
+<span class="sd">        &gt;&gt;&gt; fmSV_list = cmSV.get_annot_fm(gt_daids)</span>
+<span class="sd">        &gt;&gt;&gt; maplen = lambda list_: np.array(list(map(len, list_)))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(gt_daids) &gt; 0, &#39;ground truth did not survive&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_lessthan(maplen(fmSV_list), maplen(fm_list)), &#39;feature matches were not filtered&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cmSV.show_daids_matches(qreq_, gt_daids)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; #homog_tup = (refined_inliers, H)</span>
+<span class="sd">        &gt;&gt;&gt; #aff_tup = (aff_inliers, Aff)</span>
+<span class="sd">        &gt;&gt;&gt; #pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list_FILT</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 5) Spatial verification: off&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cm_list_SVER</span> <span class="o">=</span> <span class="n">_spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm_list_SVER</span></div>
+
+
+<span class="c1">#@profile</span>
+<span class="k">def</span> <span class="nf">_spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    make only spatially valid features survive</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 5) Spatial verification: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_cfgstr</span><span class="p">)</span>
+
+    <span class="c1"># dbg info (can remove if there is a speed issue)</span>
+    <span class="n">score_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_method</span>
+    <span class="n">prescore_method</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">prescore_method</span>
+    <span class="n">nNameShortList</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nNameShortlistSVER</span>
+    <span class="n">nAnnotPerName</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nAnnotPerNameSVER</span>
+
+    <span class="n">scoring</span><span class="o">.</span><span class="n">score_chipmatch_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">prescore_method</span><span class="p">)</span>
+    <span class="n">cm_shortlist</span> <span class="o">=</span> <span class="n">scoring</span><span class="o">.</span><span class="n">make_chipmatch_shortlists</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span>
+                                                     <span class="n">nNameShortList</span><span class="p">,</span>
+                                                     <span class="n">nAnnotPerName</span><span class="p">,</span>
+                                                     <span class="n">score_method</span><span class="p">)</span>
+    <span class="n">prog_hook</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">()</span>
+    <span class="n">cm_progiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cm_shortlist</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_shortlist</span><span class="p">),</span>
+                                  <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">SVER_LVL</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
+
+    <span class="n">cm_list_SVER</span> <span class="o">=</span> <span class="p">[</span><span class="n">sver_single_chipmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="p">)</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_progiter</span><span class="p">]</span>
+    <span class="c1"># rescore after verification?</span>
+    <span class="k">return</span> <span class="n">cm_list_SVER</span>
+
+
+<span class="c1">#@profile</span>
+<div class="viewcode-block" id="sver_single_chipmatch"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.sver_single_chipmatch">[docs]</a><span class="k">def</span> <span class="nf">sver_single_chipmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Spatially verifies a shortlist of a single chipmatch</span>
+
+<span class="sd">    TODO: move to chip match?</span>
+
+<span class="sd">    loops over a shortlist of results for a specific query annotation</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+<span class="sd">        cm (ChipMatch):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        wbia.ChipMatch: cmSV</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia draw_rank_cmc --db PZ_Master1 --show \</span>
+<span class="sd">            -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] \</span>
+<span class="sd">            -a timectrlhard ---acfginfo --veryverbtd</span>
+
+<span class="sd">        python -m wbia draw_rank_cmc --db PZ_Master1 --show \</span>
+<span class="sd">            -t best:refine_method=[homog,cv2-lmeds-homog],full_homog_checks=[True,False] \</span>
+<span class="sd">            -a timectrlhard ---acfginfo --veryverbtd</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show \</span>
+<span class="sd">            -t default:full_homog_checks=True -a default --qaid 18</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show \</span>
+<span class="sd">            -t default:refine_method=affine -a default --qaid 18</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show \</span>
+<span class="sd">            -t default:refine_method=cv2-homog -a default --qaid 18</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show \</span>
+<span class="sd">            -t default:refine_method=cv2-homog,full_homog_checks=True -a default --qaid 18</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show \</span>
+<span class="sd">            -t default:refine_method=cv2-homog,full_homog_checks=False -a default --qaid 18</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show \</span>
+<span class="sd">            -t default:refine_method=cv2-lmeds-homog,full_homog_checks=False -a default --qaid 18</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show \</span>
+<span class="sd">            -t default:refine_method=cv2-ransac-homog,full_homog_checks=False -a default --qaid 18</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show \</span>
+<span class="sd">            -t default:full_homog_checks=False -a default --qaid 18</span>
+
+<span class="sd">        python -m wbia sver_single_chipmatch --show --qaid=18 --y=0</span>
+<span class="sd">        python -m wbia sver_single_chipmatch --show --qaid=18 --y=1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # Visualization</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;spatial_verification&#39;, defaultdb=&#39;PZ_MTEST&#39;)  #, qaid_list=[18])</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = args.cm_list_FILT</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK</span>
+<span class="sd">        &gt;&gt;&gt; #locals_ = ut.exec_func_src(sver_single_chipmatch, key_list=[&#39;svtup_list&#39;], sentinal=&#39;# &lt;SENTINAL&gt;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #svtup_list1, = locals_</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; source = ut.get_func_sourcecode(sver_single_chipmatch, stripdef=True, strip_docstr=True)</span>
+<span class="sd">        &gt;&gt;&gt; source = ut.replace_between_tags(source, &#39;&#39;, &#39;# &lt;SENTINAL&gt;&#39;, &#39;# &lt;/SENTINAL&gt;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; globals_ = globals().copy()</span>
+<span class="sd">        &gt;&gt;&gt; exec(source, globals_)</span>
+<span class="sd">        &gt;&gt;&gt; svtup_list = globals_[&#39;svtup_list&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; gt_daids = cm.get_groundtruth_daids()</span>
+<span class="sd">        &gt;&gt;&gt; x = ut.get_argval(&#39;--y&#39;, type_=int, default=0)</span>
+<span class="sd">        &gt;&gt;&gt; #print(&#39;x = %r&#39; % (x,))</span>
+<span class="sd">        &gt;&gt;&gt; #daid = daids[x % len(daids)]</span>
+<span class="sd">        &gt;&gt;&gt; notnone_list = ut.not_list(ut.flag_None_items(svtup_list))</span>
+<span class="sd">        &gt;&gt;&gt; valid_idxs = np.where(notnone_list)</span>
+<span class="sd">        &gt;&gt;&gt; valid_daids = cm.daid_list[valid_idxs]</span>
+<span class="sd">        &gt;&gt;&gt; assert len(valid_daids) &gt; 0, &#39;cannot spatially verify&#39;</span>
+<span class="sd">        &gt;&gt;&gt; valid_gt_daids = np.intersect1d(gt_daids, valid_daids)</span>
+<span class="sd">        &gt;&gt;&gt; #assert len(valid_gt_daids) == 0, &#39;no sver groundtruth&#39;</span>
+<span class="sd">        &gt;&gt;&gt; daid = valid_gt_daids[x] if len(valid_gt_daids) &gt; 0 else valid_daids[x]</span>
+<span class="sd">        &gt;&gt;&gt; idx = cm.daid2_idx[daid]</span>
+<span class="sd">        &gt;&gt;&gt; svtup = svtup_list[idx]</span>
+<span class="sd">        &gt;&gt;&gt; assert svtup is not None, &#39;SV TUP IS NONE&#39;</span>
+<span class="sd">        &gt;&gt;&gt; refined_inliers, refined_errors, H = svtup[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; aff_inliers, aff_errors, Aff = svtup[3:6]</span>
+<span class="sd">        &gt;&gt;&gt; homog_tup = (refined_inliers, H)</span>
+<span class="sd">        &gt;&gt;&gt; aff_tup = (aff_inliers, Aff)</span>
+<span class="sd">        &gt;&gt;&gt; fm = cm.fm_list[idx]</span>
+<span class="sd">        &gt;&gt;&gt; aid1 = cm.qaid</span>
+<span class="sd">        &gt;&gt;&gt; aid2 = daid</span>
+<span class="sd">        &gt;&gt;&gt; rchip1, = ibs.get_annot_chips([aid1], config2_=qreq_.extern_query_config2)</span>
+<span class="sd">        &gt;&gt;&gt; kpts1,  = ibs.get_annot_kpts([aid1], config2_=qreq_.extern_query_config2)</span>
+<span class="sd">        &gt;&gt;&gt; rchip2, = ibs.get_annot_chips([aid2], config2_=qreq_.extern_data_config2)</span>
+<span class="sd">        &gt;&gt;&gt; kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.extern_data_config2)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; import matplotlib as mpl</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.scripts.thesis import TMP_RC</span>
+<span class="sd">        &gt;&gt;&gt; mpl.rcParams.update(TMP_RC)</span>
+<span class="sd">        &gt;&gt;&gt; show_aff = not ut.get_argflag(&#39;--noaff&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; refine_method = qreq_.qparams.refine_method if not ut.get_argflag(&#39;--norefinelbl&#39;) else &#39;&#39;</span>
+<span class="sd">        &gt;&gt;&gt; pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup,</span>
+<span class="sd">        &gt;&gt;&gt;                    homog_tup=homog_tup, show_aff=show_aff,</span>
+<span class="sd">        &gt;&gt;&gt;                    refine_method=refine_method)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+    <span class="n">use_chip_extent</span>       <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">use_chip_extent</span>
+    <span class="n">xy_thresh</span>             <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">xy_thresh</span>
+    <span class="n">scale_thresh</span>          <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">scale_thresh</span>
+    <span class="n">ori_thresh</span>            <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">ori_thresh</span>
+    <span class="n">min_nInliers</span>          <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">min_nInliers</span>
+    <span class="n">full_homog_checks</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">full_homog_checks</span>
+    <span class="n">refine_method</span>         <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">refine_method</span>
+    <span class="n">sver_output_weighting</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sver_output_weighting</span>
+    <span class="c1"># Precompute sver cmtup_old</span>
+    <span class="n">kpts1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_qannot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_dannot_kpts</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">use_chip_extent</span><span class="p">:</span>
+        <span class="n">top_dlen_sqrd_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_dlensqrd</span><span class="p">(</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">top_dlen_sqrd_list</span> <span class="o">=</span> <span class="n">compute_matching_dlen_extent</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="p">)</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">weight_inliers</span><span class="p">:</span>
+        <span class="c1"># Weights for inlier scoring</span>
+        <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fg_on&#39;</span><span class="p">):</span>
+            <span class="n">qweights</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_feats</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">qweights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">match_weight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qweights</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">match_weight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">]</span>
+
+    <span class="c1"># Make an svtup for every daid in the shortlist</span>
+    <span class="n">_iter1</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="p">,</span>
+                 <span class="n">top_dlen_sqrd_list</span><span class="p">,</span> <span class="n">match_weight_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">_iter1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">_iter1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;sver shortlist&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">svtup_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fsv</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">dlen_sqrd2</span><span class="p">,</span> <span class="n">match_weights</span> <span class="ow">in</span> <span class="n">_iter1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># skip results without any matches</span>
+            <span class="n">sv_tup</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># sver_testdata = dict(</span>
+            <span class="c1">#     kpts1=kpts1,</span>
+            <span class="c1">#     kpts2=kpts2,</span>
+            <span class="c1">#     fm=fm,</span>
+            <span class="c1">#     xy_thresh=xy_thresh,</span>
+            <span class="c1">#     scale_thresh=scale_thresh,</span>
+            <span class="c1">#     ori_thresh=ori_thresh,</span>
+            <span class="c1">#     dlen_sqrd2=dlen_sqrd2,</span>
+            <span class="c1">#     min_nInliers=min_nInliers,</span>
+            <span class="c1">#     match_weights=match_weights,</span>
+            <span class="c1">#     full_homog_checks=full_homog_checks,</span>
+            <span class="c1">#     refine_method=refine_method</span>
+            <span class="c1"># )</span>
+
+            <span class="c1"># locals().update(ut.load_data(&#39;sver_testdata.pkl&#39;))</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Compute homography from chip2 to chip1 returned homography</span>
+                <span class="c1"># maps image1 space into image2 space image1 is a query chip</span>
+                <span class="c1"># and image2 is a database chip</span>
+                <span class="n">sv_tup</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">spatially_verify_kpts</span><span class="p">(</span>
+                    <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">xy_thresh</span><span class="p">,</span> <span class="n">scale_thresh</span><span class="p">,</span> <span class="n">ori_thresh</span><span class="p">,</span>
+                    <span class="n">dlen_sqrd2</span><span class="p">,</span> <span class="n">min_nInliers</span><span class="p">,</span> <span class="n">match_weights</span><span class="o">=</span><span class="n">match_weights</span><span class="p">,</span>
+                    <span class="n">full_homog_checks</span><span class="o">=</span><span class="n">full_homog_checks</span><span class="p">,</span> <span class="n">refine_method</span><span class="o">=</span><span class="n">refine_method</span><span class="p">,</span>
+                    <span class="n">returnAff</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Unknown error in spatial verification.&#39;</span><span class="p">,</span>
+                           <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;kpts1&#39;</span><span class="p">,</span> <span class="s1">&#39;kpts2&#39;</span><span class="p">,</span>  <span class="s1">&#39;fm&#39;</span><span class="p">,</span> <span class="s1">&#39;xy_thresh&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;scale_thresh&#39;</span><span class="p">,</span> <span class="s1">&#39;dlen_sqrd2&#39;</span><span class="p">,</span> <span class="s1">&#39;min_nInliers&#39;</span><span class="p">])</span>
+                <span class="n">sv_tup</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">svtup_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sv_tup</span><span class="p">)</span>
+
+    <span class="c1"># &lt;SENTINAL&gt;</span>
+
+    <span class="c1"># New way</span>
+    <span class="n">inliers_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sv_tup</span> <span class="ow">in</span> <span class="n">svtup_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sv_tup</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">inliers_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">homog_errors</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">aff_errors</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span> <span class="o">=</span> <span class="n">sv_tup</span>
+            <span class="n">inliers_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">)</span>
+
+    <span class="n">indicies_list</span> <span class="o">=</span> <span class="n">inliers_list</span>
+    <span class="n">cmSV</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">take_feature_matches</span><span class="p">(</span><span class="n">indicies_list</span><span class="p">,</span> <span class="n">keepscores</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># NOTE: It is not very clear explicitly, but the way H_list and</span>
+    <span class="c1"># homog_err_weight_list are built will correspond with the daid_list in</span>
+    <span class="c1"># cmSV returned by cm.take_feature_matches</span>
+    <span class="n">svtup_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">svtup_list</span><span class="p">)</span>
+    <span class="n">H_list_SV</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">svtup_list_</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">cmSV</span><span class="o">.</span><span class="n">H_list</span> <span class="o">=</span> <span class="n">H_list_SV</span>
+
+    <span class="k">if</span> <span class="n">sver_output_weighting</span><span class="p">:</span>
+        <span class="n">homog_err_weight_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">xy_thresh_sqrd</span> <span class="o">=</span> <span class="n">dlen_sqrd2</span> <span class="o">*</span> <span class="n">xy_thresh</span>
+        <span class="k">for</span> <span class="n">sv_tup</span> <span class="ow">in</span> <span class="n">svtup_list_</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">homog_errors</span><span class="p">)</span> <span class="o">=</span> <span class="n">sv_tup</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">homog_xy_errors</span> <span class="o">=</span> <span class="n">homog_errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">homog_err_weight</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">homog_xy_errors</span> <span class="o">/</span> <span class="n">xy_thresh_sqrd</span><span class="p">))</span>
+            <span class="n">homog_err_weight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">homog_err_weight</span><span class="p">)</span>
+        <span class="c1"># Rescore based on homography errors</span>
+        <span class="n">filtkey</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span>
+        <span class="n">filtweight_list</span> <span class="o">=</span> <span class="n">homog_err_weight_list</span>
+        <span class="n">cmSV</span><span class="o">.</span><span class="n">append_featscore_column</span><span class="p">(</span><span class="n">filtkey</span><span class="p">,</span> <span class="n">filtweight_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cmSV</span></div>
+
+
+<div class="viewcode-block" id="compute_matching_dlen_extent"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.pipeline.compute_matching_dlen_extent">[docs]</a><span class="k">def</span> <span class="nf">compute_matching_dlen_extent</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">kpts_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    helper for spatial verification, computes the squared diagonal length of</span>
+<span class="sd">    matching chips</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.pipeline --test-compute_matching_dlen_extent</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; cm.set_cannonical_annot_score(cm.get_num_matches_list())</span>
+<span class="sd">        &gt;&gt;&gt; cm.sortself()</span>
+<span class="sd">        &gt;&gt;&gt; fm_list = cm.fm_list</span>
+<span class="sd">        &gt;&gt;&gt; kpts_list = qreq_.get_qreq_dannot_kpts(cm.daid_list.tolist())</span>
+<span class="sd">        &gt;&gt;&gt; topx2_dlen_sqrd = compute_matching_dlen_extent(qreq_, fm_list, kpts_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(np.sqrt(topx2_dlen_sqrd)[0:5], 600, 1500)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Use extent of matching keypoints</span>
+    <span class="c1"># first get matching keypoints</span>
+    <span class="n">fx2_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">fm_list</span><span class="p">]</span>
+    <span class="n">kpts2_m_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">,</span> <span class="n">fx2_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#[kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]</span>
+    <span class="n">dlen_sqrd_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_kpts_dlen_sqrd</span><span class="p">(</span><span class="n">kpts2_m</span><span class="p">)</span>
+                      <span class="k">for</span> <span class="n">kpts2_m</span> <span class="ow">in</span> <span class="n">kpts2_m_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">dlen_sqrd_list</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m wbia.algo.hots.pipeline --verb-test</span>
+<span class="sd">    python -m wbia.algo.hots.pipeline --test-build_chipmatches</span>
+<span class="sd">    python -m wbia.algo.hots.pipeline --test-spatial-verification</span>
+<span class="sd">    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0 --show</span>
+<span class="sd">    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --show</span>
+<span class="sd">    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --show --db NAUT_test</span>
+<span class="sd">    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --db NAUT_test --noindent</span>
+<span class="sd">    python -m wbia.algo.hots.pipeline --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+    <span class="c1"># if ut.get_argflag(&#39;--show&#39;):</span>
+    <span class="c1">#     import wbia.plottool as pt</span>
+    <span class="c1">#     exec(pt.present())</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../../../wbia.html">wbia</a><ul>
+  <li><a href="../../algo.html">wbia.algo</a><ul>
+  <li><a href="../hots.html">wbia.algo.hots</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

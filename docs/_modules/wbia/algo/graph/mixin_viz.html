@@ -1,0 +1,868 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.algo.graph.mixin_viz &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.algo.graph.mixin_viz</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">SAME</span><span class="p">,</span> <span class="n">DIFF</span><span class="p">,</span> <span class="n">NULL</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="GraphVisualization"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GraphVisualization</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; contains plotting related code &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_get_truth_colors</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="n">truth_colors</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">POSTV</span><span class="p">:</span> <span class="n">pt</span><span class="o">.</span><span class="n">TRUE_BLUE</span><span class="p">,</span>
+            <span class="n">NEGTV</span><span class="p">:</span> <span class="n">pt</span><span class="o">.</span><span class="n">FALSE_RED</span><span class="p">,</span>
+            <span class="n">INCMP</span><span class="p">:</span> <span class="n">pt</span><span class="o">.</span><span class="n">YELLOW</span><span class="p">,</span>
+            <span class="n">UNKWN</span><span class="p">:</span> <span class="n">pt</span><span class="o">.</span><span class="n">UNKNOWN_PURP</span><span class="p">,</span>
+            <span class="n">UNREV</span><span class="p">:</span> <span class="n">pt</span><span class="o">.</span><span class="n">GRAY</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">truth_colors</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_error_color</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="k">return</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span>
+
+    <span class="k">def</span> <span class="nf">_get_cmap</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="c1"># return pt.plt.cm.RdYlBu</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;_cmap&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">_cmap</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cpool</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="mf">0.98135718</span><span class="p">,</span>  <span class="mf">0.19697982</span><span class="p">,</span>  <span class="mf">0.02117342</span><span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">1.</span>        <span class="p">,</span>  <span class="mf">0.33971852</span><span class="p">,</span>  <span class="mf">0.</span>        <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">1.</span>        <span class="p">,</span>  <span class="mf">0.45278535</span><span class="p">,</span>  <span class="mf">0.</span>        <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">1.</span>        <span class="p">,</span>  <span class="mf">0.55483746</span><span class="p">,</span>  <span class="mf">0.</span>        <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">1.</span>        <span class="p">,</span>  <span class="mf">0.65106306</span><span class="p">,</span>  <span class="mf">0.</span>        <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">1.</span>        <span class="p">,</span>  <span class="mf">0.74359729</span><span class="p">,</span>  <span class="mf">0.</span>        <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">1.</span>        <span class="p">,</span>  <span class="mf">0.83348477</span><span class="p">,</span>  <span class="mf">0.</span>        <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.98052302</span><span class="p">,</span>  <span class="mf">0.92128928</span><span class="p">,</span>  <span class="mf">0.</span>        <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.95300175</span><span class="p">,</span>  <span class="mf">1.</span>        <span class="p">,</span>  <span class="mf">0.</span>        <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.59886986</span><span class="p">,</span>  <span class="mf">0.99652954</span><span class="p">,</span>  <span class="mf">0.23932718</span><span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.2</span>       <span class="p">,</span>  <span class="mf">0.95791134</span><span class="p">,</span>  <span class="mf">0.44764457</span><span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.2</span>       <span class="p">,</span>  <span class="mf">0.89937643</span><span class="p">,</span>  <span class="mf">0.63308702</span><span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.2</span>       <span class="p">,</span>  <span class="mf">0.82686023</span><span class="p">,</span>  <span class="mf">0.7895433</span> <span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.2</span>       <span class="p">,</span>  <span class="mf">0.74361034</span><span class="p">,</span>  <span class="mf">0.89742738</span><span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.2</span>       <span class="p">,</span>  <span class="mf">0.65085832</span><span class="p">,</span>  <span class="mf">0.93960823</span><span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.2</span>       <span class="p">,</span>  <span class="mf">0.54946918</span><span class="p">,</span>  <span class="mf">0.90949295</span><span class="p">],</span>
+                              <span class="p">[</span> <span class="mf">0.25697101</span><span class="p">,</span>  <span class="mf">0.44185497</span><span class="p">,</span>  <span class="mf">0.8138502</span> <span class="p">]])</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">(</span><span class="n">cpool</span><span class="p">,</span> <span class="s1">&#39;indexed&#39;</span><span class="p">)</span>
+            <span class="c1"># cmap = pt.interpolated_colormap([</span>
+            <span class="c1">#     (pt.FALSE_RED, 0.0),</span>
+            <span class="c1">#     (pt.YELLOW, 0.5),</span>
+            <span class="c1">#     (pt.TRUE_BLUE, 1.0),</span>
+            <span class="c1"># ], resolution=128)</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">_cmap</span> <span class="o">=</span> <span class="n">cmap</span>
+            <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">_cmap</span>
+
+<div class="viewcode-block" id="GraphVisualization.initialize_visual_node_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.initialize_visual_node_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_visual_node_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;initialize_visual_node_attrs!!!&#39;</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;initialize_visual_node_attrs&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="c1"># import networkx as nx</span>
+        <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
+
+        <span class="c1"># nx.set_node_attributes(graph, name=&#39;framewidth&#39;, values=3.0)</span>
+        <span class="c1"># nx.set_node_attributes(graph, name=&#39;shape&#39;, values=ut.dzip(annot_nodes, [&#39;rect&#39;]))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_node_attr</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_node_attr</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_node_attr</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_node_attr</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;radius&#39;</span><span class="p">)</span>
+
+        <span class="n">infr</span><span class="o">.</span><span class="n">_viz_init_nodes</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">_viz_image_config_dirty</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.update_node_image_config"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.update_node_image_config">[docs]</a>    <span class="k">def</span> <span class="nf">update_node_image_config</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;_viz_image_config_dirty&#39;</span><span class="p">):</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">initialize_visual_node_attrs</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">assert</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">_viz_image_config</span>
+            <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">_viz_image_config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">val</span><span class="p">:</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">_viz_image_config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">_viz_image_config_dirty</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.update_node_image_attribute"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.update_node_image_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">update_node_image_attribute</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;_viz_image_config_dirty&#39;</span><span class="p">):</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">initialize_visual_node_attrs</span><span class="p">()</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;rect&#39;</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot show images when ibs is None&#39;</span><span class="p">)</span>
+            <span class="n">imgpath_list</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;chipthumb&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span>
+                                                   <span class="n">config</span><span class="o">=</span><span class="n">infr</span><span class="o">.</span><span class="n">_viz_image_config</span><span class="p">,</span>
+                                                   <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">imgpath_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">_viz_image_config_dirty</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.get_colored_edge_weights"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.get_colored_edge_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_colored_edge_weights</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">highlight_reviews</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># Update color and linewidth based on scores/weight</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
+        <span class="n">truth_colors</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_get_truth_colors</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">highlight_reviews</span><span class="p">:</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_edge_data</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">)</span>
+                <span class="n">meta</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span> <span class="n">NULL</span><span class="p">)</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">truth_colors</span><span class="p">[</span><span class="n">state</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">}:</span>
+                    <span class="c1"># Darken and saturated same/diff edges without visual</span>
+                    <span class="c1"># evidence</span>
+                    <span class="k">if</span> <span class="n">meta</span>  <span class="o">==</span> <span class="n">SAME</span><span class="p">:</span>
+                        <span class="n">color</span> <span class="o">=</span> <span class="n">truth_colors</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">meta</span> <span class="o">==</span> <span class="n">DIFF</span><span class="p">:</span>
+                        <span class="n">color</span> <span class="o">=</span> <span class="n">truth_colors</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span>
+                    <span class="n">color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">color_funcs</span><span class="o">.</span><span class="n">adjust_hsv_of_rgb</span><span class="p">(</span>
+                        <span class="n">color</span><span class="p">,</span> <span class="n">sat_adjust</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">val_adjust</span><span class="o">=-.</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+            <span class="n">edge_to_weight</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;normscore&#39;</span><span class="p">)</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">edge_to_weight</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+            <span class="n">nan_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># give nans threshold value</span>
+                <span class="n">nan_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">weights</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+                <span class="n">weights</span><span class="p">[</span><span class="n">nan_idxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">thresh</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_colored_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+            <span class="c1">#print(&#39;!! weights = %r&#39; % (len(weights),))</span>
+            <span class="c1">#print(&#39;!! edges = %r&#39; % (len(edges),))</span>
+            <span class="c1">#print(&#39;!! colors = %r&#39; % (len(colors),))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nan_idxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">nan_idxs</span><span class="p">:</span>
+                    <span class="n">colors</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">GRAY</span>
+        <span class="k">return</span> <span class="n">edges</span><span class="p">,</span> <span class="n">colors</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.get_colored_weights"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.get_colored_weights">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">get_colored_weights</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="c1">#pt.rrrr()</span>
+        <span class="c1"># cmap_ = &#39;viridis&#39;</span>
+        <span class="c1"># cmap_ = &#39;plasma&#39;</span>
+        <span class="c1"># cmap_ = pt.plt.cm.RdYlBu</span>
+        <span class="n">cmap_</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_get_cmap</span><span class="p">()</span>
+        <span class="c1"># cmap_ = pt.plt.cm.RdYlBu</span>
+        <span class="c1">#cmap_ = pt.plt.get_cmap(cmap_)</span>
+        <span class="n">thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+        <span class="n">weights</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">weights</span><span class="p">)]</span> <span class="o">=</span> <span class="n">thresh</span>
+        <span class="c1">#colors = pt.scores_to_color(weights, cmap_=cmap_, logscale=True)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">scores_to_color</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="n">cmap_</span><span class="p">,</span> <span class="n">score_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                                    <span class="n">logscale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cmap_range</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">colors</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">visual_edge_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; all edge visual attrs &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs_appearance</span> <span class="o">+</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs_space</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">visual_edge_attrs_appearance</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; attrs that pertain to edge color and style &quot;&quot;&quot;</span>
+        <span class="c1"># picker doesnt really belong here</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;implicit&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="s1">&#39;linestyle&#39;</span><span class="p">,</span> <span class="s1">&#39;lw&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="s1">&#39;stroke&#39;</span><span class="p">,</span> <span class="s1">&#39;capstyle&#39;</span><span class="p">,</span> <span class="s1">&#39;hatch&#39;</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;sketch&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shadow&#39;</span><span class="p">,</span> <span class="s1">&#39;picker&#39;</span><span class="p">,</span> <span class="s1">&#39;linewidth&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">visual_edge_attrs_space</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; attrs that pertain to edge positioning in a plot &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;ctrl_pts&#39;</span><span class="p">,</span> <span class="s1">&#39;end_pt&#39;</span><span class="p">,</span> <span class="s1">&#39;head_lp&#39;</span><span class="p">,</span> <span class="s1">&#39;headlabel&#39;</span><span class="p">,</span> <span class="s1">&#39;lp&#39;</span><span class="p">,</span> <span class="s1">&#39;start_pt&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;tail_lp&#39;</span><span class="p">,</span> <span class="s1">&#39;taillabel&#39;</span><span class="p">,</span> <span class="s1">&#39;zorder&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">visual_node_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;zorder&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="GraphVisualization.simplify_graph"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.simplify_graph">[docs]</a>    <span class="k">def</span> <span class="nf">simplify_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
+        <span class="n">simple</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="n">copy</span> <span class="k">else</span> <span class="n">graph</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_edge_attr</span><span class="p">(</span><span class="n">simple</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_node_attr</span><span class="p">(</span><span class="n">simple</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_node_attrs</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;pin&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">simple</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.make_viz_config"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.make_viz_config">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">make_viz_config</span><span class="p">(</span><span class="n">use_image</span><span class="p">,</span> <span class="n">small_graph</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span> <span class="k">as</span> <span class="n">dt</span>
+        <span class="k">class</span> <span class="nc">GraphVizConfig</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+            <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="c1"># Appearance</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;show_image&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">use_image</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">use_image</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="ow">not</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;show_image&#39;</span><span class="p">]),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;pin_positions&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">use_image</span><span class="p">),</span>
+
+                <span class="c1"># Visibility</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;show_reviewed_edges&#39;</span><span class="p">,</span> <span class="n">small_graph</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;show_unreviewed_edges&#39;</span><span class="p">,</span> <span class="n">small_graph</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;show_inferred_same&#39;</span><span class="p">,</span> <span class="n">small_graph</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;show_inferred_diff&#39;</span><span class="p">,</span> <span class="n">small_graph</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;highlight_reviews&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;show_recent_review&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;show_labels&#39;</span><span class="p">,</span> <span class="n">small_graph</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;splines&#39;</span><span class="p">,</span> <span class="s1">&#39;spline&#39;</span> <span class="k">if</span> <span class="n">small_graph</span> <span class="k">else</span> <span class="s1">&#39;line&#39;</span><span class="p">,</span>
+                             <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="s1">&#39;spline&#39;</span><span class="p">,</span> <span class="s1">&#39;ortho&#39;</span><span class="p">]),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;groupby&#39;</span><span class="p">,</span> <span class="s1">&#39;name_label&#39;</span><span class="p">,</span>
+                             <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;name_label&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]),</span>
+            <span class="p">]</span>
+        <span class="k">return</span> <span class="n">GraphVizConfig</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.update_visual_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.update_visual_attrs">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">update_visual_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">show_reviewed_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">show_unreviewed_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">show_inferred_diff</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">show_inferred_same</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">show_recent_review</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">highlight_reviews</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">show_inconsistency</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">wavy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">simple_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">reposition</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">use_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">edge_overrides</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">node_overrides</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;name_label&#39;</span><span class="p">,</span>
+                            <span class="o">**</span><span class="n">kwargs</span>
+                            <span class="c1"># hide_unreviewed_inferred=True</span>
+                            <span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;update_visual_attrs&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
+        <span class="c1"># if hide_cuts is not None:</span>
+        <span class="c1">#     # show_unreviewed_cuts = not hide_cuts</span>
+        <span class="c1">#     show_reviewed_cuts = not hide_cuts</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;_viz_init_nodes&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">_viz_init_nodes</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">&#39;circle&#39;</span><span class="p">)</span>
+            <span class="c1"># infr.set_node_attrs(&#39;shape&#39;, &#39;circle&#39;)</span>
+
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;_viz_image_config_dirty&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">update_node_image_attribute</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="n">use_image</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">get_any</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">default</span>
+        <span class="n">show_cand</span> <span class="o">=</span> <span class="n">get_any</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;show_candidate_edges&#39;</span><span class="p">,</span> <span class="s1">&#39;show_candidates&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;show_cand&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">show_cand</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">show_cand</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">show_reviewed_edges</span>   <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">show_unreviewed_edges</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">show_inferred_diff</span>    <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">show_inferred_same</span>    <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_all&#39;</span><span class="p">):</span>
+            <span class="n">show_cand</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># alpha_low = .5</span>
+        <span class="n">alpha_med</span> <span class="o">=</span> <span class="o">.</span><span class="mi">9</span>
+        <span class="n">alpha_high</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+        <span class="n">dark_background</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dark_background&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># Ensure we are starting from a clean slate</span>
+        <span class="c1"># if reposition:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_edge_attr</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs_appearance</span><span class="p">)</span>
+
+        <span class="c1"># Set annotation node labels</span>
+        <span class="n">node_to_nid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">show_labels</span><span class="p">:</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">simple_labels</span><span class="p">:</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">node_to_nid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">node_to_nid</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;name_label&#39;</span><span class="p">)</span>
+                <span class="n">node_to_view</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">node_to_view</span><span class="p">:</span>
+                    <span class="n">annotnode_to_label</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="n">aid</span><span class="p">:</span> <span class="s1">&#39;aid=</span><span class="si">%r%s</span><span class="se">\n</span><span class="s1">nid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">node_to_view</span><span class="p">[</span><span class="n">aid</span><span class="p">],</span>
+                                                    <span class="n">node_to_nid</span><span class="p">[</span><span class="n">aid</span><span class="p">])</span>
+                        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span>
+                    <span class="p">}</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">annotnode_to_label</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="n">aid</span><span class="p">:</span> <span class="s1">&#39;aid=</span><span class="si">%r</span><span class="se">\n</span><span class="s1">nid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">node_to_nid</span><span class="p">[</span><span class="n">aid</span><span class="p">])</span>
+                        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span>
+                    <span class="p">}</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">annotnode_to_label</span><span class="p">)</span>
+
+        <span class="c1"># NODE_COLOR: based on name_label</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">color_nodes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">labelattr</span><span class="o">=</span><span class="n">colorby</span><span class="p">,</span>
+                       <span class="n">outof</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;outof&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">sat_adjust</span><span class="o">=-.</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="c1"># EDGES:</span>
+        <span class="c1"># Grab different types of edges</span>
+        <span class="n">edges</span><span class="p">,</span> <span class="n">edge_colors</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_colored_edge_weights</span><span class="p">(</span>
+            <span class="n">graph</span><span class="p">,</span> <span class="n">highlight_reviews</span><span class="p">)</span>
+
+        <span class="c1"># reviewed_states = nx.get_edge_attributes(graph, &#39;evidence_decision&#39;)</span>
+        <span class="n">reviewed_states</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="n">infr</span><span class="o">.</span><span class="n">edge_decision</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()}</span>
+        <span class="n">edge_to_inferred_state</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;inferred_state&#39;</span><span class="p">)</span>
+        <span class="c1"># dummy_edges = [edge for edge, flag in</span>
+        <span class="c1">#                nx.get_edge_attributes(graph, &#39;_dummy_edge&#39;).items()</span>
+        <span class="c1">#                if flag]</span>
+        <span class="n">edge_to_reviewid</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;review_id&#39;</span><span class="p">)</span>
+        <span class="n">recheck_edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">split</span> <span class="ow">in</span>
+                         <span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;maybe_error&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                         <span class="k">if</span> <span class="n">split</span><span class="p">]</span>
+        <span class="n">decision_to_edge</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_pairs</span><span class="p">(</span><span class="n">reviewed_states</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">neg_edges</span> <span class="o">=</span> <span class="n">decision_to_edge</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span>
+        <span class="n">pos_edges</span> <span class="o">=</span> <span class="n">decision_to_edge</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span>
+        <span class="n">incomp_edges</span> <span class="o">=</span> <span class="n">decision_to_edge</span><span class="p">[</span><span class="n">INCMP</span><span class="p">]</span>
+        <span class="n">unreviewed_edges</span> <span class="o">=</span> <span class="n">decision_to_edge</span><span class="p">[</span><span class="n">UNREV</span><span class="p">]</span>
+
+        <span class="n">inferred_same</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">edge_to_inferred_state</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                         <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;same&#39;</span><span class="p">]</span>
+        <span class="n">inferred_diff</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">edge_to_inferred_state</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                         <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;diff&#39;</span><span class="p">]</span>
+        <span class="n">inconsistent_external</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">edge_to_inferred_state</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;inconsistent_external&#39;</span><span class="p">]</span>
+        <span class="n">inferred_notcomp</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">edge_to_inferred_state</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                            <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;notcomp&#39;</span><span class="p">]</span>
+
+        <span class="n">reviewed_edges</span> <span class="o">=</span> <span class="n">incomp_edges</span> <span class="o">+</span> <span class="n">pos_edges</span> <span class="o">+</span> <span class="n">neg_edges</span>
+        <span class="n">compared_edges</span> <span class="o">=</span> <span class="n">pos_edges</span> <span class="o">+</span> <span class="n">neg_edges</span>
+        <span class="n">uncompared_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">compared_edges</span><span class="p">)</span>
+        <span class="n">nontrivial_inferred_same</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">inferred_same</span><span class="p">,</span> <span class="n">pos_edges</span> <span class="o">+</span>
+                                              <span class="n">neg_edges</span> <span class="o">+</span> <span class="n">incomp_edges</span><span class="p">)</span>
+        <span class="n">nontrivial_inferred_diff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">inferred_diff</span><span class="p">,</span> <span class="n">pos_edges</span> <span class="o">+</span>
+                                              <span class="n">neg_edges</span> <span class="o">+</span> <span class="n">incomp_edges</span><span class="p">)</span>
+        <span class="n">nontrivial_inferred_edges</span> <span class="o">=</span> <span class="p">(</span><span class="n">nontrivial_inferred_same</span> <span class="o">+</span>
+                                     <span class="n">nontrivial_inferred_diff</span><span class="p">)</span>
+
+        <span class="c1"># EDGE_COLOR: based on edge_weight</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">edge_colors</span><span class="p">))</span>
+
+        <span class="c1"># LINE_WIDTH: based on review_state</span>
+        <span class="c1"># unreviewed_width = 2.0</span>
+        <span class="c1"># reviewed_width = 5.0</span>
+        <span class="n">unreviewed_width</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">reviewed_width</span> <span class="o">=</span> <span class="mf">2.0</span>
+        <span class="k">if</span> <span class="n">highlight_reviews</span><span class="p">:</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">reviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="n">reviewed_width</span><span class="p">]))</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">unreviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="n">unreviewed_width</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="p">[</span><span class="n">unreviewed_width</span><span class="p">]))</span>
+
+        <span class="c1"># EDGE_STROKE: based on decision and maybe_error</span>
+        <span class="c1"># fg = pt.WHITE if dark_background else pt.BLACK</span>
+        <span class="c1"># nx.set_edge_attributes(graph, name=&#39;stroke&#39;, values=ut.dzip(reviewed_edges, [{&#39;linewidth&#39;: 3, &#39;foreground&#39;: fg}]))</span>
+        <span class="k">if</span> <span class="n">show_inconsistency</span><span class="p">:</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;stroke&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">recheck_edges</span><span class="p">,</span> <span class="p">[{</span><span class="s1">&#39;linewidth&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;foreground&#39;</span><span class="p">:</span> <span class="n">infr</span><span class="o">.</span><span class="n">_error_color</span><span class="p">}]))</span>
+
+        <span class="c1"># Set linestyles to emphasize PCCs</span>
+        <span class="c1"># Dash lines between PCCs inferred to be different</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linestyle&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">inferred_diff</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;dashed&#39;</span><span class="p">]))</span>
+
+        <span class="c1"># Treat incomparable/incon-external inference as different</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linestyle&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">inferred_notcomp</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;dashed&#39;</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linestyle&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">inconsistent_external</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;dashed&#39;</span><span class="p">]))</span>
+
+        <span class="c1"># Dot lines that we are unsure of</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linestyle&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">unreviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;dotted&#39;</span><span class="p">]))</span>
+
+        <span class="c1"># Cut edges are implicit and dashed</span>
+        <span class="c1"># nx.set_edge_attributes(graph, name=&#39;implicit&#39;, values=ut.dzip(cut_edges, [True]))</span>
+        <span class="c1"># nx.set_edge_attributes(graph, name=&#39;linestyle&#39;, values=ut.dzip(cut_edges, [&#39;dashed&#39;]))</span>
+        <span class="c1"># nx.set_edge_attributes(graph, name=&#39;alpha&#39;, values=ut.dzip(cut_edges, [alpha_med]))</span>
+
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;implicit&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">uncompared_edges</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]))</span>
+
+        <span class="c1"># Only matching edges should impose constraints on the graph layout</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;implicit&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">neg_edges</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">neg_edges</span><span class="p">,</span> <span class="p">[</span><span class="n">alpha_med</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;implicit&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">incomp_edges</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">incomp_edges</span><span class="p">,</span> <span class="p">[</span><span class="n">alpha_med</span><span class="p">]))</span>
+
+        <span class="c1"># Ensure reviewed edges are visible</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;implicit&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">reviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">reviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="n">alpha_high</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Infered same edges can be allowed to constrain in order</span>
+            <span class="c1"># to make things look nice sometimes</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;implicit&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">inferred_same</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">]))</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">inferred_same</span><span class="p">,</span> <span class="p">[</span><span class="n">alpha_high</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_same&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">inferred_same</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_diff&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">inferred_diff</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_positive_edges&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">pos_edges</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_negative_edges&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">neg_edges</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_incomparable_edges&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">incomp_edges</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_between&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">node_to_nid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">node_to_nid</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;name_label&#39;</span><span class="p">)</span>
+            <span class="n">between_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">edges</span>
+                             <span class="k">if</span> <span class="n">node_to_nid</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="o">!=</span> <span class="n">node_to_nid</span><span class="p">[</span><span class="n">v</span><span class="p">]]</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">between_edges</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="c1"># SKETCH: based on inferred_edges</span>
+        <span class="c1"># Make inferred edges wavy</span>
+        <span class="k">if</span> <span class="n">wavy</span><span class="p">:</span>
+            <span class="c1"># dict(scale=3.0, length=18.0, randomness=None)]</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sketch&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nontrivial_inferred_edges</span><span class="p">,</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mf">64.0</span><span class="p">,</span> <span class="n">randomness</span><span class="o">=</span><span class="kc">None</span><span class="p">)]))</span>
+
+        <span class="c1"># Make dummy edges more transparent</span>
+        <span class="c1"># nx.set_edge_attributes(graph, name=&#39;alpha&#39;, values=ut.dzip(dummy_edges, [alpha_low]))</span>
+        <span class="n">selected_edges</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;selected_edges&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># SHADOW: based on most recent</span>
+        <span class="c1"># Increase visibility of nodes with the most recently changed timestamp</span>
+        <span class="k">if</span> <span class="n">show_recent_review</span> <span class="ow">and</span> <span class="n">edge_to_reviewid</span> <span class="ow">and</span> <span class="n">selected_edges</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">review_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">edge_to_reviewid</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="n">recent_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">review_ids</span><span class="p">,</span> <span class="n">multi</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">recent_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">edge_to_reviewid</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">recent_idxs</span><span class="p">)</span>
+            <span class="n">selected_edges</span> <span class="o">=</span> <span class="n">recent_edges</span>
+
+        <span class="k">if</span> <span class="n">selected_edges</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># TODO: add photoshop-like parameters like</span>
+            <span class="c1"># spread and size. offset is the same as angle and distance.</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;shadow&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">selected_edges</span><span class="p">,</span> <span class="p">[{</span>
+                <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">3</span><span class="p">,</span>
+                <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">6</span><span class="p">,</span>
+                <span class="s1">&#39;shadow_color&#39;</span><span class="p">:</span> <span class="s1">&#39;w&#39;</span> <span class="k">if</span> <span class="n">dark_background</span> <span class="k">else</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;offset&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>
+            <span class="p">}]))</span>
+
+        <span class="c1"># Z_ORDER: make sure nodes are on top</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;zorder&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;zorder&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;picker&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">]))</span>
+
+        <span class="c1"># VISIBILITY: Set visibility of edges based on arguments</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">show_reviewed_edges</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Making reviewed edges invisible&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">reviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;invis&#39;</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">show_unreviewed_edges</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Making un-reviewed edges invisible&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">unreviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;invis&#39;</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">show_inferred_same</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Making nontrivial_same edges invisible&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nontrivial_inferred_same</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;invis&#39;</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">show_inferred_diff</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Making nontrivial_diff edges invisible&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nontrivial_inferred_diff</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;invis&#39;</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="n">selected_edges</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Always show the most recent review (remove setting of invis)</span>
+            <span class="c1"># infr.print(&#39;recent_edges = %r&#39; % (recent_edges,))</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">selected_edges</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="n">reposition</span><span class="p">:</span>
+            <span class="c1"># LAYOUT: update the positioning layout</span>
+            <span class="k">def</span> <span class="nf">get_layoutkw</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">graph</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">))</span>
+
+            <span class="n">layoutkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">,</span>
+                <span class="n">splines</span><span class="o">=</span><span class="n">get_layoutkw</span><span class="p">(</span><span class="s1">&#39;splines&#39;</span><span class="p">,</span> <span class="s1">&#39;line&#39;</span><span class="p">),</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="n">get_layoutkw</span><span class="p">(</span><span class="s1">&#39;fontsize&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">fontname</span><span class="o">=</span><span class="n">get_layoutkw</span><span class="p">(</span><span class="s1">&#39;fontname&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">sep</span><span class="o">=</span><span class="mi">10</span> <span class="o">/</span> <span class="mi">72</span><span class="p">,</span>
+                <span class="n">esep</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">72</span><span class="p">,</span>
+                <span class="n">nodesep</span><span class="o">=.</span><span class="mi">1</span>
+            <span class="p">)</span>
+            <span class="n">layoutkw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c1"># print(ut.repr3(graph.edges))</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">nx_agraph_layout</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">layoutkw</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">edge_overrides</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">edge_to_attr</span> <span class="ow">in</span> <span class="n">edge_overrides</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">edge_to_attr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">node_overrides</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">node_to_attr</span> <span class="ow">in</span> <span class="n">node_overrides</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">node_to_attr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.show_graph"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.show_graph">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">show_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">update_attrs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">with_colorbar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">zoomable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">pickable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            infr (?):</span>
+<span class="sd">            graph (None): (default = None)</span>
+<span class="sd">            use_image (bool): (default = False)</span>
+<span class="sd">            update_attrs (bool): (default = True)</span>
+<span class="sd">            with_colorbar (bool): (default = False)</span>
+<span class="sd">            pnum (tuple):  plot number(default = (1, 1, 1))</span>
+<span class="sd">            zoomable (bool): (default = True)</span>
+<span class="sd">            pickable (bool): (de = False)</span>
+<span class="sd">            **kwargs: verbose, with_labels, fnum, layout, ax, pos, img_dict,</span>
+<span class="sd">                      title, layoutkw, framewidth, modify_ax, as_directed,</span>
+<span class="sd">                      hacknoedge, hacknode, node_labels, arrow_width, fontsize,</span>
+<span class="sd">                      fontweight, fontname, fontfamilty, fontproperties</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.graph.mixin_viz GraphVisualization.show_graph --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.mixin_viz import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph import demo</span>
+<span class="sd">            &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; infr = demo.demodata_infr(ccs=ut.estarmap(</span>
+<span class="sd">            &gt;&gt;&gt;    range, [(1, 6), (6, 10), (10, 13), (13, 15), (15, 16),</span>
+<span class="sd">            &gt;&gt;&gt;            (17, 20)]))</span>
+<span class="sd">            &gt;&gt;&gt; pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=3)</span>
+<span class="sd">            &gt;&gt;&gt; infr.show_graph(show_cand=True, simple_labels=True, pickable=True, fnum=1, pnum=pnum_())</span>
+<span class="sd">            &gt;&gt;&gt; infr.add_feedback((1, 5), INCMP)</span>
+<span class="sd">            &gt;&gt;&gt; infr.add_feedback((14, 18), INCMP)</span>
+<span class="sd">            &gt;&gt;&gt; infr.refresh_candidate_edges()</span>
+<span class="sd">            &gt;&gt;&gt; infr.show_graph(show_cand=True, simple_labels=True, pickable=True, fnum=1, pnum=pnum_())</span>
+<span class="sd">            &gt;&gt;&gt; infr.add_feedback((17, 18), NEGTV)  # add inconsistency</span>
+<span class="sd">            &gt;&gt;&gt; infr.apply_nondynamic_update()</span>
+<span class="sd">            &gt;&gt;&gt; infr.show_graph(show_cand=True, simple_labels=True, pickable=True, fnum=1, pnum=pnum_())</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
+        <span class="c1"># kwargs[&#39;fontsize&#39;] = kwargs.get(&#39;fontsize&#39;, 8)</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+            <span class="c1"># default_update_kw = ut.get_func_kwargs(infr.update_visual_attrs)</span>
+            <span class="c1"># update_kw = ut.update_existing(default_update_kw, kwargs)</span>
+            <span class="c1"># infr.update_visual_attrs(**update_kw)</span>
+            <span class="k">if</span> <span class="n">update_attrs</span><span class="p">:</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">update_visual_attrs</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s1">&#39;custom&#39;</span><span class="p">,</span> <span class="n">as_directed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">modify_ax</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="n">use_image</span><span class="p">,</span>
+                       <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">zoomable</span><span class="p">:</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">zoom_factory</span><span class="p">()</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">pan_factory</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">())</span>
+
+        <span class="c1"># if with_colorbar:</span>
+        <span class="c1">#     # Draw a colorbar</span>
+        <span class="c1">#     _normal_ticks = np.linspace(0, 1, num=11)</span>
+        <span class="c1">#     _normal_scores = np.linspace(0, 1, num=500)</span>
+        <span class="c1">#     _normal_colors = infr.get_colored_weights(_normal_scores)</span>
+        <span class="c1">#     cb = pt.colorbar(_normal_scores, _normal_colors, lbl=&#39;weights&#39;,</span>
+        <span class="c1">#                      ticklabels=_normal_ticks)</span>
+
+        <span class="c1">#     # point to threshold location</span>
+        <span class="c1">#     thresh = None</span>
+        <span class="c1">#     if thresh is not None:</span>
+        <span class="c1">#         xy = (1, thresh)</span>
+        <span class="c1">#         xytext = (2.5, .3 if thresh &lt; .5 else .7)</span>
+        <span class="c1">#         cb.ax.annotate(&#39;threshold&#39;, xy=xy, xytext=xytext,</span>
+        <span class="c1">#                        arrowprops=dict(</span>
+        <span class="c1">#                            alpha=.5, fc=&quot;0.6&quot;,</span>
+        <span class="c1">#                            connectionstyle=&quot;angle3,angleA=90,angleB=0&quot;),)</span>
+
+        <span class="c1"># infr.graph</span>
+        <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dark_background&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">dark_background</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pickable</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;pick_event&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">on_pick</span><span class="p">,</span> <span class="n">infr</span><span class="o">=</span><span class="n">infr</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.show_edge"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.show_edge">[docs]</a>    <span class="k">def</span> <span class="nf">show_edge</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_exec_pairwise_match</span><span class="p">([</span><span class="n">edge</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="n">showkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">vert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">heatmask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_lines</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">show_ell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_ori</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_eig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">modifysize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">showkw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">match</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">showkw</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.draw_aids"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.draw_aids">[docs]</a>    <span class="k">def</span> <span class="nf">draw_aids</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_chip</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_many_chips</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.start_qt_interface"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.start_qt_interface">[docs]</a>    <span class="k">def</span> <span class="nf">start_qt_interface</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz.viz_graph2</span> <span class="k">import</span> <span class="n">AnnotGraphWidget</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">abstract_interaction</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
+        <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
+        <span class="c1"># win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=&#39;review&#39;)</span>
+        <span class="n">win</span> <span class="o">=</span> <span class="n">AnnotGraphWidget</span><span class="p">(</span><span class="n">infr</span><span class="o">=</span><span class="n">infr</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">abstract_interaction</span><span class="o">.</span><span class="n">register_interaction</span><span class="p">(</span><span class="n">win</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">loop</span><span class="p">:</span>
+            <span class="n">gt</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">win</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">win</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">win</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.debug_edge_repr"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.debug_edge_repr">[docs]</a>    <span class="k">def</span> <span class="nf">debug_edge_repr</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DEBUG EDGE REPR&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;edge = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">repr_edge_data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">visual</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.repr_edge_data"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.repr_edge_data">[docs]</a>    <span class="k">def</span> <span class="nf">repr_edge_data</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">all_edge_data</span><span class="p">,</span> <span class="n">visual</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">visual_edge_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">all_edge_data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs</span><span class="p">}</span>
+        <span class="n">edge_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">all_edge_data</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">visual</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="p">[(</span><span class="s1">&#39;visual_edge_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">visual_edge_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))]</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[(</span><span class="s1">&#39;edge_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">edge_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))]</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphVisualization.show_error_case"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.GraphVisualization.show_error_case">[docs]</a>    <span class="k">def</span> <span class="nf">show_error_case</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">edge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="k">if</span> <span class="n">error_edges</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># compute a minimal set of edges to minimally fix the case</span>
+            <span class="k">pass</span>
+
+        <span class="n">sub_infr</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+
+        <span class="c1"># err_graph.add_edges_from(missing_edges)</span>
+        <span class="n">subdf</span> <span class="o">=</span> <span class="n">sub_infr</span><span class="o">.</span><span class="n">get_edge_dataframe</span><span class="p">()</span>
+        <span class="n">mistake_edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subdf</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mistakes</span> <span class="o">=</span> <span class="n">subdf</span><span class="p">[(</span><span class="n">subdf</span><span class="o">.</span><span class="n">truth</span> <span class="o">!=</span> <span class="n">subdf</span><span class="o">.</span><span class="n">evidence_decision</span><span class="p">)</span> <span class="o">&amp;</span>
+                             <span class="p">(</span><span class="n">subdf</span><span class="o">.</span><span class="n">evidence_decision</span> <span class="o">!=</span> <span class="n">UNREV</span><span class="p">)]</span>
+            <span class="n">mistake_edges</span> <span class="o">=</span> <span class="n">mistakes</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">err_edges</span> <span class="o">=</span> <span class="n">mistake_edges</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">error_edges</span><span class="p">)</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">err_edges</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">sub_infr</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span>
+
+        <span class="c1"># Hack, make sure you don&#39;t reuse</span>
+        <span class="n">sub_infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span>
+
+        <span class="n">stroke</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;linewidth&#39;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span> <span class="s1">&#39;foreground&#39;</span><span class="p">:</span> <span class="n">sub_infr</span><span class="o">.</span><span class="n">_error_color</span><span class="p">}</span>
+        <span class="n">edge_overrides</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># &#39;alpha&#39;: {e: .05 for e in true_negatives},</span>
+            <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">err_edges</span><span class="p">},</span>
+            <span class="s1">&#39;sketch&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">err_edges</span><span class="p">},</span>
+            <span class="s1">&#39;linestyle&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="s1">&#39;dashed&#39;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">},</span>
+            <span class="s1">&#39;linewidth&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="mf">2.0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">err_edges</span> <span class="o">+</span> <span class="n">missing</span><span class="p">},</span>
+            <span class="s1">&#39;stroke&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="n">stroke</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">err_edges</span> <span class="o">+</span> <span class="n">missing</span><span class="p">},</span>
+        <span class="p">}</span>
+        <span class="n">selected_kw</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;stroke&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;linewidth&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;foreground&#39;</span><span class="p">:</span> <span class="n">sub_infr</span><span class="o">.</span><span class="n">_error_color</span><span class="p">},</span>
+            <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">selected_kw</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">edge_overrides</span><span class="p">:</span>
+                <span class="n">edge_overrides</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">edge_overrides</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">edge</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected_kw</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="n">sub_infr</span><span class="o">.</span><span class="n">show_edge</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="n">xy</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_axis_xy_width_height</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">sub_infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">sub_infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;framealign&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">sub_infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;framealpha&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">sub_infr</span><span class="o">.</span><span class="n">show_graph</span><span class="p">(</span>
+            <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">show_recent_review</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">zoomable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">pickable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">show_cand</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">splines</span><span class="o">=</span><span class="s1">&#39;spline&#39;</span><span class="p">,</span>
+            <span class="n">simple_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="n">colorby</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">edge_overrides</span><span class="o">=</span><span class="n">edge_overrides</span><span class="p">,</span>
+            <span class="c1"># ratio=1 / abs(w / h)</span>
+        <span class="p">)</span></div>
+
+    <span class="n">show</span> <span class="o">=</span> <span class="n">show_graph</span></div>
+
+
+<div class="viewcode-block" id="on_pick"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_viz.on_pick">[docs]</a><span class="k">def</span> <span class="nf">on_pick</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">infr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ON PICK: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,))</span>
+    <span class="n">artist</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">artist</span>
+    <span class="n">plotdat</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_plotdat_dict</span><span class="p">(</span><span class="n">artist</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plotdat</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;node&#39;</span> <span class="ow">in</span> <span class="n">plotdat</span><span class="p">:</span>
+            <span class="n">all_node_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;node_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+            <span class="n">visual_node_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">all_node_data</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_node_attrs</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">node_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">all_node_data</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_node_attrs</span><span class="p">)</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]</span>
+            <span class="n">node_data</span><span class="p">[</span><span class="s1">&#39;degree&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="n">node_label</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">node_label</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;visual_node_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">visual_node_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;node_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">node_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;node: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]),</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;(pcc) node_label = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">node_label</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;artist = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">artist</span><span class="p">,))</span>
+        <span class="k">elif</span> <span class="s1">&#39;edge&#39;</span> <span class="ow">in</span> <span class="n">plotdat</span><span class="p">:</span>
+            <span class="n">all_edge_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;edge_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">repr_edge_data</span><span class="p">(</span><span class="n">all_edge_data</span><span class="p">))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;edge: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;edge&#39;</span><span class="p">]),</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;artist = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">artist</span><span class="p">,))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;???: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">())</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.graph.mixin_viz</span>
+<span class="sd">        python -m wbia.algo.graph.mixin_viz --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../../../wbia.html">wbia</a><ul>
+  <li><a href="../../algo.html">wbia.algo</a><ul>
+  <li><a href="../graph.html">wbia.algo.graph</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

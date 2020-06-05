@@ -9,6 +9,9 @@ rm -rf wbia.egg-info
 rm -rf ibeis
 rm -rf ibeis.egg-info
 
+rm -rf _docs/_build/
+rm -rf _page/
+
 rm -rf mb_work
 rm -rf wheelhouse
 

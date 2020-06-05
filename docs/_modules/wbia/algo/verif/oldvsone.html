@@ -1,0 +1,400 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.algo.verif.oldvsone &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.algo.verif.oldvsone</h1><div class="highlight"><pre>
+<span></span><span class="c1"># @profile</span>
+<span class="c1"># def edge_hashids(samples):</span>
+<span class="c1">#     qvuuids = samples.annots1.visual_uuids</span>
+<span class="c1">#     dvuuids = samples.annots2.visual_uuids</span>
+<span class="c1">#     # edge_uuids = [ut.combine_uuids(uuids)</span>
+<span class="c1">#     #                for uuids in zip(qvuuids, dvuuids)]</span>
+<span class="c1">#     edge_hashids = [make_edge_hashid(uuid1, uuid2) for uuid1, uuid2 in zip(qvuuids, dvuuids)]</span>
+<span class="c1">#     # edge_uuids = [combine_2uuids(uuid1, uuid2)</span>
+<span class="c1">#     #                for uuid1, uuid2 in zip(qvuuids, dvuuids)]</span>
+<span class="c1">#     return edge_hashids</span>
+
+<span class="c1"># @profile</span>
+<span class="c1"># def edge_hashid(samples):</span>
+<span class="c1">#     edge_hashids = samples.edge_hashids()</span>
+<span class="c1">#     edge_hashid = ut.hashstr_arr27(edge_hashids, &#39;edges&#39;, hashlen=32,</span>
+<span class="c1">#                                    pathsafe=True)</span>
+<span class="c1">#     return edge_hashid</span>
+
+<span class="c1"># @profile</span>
+<span class="c1"># def make_edge_hashid(uuid1, uuid2):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     Slightly faster than using ut.combine_uuids, because we condense and don&#39;t</span>
+<span class="c1">#     bother casting back to UUIDS</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     sep_str = &#39;-&#39;</span>
+<span class="c1">#     sep_byte = six.b(sep_str)</span>
+<span class="c1">#     pref = six.b(&#39;{}2&#39;.format(sep_str))</span>
+<span class="c1">#     combined_bytes = pref + sep_byte.join([uuid1.bytes, uuid2.bytes])</span>
+<span class="c1">#     bytes_sha1 = hashlib.sha1(combined_bytes)</span>
+<span class="c1">#     # Digest them into a hash</span>
+<span class="c1">#     hashbytes_20 = bytes_sha1.digest()</span>
+<span class="c1">#     hashbytes_16 = hashbytes_20[0:16]</span>
+<span class="c1">#     # uuid_ = uuid.UUID(bytes=hashbytes_16)</span>
+<span class="c1">#     return hashbytes_16</span>
+
+
+
+<div class="viewcode-block" id="demo_single_pairwise_feature_vector"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.oldvsone.demo_single_pairwise_feature_vector">[docs]</a><span class="k">def</span> <span class="nf">demo_single_pairwise_feature_vector</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.verif.vsone demo_single_pairwise_feature_vector</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.verif.vsone import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; match = demo_single_pairwise_feature_vector()</span>
+<span class="sd">        &gt;&gt;&gt; print(match)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
+    <span class="n">annot1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">([</span><span class="n">qaid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_make_lazy_dict</span><span class="p">()</span>
+    <span class="n">annot2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">([</span><span class="n">daid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_make_lazy_dict</span><span class="p">()</span>
+
+    <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">ensure_metadata_normxy</span><span class="p">(</span><span class="n">annot1</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">ensure_metadata_normxy</span><span class="p">(</span><span class="n">annot2</span><span class="p">)</span>
+
+    <span class="n">match</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">PairwiseMatch</span><span class="p">(</span><span class="n">annot1</span><span class="p">,</span> <span class="n">annot2</span><span class="p">)</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;checks&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="s1">&#39;symmetric&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+    <span class="n">match</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">match</span><span class="o">.</span><span class="n">apply_ratio_test</span><span class="p">({</span><span class="s1">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">638</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">match</span><span class="o">.</span><span class="n">apply_sver</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># match.add_global_measures([&#39;yaw&#39;, &#39;qual&#39;, &#39;gps&#39;, &#39;time&#39;])</span>
+    <span class="n">match</span><span class="o">.</span><span class="n">add_global_measures</span><span class="p">([</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;qual&#39;</span><span class="p">,</span> <span class="s1">&#39;gps&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
+    <span class="n">match</span><span class="o">.</span><span class="n">add_local_measures</span><span class="p">()</span>
+
+    <span class="c1"># sorters = [&#39;ratio&#39;, &#39;norm_dist&#39;, &#39;match_dist&#39;]</span>
+    <span class="n">match</span><span class="o">.</span><span class="n">make_feature_vector</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">match</span>
+
+
+
+    <span class="k">def</span> <span class="nf">demo_classes</span><span class="p">(</span><span class="n">pblm</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.verif.vsone demo_classes --saveparts --save=classes.png --clipwhite</span>
+
+<span class="sd">            python -m wbia.algo.verif.vsone demo_classes --saveparts --save=figures/classes.png --clipwhite --dpath=~/latex/crall-iccv-2017</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.verif.vsone import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; pblm = OneVsOneProblem.from_empty(defaultdb=&#39;PZ_PB_RF_TRAIN&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; pblm.load_features()</span>
+<span class="sd">            &gt;&gt;&gt; pblm.load_samples()</span>
+<span class="sd">            &gt;&gt;&gt; pblm.build_feature_subsets()</span>
+<span class="sd">            &gt;&gt;&gt; pblm.demo_classes()</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">task_key</span> <span class="o">=</span> <span class="s1">&#39;match_state&#39;</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">subtasks</span><span class="p">[</span><span class="n">task_key</span><span class="p">]</span>
+        <span class="n">pb_labels</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">subtasks</span><span class="p">[</span><span class="s1">&#39;photobomb_state&#39;</span><span class="p">]</span>
+        <span class="n">classname_offset</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">POSTV</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">NEGTV</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">INCMP</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="n">POSTV</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="n">NEGTV</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="n">INCMP</span>
+
+        <span class="n">feats</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">X_dict</span><span class="p">[</span><span class="s1">&#39;learn(sum,glob)&#39;</span><span class="p">]</span>
+
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">class_to_edge</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">labels</span><span class="o">.</span><span class="n">class_names</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Find example of </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,))</span>
+            <span class="c1"># Find an example of each class (that is not a photobomb)</span>
+            <span class="n">pbflags</span> <span class="o">=</span> <span class="n">pb_labels</span><span class="o">.</span><span class="n">indicator_df</span><span class="p">[</span><span class="s1">&#39;notpb&#39;</span><span class="p">]</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">indicator_df</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">pbflags</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="n">flags</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">flags</span> <span class="o">&amp;</span> <span class="n">pbflags</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="n">feats</span><span class="p">[</span><span class="s1">&#39;sum(ratio)&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">class_name</span> <span class="o">==</span> <span class="n">INCMP</span><span class="p">:</span>
+                <span class="c1"># flags &amp;= feats[&#39;global(delta_yaw)&#39;] &gt; 3</span>
+                <span class="n">flags</span> <span class="o">&amp;=</span> <span class="n">feats</span><span class="p">[</span><span class="s1">&#39;global(delta_view)&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span>
+                <span class="c1"># flags &amp;= feats[&#39;sum(ratio)&#39;] &gt; 0</span>
+            <span class="k">if</span> <span class="n">class_name</span> <span class="o">==</span> <span class="n">NEGTV</span><span class="p">:</span>
+                <span class="n">low</span> <span class="o">=</span> <span class="n">ratio</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="n">flags</span> <span class="o">&amp;=</span> <span class="n">feats</span><span class="p">[</span><span class="s1">&#39;sum(ratio)&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">low</span>
+            <span class="k">if</span> <span class="n">class_name</span> <span class="o">==</span> <span class="n">POSTV</span><span class="p">:</span>
+                <span class="n">low</span> <span class="o">=</span> <span class="n">ratio</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">high</span> <span class="o">=</span> <span class="n">ratio</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+                <span class="n">flags</span> <span class="o">&amp;=</span> <span class="n">feats</span><span class="p">[</span><span class="s1">&#39;sum(ratio)&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">high</span>
+                <span class="n">flags</span> <span class="o">&amp;=</span> <span class="n">feats</span><span class="p">[</span><span class="s1">&#39;sum(ratio)&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">low</span>
+            <span class="c1"># flags &amp;= pblm.samples.simple_scores[flags][&#39;score_lnbnn_1vM&#39;] &gt; 0</span>
+            <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flags</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> candidates&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)))</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="n">classname_offset</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">idxs</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span>
+            <span class="n">series</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">indicator_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">series</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span>
+            <span class="n">edge</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">class_to_edge</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">edge</span>
+
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+        <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
+
+        <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># classname_alias = {</span>
+        <span class="c1">#     POSTV: &#39;positive&#39;,</span>
+        <span class="c1">#     NEGTV: &#39;negative&#39;,</span>
+        <span class="c1">#     INCMP: &#39;incomparable&#39;,</span>
+        <span class="c1"># }</span>
+
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">class_to_edge</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">edge</span> <span class="o">=</span> <span class="n">class_to_edge</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span>
+            <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">edge</span>
+            <span class="c1"># alias = classname_alias[class_name]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;class_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,))</span>
+            <span class="n">annot1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">([</span><span class="n">aid1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_make_lazy_dict</span><span class="p">()</span>
+            <span class="n">annot2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">([</span><span class="n">aid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_make_lazy_dict</span><span class="p">()</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">ensure_metadata_normxy</span><span class="p">(</span><span class="n">annot1</span><span class="p">)</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">ensure_metadata_normxy</span><span class="p">(</span><span class="n">annot2</span><span class="p">)</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">PairwiseMatch</span><span class="p">(</span><span class="n">annot1</span><span class="p">,</span> <span class="n">annot2</span><span class="p">)</span>
+            <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">hyper_params</span><span class="o">.</span><span class="n">vsone_match</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+            <span class="n">match</span><span class="o">.</span><span class="n">apply_all</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">())</span>
+            <span class="n">match</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">show_ell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_ori</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="c1"># pt.set_title(alias)</span>
+
+    <span class="k">def</span> <span class="nf">find_opt_ratio</span><span class="p">(</span><span class="n">pblm</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        script to help find the correct value for the ratio threshold</span>
+
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.verif.vsone import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; pblm = OneVsOneProblem.from_empty(&#39;PZ_PB_RF_TRAIN&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; pblm = OneVsOneProblem.from_empty(&#39;GZ_Master1&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Find best ratio threshold</span>
+        <span class="n">pblm</span><span class="o">.</span><span class="n">load_samples</span><span class="p">()</span>
+        <span class="n">infr</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">emap</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">aid_pairs</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="s1">&#39;match_state&#39;</span><span class="p">]</span>
+        <span class="n">pos_idx</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">class_names</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">POSTV</span><span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;sv_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_exec_pairwise_match</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
+        <span class="n">thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">pos_truth</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">y_bin</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">pos_idx</span><span class="p">]</span>
+        <span class="n">ratio_fs</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">local_measures</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">]</span>
+
+        <span class="n">aucs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Given the current correspondences: Find the optimal</span>
+        <span class="c1"># correspondence threshold.</span>
+        <span class="k">for</span> <span class="n">thresh</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="s1">&#39;computing thresh&#39;</span><span class="p">):</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">fs</span><span class="p">[</span><span class="n">fs</span> <span class="o">&lt;</span> <span class="n">thresh</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">ratio_fs</span><span class="p">])</span>
+            <span class="n">roc</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">roc_auc_score</span><span class="p">(</span><span class="n">pos_truth</span><span class="p">,</span> <span class="n">scores</span><span class="p">)</span>
+            <span class="n">aucs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">roc</span><span class="p">)</span>
+        <span class="n">aucs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aucs</span><span class="p">)</span>
+        <span class="n">opt_auc</span> <span class="o">=</span> <span class="n">aucs</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">opt_thresh</span> <span class="o">=</span> <span class="n">thresholds</span><span class="p">[</span><span class="n">aucs</span><span class="o">.</span><span class="n">argmax</span><span class="p">()]</span>
+
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="n">aucs</span><span class="p">,</span> <span class="s1">&#39;r-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">opt_thresh</span><span class="p">,</span> <span class="n">opt_auc</span><span class="p">,</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span>
+                        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;L opt=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">opt_thresh</span><span class="p">,))</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;auc&#39;</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;ratio threshold&#39;</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span></div>
+
+        <span class="c1"># colors = {</span>
+        <span class="c1">#     1: &#39;r&#39;,</span>
+        <span class="c1">#     2: &#39;b&#39;,</span>
+        <span class="c1">#     3: &#39;g&#39;,</span>
+        <span class="c1"># }</span>
+        <span class="c1"># def predict_truth(ratio_fs, opt_thresh, pos_truth):</span>
+        <span class="c1">#     # Filter correspondence using thresh then sum their scores</span>
+        <span class="c1">#     new_ratio_fs = [fs &lt; opt_thresh for fs in ratio_fs]</span>
+        <span class="c1">#     scores = np.array([fs.sum() for fs in new_ratio_fs])</span>
+        <span class="c1">#     # Find the point (summed score threshold) that maximizes MCC</span>
+        <span class="c1">#     fpr, tpr, points = sklearn.metrics.roc_curve(pos_truth, scores)</span>
+        <span class="c1">#     mccs = np.array([sklearn.metrics.matthews_corrcoef(</span>
+        <span class="c1">#         pos_truth, scores &gt; point) for point in points])</span>
+        <span class="c1">#     opt_point = points[mccs.argmax()]</span>
+        <span class="c1">#     pos_pred = scores &gt; opt_point</span>
+        <span class="c1">#     return pos_pred</span>
+        <span class="c1"># thresholds = np.linspace(0, 1.0, 100)</span>
+        <span class="c1"># pos_truth = task.y_bin.T[pos_idx]</span>
+        <span class="c1"># ratio_fs = [m.local_measures[&#39;ratio&#39;] for m in matches]</span>
+        <span class="c1"># thresh_levels = []</span>
+        <span class="c1"># for level in range(1, 3 + 1):</span>
+        <span class="c1">#     if ut.allsame(pos_truth):</span>
+        <span class="c1">#         print(&#39;breaking&#39;)</span>
+        <span class="c1">#         break</span>
+        <span class="c1">#     print(&#39;level = %r&#39; % (level,))</span>
+        <span class="c1">#     aucs = []</span>
+        <span class="c1">#     # Given the current correspondences: Find the optimal</span>
+        <span class="c1">#     # correspondence threshold.</span>
+        <span class="c1">#     for thresh in ut.ProgIter(thresholds, &#39;computing thresh&#39;):</span>
+        <span class="c1">#         scores = np.array([fs[fs &lt; thresh].sum() for fs in ratio_fs])</span>
+        <span class="c1">#         roc = sklearn.metrics.roc_auc_score(pos_truth, scores)</span>
+        <span class="c1">#         aucs.append(roc)</span>
+        <span class="c1">#     aucs = np.array(aucs)</span>
+        <span class="c1">#     opt_auc = aucs.max()</span>
+        <span class="c1">#     opt_thresh = thresholds[aucs.argmax()]</span>
+        <span class="c1">#     thresh_levels.append(opt_thresh)</span>
+
+        <span class="c1">#     if True:</span>
+        <span class="c1">#         color = colors[level]</span>
+        <span class="c1">#         pt.plt.plot(thresholds, aucs, color + &#39;-&#39;, label=&#39;L%d&#39; % level)</span>
+        <span class="c1">#         pt.plt.plot(opt_thresh, opt_auc, color + &#39;o&#39;,</span>
+        <span class="c1">#                     label=&#39;L%d opt=%r&#39; % (level, opt_thresh,))</span>
+
+        <span class="c1">#     # Remove the positive samples that this threshold fails on</span>
+        <span class="c1">#     pred = predict_truth(ratio_fs, opt_thresh, pos_truth)</span>
+        <span class="c1">#     flags = pred != pos_truth | ~pos_truth</span>
+
+        <span class="c1">#     ratio_fs = ut.compress(ratio_fs, flags)</span>
+        <span class="c1">#     pos_truth = pos_truth.compress(flags)</span>
+
+        <span class="c1"># submax_thresh, submax_roc = vt.argsubmax(aucs, thresholds)</span>
+
+        <span class="c1"># Now find all pairs that would be correctly classified using this</span>
+        <span class="c1"># threshold</span>
+
+        <span class="c1"># ratio_fs = thresh_ratio_fs</span>
+        <span class="c1"># rocs = []</span>
+        <span class="c1"># for thresh in ut.ProgIter(thresholds, &#39;computing thresh&#39;):</span>
+        <span class="c1">#     scores = np.array([fs[fs &lt; thresh].sum() for fs in ratio_fs])</span>
+        <span class="c1">#     roc = sklearn.metrics.roc_auc_score(pos_truth, scores)</span>
+        <span class="c1">#     rocs.append(roc)</span>
+        <span class="c1"># submax_thresh, submax_roc = vt.argsubmax(rocs, thresholds)</span>
+        <span class="c1"># pt.plt.plot(thresholds, rocs, &#39;b-&#39;, label=&#39;L2&#39;)</span>
+        <span class="c1"># pt.plt.plot(submax_thresh, submax_roc, &#39;bo&#39;, label=&#39;L2 opt=%r&#39; % (submax_thresh,))</span>
+
+    <span class="c1"># def simple_confusion(pblm, score_key=None, task_key=None,</span>
+    <span class="c1">#                      target_class=None):</span>
+    <span class="c1">#     if score_key is None:</span>
+    <span class="c1">#         score_key = &#39;score_lnbnn_1vM&#39;</span>
+    <span class="c1">#     if task_key is None:</span>
+    <span class="c1">#         task_key = pblm.primary_task_key</span>
+    <span class="c1">#     task = pblm.samples[task_key]</span>
+    <span class="c1">#     if target_class is None:</span>
+    <span class="c1">#         target_class = task.default_class_name</span>
+
+    <span class="c1">#     target_class_idx = task.lookup_class_idx(target_class)</span>
+    <span class="c1">#     scores = pblm.samples.simple_scores[score_key]</span>
+    <span class="c1">#     y = task.y_bin.T[target_class_idx]</span>
+    <span class="c1">#     conf = vt.ConfusionMetrics().fit(scores, y)</span>
+    <span class="c1">#     conf.label = score_key</span>
+    <span class="c1">#     return conf</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../../../wbia.html">wbia</a><ul>
+  <li><a href="../../algo.html">wbia.algo</a><ul>
+  <li><a href="../verif.html">wbia.algo.verif</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

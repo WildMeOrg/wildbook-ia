@@ -1,0 +1,984 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.viz.interact package &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <div class="section" id="wbia-viz-interact-package">
+<h1>wbia.viz.interact package<a class="headerlink" href="#wbia-viz-interact-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-wbia.viz.interact.interact_annotations2">
+<span id="wbia-viz-interact-interact-annotations2-module"></span><h2>wbia.viz.interact.interact_annotations2 module<a class="headerlink" href="#module-wbia.viz.interact.interact_annotations2" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="wbia.viz.interact.interact_annotations2.ANNOTATION_Interaction2">
+<em class="property">class </em><code class="descclassname">wbia.viz.interact.interact_annotations2.</code><code class="descname">ANNOTATION_Interaction2</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid</em>, <em>next_callback=None</em>, <em>prev_callback=None</em>, <em>rows_updated_callback=None</em>, <em>reset_window=True</em>, <em>dodraw=True</em>, <em>fnum=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_annotations2.html#ANNOTATION_Interaction2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_annotations2.ANNOTATION_Interaction2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="wbia.viz.interact.interact_annotations2.ANNOTATION_Interaction2.commit_callback">
+<code class="descname">commit_callback</code><span class="sig-paren">(</span><em>unchanged_indices</em>, <em>deleted_indices</em>, <em>changed_indices</em>, <em>changed_annottups</em>, <em>new_annottups</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_annotations2.html#ANNOTATION_Interaction2.commit_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_annotations2.ANNOTATION_Interaction2.commit_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO: Rename to commit_callback
+Callback from interact_annotations to ibs for when data is modified</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_annotations2.ANNOTATION_Interaction2.update_image_and_callbacks">
+<code class="descname">update_image_and_callbacks</code><span class="sig-paren">(</span><em>gid</em>, <em>nextcb</em>, <em>prevcb</em>, <em>do_save=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_annotations2.html#ANNOTATION_Interaction2.update_image_and_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_annotations2.ANNOTATION_Interaction2.update_image_and_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_annotations2.ishow_image2">
+<code class="descclassname">wbia.viz.interact.interact_annotations2.</code><code class="descname">ishow_image2</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid</em>, <em>fnum=None</em>, <em>dodraw=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_annotations2.html#ishow_image2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_annotations2.ishow_image2" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</li>
+<li><strong>gid</strong> (<em>int</em>) – </li>
+<li><strong>dodraw</strong> (<em>bool</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_annotations2 –test-ishow_image2 –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_annotations2</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dodraw</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">ishow_image2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">dodraw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-wbia.viz.interact.interact_chip">
+<span id="wbia-viz-interact-interact-chip-module"></span><h2>wbia.viz.interact.interact_chip module<a class="headerlink" href="#module-wbia.viz.interact.interact_chip" title="Permalink to this headline">¶</a></h2>
+<p>Interaction for a single annoation.
+Also defines annotation context menu.</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_chip –test-ishow_chip –show –aid 2</dd>
+</dl>
+<dl class="function">
+<dt id="wbia.viz.interact.interact_chip.build_annot_context_options">
+<code class="descclassname">wbia.viz.interact.interact_chip.</code><code class="descname">build_annot_context_options</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid</em>, <em>refresh_func=None</em>, <em>with_interact_name=True</em>, <em>with_interact_chip=True</em>, <em>with_interact_image=True</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_chip.html#build_annot_context_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_chip.build_annot_context_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build context options for things that select annotations in the IBEIS gui</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</li>
+<li><strong>aid</strong> (<em>int</em>) – annotation id</li>
+<li><strong>refresh_func</strong> (<em>None</em>) – (default = None)</li>
+<li><strong>with_interact_name</strong> (<em>bool</em>) – (default = True)</li>
+<li><strong>with_interact_chip</strong> (<em>bool</em>) – (default = True)</li>
+<li><strong>with_interact_image</strong> (<em>bool</em>) – (default = True)</li>
+<li><strong>config2</strong> (<em>dict</em>) – (default = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">callback_list</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_chip –exec-build_annot_context_options</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_chip</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">refresh_func</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">with_interact_name</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">with_interact_chip</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">with_interact_image</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">callback_list</span> <span class="o">=</span> <span class="n">build_annot_context_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">refresh_func</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                            <span class="n">with_interact_name</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                            <span class="n">with_interact_chip</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                            <span class="n">with_interact_image</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                            <span class="n">config2_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;callback_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">callback_list</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_chip.interact_multichips">
+<code class="descclassname">wbia.viz.interact.interact_chip.</code><code class="descname">interact_multichips</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_chip.html#interact_multichips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_chip.interact_multichips" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</li>
+<li><strong>aid_list</strong> (<em>list</em>) – list of annotation rowids</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">iteract_obj</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="wbia.plottool.html#wbia.plottool.interact_multi_image.MultiImageInteraction" title="wbia.plottool.interact_multi_image.MultiImageInteraction">MultiImageInteraction</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_chip –exec-interact_multichips –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_chip</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">iteract_obj</span> <span class="o">=</span> <span class="n">interact_multichips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">iteract_obj</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;iteract_obj = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">iteract_obj</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_chip.ishow_chip">
+<code class="descclassname">wbia.viz.interact.interact_chip.</code><code class="descname">ishow_chip</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid</em>, <em>fnum=2</em>, <em>fx=None</em>, <em>dodraw=True</em>, <em>config2_=None</em>, <em>ischild=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_chip.html#ishow_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_chip.ishow_chip" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt># TODO:</dt>
+<dd>split into two interactions
+interact chip and interact chip features</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</li>
+<li><strong>aid</strong> (<em>int</em>) – annotation id</li>
+<li><strong>fnum</strong> (<em>int</em>) – figure number</li>
+<li><strong>fx</strong> (<em>None</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_chip –test-ishow_chip –show
+python -m wbia.viz.interact.interact_chip –test-ishow_chip –show –aid 2</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_chip</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--aid&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dodraw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">show_was_requested</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ishow_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">dodraw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_chip.show_annot_context_menu">
+<code class="descclassname">wbia.viz.interact.interact_chip.</code><code class="descname">show_annot_context_menu</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid</em>, <em>qwin</em>, <em>qpoint</em>, <em>refresh_func=None</em>, <em>with_interact_name=True</em>, <em>with_interact_chip=True</em>, <em>with_interact_image=True</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_chip.html#show_annot_context_menu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_chip.show_annot_context_menu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines logic for poping up a context menu when viewing an annotation.
+Used in other interactions like name_interaction and interact_query_decision</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_chip –test-ishow_chip –show</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-wbia.viz.interact.interact_image">
+<span id="wbia-viz-interact-interact-image-module"></span><h2>wbia.viz.interact.interact_image module<a class="headerlink" href="#module-wbia.viz.interact.interact_image" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="wbia.viz.interact.interact_image.ishow_image">
+<code class="descclassname">wbia.viz.interact.interact_image.</code><code class="descname">ishow_image</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid</em>, <em>sel_aids=[]</em>, <em>fnum=None</em>, <em>select_callback=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_image.html#ishow_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_image.ishow_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-wbia.viz.interact.interact_matches">
+<span id="wbia-viz-interact-interact-matches-module"></span><h2>wbia.viz.interact.interact_matches module<a class="headerlink" href="#module-wbia.viz.interact.interact_matches" title="Permalink to this headline">¶</a></h2>
+<p>Single VsOne Chip Match Interface
+For VsMany Interaction</p>
+<p>Interaction for looking at matches between a single query and database annotation</p>
+<p>Main development file</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_matches –test-show_coverage –show</dd>
+</dl>
+<dl class="class">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction">
+<em class="property">class </em><code class="descclassname">wbia.viz.interact.interact_matches.</code><code class="descname">MatchInteraction</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm</em>, <em>aid2=None</em>, <em>fnum=None</em>, <em>qreq_=None</em>, <em>figtitle='Match Interaction'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="wbia.plottool.html#wbia.plottool.interact_matches.MatchInteraction2" title="wbia.plottool.interact_matches.MatchInteraction2"><code class="xref py py-class docutils literal notranslate"><span class="pre">wbia.plottool.interact_matches.MatchInteraction2</span></code></a></p>
+<p>Plots a chip result and sets up callbacks for interaction.</p>
+<dl class="docutils">
+<dt>SeeAlso:</dt>
+<dd>plottool.interact_matches.MatchInteraction2</dd>
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_matches –test-testdata_match_interact –show –db PZ_MTEST –qaid 3</dd>
+</dl>
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.chipmatch_view">
+<code class="descname">chipmatch_view</code><span class="sig-paren">(</span><em>fnum=None</em>, <em>pnum=(1</em>, <em>1</em>, <em>1)</em>, <em>verbose=None</em>, <em>**kwargs_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.chipmatch_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.chipmatch_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>just visualizes the matches using some type of lines</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_matches –test-chipmatch_view –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_matches</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">testdata_match_interact</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">chipmatch_view</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.dev_embed">
+<code class="descname">dev_embed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.dev_embed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.dev_embed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.dev_reload">
+<code class="descname">dev_reload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.dev_reload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.dev_reload" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.get_popup_options">
+<code class="descname">get_popup_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.get_popup_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.get_popup_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.on_click_inside">
+<code class="descname">on_click_inside</code><span class="sig-paren">(</span><em>event</em>, <em>ax</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.on_click_inside"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.on_click_inside" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.query_last_feature">
+<code class="descname">query_last_feature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.query_last_feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.query_last_feature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.rrr">
+<code class="descname">rrr</code><span class="sig-paren">(</span><em>verbose=True</em>, <em>reload_module=True</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.rrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>special class reloading function
+This function is often injected as rrr of classes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.show_coverage">
+<code class="descname">show_coverage</code><span class="sig-paren">(</span><em>dodraw=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.show_coverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.show_coverage" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_matches –test-show_coverage –show
+python -m wbia.viz.interact.interact_matches –test-show_coverage</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_matches</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">testdata_match_interact</span><span class="p">(</span><span class="n">mx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">show_coverage</span><span class="p">(</span><span class="n">dodraw</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.show_each_chip">
+<code class="descname">show_each_chip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.show_each_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.show_each_chip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.show_each_dstncvs_chip">
+<code class="descname">show_each_dstncvs_chip</code><span class="sig-paren">(</span><em>dodraw=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.show_each_dstncvs_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.show_each_dstncvs_chip" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_matches –test-show_each_dstncvs_chip –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_matches</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">testdata_match_interact</span><span class="p">(</span><span class="n">mx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">show_each_dstncvs_chip</span><span class="p">(</span><span class="n">dodraw</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.show_each_fgweight_chip">
+<code class="descname">show_each_fgweight_chip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.show_each_fgweight_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.show_each_fgweight_chip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.show_each_probchip">
+<code class="descname">show_each_probchip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.show_each_probchip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.show_each_probchip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.sv_view">
+<code class="descname">sv_view</code><span class="sig-paren">(</span><em>dodraw=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.sv_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.sv_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>spatial verification view</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_matches.MatchInteraction.toggle_samefig">
+<code class="descname">toggle_samefig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#MatchInteraction.toggle_samefig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.MatchInteraction.toggle_samefig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_matches.testdata_match_interact">
+<code class="descclassname">wbia.viz.interact.interact_matches.</code><code class="descname">testdata_match_interact</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_matches.html#testdata_match_interact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_matches.testdata_match_interact" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_matches –test-testdata_match_interact –show –db PZ_MTEST –qaid 3</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># VIZ_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_matches</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--mx&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">testdata_match_interact</span><span class="p">(</span><span class="n">mx</span><span class="o">=</span><span class="n">mx</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-wbia.viz.interact.interact_name">
+<span id="wbia-viz-interact-interact-name-module"></span><h2>wbia.viz.interact.interact_name module<a class="headerlink" href="#module-wbia.viz.interact.interact_name" title="Permalink to this headline">¶</a></h2>
+<p>Matplotlib interface for name interactions. Allows for relatively fine grained
+control of splitting and merging.</p>
+<p>DEPRICATE</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_name –test-ishow_name –show
+python -m wbia.viz.interact.interact_name –test-testsdata_match_verification –show –db PZ_MTEST –aid1 1 –aid2 30
+python -m wbia.viz.interact.interact_name –test-testsdata_match_verification –show –db PZ_MTEST –aid1 30 –aid2 32</dd>
+</dl>
+<dl class="class">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction">
+<em class="property">class </em><code class="descclassname">wbia.viz.interact.interact_name.</code><code class="descname">MatchVerificationInteraction</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>update_callback=None</em>, <em>backend_callback=None</em>, <em>dodraw=True</em>, <em>max_cols=3</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction" title="wbia.plottool.abstract_interaction.AbstractInteraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">wbia.plottool.abstract_interaction.AbstractInteraction</span></code></a></p>
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.close_">
+<code class="descname">close_</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.close_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.close_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.dismiss_all">
+<code class="descname">dismiss_all</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.dismiss_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.dismiss_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>All unknown annotations are given DIFFERENT new names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.figure_clicked">
+<code class="descname">figure_clicked</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.figure_clicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.figure_clicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.get_non_rotating_columns">
+<code class="descname">get_non_rotating_columns</code><span class="sig-paren">(</span><em>rowx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.get_non_rotating_columns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.get_non_rotating_columns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.get_other_nids">
+<code class="descname">get_other_nids</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.get_other_nids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.get_other_nids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.get_rotating_columns">
+<code class="descname">get_rotating_columns</code><span class="sig-paren">(</span><em>rowx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.get_rotating_columns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.get_rotating_columns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.get_row_aids_list">
+<code class="descname">get_row_aids_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.get_row_aids_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.get_row_aids_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Args:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">row_aids_list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_name –test-get_row_aids_list</dd>
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_name –test-get_row_aids_list
+python -m wbia.viz.interact.interact_name –test-get_row_aids_list –aid1 2 –aid2 3
+# Merge case
+python -m wbia.viz.interact.interact_name –test-get_row_aids_list –db PZ_MTEST –aid1 1 –aid2 30
+# Split case
+python -m wbia.viz.interact.interact_name –test-get_row_aids_list –db PZ_MTEST –aid1 30 –aid2 32</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_name</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">testsdata_match_verification</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row_aids_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_row_aids_list</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">row_aids_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.infer_data">
+<code class="descname">infer_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.infer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.infer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize data related to the input aids</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.mark_annotation_as_new_name">
+<code class="descname">mark_annotation_as_new_name</code><span class="sig-paren">(</span><em>aid</em>, <em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.mark_annotation_as_new_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.mark_annotation_as_new_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_nid">
+<code class="descname">merge_all_into_nid</code><span class="sig-paren">(</span><em>nid</em>, <em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.merge_all_into_nid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_nid" title="Permalink to this definition">¶</a></dt>
+<dd><p>All the annotations are given nid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.merge_nonjunk_into_new_name">
+<code class="descname">merge_nonjunk_into_new_name</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.merge_nonjunk_into_new_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.merge_nonjunk_into_new_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>All nonjunk annotations are given the SAME new name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.on_close">
+<code class="descname">on_close</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.on_close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.on_key_press">
+<code class="descname">on_key_press</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.on_key_press"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.on_key_press" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.plot_chip">
+<code class="descname">plot_chip</code><span class="sig-paren">(</span><em>aid</em>, <em>nRows</em>, <em>nCols</em>, <em>px</em>, <em>fulldraw=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.plot_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.plot_chip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots an individual chip in a subaxis</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.prepare_page">
+<code class="descname">prepare_page</code><span class="sig-paren">(</span><em>fulldraw=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.prepare_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.prepare_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.rename_annotation">
+<code class="descname">rename_annotation</code><span class="sig-paren">(</span><em>aid</em>, <em>nid</em>, <em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.rename_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.rename_annotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.reset_all_names">
+<code class="descname">reset_all_names</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.reset_all_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.reset_all_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.review">
+<code class="descname">review</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.review"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.review" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.rotate_row">
+<code class="descname">rotate_row</code><span class="sig-paren">(</span><em>event=None</em>, <em>rowx=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.rotate_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.rotate_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>shows the next few annotations in this row
+(implicitly rotates the row’s columns the rows columns)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.show_hud">
+<code class="descname">show_hud</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.show_hud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.show_hud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates heads up display</p>
+<p>button bar on bottom and title string</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_name</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">testsdata_match_verification</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_hud</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.show_page">
+<code class="descname">show_page</code><span class="sig-paren">(</span><em>bring_to_front=False</em>, <em>onlyrows=None</em>, <em>fulldraw=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.show_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.show_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots all subaxes on a page</p>
+<p>onlyrows is a hack to only draw a subset of the data again</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.unname_all">
+<code class="descname">unname_all</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.unname_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.unname_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_name.MatchVerificationInteraction.unname_annotation">
+<code class="descname">unname_annotation</code><span class="sig-paren">(</span><em>aid</em>, <em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#MatchVerificationInteraction.unname_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.MatchVerificationInteraction.unname_annotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_name.build_name_context_options">
+<code class="descclassname">wbia.viz.interact.interact_name.</code><code class="descname">build_name_context_options</code><span class="sig-paren">(</span><em>ibs</em>, <em>nids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#build_name_context_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.build_name_context_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_name.ishow_name">
+<code class="descclassname">wbia.viz.interact.interact_name.</code><code class="descname">ishow_name</code><span class="sig-paren">(</span><em>ibs</em>, <em>nid</em>, <em>sel_aids=[]</em>, <em>select_aid_callback=None</em>, <em>fnum=5</em>, <em>dodraw=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#ishow_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.ishow_name" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</li>
+<li><strong>nid</strong> – </li>
+<li><strong>sel_aids</strong> (<em>list</em>) – </li>
+<li><strong>select_aid_callback</strong> (<em>None</em>) – </li>
+<li><strong>fnum</strong> (<em>int</em>) – figure number</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_name –test-ishow_name –show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_name</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--nid&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sel_aids</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select_aid_callback</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dodraw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">show_was_requested</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ishow_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">select_aid_callback</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">dodraw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_name.testsdata_match_verification">
+<code class="descclassname">wbia.viz.interact.interact_name.</code><code class="descname">testsdata_match_verification</code><span class="sig-paren">(</span><em>defaultdb='testdb1'</em>, <em>aid1=1</em>, <em>aid2=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_name.html#testsdata_match_verification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_name.testsdata_match_verification" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>main.py –imgsetid 2
+main.py –imgsetid 13 –db PZ_MUGU_19</dd>
+<dt>CommandLine:</dt>
+<dd><p class="first">python -m wbia.viz.interact.interact_name –test-testsdata_match_verification –show
+python -m wbia.viz.interact.interact_name –test-testsdata_match_verification –aid1 2 –aid2 3 –show</p>
+<p># Merge case
+python -m wbia.viz.interact.interact_name –test-testsdata_match_verification –show –db PZ_MTEST –aid1 1 –aid2 30</p>
+<p class="last"># Split case
+python -m wbia.viz.interact.interact_name –test-testsdata_match_verification –show –db PZ_MTEST –aid1 30 –aid2 32</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_name</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">testsdata_match_verification</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-wbia.viz.interact.interact_qres">
+<span id="wbia-viz-interact-interact-qres-module"></span><h2>wbia.viz.interact.interact_qres module<a class="headerlink" href="#module-wbia.viz.interact.interact_qres" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="wbia.viz.interact.interact_qres.InteractQres">
+<em class="property">class </em><code class="descclassname">wbia.viz.interact.interact_qres.</code><code class="descname">InteractQres</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm</em>, <em>analysis=False</em>, <em>qreq_=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_qres.html#InteractQres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_qres.InteractQres" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction" title="wbia.plottool.abstract_interaction.AbstractInteraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">wbia.plottool.abstract_interaction.AbstractInteraction</span></code></a></p>
+<p>Displays query chip, groundtruth matches, and top matches</p>
+<p>THERE IS A DIFFERENCE BETWEEN THIS AND MATCH INTERACTION. THIS IS FOR
+DISPLAYING THE RANKED LIST MATCH INTERACTION IS LOOKING AT A SINGLE PAIR</p>
+<dl class="docutils">
+<dt>SeeAlso:</dt>
+<dd>#interact_matches.MatchInteraction2
+#wbia.viz.interact.MatchInteraction</dd>
+</dl>
+<dl class="method">
+<dt id="wbia.viz.interact.interact_qres.InteractQres.on_click_inside">
+<code class="descname">on_click_inside</code><span class="sig-paren">(</span><em>event</em>, <em>ax</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_qres.html#InteractQres.on_click_inside"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_qres.InteractQres.on_click_inside" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_qres.InteractQres.on_click_outside">
+<code class="descname">on_click_outside</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_qres.html#InteractQres.on_click_outside"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_qres.InteractQres.on_click_outside" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_qres.InteractQres.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_qres.html#InteractQres.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_qres.InteractQres.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_qres.InteractQres.show_matches_to_aid">
+<code class="descname">show_matches_to_aid</code><span class="sig-paren">(</span><em>aid2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_qres.html#InteractQres.show_matches_to_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_qres.InteractQres.show_matches_to_aid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_qres.InteractQres.show_sver_process_to_aid">
+<code class="descname">show_sver_process_to_aid</code><span class="sig-paren">(</span><em>aid2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_qres.html#InteractQres.show_sver_process_to_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_qres.InteractQres.show_sver_process_to_aid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.interact_qres.ishow_analysis">
+<code class="descclassname">wbia.viz.interact.interact_qres.</code><code class="descname">ishow_analysis</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm</em>, <em>qreq_=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_qres.html#ishow_analysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_qres.ishow_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_qres –test-ishow_analysis:0 –show
+python -m wbia.viz.interact.interact_qres –test-ishow_analysis:1 –show</dd>
+<dt>Example0:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_qres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_cm</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">ishow_analysis</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example1:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_qres</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_cm</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">ishow_analysis</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-wbia.viz.interact.interact_query_decision">
+<span id="wbia-viz-interact-interact-query-decision-module"></span><h2>wbia.viz.interact.interact_query_decision module<a class="headerlink" href="#module-wbia.viz.interact.interact_query_decision" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction">
+<em class="property">class </em><code class="descclassname">wbia.viz.interact.interact_query_decision.</code><code class="descname">QueryVerificationInteraction</code><span class="sig-paren">(</span><em>qreq_</em>, <em>cm</em>, <em>comp_aids</em>, <em>suggest_aids</em>, <em>progress_current=None</em>, <em>progress_total=None</em>, <em>update_callback=None</em>, <em>backend_callback=None</em>, <em>name_decision_callback=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction" title="wbia.plottool.abstract_interaction.AbstractInteraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">wbia.plottool.abstract_interaction.AbstractInteraction</span></code></a></p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_query_decision –test-QueryVerificationInteraction –show
+python -m wbia –imgsetid 2 –inc-query –yes</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_query_decision</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_cm</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comp_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">NUM_TOP</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">suggest_aids</span> <span class="o">=</span> <span class="n">comp_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qvi</span> <span class="o">=</span> <span class="n">QueryVerificationInteraction</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">comp_aids</span><span class="p">,</span> <span class="n">suggest_aids</span><span class="p">,</span> <span class="n">progress_current</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">progress_total</span><span class="o">=</span><span class="mi">1337</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.confirm">
+<code class="descname">confirm</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.confirm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.confirm" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.viz.interact.interact_query_decision –test-confirm</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.viz.interact.interact_query_decision</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">selected_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comfirm_res</span> <span class="o">=</span> <span class="s1">&#39;jeff&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#result = self.confirm(event)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#print(result)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.examine">
+<code class="descname">examine</code><span class="sig-paren">(</span><em>aid</em>, <em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.examine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.examine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.figure_clicked">
+<code class="descname">figure_clicked</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.figure_clicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.figure_clicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.infer_data">
+<code class="descname">infer_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.infer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.infer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize data related to the input aids</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.plot_chip">
+<code class="descname">plot_chip</code><span class="sig-paren">(</span><em>aid</em>, <em>nRows</em>, <em>nCols</em>, <em>px</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.plot_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.plot_chip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots an individual chip in a subaxis</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.prepare_page">
+<code class="descname">prepare_page</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.prepare_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.prepare_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.quit">
+<code class="descname">quit</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.quit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.quit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.select">
+<code class="descname">select</code><span class="sig-paren">(</span><em>aid</em>, <em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.select" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.select_junk">
+<code class="descname">select_junk</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.select_junk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.select_junk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.select_none">
+<code class="descname">select_none</code><span class="sig-paren">(</span><em>event=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.select_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.select_none" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.show_hud">
+<code class="descname">show_hud</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.show_hud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.show_hud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates heads up display</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.show_page">
+<code class="descname">show_page</code><span class="sig-paren">(</span><em>bring_to_front=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_query_decision.html#QueryVerificationInteraction.show_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_query_decision.QueryVerificationInteraction.show_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots all subaxes on a page</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-wbia.viz.interact.interact_sver">
+<span id="wbia-viz-interact-interact-sver-module"></span><h2>wbia.viz.interact.interact_sver module<a class="headerlink" href="#module-wbia.viz.interact.interact_sver" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="wbia.viz.interact.interact_sver.ishow_sver">
+<code class="descclassname">wbia.viz.interact.interact_sver.</code><code class="descname">ishow_sver</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>chipmatch_FILT=None</em>, <em>aid2_svtup=None</em>, <em>fnum=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact/interact_sver.html#ishow_sver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.interact_sver.ishow_sver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-wbia.viz.interact">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wbia.viz.interact" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="wbia.viz.interact.IMPORT_TUPLES">
+<code class="descclassname">wbia.viz.interact.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('interact_annotations2', None), ('interact_chip', None), ('interact_image', None), ('interact_matches', None), ('interact_name', None), ('interact_qres', None), ('interact_sver', None)]</em><a class="headerlink" href="#wbia.viz.interact.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<dd><p>cd /home/joncrall/code/wbia/wbia/viz/interact
+makeinit.py</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">Regen Command</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.reassign_submodule_attributes">
+<code class="descclassname">wbia.viz.interact.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>why reloading all the modules doesnt do this I don’t know</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.reload_subs">
+<code class="descclassname">wbia.viz.interact.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/viz/interact.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.viz.interact.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads wbia.viz.interact and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.viz.interact.rrrr">
+<code class="descclassname">wbia.viz.interact.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.viz.interact.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads wbia.viz.interact and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="contents.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="_sources/wbia.viz.interact.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

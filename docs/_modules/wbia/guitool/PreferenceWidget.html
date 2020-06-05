@@ -1,0 +1,504 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.guitool.PreferenceWidget &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.guitool.PreferenceWidget</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">old code ported from utool</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">utool.Preferences</span> <span class="k">import</span> <span class="n">Pref</span><span class="p">,</span> <span class="n">PrefNode</span><span class="p">,</span> <span class="n">PrefChoice</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">_fromUtf8</span><span class="p">,</span> <span class="n">_translate</span><span class="p">,</span> <span class="n">QVariantHack</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtWidgets</span><span class="p">,</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="k">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">qtype</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="k">import</span> <span class="n">util_type</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[PreferenceWidget]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">VERBOSE_PREF</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verbpref&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="report_thread_error"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.report_thread_error">[docs]</a><span class="k">def</span> <span class="nf">report_thread_error</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Decorator to help catch errors that QT wont report &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">report_thread_error_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1"> *!!* Thread Raised Exception: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1"> *!!* Thread Exception Traceback: </span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">et</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+            <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">report_thread_error_wrapper</span></div>
+
+
+<span class="k">def</span> <span class="nf">_qt_set_leaf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qvar</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets backend data using QVariants &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">VERBOSE_PREF</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+--- [pref.qt_set_leaf_data]&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pref.qt_set_leaf_data] qvar = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">qvar</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pref.qt_set_leaf_data] _intern.name=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pref.qt_set_leaf_data] _intern.type_=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pref.qt_set_leaf_data] type(_intern.value)=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pref.qt_set_leaf_data] _intern.value=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="c1">#print(&#39;[pref.qt_set_leaf_data] qvar.toString()=%s&#39; % str(qvar.toString()))</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;[Pref.qtleaf] Cannot set root preference&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">qt_is_editable</span><span class="p">():</span>
+        <span class="n">new_val</span> <span class="o">=</span> <span class="s1">&#39;[Pref.qtleaf] BadThingsHappenedInPref&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">PrefNode</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;[Pref.qtleaf] Qt can only change leafs&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># None could be a number of types</span>
+            <span class="k">def</span> <span class="nf">cast_order</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">ret</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">continue</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="n">cast_order</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="c1">#new_val = bool(qvar.toBool())</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;qvar = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qvar</span><span class="p">,))</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="n">util_type</span><span class="o">.</span><span class="n">smart_cast</span><span class="p">(</span><span class="n">qvar</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+            <span class="c1">#new_val = bool(eval(qvar, {}, {}))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new_val = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_val</span><span class="p">,))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="c1">#new_val = int(qvar.toInt()[0])</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+        <span class="c1"># elif isinstance(self._intern.value, float):</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span> <span class="ow">in</span> <span class="n">util_type</span><span class="o">.</span><span class="n">VALID_FLOAT_TYPES</span><span class="p">:</span>
+            <span class="c1">#new_val = float(qvar.toDouble()[0])</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="c1">#new_val = str(qvar.toString())</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">PrefChoice</span><span class="p">):</span>
+            <span class="c1">#new_val = qvar.toString()</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">new_val</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;NONE&#39;</span><span class="p">:</span>
+                <span class="n">new_val</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1">#new_val = str(qvar.toString())</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">new_val</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="p">(</span><span class="s1">&#39;[Pref.qtleaf] Unknown internal type. &#39;</span>
+                     <span class="s1">&#39;type(_intern.value) = </span><span class="si">%r</span><span class="s1">, &#39;</span>
+                     <span class="s1">&#39;_intern.get_type() = </span><span class="si">%r</span><span class="s1">, &#39;</span><span class="p">)</span>
+                    <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">())</span>
+        <span class="c1"># Check for a set of None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">new_val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+                <span class="n">new_val</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="n">new_val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
+                <span class="n">new_val</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">new_val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;false&#39;</span><span class="p">:</span>
+                <span class="n">new_val</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># save to disk after modifying data</span>
+        <span class="k">if</span> <span class="n">VERBOSE_PREF</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pref.qt_set_leaf_data] new_val=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">new_val</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pref.qt_set_leaf_data] type(new_val)=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">new_val</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L____ [pref.qt_set_leaf_data]&#39;</span><span class="p">)</span>
+        <span class="c1"># TODO Add ability to set a callback function when certain</span>
+        <span class="c1"># preferences are changed.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">pref_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">new_val</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;PrefNotEditable&#39;</span>
+
+
+<div class="viewcode-block" id="QPreferenceModel"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel">[docs]</a><span class="k">class</span> <span class="nc">QPreferenceModel</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QAbstractItemModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convention states only items with column index 0 can have children &quot;&quot;&quot;</span>
+    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pref_struct</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">QPreferenceModel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rootPref</span>  <span class="o">=</span> <span class="n">pref_struct</span>
+
+<div class="viewcode-block" id="QPreferenceModel.index2Pref"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.index2Pref">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">index2Pref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot; Internal helper method &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">index</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">internalPointer</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">item</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">item</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootPref</span></div>
+
+    <span class="c1">#-----------</span>
+    <span class="c1"># Overloaded ItemModel Read Functions</span>
+<div class="viewcode-block" id="QPreferenceModel.rowCount"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.rowCount">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">rowCount</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
+        <span class="n">parentPref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">parentPref</span><span class="o">.</span><span class="n">qt_row_count</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="QPreferenceModel.columnCount"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.columnCount">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">columnCount</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
+        <span class="n">parentPref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">parentPref</span><span class="o">.</span><span class="n">qt_col_count</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="QPreferenceModel.data"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.data">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the data stored under the given role</span>
+<span class="sd">        for the item referred to by the qtindex. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">QVariantHack</span><span class="p">()</span>
+        <span class="c1"># Specify CheckState Role:</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">CheckStateRole</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">flags</span> <span class="o">&amp;</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsUserCheckable</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span><span class="o">.</span><span class="n">qt_get_data</span><span class="p">(</span><span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>
+                <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span> <span class="k">if</span> <span class="n">data</span> <span class="k">else</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="o">!=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span> <span class="ow">and</span> <span class="n">role</span> <span class="o">!=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">QVariantHack</span><span class="p">()</span>
+        <span class="n">nodePref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">nodePref</span><span class="o">.</span><span class="n">qt_get_data</span><span class="p">(</span><span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>
+        <span class="c1">#print(&#39;--- data() ---&#39;)</span>
+        <span class="c1">#print(&#39;role = %r&#39; % role)</span>
+        <span class="c1">#print(&#39;data = %r&#39; % data)</span>
+        <span class="c1">#print(&#39;type(data) = %r&#39; % type(data))</span>
+        <span class="c1"># &lt;SIP.API_MODE(1)&gt;</span>
+        <span class="c1">#var = QVariantHack(data)</span>
+        <span class="c1">#if isinstance(data, float):</span>
+        <span class="c1">#    var = QVariantHack(QString.number(data, format=&#39;g&#39;, precision=6))</span>
+        <span class="c1">#if isinstance(data, bool):</span>
+        <span class="c1">#    var = QVariantHack(data).toString()</span>
+        <span class="c1">#if isinstance(data, int):</span>
+        <span class="c1">#    var = QVariantHack(data).toString()</span>
+        <span class="c1"># &lt;/SIP.API_MODE(1)&gt;</span>
+        <span class="c1"># &lt;SIP.API_MODE(2)&gt;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">qtype</span><span class="o">.</span><span class="n">locale_float</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="c1"># &lt;/SIP.API_MODE(2)&gt;</span>
+        <span class="c1">#print(&#39;var= %r&#39; % var)</span>
+        <span class="c1">#print(&#39;type(var)= %r&#39; % type(var))</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QPreferenceModel.setData"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.setData">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">setData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the role data for the item at qtindex to value.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">elif</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">CheckStateRole</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">VERBOSE_PREF</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt] --- setData() ---&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt] role = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">role</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt] value = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt] type(data) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt] type(value) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+        <span class="n">leafPref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="n">old_data</span> <span class="o">=</span> <span class="n">leafPref</span><span class="o">.</span><span class="n">qt_get_data</span><span class="p">(</span><span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">VERBOSE_PREF</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt] old_data = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_data</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt] old_data != data = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_data</span> <span class="o">!=</span> <span class="n">data</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">old_data</span> <span class="o">!=</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">_qt_set_leaf_data</span><span class="p">(</span><span class="n">leafPref</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">VERBOSE_PREF</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt] result = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,))</span>
+            <span class="c1">#if result is True:</span>
+            <span class="c1">#return result</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="QPreferenceModel.index"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.index">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the index of the item in the model specified</span>
+<span class="sd">        by the given row, column and parent index.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parent</span><span class="o">.</span><span class="n">isValid</span><span class="p">()</span> <span class="ow">and</span> <span class="n">parent</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span>
+        <span class="n">parentPref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">childPref</span>  <span class="o">=</span> <span class="n">parentPref</span><span class="o">.</span><span class="n">qt_get_child</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">childPref</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">createIndex</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">childPref</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="QPreferenceModel.parent"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.parent">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the parent of the model item with the given index.</span>
+<span class="sd">        If the item has no parent, an invalid QModelIndex is returned.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Overload with QtCore.QObject.parent()</span>
+            <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="n">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">index</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span>
+        <span class="n">nodePref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">parentPref</span> <span class="o">=</span> <span class="n">nodePref</span><span class="o">.</span><span class="n">qt_get_parent</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">parentPref</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootPref</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">createIndex</span><span class="p">(</span><span class="n">parentPref</span><span class="o">.</span><span class="n">qt_parents_index_of_me</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">parentPref</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QPreferenceModel.flags"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.flags">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">flags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the item flags for the given index.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">index</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># The First Column is just a label and unchangable</span>
+            <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEnabled</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsSelectable</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">index</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemFlag</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">childPref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">childPref</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">childPref</span><span class="o">.</span><span class="n">qt_is_editable</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">childPref</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
+                    <span class="c1">#print(childPref)</span>
+                    <span class="c1">#print(childPref._intern.get_type())</span>
+                    <span class="c1">#print(childPref._intern.get_type() is bool)</span>
+                    <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEnabled</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsUserCheckable</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEnabled</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsSelectable</span>
+        <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemFlag</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QPreferenceModel.headerData"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.QPreferenceModel.headerData">[docs]</a>    <span class="nd">@report_thread_error</span>
+    <span class="k">def</span> <span class="nf">headerData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">orientation</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span> <span class="ow">and</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">section</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">QVariantHack</span><span class="p">(</span><span class="s1">&#39;Config Key&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">section</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">QVariantHack</span><span class="p">(</span><span class="s1">&#39;Config Value&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">QVariantHack</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="Ui_editPrefSkel"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.Ui_editPrefSkel">[docs]</a><span class="k">class</span> <span class="nc">Ui_editPrefSkel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    THE PREFERENCE SKELETON</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Ui_editPrefSkel.setupUi"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.Ui_editPrefSkel.setupUi">[docs]</a>    <span class="k">def</span> <span class="nf">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editPrefSkel</span><span class="p">):</span>
+        <span class="n">editPrefSkel</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="n">_fromUtf8</span><span class="p">(</span><span class="s1">&#39;editPrefSkel&#39;</span><span class="p">))</span>
+        <span class="n">editPrefSkel</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">668</span><span class="p">,</span> <span class="mi">530</span><span class="p">)</span>
+        <span class="c1"># Add Pane for TreeView</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">editPrefSkel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="n">_fromUtf8</span><span class="p">(</span><span class="s1">&#39;verticalLayout&#39;</span><span class="p">))</span>
+        <span class="c1"># The TreeView for QtCore.QAbstractItemModel to attach to</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefTreeView</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QTreeView</span><span class="p">(</span><span class="n">editPrefSkel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefTreeView</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="n">_fromUtf8</span><span class="p">(</span><span class="s1">&#39;prefTreeView&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefTreeView</span><span class="p">)</span>
+        <span class="c1"># Add Pane for buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="n">_fromUtf8</span><span class="p">(</span><span class="s1">&#39;horizontalLayout&#39;</span><span class="p">))</span>
+        <span class="c1">#</span>
+        <span class="c1">#self.redrawBUT = QtWidgets.QPushButton(editPrefSkel)</span>
+        <span class="c1">#self.redrawBUT.setObjectName(_fromUtf8(&#39;redrawBUT&#39;))</span>
+        <span class="c1">#self.horizontalLayout.addWidget(self.redrawBUT)</span>
+        <span class="c1">##</span>
+        <span class="c1">#self.unloadFeaturesAndModelsBUT = QtWidgets.QPushButton(editPrefSkel)</span>
+        <span class="c1">#self.unloadFeaturesAndModelsBUT.setObjectName(_fromUtf8(&#39;unloadFeaturesAndModelsBUT&#39;))</span>
+        <span class="c1">#self.horizontalLayout.addWidget(self.unloadFeaturesAndModelsBUT)</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultPrefsBUT</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="n">editPrefSkel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultPrefsBUT</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="n">_fromUtf8</span><span class="p">(</span><span class="s1">&#39;defaultPrefsBUT&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultPrefsBUT</span><span class="p">)</span>
+        <span class="c1"># Buttons are a child of the View</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">retranslateUi</span><span class="p">(</span><span class="n">editPrefSkel</span><span class="p">)</span>
+        <span class="n">QtCore</span><span class="o">.</span><span class="n">QMetaObject</span><span class="o">.</span><span class="n">connectSlotsByName</span><span class="p">(</span><span class="n">editPrefSkel</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Ui_editPrefSkel.retranslateUi"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.Ui_editPrefSkel.retranslateUi">[docs]</a>    <span class="k">def</span> <span class="nf">retranslateUi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editPrefSkel</span><span class="p">):</span>
+        <span class="c1"># UTF-8 Support</span>
+        <span class="n">editPrefSkel</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">_translate</span><span class="p">(</span><span class="s1">&#39;editPrefSkel&#39;</span><span class="p">,</span> <span class="s1">&#39;Edit Preferences&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="c1">#self.redrawBUT.setText(_translate(&#39;editPrefSkel&#39;, &#39;Redraw&#39;, None))</span>
+        <span class="c1">#self.unloadFeaturesAndModelsBUT.setText(_translate(&#39;editPrefSkel&#39;, &#39;Unload Features and Models&#39;, None))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultPrefsBUT</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">_translate</span><span class="p">(</span><span class="s1">&#39;editPrefSkel&#39;</span><span class="p">,</span> <span class="s1">&#39;Defaults&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+
+
+<span class="c1"># ---</span>
+<span class="c1"># THE PREFERENCE WIDGET</span>
+<span class="c1"># ---</span>
+<div class="viewcode-block" id="EditPrefWidget"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.EditPrefWidget">[docs]</a><span class="k">class</span> <span class="nc">EditPrefWidget</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The Settings Pane; Subclass of Main Windows.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pref_struct</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EditPrefWidget</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">Ui_editPrefSkel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pref_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">populatePrefTreeSlot</span><span class="p">(</span><span class="n">pref_struct</span><span class="p">)</span>
+        <span class="c1">#self.ui.redrawBUT.clicked.connect(fac.redraw)</span>
+        <span class="c1">#self.ui.defaultPrefsBUT.clicked.connect(fac.default_prefs)</span>
+        <span class="c1">#self.ui.unloadFeaturesAndModelsBUT.clicked.connect(fac.unload_features_and_models)</span>
+
+<div class="viewcode-block" id="EditPrefWidget.populatePrefTreeSlot"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.EditPrefWidget.populatePrefTreeSlot">[docs]</a>    <span class="nd">@QtCore</span><span class="o">.</span><span class="n">pyqtSlot</span><span class="p">(</span><span class="n">Pref</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;populatePrefTreeSlot&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">populatePrefTreeSlot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pref_struct</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Populates the Preference Tree Model&quot;&quot;&quot;</span>
+        <span class="c1">#printDBG(&#39;Bulding Preference Model of: &#39; + repr(pref_struct))</span>
+        <span class="c1">#Creates a QStandardItemModel that you can connect to a QTreeView</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pref_model</span> <span class="o">=</span> <span class="n">QPreferenceModel</span><span class="p">(</span><span class="n">pref_struct</span><span class="p">)</span>
+        <span class="c1">#printDBG(&#39;Built: &#39; + repr(self.pref_model))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">prefTreeView</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pref_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">prefTreeView</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">resizeSection</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EditPrefWidget.refresh_layout"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.EditPrefWidget.refresh_layout">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pref_model</span><span class="o">.</span><span class="n">layoutAboutToBeChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pref_model</span><span class="o">.</span><span class="n">layoutChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="test_preference_gui"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PreferenceWidget.test_preference_gui">[docs]</a><span class="k">def</span> <span class="nf">test_preference_gui</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.guitool.PreferenceWidget --exec-test_preference_gui --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.guitool.PreferenceWidget import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.guitool</span>
+<span class="sd">        &gt;&gt;&gt; guitool.ensure_qtapp()</span>
+<span class="sd">        &gt;&gt;&gt; scope = test_preference_gui()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; guitool.qtapp_loop(freq=10)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+    <span class="k">class</span> <span class="nc">DtoolConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+        <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;str_option2&#39;</span><span class="p">,</span> <span class="s1">&#39;hello&#39;</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;int_option2&#39;</span><span class="p">,</span> <span class="mi">456</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;bool_option2&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">]</span>
+
+    <span class="k">class</span> <span class="nc">OldPrefConfig</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">Pref</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">OldPrefConfig</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">str_option</span> <span class="o">=</span> <span class="s1">&#39;goodbye&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">int_option</span> <span class="o">=</span> <span class="mi">123</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bool_option</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">float_option</span> <span class="o">=</span> <span class="mf">3.2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listvar</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">,</span> <span class="s1">&#39;three&#39;</span><span class="p">]</span>
+
+    <span class="n">old</span> <span class="o">=</span> <span class="n">OldPrefConfig</span><span class="p">()</span>
+    <span class="n">new</span> <span class="o">=</span> <span class="n">DtoolConfig</span><span class="p">()</span>
+    <span class="n">new_wrap</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">Pref</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">new_wrap</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="n">old</span><span class="o">.</span><span class="n">new</span> <span class="o">=</span> <span class="n">new_wrap</span>
+    <span class="n">epw</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">createQWidget</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">fig_presenter</span>
+    <span class="n">fig_presenter</span><span class="o">.</span><span class="n">register_qt4_win</span><span class="p">(</span><span class="n">epw</span><span class="p">)</span>
+    <span class="c1">#epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)</span>
+    <span class="n">epw</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">old</span><span class="p">,</span> <span class="n">epw</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.guitool.PreferenceWidget</span>
+<span class="sd">        python -m wbia.guitool.PreferenceWidget --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../guitool.html">wbia.guitool</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

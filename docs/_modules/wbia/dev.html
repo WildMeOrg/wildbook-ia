@@ -1,0 +1,1114 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.dev &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.dev</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">mkinit ~/code/wbia/wbia</span>
+
+
+
+<span class="sd">DEV SCRIPT</span>
+
+<span class="sd">TODO: DEPRICATE</span>
+
+<span class="sd">This is a hacky script meant to be run mostly automatically with the option of</span>
+<span class="sd">interactions.</span>
+
+<span class="sd">dev.py is supposed to be a developer non-gui interface into the IBEIS software.</span>
+<span class="sd">dev.py runs experiments and serves as a scratchpad for new code and quick scripts</span>
+
+<span class="sd">TODO:</span>
+
+<span class="sd">    Test to find typical &quot;good&quot; descriptor scores.  Find nearest neighbors and</span>
+<span class="sd">    noramlizers for each feature in a query image.  Based on ground truth and</span>
+<span class="sd">    spatial verification mark feature matches as true or false.  Visualize the</span>
+<span class="sd">    feature scores of good matches vs bad matches. Lowe shows the pdf of</span>
+<span class="sd">    correct matches and the PDF for incorrect matches. We should also show the</span>
+<span class="sd">    same thing.</span>
+
+<span class="sd">Done:</span>
+<span class="sd">    Cache nearest neighbors so different parameters later in the pipeline dont</span>
+<span class="sd">    take freaking forever.</span>
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum</span>
+<span class="sd">    python dev.py --wshow -t query --db PZ_MTEST --qaid 110</span>
+<span class="sd">    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_on=True</span>
+<span class="sd">    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia._devscript</span> <span class="k">import</span> <span class="n">devcmd</span><span class="p">,</span>  <span class="n">DEVCMD_FUNCTIONS</span><span class="p">,</span> <span class="n">DEVPRECMD_FUNCTIONS</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">utool.util_six</span> <span class="k">import</span> <span class="n">get_funcname</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="c1">#from wbia.algo.hots import smk</span>
+<span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="kn">import</span> <span class="nn">wbia</span>
+<span class="c1"># if __name__ == &#39;__main__&#39;:</span>
+<span class="c1">#     multiprocessing.freeze_support()</span>
+<span class="c1">#     wbia._preload()</span>
+<span class="c1">#utool.util_importer.dynamic_import(__name__, (&#39;_devcmds_wbia&#39;, None),</span>
+<span class="c1">#                                   developing=True)</span>
+<span class="kn">from</span> <span class="nn">wbia._devscript</span> <span class="k">import</span> <span class="n">devcmd</span><span class="p">,</span> <span class="n">devprecmd</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">sysres</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.dbio</span> <span class="k">import</span> <span class="n">ingest_hsdb</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia._devcmds_wbia</span> <span class="k">import</span> <span class="p">(</span><span class="n">GZ_VIEWPOINT_EXPORT_PAIRS</span><span class="p">,</span> <span class="n">MOTHERS_VIEWPOINT_EXPORT_PAIRS</span><span class="p">,</span> <span class="n">change_names</span><span class="p">,</span> <span class="n">convert_hsdbs</span><span class="p">,</span> <span class="n">delete_all_chips</span><span class="p">,</span> <span class="n">delete_all_feats</span><span class="p">,</span> <span class="n">delete_cache</span><span class="p">,</span> <span class="n">ensure_mtest</span><span class="p">,</span> <span class="n">ensure_nauts</span><span class="p">,</span> <span class="n">ensure_wilddogs</span><span class="p">,</span> <span class="n">export</span><span class="p">,</span> <span class="n">list_dbs</span><span class="p">,</span> <span class="n">list_unconverted_hsdbs</span><span class="p">,</span> <span class="n">openworkdirs_test</span><span class="p">,</span> <span class="n">query_aids</span><span class="p">,</span> <span class="n">show_aids</span><span class="p">,</span> <span class="n">sver_aids</span><span class="p">,</span> <span class="n">vdd</span><span class="p">,)</span>  <span class="c1"># NOQA</span>
+<span class="c1"># IBEIS</span>
+<span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">main_helpers</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">dbinfo</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="k">import</span> <span class="n">experiment_configs</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="k">import</span> <span class="n">harness</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">params</span>  <span class="c1"># NOQA</span>
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1">#------------------</span>
+<span class="c1"># DEV DEVELOPMENT</span>
+<span class="c1">#------------------</span>
+<span class="c1"># This is where you write all of the functions that will become pristine</span>
+<span class="c1"># and then go in _devcmds_wbia.py</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">./dev.py -e print_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --intersect_hack</span>
+<span class="sd">./dev.py -e draw_rank_cmc -t baseline -a baseline --show --db PZ_Master1</span>
+<span class="sd">./dev.py -e get_dbinfo --db PZ_Master1 --aid_list=baseline</span>
+<span class="sd">./dev.py -e get_dbinfo --db PZ_MTEST</span>
+<span class="sd">./dev.py -e get_dbinfo --db PZ_Master1 --aid_list=baseline --hackshow-unixtime --show</span>
+<span class="sd">./dev.py -e get_dbinfo --db PZ_Master1 --hackshow-unixtime --show</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Quick interface into specific registered doctests</span>
+<span class="n">REGISTERED_DOCTEST_EXPERIMENTS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_case_timedeltas&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;timedelta_hist&#39;</span><span class="p">,</span> <span class="s1">&#39;timedelta_pie&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_match_cases&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;draw_cases&#39;</span><span class="p">,</span> <span class="s1">&#39;cases&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_casetag_hist&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;taghist&#39;</span><span class="p">]),</span>
+
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.old_storage&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_results&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_rank_cmc&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;rank_cmc&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.other.dbinfo&#39;</span><span class="p">,</span> <span class="s1">&#39;get_dbinfo&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.other.dbinfo&#39;</span><span class="p">,</span> <span class="s1">&#39;latex_dbstats&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.other.dbinfo&#39;</span><span class="p">,</span> <span class="s1">&#39;show_image_time_distributions&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;db_time_hist&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_rank_surface&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;rank_surface&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_helpers&#39;</span><span class="p">,</span> <span class="s1">&#39;get_annotcfg_list&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;print_acfg&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_printres&#39;</span><span class="p">,</span> <span class="s1">&#39;print_results&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;printres&#39;</span><span class="p">,</span> <span class="s1">&#39;print&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_printres&#39;</span><span class="p">,</span> <span class="s1">&#39;print_latexsum&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;latexsum&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.dbio.export_subset&#39;</span><span class="p">,</span> <span class="s1">&#39;export_annots&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;wbia.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_annot_scoresep&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="s1">&#39;scores_good&#39;</span><span class="p">,</span> <span class="s1">&#39;scores_all&#39;</span><span class="p">]),</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_exec_doctest_func</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_modname</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+    <span class="n">func</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">funcname</span><span class="p">]</span>
+    <span class="n">testsrc</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">func</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">testsrc</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
+
+
+<span class="k">def</span> <span class="nf">_register_doctest_precmds</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+    <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">REGISTERED_DOCTEST_EXPERIMENTS</span><span class="p">:</span>
+        <span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span> <span class="o">=</span> <span class="n">tup</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">aliases</span> <span class="o">=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">aliases</span> <span class="o">+=</span> <span class="p">[</span><span class="n">funcname</span><span class="p">]</span>
+        <span class="n">_doctest_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_exec_doctest_func</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">)</span>
+        <span class="n">devprecmd</span><span class="p">(</span><span class="o">*</span><span class="n">aliases</span><span class="p">)(</span><span class="n">_doctest_func</span><span class="p">)</span>
+
+<span class="n">_register_doctest_precmds</span><span class="p">()</span>
+
+
+<span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;tune&#39;</span><span class="p">,</span> <span class="s1">&#39;autotune&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">tune_flann</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py -t tune --db PZ_MTEST</span>
+<span class="sd">        python dev.py -t tune --db GZ_ALL</span>
+<span class="sd">        python dev.py -t tune --db GIR_Tanya</span>
+<span class="sd">        python dev.py -t tune --db PZ_Master0</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia._devscript import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = func_wrapper()</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">all_aids</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Tunning flann for species=</span><span class="si">{species}</span><span class="s1">:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_database_species</span><span class="p">(</span><span class="n">all_aids</span><span class="p">)))</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+    <span class="n">tuned_params</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">tune_flann</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span>
+                                 <span class="n">target_precision</span><span class="o">=.</span><span class="mi">98</span><span class="p">,</span>
+                                 <span class="n">build_weight</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                                 <span class="n">memory_weight</span><span class="o">=</span><span class="mf">0.00</span><span class="p">,</span>
+                                 <span class="n">sample_fraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">tuned_params</span>
+
+    <span class="c1">#tuned_params2 = vt.tune_flann(vecs,</span>
+    <span class="c1">#                              target_precision=.90,</span>
+    <span class="c1">#                              build_weight=0.001,</span>
+    <span class="c1">#                              memory_weight=0.00,</span>
+    <span class="c1">#                              sample_fraction=0.5)</span>
+    <span class="c1">#tuned_params2</span>
+
+
+<span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;incremental&#39;</span><span class="p">,</span> <span class="s1">&#39;inc&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">incremental_test</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds / queries new images one at a time to a clean test database.</span>
+<span class="sd">    Tests the complete system.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs       (list) : IBEISController object</span>
+<span class="sd">        qaid_list (list) : list of annotation-ids to query</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd</span>
+
+<span class="sd">        python dev.py --db PZ_MTEST --allgt --cmd</span>
+
+<span class="sd">        python dev.py --db PZ_MTEST --allgt -t inc</span>
+
+<span class="sd">        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd</span>
+
+<span class="sd">        python dev.py -t inc --db GZ_ALL --ninit 100 --noqcache</span>
+
+<span class="sd">        python dev.py -t inc --db PZ_MTEST --noqcache --interactive-after 40</span>
+<span class="sd">        python dev.py -t inc --db PZ_Master0 --noqcache --interactive-after 10000 --ninit 400</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">automated_matcher</span>
+    <span class="n">ibs1</span> <span class="o">=</span> <span class="n">ibs</span>
+    <span class="n">num_initial</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--ninit&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">automated_matcher</span><span class="o">.</span><span class="n">incremental_test</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">num_initial</span><span class="p">)</span>
+
+
+<span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;inspect&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">inspect_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&lt;inspect_matches&gt;&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">inspect_gui</span>
+    <span class="k">return</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">test_review_widget</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_ibslist"><a class="viewcode-back" href="../../wbia.html#wbia.dev.get_ibslist">[docs]</a><span class="k">def</span> <span class="nf">get_ibslist</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[dev] get_ibslist&#39;</span><span class="p">)</span>
+    <span class="n">ibs_GV</span>  <span class="o">=</span> <span class="n">ibs</span>
+    <span class="n">ibs_RI</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">clone_handle</span><span class="p">(</span><span class="n">nogravity_hack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ibs_RIW</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">clone_handle</span><span class="p">(</span><span class="n">nogravity_hack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gravity_weighting</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ibs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs_GV</span><span class="p">,</span> <span class="n">ibs_RI</span><span class="p">,</span> <span class="n">ibs_RIW</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ibs_list</span></div>
+
+
+<span class="nd">@devcmd</span><span class="p">(</span><span class="s1">&#39;gv_scores&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">compgrav_draw_score_sep</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[dev] compgrav_draw_score_sep&#39;</span><span class="p">)</span>
+    <span class="n">ibs_list</span> <span class="o">=</span> <span class="n">get_ibslist</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ibs_</span> <span class="ow">in</span> <span class="n">ibs_list</span><span class="p">:</span>
+        <span class="n">draw_annot_scoresep</span><span class="p">(</span><span class="n">ibs_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+
+<span class="c1">#--------------------</span>
+<span class="c1"># RUN DEV EXPERIMENTS</span>
+<span class="c1">#--------------------</span>
+
+
+<span class="c1">#def run_registered_precmd(precmd_name):</span>
+<span class="c1">#    # Very hacky way to run just a single registered precmd</span>
+<span class="c1">#    for (func_aliases, func) in DEVPRECMD_FUNCTIONS:</span>
+<span class="c1">#        for aliases in func_aliases:</span>
+<span class="c1">#            ret = precmd_name in input_precmd_list</span>
+<span class="c1">#            if ret:</span>
+<span class="c1">#                func()</span>
+
+
+<div class="viewcode-block" id="run_devprecmds"><a class="viewcode-back" href="../../wbia.html#wbia.dev.run_devprecmds">[docs]</a><span class="k">def</span> <span class="nf">run_devprecmds</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Looks for pre-tests specified with the -t flag and runs them</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#input_precmd_list = params.args.tests[:]</span>
+    <span class="n">input_precmd_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;-e&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+    <span class="n">valid_precmd_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="nf">intest</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">precmd_name</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">valid_precmd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precmd_name</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">precmd_name</span> <span class="ow">in</span> <span class="n">input_precmd_list</span>
+            <span class="n">ret2</span> <span class="o">=</span> <span class="n">precmd_name</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">unknown</span>  <span class="c1"># Let unparsed args count towards tests</span>
+            <span class="k">if</span> <span class="n">ret</span> <span class="ow">or</span> <span class="n">ret2</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ret</span><span class="p">:</span>
+                    <span class="n">input_precmd_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">precmd_name</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">ret2</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+===================&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;| running precmd = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+                <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Implicit (decorated) test functions</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">func_aliases</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="ow">in</span> <span class="n">DEVPRECMD_FUNCTIONS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="o">*</span><span class="n">func_aliases</span><span class="p">):</span>
+            <span class="c1">#with utool.Indenter(&#39;[dev.&#39; + get_funcname(func) + &#39;]&#39;):</span>
+            <span class="n">func</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exiting after first precommand&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_precmd_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;Unhandled tests: &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">input_precmd_list</span><span class="p">))</span></div>
+
+
+<span class="c1">#@utool.indent_func(&#39;[dev]&#39;)</span>
+<div class="viewcode-block" id="run_devcmds"><a class="viewcode-back" href="../../wbia.html#wbia.dev.run_devcmds">[docs]</a><span class="k">def</span> <span class="nf">run_devcmds</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">acfg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function runs tests passed in with the -t flag</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1">#print(&#39;[dev] run_devcmds&#39;)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;==========================&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DEV] RUN EXPERIMENTS </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;==========================&#39;</span><span class="p">)</span>
+    <span class="n">input_test_list</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">tests</span><span class="p">[:]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;input_test_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">input_test_list</span><span class="p">),))</span>
+    <span class="c1"># fnum = 1</span>
+
+    <span class="n">valid_test_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># build list for printing in case of failure</span>
+    <span class="n">valid_test_helpstr_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># for printing</span>
+
+    <span class="k">def</span> <span class="nf">mark_test_handled</span><span class="p">(</span><span class="n">testname</span><span class="p">):</span>
+        <span class="n">input_test_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">intest</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">helpstr</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;help&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">valid_test_helpstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;   -t &#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="n">helpstr</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">testname</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">valid_test_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">testname</span> <span class="ow">in</span> <span class="n">input_test_list</span>
+            <span class="n">ret2</span> <span class="o">=</span> <span class="n">testname</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">unknown</span>  <span class="c1"># Let unparsed args count towards tests</span>
+            <span class="k">if</span> <span class="n">ret</span> <span class="ow">or</span> <span class="n">ret2</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ret</span><span class="p">:</span>
+                    <span class="n">mark_test_handled</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">ret2</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">+===================&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; [dev] running testname = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+-------------------</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">valid_test_helpstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    # --- Simple Tests ---&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Explicit (simple) test functions</span>
+    <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="s1">&#39;export&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;export&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="s1">&#39;dbinfo&#39;</span><span class="p">):</span>
+        <span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="s1">&#39;headers&#39;</span><span class="p">,</span> <span class="s1">&#39;schema&#39;</span><span class="p">):</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">print_schema</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="s1">&#39;printcfg&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;printcfg&#39;</span><span class="p">)</span>
+        <span class="c1"># printcfg(ibs)</span>
+    <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="s1">&#39;tables&#39;</span><span class="p">):</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">print_tables</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="s1">&#39;imgtbl&#39;</span><span class="p">):</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">print_image_table</span><span class="p">()</span>
+
+    <span class="n">valid_test_helpstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    # --- Decor Tests ---&#39;</span><span class="p">)</span>
+
+    <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+
+    <span class="c1"># Implicit (decorated) test functions</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">func_aliases</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="ow">in</span> <span class="n">DEVCMD_FUNCTIONS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="o">*</span><span class="n">func_aliases</span><span class="p">):</span>
+            <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="c1">#with utool.Indenter(&#39;[dev.&#39; + funcname + &#39;]&#39;):</span>
+            <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">funcname</span><span class="p">):</span>
+                <span class="c1">#print(&#39;[dev] qid_list=%r&#39; % (qaid_list,))</span>
+                <span class="c1"># FIXME: , daid_list</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_func_argspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+                <span class="c1"># Add variables returned by the function to the</span>
+                <span class="c1"># &quot;local scope&quot; (the exec scop)</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="s1">&#39;items&#39;</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ret</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">is_valid_varname</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                            <span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="n">valid_test_helpstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    # --- Config Tests ---&#39;</span><span class="p">)</span>
+
+    <span class="c1"># ------</span>
+    <span class="c1"># RUNS EXPERIMENT HARNESS OVER VALID TESTNAMES SPECIFIED WITH -t</span>
+    <span class="c1"># ------</span>
+
+    <span class="c1"># Config driven test functions</span>
+    <span class="c1"># Allow any testcfg to be in tests like: vsone_1 or vsmany_3</span>
+    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">test_cfg_name</span> <span class="ow">in</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="p">):</span>
+            <span class="n">test_cfg_name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="p">)</span>
+    <span class="c1"># Hack to allow for very customized harness tests</span>
+    <span class="k">for</span> <span class="n">testname</span> <span class="ow">in</span> <span class="n">input_test_list</span><span class="p">[:]:</span>
+        <span class="k">if</span> <span class="n">testname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;custom:&#39;</span><span class="p">):</span>
+            <span class="n">test_cfg_name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
+            <span class="n">mark_test_handled</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">):</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+        <span class="c1"># Run Experiments</span>
+        <span class="c1"># backwards compatibility yo</span>
+        <span class="n">acfgstr_name_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;OVERRIDE_HACK&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)}</span>
+        <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;This way of running tests no longer works. It may be fixed in the future&#39;</span>
+        <span class="c1">#acfg</span>
+        <span class="n">harness</span><span class="o">.</span><span class="n">test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfgstr_name_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">)</span>
+
+    <span class="n">valid_test_helpstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    # --- Help ---&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">intest</span><span class="p">(</span><span class="s1">&#39;help&#39;</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;valid tests are:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_test_helpstr_list</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">locals_</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_test_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;valid tests are: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_test_list</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unknown tests: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">input_test_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">locals_</span></div>
+
+
+<span class="c1">#-------------------</span>
+<span class="c1"># CUSTOM DEV FUNCS</span>
+<span class="c1">#-------------------</span>
+
+
+<span class="c1">#------------------</span>
+<span class="c1"># DEV MAIN</span>
+<span class="c1">#------------------</span>
+
+<div class="viewcode-block" id="dev_snippets"><a class="viewcode-back" href="../../wbia.html#wbia.dev.dev_snippets">[docs]</a><span class="k">def</span> <span class="nf">dev_snippets</span><span class="p">(</span><span class="n">main_locals</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Common variables for convineince when interacting with IPython &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[dev] dev_snippets&#39;</span><span class="p">)</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;zebra_grevys&#39;</span>
+    <span class="n">quick</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># Get reference to IBEIS Controller</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;back&#39;</span> <span class="ow">in</span> <span class="n">main_locals</span><span class="p">:</span>
+        <span class="c1"># Get reference to GUI Backend</span>
+        <span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;back&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Get reference to GUI Frontend</span>
+            <span class="n">front</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">ibswgt</span> <span class="o">=</span> <span class="n">front</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">]</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;names_tree&#39;</span><span class="p">]</span>
+            <span class="n">selection_model</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">selectionModel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1">#ibs.dump_tables()</span>
+        <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">()</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+        <span class="c1">#nid_list = ibs.get_valid_nids()</span>
+        <span class="c1">#valid_nid_list   = ibs.get_annot_name_rowids(aid_list)</span>
+        <span class="c1">#valid_aid_names  = ibs.get_annot_names(aid_list)</span>
+        <span class="c1">#valid_aid_gtrues = ibs.get_annot_groundtruth(aid_list)</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_sortbystr"><a class="viewcode-back" href="../../wbia.html#wbia.dev.get_sortbystr">[docs]</a><span class="k">def</span> <span class="nf">get_sortbystr</span><span class="p">(</span><span class="n">str_list</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">strlbl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keylbl</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">key_list</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="n">ndigits</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key_list</span><span class="o">.</span><span class="n">max</span><span class="p">())),</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">keylbl</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">keylbl</span><span class="p">))</span>
+    <span class="n">keyfmt</span>  <span class="o">=</span> <span class="s1">&#39;%&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ndigits</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;d&#39;</span>
+    <span class="k">if</span> <span class="n">keylbl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">keylbl</span> <span class="o">+</span> <span class="s1">&#39; --- &#39;</span> <span class="o">+</span> <span class="n">strlbl</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">sorted_strs</span> <span class="o">=</span> <span class="p">([(</span><span class="n">keyfmt</span> <span class="o">%</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39; --- &#39;</span> <span class="o">+</span> <span class="n">str_</span><span class="p">)</span> <span class="k">for</span> <span class="n">str_</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">str_list</span><span class="p">[</span><span class="n">sortx</span><span class="p">],</span> <span class="n">key_list</span><span class="p">[</span><span class="n">sortx</span><span class="p">])])</span>
+    <span class="k">def</span> <span class="nf">boxjoin</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">topline</span> <span class="o">=</span> <span class="s1">&#39;+----------&#39;</span>
+        <span class="n">botline</span> <span class="o">=</span> <span class="s1">&#39;L__________&#39;</span>
+        <span class="n">boxlines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">boxlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">topline</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">boxlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">boxlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">topline</span><span class="p">)</span>
+
+        <span class="n">body</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> | &#39;</span><span class="p">)</span>
+        <span class="n">boxlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">)</span>
+        <span class="n">boxlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">botline</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">boxlines</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">boxjoin</span><span class="p">(</span><span class="n">sorted_strs</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span></div>
+
+
+<span class="c1"># @devcmd(&#39;test_feats&#39;)</span>
+<span class="c1"># def tst_feats(ibs, qaid_list, daid_list=None):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     test_feats shows features using several different parameters</span>
+
+<span class="c1">#     Args:</span>
+<span class="c1">#         ibs (IBEISController):</span>
+<span class="c1">#         qaid_list (int): query annotation id</span>
+
+<span class="c1">#     CommandLine:</span>
+<span class="c1">#         python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w</span>
+
+<span class="c1">#     Example:</span>
+<span class="c1">#         &gt;&gt;&gt; import wbia</span>
+<span class="c1">#         &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="c1">#         &gt;&gt;&gt; qaid_list = [1]</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     from wbia import viz</span>
+<span class="c1">#     from wbia.expt import experiment_configs</span>
+<span class="c1">#     import utool as ut</span>
+
+<span class="c1">#     NUM_PASSES = 1 if not utool.get_argflag(&#39;--show&#39;) else 2</span>
+<span class="c1">#     varyparams_list = [experiment_configs.featparams]</span>
+
+<span class="c1">#     def tst_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list):</span>
+<span class="c1">#         for dict_ in ut.progiter(alldictcomb, lbl=&#39;FeatCFG Combo: &#39;):</span>
+<span class="c1">#             cfgstr_ = ut.repr2(dict_)</span>
+<span class="c1">#             if count == 0:</span>
+<span class="c1">#                 # On first run just record info</span>
+<span class="c1">#                 kpts = ibs.get_annot_kpts(aid)</span>
+<span class="c1">#                 nKpts_list.append(len(kpts))</span>
+<span class="c1">#                 cfgstr_list.append(cfgstr_)</span>
+<span class="c1">#             if count == 1:</span>
+<span class="c1">#                 kpts = ibs.get_annot_kpts(aid)</span>
+<span class="c1">#                 # If second run happens display info</span>
+<span class="c1">#                 cfgpackstr = utool.packstr(cfgstr_, textwidth=80,</span>
+<span class="c1">#                                               breakchars=&#39;,&#39;, newline_prefix=&#39;&#39;,</span>
+<span class="c1">#                                               break_words=False, wordsep=&#39;,&#39;)</span>
+<span class="c1">#                 title_suffix = (&#39; len(kpts) = %r \n&#39; % len(kpts)) + cfgpackstr</span>
+<span class="c1">#                 viz.show_chip(ibs, aid, fnum=pt.next_fnum(),</span>
+<span class="c1">#                               title_suffix=title_suffix, darken=.8,</span>
+<span class="c1">#                               ell_linewidth=2, ell_alpha=.6, config=dict_)</span>
+
+<span class="c1">#     alldictcomb = utool.flatten(map(utool.all_dict_combinations, varyparams_list))</span>
+<span class="c1">#     for count in range(NUM_PASSES):</span>
+<span class="c1">#         nKpts_list = []</span>
+<span class="c1">#         cfgstr_list = []</span>
+<span class="c1">#         for aid in qaid_list:</span>
+<span class="c1">#             test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list)</span>
+<span class="c1">#             #for dict_ in alldictcomb:</span>
+<span class="c1">#         if count == 0:</span>
+<span class="c1">#             nKpts_list = np.array(nKpts_list)</span>
+<span class="c1">#             cfgstr_list = np.array(cfgstr_list)</span>
+<span class="c1">#             print(get_sortbystr(cfgstr_list, nKpts_list, &#39;cfg&#39;, &#39;nKpts&#39;))</span>
+
+
+<div class="viewcode-block" id="run_dev"><a class="viewcode-back" href="../../wbia.html#wbia.dev.run_dev">[docs]</a><span class="k">def</span> <span class="nf">run_dev</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    main developer command</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py --db PZ_Master0 --controlled --print-rankhist</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[dev] --- RUN DEV ---&#39;</span><span class="p">)</span>
+    <span class="c1"># Get reference to controller</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Get aids marked as test cases</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--expanded-aids&#39;</span><span class="p">):</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[run_def] Test Annotations:&#39;</span><span class="p">)</span>
+            <span class="c1">#print(&#39;[run_dev] * qaid_list = %s&#39; % ut.packstr(qaid_list, 80, nlprefix=&#39;[run_dev]     &#39;))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;assert!&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;daid_list!&#39;</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39; (try using command line argument --expanded-aids to enable)&#39;</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;len(qaid_list) = 0</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="p">),</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;or len(daid_list) = 0</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="p">),</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1">#qaid_list = ibs.get_valid_aids()[0]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Run the dev experiments</span>
+            <span class="n">expt_locals</span> <span class="o">=</span> <span class="n">run_devcmds</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+            <span class="c1"># Add experiment locals to local namespace</span>
+            <span class="n">execstr_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">expt_locals</span><span class="p">,</span> <span class="s1">&#39;expt_locals&#39;</span><span class="p">)</span>
+            <span class="n">exec</span><span class="p">(</span><span class="n">execstr_locals</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span></div>
+
+
+<span class="c1">#-------------</span>
+<span class="c1"># EXAMPLE TEXT</span>
+<span class="c1">#-------------</span>
+
+<span class="n">EXAMPLE_TEXT</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###</span>
+<span class="s1">python -m wbia.dev --t mtest</span>
+<span class="s1">python dev.py --t nauts</span>
+<span class="s1">./resetdbs.sh  # FIXME</span>
+<span class="s1">python wbia/dbio/ingest_database.py  &lt;- see module for usage</span>
+
+<span class="s1">### LIST AVAIABLE DATABASES ###</span>
+<span class="s1">python dev.py -t list_dbs</span>
+
+<span class="s1">### CHOOSE A DATABASE ###</span>
+<span class="s1">python dev.py --db PZ_Master0 --setdb</span>
+<span class="s1">python dev.py --db GZ_ALL --setdb</span>
+<span class="s1">python dev.py --db PZ_MTEST --setdb</span>
+<span class="s1">python dev.py --db NAUT_test --setdb</span>
+<span class="s1">python dev.py --db testdb1 --setdb</span>
+<span class="s1">python dev.py --db seals2 --setdb</span>
+
+<span class="s1">### DATABASE INFORMATION ###</span>
+<span class="s1">python dev.py -t dbinfo</span>
+
+<span class="s1">### EXPERIMENTS ###</span>
+<span class="s1">python dev.py --allgt -t best</span>
+<span class="s1">python dev.py --allgt -t vsone</span>
+<span class="s1">python dev.py --allgt -t vsmany</span>
+<span class="s1">python dev.py --allgt -t nsum</span>
+
+<span class="s1"># Newstyle experiments</span>
+<span class="s1"># commmand             # annot settings            # test settings</span>
+<span class="s1">python -m wbia.dev    -a default:qaids=allgt      -t best</span>
+
+
+<span class="s1">### COMPARE TWO CONFIGS ###</span>
+<span class="s1">python dev.py --allgt -t nsum vsmany vsone</span>
+<span class="s1">python dev.py --allgt -t nsum vsmany</span>
+<span class="s1">python dev.py --allgt -t nsum vsmany vsone smk</span>
+
+<span class="s1">### VARY DATABASE SIZE</span>
+<span class="s1">python -m wbia.dev -a default:qaids=allgt,dsize=100,qper_name=1,qmin_per_name=1 -t default --db PZ_MTEST</span>
+<span class="s1">python -m wbia.dev -a candidacy:qsize=10,dsize=100 -t default --db PZ_MTEST --verbtd</span>
+
+
+<span class="s1">### VIZ A SET OF MATCHES ###</span>
+<span class="s1">python dev.py --db PZ_MTEST -t query --qaid 72 110 -w</span>
+<span class="s1">#python dev.py --allgt -t vsone vsmany</span>
+<span class="s1">#python dev.py --allgt -t vsone --vz --vh</span>
+
+<span class="s1">### RUN A SMALL AMOUNT OF VSONE TESTS ###</span>
+<span class="s1">python dev.py --allgt -t  vsone --qindex 0:1 --vz --vh --vf --noqcache</span>
+<span class="s1">python dev.py --allgt --qindex 0:20 --</span>
+
+<span class="s1">### DUMP ANALYSIS FIGURES TO DISK ###</span>
+<span class="s1">python dev.py --allgt -t best --vf --vz --fig-dname query_analysis_easy</span>
+<span class="s1">python dev.py --allgt -t best --vf --vh --fig-dname query_analysis_hard</span>
+<span class="s1">python dev.py --allgt -t best --vf --va --fig-dname query_analysis_all</span>
+
+<span class="s1">python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110</span>
+<span class="s1">python dev.py --hard -t best vsone nsum</span>
+<span class="s1">&gt;&gt;&gt;</span>
+<span class="s1">&#39;&#39;&#39;</span>
+
+<span class="c1">#L______________</span>
+
+
+<span class="c1">#def run_devmain2():</span>
+<span class="c1">#    input_test_list = ut.get_argval((&#39;--tests&#39;, &#39;-t&#39;,), type_=list, default=[])[:]</span>
+<span class="c1">#    print(&#39;input_test_list = %s&#39; % (ut.repr2(input_test_list),))</span>
+<span class="c1">#    # fnum = 1</span>
+
+<span class="c1">#    valid_test_list = []  # build list for printing in case of failure</span>
+<span class="c1">#    valid_test_helpstr_list = []  # for printing</span>
+
+<span class="c1">#    def mark_test_handled(testname):</span>
+<span class="c1">#        input_test_list.remove(testname)</span>
+
+<span class="c1">#    def intest(*args, **kwargs):</span>
+<span class="c1">#        helpstr = kwargs.get(&#39;help&#39;, &#39;&#39;)</span>
+<span class="c1">#        valid_test_helpstr_list.append(&#39;   -t &#39; + &#39;, &#39;.join(args) + helpstr)</span>
+<span class="c1">#        for testname in args:</span>
+<span class="c1">#            valid_test_list.append(testname)</span>
+<span class="c1">#            ret = testname in input_test_list</span>
+<span class="c1">#            ret2 = testname in params.unknown  # Let unparsed args count towards tests</span>
+<span class="c1">#            if ret or ret2:</span>
+<span class="c1">#                if ret:</span>
+<span class="c1">#                    mark_test_handled(testname)</span>
+<span class="c1">#                else:</span>
+<span class="c1">#                    ret = ret2</span>
+<span class="c1">#                print(&#39;\n+===================&#39;)</span>
+<span class="c1">#                print(&#39; [dev2] running testname = %s&#39; % (args,))</span>
+<span class="c1">#                print(&#39;+-------------------\n&#39;)</span>
+<span class="c1">#                return ret</span>
+<span class="c1">#        return False</span>
+
+<span class="c1">#    anynewhit = False</span>
+<span class="c1">#    # Implicit (decorated) test functions</span>
+<span class="c1">#    print(&#39;DEVCMD_FUNCTIONS2 = %r&#39; % (DEVCMD_FUNCTIONS2,))</span>
+<span class="c1">#    for (func_aliases, func) in DEVCMD_FUNCTIONS2:</span>
+<span class="c1">#        if intest(*func_aliases):</span>
+<span class="c1">#            funcname = get_funcname(func)</span>
+<span class="c1">#            with utool.Timer(funcname):</span>
+<span class="c1">#                if len(ut.get_func_argspec(func).args) == 0:</span>
+<span class="c1">#                    func()</span>
+<span class="c1">#                    anynewhit = True</span>
+<span class="c1">#                else:</span>
+<span class="c1">#                    func(ibs, qaid_list, daid_list)</span>
+<span class="c1">#                    anynewhit = True</span>
+<span class="c1">#    if anynewhit:</span>
+<span class="c1">#        sys.exit(1)</span>
+
+
+<div class="viewcode-block" id="devmain"><a class="viewcode-back" href="../../wbia.html#wbia.dev.devmain">[docs]</a><span class="k">def</span> <span class="nf">devmain</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Developer Script</span>
+<span class="sd">        A command line interface to almost everything</span>
+
+<span class="sd">        -w     # wait / show the gui / figures are visible</span>
+<span class="sd">        --cmd  # ipython shell to play with variables</span>
+<span class="sd">        -t     # run list of tests</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">params</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DEVMAIN INIT - PRELOGGING&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sysres</span><span class="o">.</span><span class="n">set_logdir</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">start_logging</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DEVMAIN INIT - POSTLOGGING&#39;</span><span class="p">)</span>
+
+    <span class="n">helpstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Dev is meant to be run as an interactive script.</span>
+
+<span class="sd">        The dev.py script runs any test you regiter with @devcmd in any combination</span>
+<span class="sd">        of configurations specified by a Config object.</span>
+
+<span class="sd">        Dev caches information in order to get quicker results.  # FIXME: Provide quicker results  # FIXME: len(line)</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">INTRO_TITLE</span> <span class="o">=</span> <span class="s1">&#39;The dev.py Script&#39;</span>
+    <span class="c1">#INTRO_TEXT = &#39;&#39;.join((ut.bubbletext(INTRO_TITLE, font=&#39;cybermedium&#39;), helpstr))</span>
+    <span class="n">INTRO_TEXT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bubbletext</span><span class="p">(</span><span class="n">INTRO_TITLE</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s1">&#39;cybermedium&#39;</span><span class="p">)</span>
+
+    <span class="n">INTRO_STR</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s1">&#39;dev.py Intro&#39;</span><span class="p">,</span>  <span class="n">INTRO_TEXT</span><span class="p">)</span>
+
+    <span class="n">EXAMPLE_STR</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s1">&#39;dev.py Examples&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="n">EXAMPLE_TEXT</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">INTRO_STR</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--help&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbose&#39;</span><span class="p">)):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">EXAMPLE_STR</span><span class="p">)</span>
+
+    <span class="n">CMD</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--cmd&#39;</span><span class="p">)</span>
+    <span class="n">NOGUI</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--gui&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Run dev.py with arguments!&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Run Precommands</span>
+    <span class="n">run_devprecmds</span><span class="p">()</span>
+
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1"># Run IBEIS Main, create controller, and possibly gui</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;++dev&#39;</span><span class="p">)</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">gui</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--gui&#39;</span><span class="p">))</span>
+    <span class="c1">#utool.set_process_title(&#39;IBEIS_dev&#39;)</span>
+
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1"># Load snippet variables</span>
+    <span class="n">SNIPPITS</span> <span class="o">=</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">CMD</span>
+    <span class="k">if</span> <span class="n">SNIPPITS</span><span class="p">:</span>
+        <span class="n">snippet_locals</span> <span class="o">=</span> <span class="n">dev_snippets</span><span class="p">(</span><span class="n">main_locals</span><span class="p">)</span>
+        <span class="n">snippet_execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">snippet_locals</span><span class="p">,</span> <span class="s1">&#39;snippet_locals&#39;</span><span class="p">)</span>
+        <span class="n">exec</span><span class="p">(</span><span class="n">snippet_execstr</span><span class="p">)</span>
+
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1"># Development code</span>
+    <span class="n">RUN_DEV</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">RUN_DEV</span><span class="p">:</span>
+        <span class="n">dev_locals</span> <span class="o">=</span> <span class="n">run_dev</span><span class="p">(</span><span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">])</span>
+        <span class="n">dev_execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">dev_locals</span><span class="p">,</span> <span class="s1">&#39;dev_locals&#39;</span><span class="p">)</span>
+        <span class="n">exec</span><span class="p">(</span><span class="n">dev_execstr</span><span class="p">)</span>
+
+    <span class="n">command</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--eval&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">command</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,))</span>
+        <span class="c1">#ibs.search_annot_notes(&#39;360&#39;)</span>
+
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1"># Main Loop (IPython interaction, or some exec loop)</span>
+    <span class="c1">#if &#39;--nopresent&#39; not in sys.argv or &#39;--noshow&#39; in sys.argv:</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--show&#39;</span><span class="p">,</span> <span class="s1">&#39;--wshow&#39;</span><span class="p">)):</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
+    <span class="n">main_execstr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">main_loop</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="n">rungui</span><span class="o">=</span><span class="ow">not</span> <span class="n">NOGUI</span><span class="p">,</span>
+                                   <span class="n">ipy</span><span class="o">=</span><span class="p">(</span><span class="n">NOGUI</span> <span class="ow">or</span> <span class="n">CMD</span><span class="p">))</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">main_execstr</span><span class="p">)</span>
+
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1"># Memory profile</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--memprof&#39;</span><span class="p">):</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">print_resource_usage</span><span class="p">()</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">memory_profile</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;exiting dev&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ggr_random_name_splits"><a class="viewcode-back" href="../../wbia.html#wbia.dev.ggr_random_name_splits">[docs]</a><span class="k">def</span> <span class="nf">ggr_random_name_splits</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.viz.viz_graph2 ggr_random_name_splits --show</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        sshfs -o idmap=user lev:/ ~/lev</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.viz.viz_graph2 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ggr_random_name_splits()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+    <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
+    <span class="c1">#nid_list = ibs.get_valid_nids(filter_empty=True)</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="n">dbdir</span> <span class="o">=</span> <span class="s1">&#39;/media/danger/GGR/GGR-IBEIS&#39;</span>
+    <span class="n">dbdir</span> <span class="o">=</span> <span class="n">dbdir</span> <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/lev/media/danger/GGR/GGR-IBEIS&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="kn">import</span> <span class="nn">datetime</span>
+    <span class="n">day1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+    <span class="n">day2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+
+    <span class="n">orig_filter_kw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="c1">#&#39;view&#39;: [&#39;right&#39;],</span>
+        <span class="c1">#&#39;minqual&#39;: &#39;good&#39;,</span>
+        <span class="s1">&#39;is_known&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">orig_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">filter_kw</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_union</span><span class="p">(</span>
+        <span class="n">orig_filter_kw</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;min_unixtime&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">datetime_to_posixtime</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">date_to_datetime</span><span class="p">(</span><span class="n">day1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+            <span class="s1">&#39;max_unixtime&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">datetime_to_posixtime</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">date_to_datetime</span><span class="p">(</span><span class="n">day2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span>
+        <span class="p">})</span>
+    <span class="p">)</span>
+    <span class="n">orig_all_annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">orig_aids</span><span class="p">)</span>
+    <span class="n">orig_unique_nids</span><span class="p">,</span> <span class="n">orig_grouped_annots_</span> <span class="o">=</span> <span class="n">orig_all_annots</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">orig_all_annots</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span>
+    <span class="c1"># Ensure we get everything</span>
+    <span class="n">orig_grouped_annots</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aids_</span><span class="p">)</span>
+                           <span class="k">for</span> <span class="n">aids_</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">orig_unique_nids</span><span class="p">)]</span>
+
+    <span class="c1"># pip install quantumrandom</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">quantumrandom</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">quantumrandom</span><span class="o">.</span><span class="n">uint16</span><span class="p">()</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;seed = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">seed</span><span class="p">,))</span>
+        <span class="c1">#import Crypto.Random</span>
+        <span class="c1">#from Crypto import Random</span>
+        <span class="c1">#quantumrandom.get_data()</span>
+        <span class="c1">#StrongRandom = Crypto.Random.random.StrongRandom</span>
+        <span class="c1">#aes.reseed(3340258)</span>
+        <span class="c1">#chars = [str(chr(x)) for x in data.view(np.uint8)]</span>
+        <span class="c1">#aes_seed = str(&#39;&#39;).join(chars)</span>
+        <span class="c1">#aes = Crypto.Random.Fortuna.FortunaGenerator.AESGenerator()</span>
+        <span class="c1">#aes.reseed(aes_seed)</span>
+        <span class="c1">#aes.pseudo_random_data(10)</span>
+
+    <span class="n">orig_rand_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_indexes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">orig_grouped_annots</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">3340258</span><span class="p">)</span>
+    <span class="n">orig_sample_size</span> <span class="o">=</span> <span class="mi">75</span>
+    <span class="n">random_annot_groups</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">orig_grouped_annots</span><span class="p">,</span> <span class="n">orig_rand_idxs</span><span class="p">)</span>
+    <span class="n">orig_annot_sample</span> <span class="o">=</span> <span class="n">random_annot_groups</span><span class="p">[:</span><span class="n">orig_sample_size</span><span class="p">]</span>
+
+    <span class="c1"># OOOPS MADE ERROR REDO ----</span>
+
+    <span class="n">filter_kw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;minqual&#39;</span><span class="p">:</span> <span class="s1">&#39;good&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;is_known&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">filter_kw_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_union</span><span class="p">(</span>
+        <span class="n">filter_kw</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;min_unixtime&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">datetime_to_posixtime</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">date_to_datetime</span><span class="p">(</span><span class="n">day1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+            <span class="s1">&#39;max_unixtime&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">datetime_to_posixtime</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">date_to_datetime</span><span class="p">(</span><span class="n">day2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span>
+        <span class="p">})</span>
+    <span class="n">refiltered_sample</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">annot</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">filter_kw</span><span class="o">=</span><span class="n">filter_kw_</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">orig_annot_sample</span><span class="p">]</span>
+    <span class="n">is_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">refiltered_sample</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">ok_part_orig_sample</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">orig_annot_sample</span><span class="p">,</span> <span class="n">is_ok</span><span class="p">)</span>
+    <span class="n">ok_part_orig_nids</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">nids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ok_part_orig_sample</span><span class="p">]</span>
+
+    <span class="c1"># Now compute real sample</span>
+    <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">filter_kw</span><span class="o">=</span><span class="n">filter_kw_</span><span class="p">)</span>
+    <span class="n">all_annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+    <span class="n">unique_nids</span><span class="p">,</span> <span class="n">grouped_annots_</span> <span class="o">=</span> <span class="n">all_annots</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">all_annots</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span>
+    <span class="n">grouped_annots</span> <span class="o">=</span> <span class="n">grouped_annots_</span>
+    <span class="c1"># Ensure we get everything</span>
+    <span class="c1">#grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]</span>
+
+    <span class="n">pop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grouped_annots</span><span class="p">)</span>
+    <span class="n">pername_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">grouped_annots</span><span class="p">)</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">annots</span><span class="o">.</span><span class="n">AnnotGroups</span><span class="p">(</span><span class="n">grouped_annots</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+    <span class="n">match_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">match_tags</span><span class="p">]</span>
+    <span class="n">tag_case_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">match_tags</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;name_pop = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pop</span><span class="p">,))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Annots per Multiton Name&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">pername_list</span><span class="p">,</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Name Tag Hist &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">tag_case_hist</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Percent Photobomb: </span><span class="si">%.2f%%</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag_case_hist</span><span class="p">[</span><span class="s1">&#39;photobomb&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">pop</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Percent Split: </span><span class="si">%.2f%%</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag_case_hist</span><span class="p">[</span><span class="s1">&#39;splitcase&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">pop</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
+
+    <span class="c1"># Remove the ok part from this sample</span>
+    <span class="n">remain_unique_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">,</span> <span class="n">ok_part_orig_nids</span><span class="p">)</span>
+    <span class="n">remain_grouped_annots</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aids_</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids_</span> <span class="ow">in</span>
+                             <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">remain_unique_nids</span><span class="p">)]</span>
+
+    <span class="n">sample_size</span> <span class="o">=</span> <span class="mi">75</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">calc_sample_from_error_bars</span><span class="p">(</span><span class="o">.</span><span class="mi">05</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">conf_level</span><span class="o">=.</span><span class="mi">95</span><span class="p">,</span> <span class="n">prior</span><span class="o">=.</span><span class="mi">05</span><span class="p">)</span>
+
+    <span class="n">remain_rand_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_indexes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">remain_grouped_annots</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">3340258</span><span class="p">)</span>
+    <span class="n">remain_sample_size</span> <span class="o">=</span> <span class="n">sample_size</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">ok_part_orig_nids</span><span class="p">)</span>
+    <span class="n">remain_random_annot_groups</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">remain_grouped_annots</span><span class="p">,</span> <span class="n">remain_rand_idxs</span><span class="p">)</span>
+    <span class="n">remain_annot_sample</span> <span class="o">=</span> <span class="n">remain_random_annot_groups</span><span class="p">[:</span><span class="n">remain_sample_size</span><span class="p">]</span>
+
+    <span class="n">annot_sample_nofilter</span> <span class="o">=</span> <span class="n">ok_part_orig_sample</span> <span class="o">+</span> <span class="n">remain_annot_sample</span>
+    <span class="c1"># Filter out all bad parts</span>
+    <span class="n">annot_sample_filter</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">annot</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">filter_kw</span><span class="o">=</span><span class="n">filter_kw_</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annot_sample_nofilter</span>
+    <span class="p">]</span>
+    <span class="n">annot_sample</span> <span class="o">=</span> <span class="n">annot_sample_filter</span>
+
+    <span class="n">win</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_graph2</span>
+    <span class="k">for</span> <span class="n">annots</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">InteractiveIter</span><span class="p">(</span><span class="n">annot_sample</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">win</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">win</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">win</span> <span class="o">=</span> <span class="n">viz_graph2</span><span class="o">.</span><span class="n">make_qt_graph_interface</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">annots</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span>
+                                                 <span class="n">init_mode</span><span class="o">=</span><span class="s1">&#39;rereview&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">win</span><span class="p">)</span>
+
+    <span class="n">sample_groups</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">annots</span><span class="o">.</span><span class="n">AnnotGroups</span><span class="p">(</span><span class="n">annot_sample</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+
+    <span class="n">flat_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">sample_groups</span><span class="o">.</span><span class="n">match_tags</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using Split and Photobomb&#39;</span><span class="p">)</span>
+    <span class="n">is_positive</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;photobomb&#39;</span> <span class="ow">in</span> <span class="n">t</span> <span class="ow">or</span> <span class="s1">&#39;splitcase&#39;</span> <span class="ow">in</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">flat_tags</span><span class="p">]</span>
+    <span class="n">num_positive</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">calc_error_bars_from_sample</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">num_positive</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">conf_level</span><span class="o">=.</span><span class="mi">95</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Only Photobomb&#39;</span><span class="p">)</span>
+    <span class="n">is_positive</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;photobomb&#39;</span> <span class="ow">in</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">flat_tags</span><span class="p">]</span>
+    <span class="n">num_positive</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">calc_error_bars_from_sample</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">num_positive</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">conf_level</span><span class="o">=.</span><span class="mi">95</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Only SplitCase&#39;</span><span class="p">)</span>
+    <span class="n">is_positive</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;splitcase&#39;</span> <span class="ow">in</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">flat_tags</span><span class="p">]</span>
+    <span class="n">num_positive</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">calc_error_bars_from_sample</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">num_positive</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">conf_level</span><span class="o">=.</span><span class="mi">95</span><span class="p">)</span></div>
+    <span class="c1">#gt.qtapp_loop(qwin=win)</span>
+
+
+<span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CurrentExperiments:</span>
+<span class="sd">    # Full best settings run</span>
+<span class="sd">    ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains</span>
+<span class="sd">    # Full best settings run without spatial verification</span>
+<span class="sd">    ./dev.py -t custom:sv_on=False --db PZ_Master0 --allgt --species=zebra_plains</span>
+
+<span class="sd">    ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains --hs</span>
+
+<span class="sd">    # Check to see if new spatial verification helps</span>
+<span class="sd">    ./dev.py -t custom:full_homog_checks=False custom:full_homog_checks=True --db PZ_Master0 --allgt --species=zebra_plains</span>
+<span class="sd">    # Yay it does</span>
+
+
+<span class="sd">    # Look for how many false negatives are in the bottom batch</span>
+<span class="sd">    ./dev.py -t custom --db PZ_MTEST --species=zebra_plains --print-rankhist</span>
+<span class="sd">    ./dev.py -t custom --db PZ_MTEST --controlled --print-rankhist</span>
+<span class="sd">    ./dev.py -t custom --db PZ_Master0 --controlled --print-rankhist</span>
+
+<span class="sd">    ./dev.py -t \</span>
+<span class="sd">            custom \</span>
+<span class="sd">            custom:rotation_invariance=True,affine_invariance=False \</span>
+<span class="sd">            custom:rotation_invariance=True,query_rotation_heuristic=True \</span>
+<span class="sd">            --db PZ_Master0 --controlled --print-rankhist  --print-bestcfg</span>
+
+<span class="sd">    ./dev.py -t \</span>
+<span class="sd">            custom:rotation_invariance=True,affine_invariance=False \</span>
+<span class="sd">            custom:rotation_invariance=True,query_rotation_heuristic=True \</span>
+<span class="sd">            --db NNP_Master3 --controlled --print-rankhist  --print-bestcfg</span>
+
+
+<span class="sd">ElephantEarExperiments</span>
+<span class="sd">    --show --vh</span>
+<span class="sd">    ./dev.py -t custom:affine_invariance=True --db Elephants_drop1_ears --allgt --print-rankhist</span>
+<span class="sd">    ./dev.py -t custom:affine_invariance=False --db Elephants_drop1_ears --allgt --print-rankhist</span>
+<span class="sd">    ./dev.py -t custom:affine_invariance=False,histeq=True --db Elephants_drop1_ears --allgt --print-rankhist</span>
+<span class="sd">    ./dev.py -t custom:affine_invariance=False,adapteq=True --db Elephants_drop1_ears --allgt --print-rankhist</span>
+
+<span class="sd">    ./dev.py -t custom:affine_invariance=False,fg_on=False --db Elephants_drop1_ears --allgt</span>
+<span class="sd">    ./dev.py -t custom:affine_invariance=False,histeq=True,fg_on=False --db Elephants_drop1_ears --allgt</span>
+<span class="sd">    ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt</span>
+
+<span class="sd">    ./dev.py -t elph --db Elephants_drop1_ears --allgt</span>
+
+
+<span class="sd">Sift vs Siam Experiments</span>
+<span class="sd">    ./dev.py -t custom:feat_type=hesaff+siam128,algorithm=linear custom:feat_type=hesaff+sift --db testdb1 --allgt</span>
+<span class="sd">    ./dev.py -t custom:feat_type=hesaff+siam128,algorithm=linear custom:feat_type=hesaff+sift --db PZ_MTEST --allgt</span>
+<span class="sd">    ./dev.py -t custom:feat_type=hesaff+siam128,lnbnn_on=False,fg_on=False,bar_l2_on=True custom:feat_type=hesaff+sift,fg_on=False --db PZ_MTEST --allgt</span>
+
+<span class="sd">    ./dev.py -t custom:feat_type=hesaff+siam128 custom:feat_type=hesaff+sift --db PZ_MTEST --allgt --print-rankhist</span>
+<span class="sd">    ./dev.py -t custom:feat_type=hesaff+siam128 --db PZ_MTEST --allgt --print-rankhist</span>
+<span class="sd">    ./dev.py -t custom:feat_type=hesaff+sift --db PZ_MTEST --allgt --print-rankhist</span>
+
+<span class="sd">    ./dev.py -t custom:feat_type=hesaff+siam128 custom:feat_type=hesaff+sift --db PZ_Master0 --allgt</span>
+
+<span class="sd">    ./dev.py -t custom:feat_type=hesaff+siam128 --db testdb1 --allgt</span>
+
+
+
+<span class="sd">Without SV:</span>
+<span class="sd">agg rank histogram = {</span>
+<span class="sd">    (0, 1): 2276,</span>
+<span class="sd">    (1, 5): 126,</span>
+<span class="sd">    (5, 50): 99,</span>
+<span class="sd">    (50, 8624): 108,</span>
+<span class="sd">    (8624, 8625): 28,</span>
+<span class="sd">}</span>
+<span class="sd">With SV:</span>
+<span class="sd">agg rank histogram = {</span>
+<span class="sd">    (0, 1): 2300,</span>
+<span class="sd">    (1, 5): 106,</span>
+<span class="sd">    (5, 50): 16,</span>
+<span class="sd">    (50, 8624): 0,</span>
+<span class="sd">    (8624, 8625): 215,</span>
+<span class="sd">}</span>
+
+<span class="sd">Guesses:</span>
+<span class="sd">    0 2 2 2 4 4 4 4 0 0</span>
+<span class="sd">    0 0 4 2 2 4 4 4 2 2</span>
+<span class="sd">    2 4 4 4 1 1 1 2 2 2</span>
+<span class="sd">    0 0 1 1 1 2 0 0 1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">devmain</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../contents.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../wbia.html">wbia</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,852 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.algo.graph.mixin_helpers &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.algo.graph.mixin_helpers</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">SAME</span><span class="p">,</span> <span class="n">DIFF</span><span class="p">,</span> <span class="n">NULL</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.nx_utils</span> <span class="k">import</span> <span class="n">e_</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">DEBUG_INCON</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="AttrAccess"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess">[docs]</a><span class="k">class</span> <span class="nc">AttrAccess</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Contains non-core helper functions &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AttrAccess.gen_node_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.gen_node_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">gen_node_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_graph</span><span class="o">.</span><span class="n">nx_gen_node_attrs</span><span class="p">(</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.gen_edge_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.gen_edge_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">gen_edge_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">,</span>
+                       <span class="n">on_missing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; maybe change to gen edge items &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_graph</span><span class="o">.</span><span class="n">nx_gen_edge_attrs</span><span class="p">(</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+                <span class="n">on_missing</span><span class="o">=</span><span class="n">on_missing</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.gen_node_values"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.gen_node_values">[docs]</a>    <span class="k">def</span> <span class="nf">gen_node_values</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_graph</span><span class="o">.</span><span class="n">nx_gen_node_values</span><span class="p">(</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.gen_edge_values"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.gen_edge_values">[docs]</a>    <span class="k">def</span> <span class="nf">gen_edge_values</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">,</span>
+                        <span class="n">on_missing</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">on_keyerr</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_graph</span><span class="o">.</span><span class="n">nx_gen_edge_values</span><span class="p">(</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">on_missing</span><span class="o">=</span><span class="n">on_missing</span><span class="p">,</span>
+            <span class="n">on_keyerr</span><span class="o">=</span><span class="n">on_keyerr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.get_node_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_node_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Networkx node getter helper &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_node_attrs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="AttrAccess.get_edge_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_edge_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">get_edge_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">,</span>
+                       <span class="n">on_missing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Networkx edge getter helper &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_attrs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+                                        <span class="n">on_missing</span><span class="o">=</span><span class="n">on_missing</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_edges_where</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">,</span>
+                         <span class="n">on_missing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">edge_to_attr</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_attrs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+                                           <span class="n">on_missing</span><span class="o">=</span><span class="n">on_missing</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">edge_to_attr</span> <span class="k">if</span> <span class="n">op</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+<div class="viewcode-block" id="AttrAccess.get_edges_where_eq"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_edges_where_eq">[docs]</a>    <span class="k">def</span> <span class="nf">get_edges_where_eq</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">,</span>
+                           <span class="n">on_missing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">_get_edges_where</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">eq</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span>
+                                     <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">on_missing</span><span class="o">=</span><span class="n">on_missing</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.get_edges_where_ne"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_edges_where_ne">[docs]</a>    <span class="k">def</span> <span class="nf">get_edges_where_ne</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">,</span>
+                           <span class="n">on_missing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">_get_edges_where</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">ne</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span>
+                                     <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">on_missing</span><span class="o">=</span><span class="n">on_missing</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.set_node_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.set_node_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">set_node_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">node_to_prop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Networkx node setter helper &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">node_to_prop</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.set_edge_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.set_edge_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">set_edge_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">edge_to_prop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Networkx edge setter helper &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">edge_to_prop</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.get_edge_attr"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_edge_attr">[docs]</a>    <span class="k">def</span> <span class="nf">get_edge_attr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NoParam</span><span class="p">,</span> <span class="n">on_missing</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; single edge getter helper &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_edge_attrs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[</span><span class="n">edge</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+                                   <span class="n">on_missing</span><span class="o">=</span><span class="n">on_missing</span><span class="p">)[</span><span class="n">edge</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="AttrAccess.set_edge_attr"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.set_edge_attr">[docs]</a>    <span class="k">def</span> <span class="nf">set_edge_attr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; single edge setter helper &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">attr</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">{</span><span class="n">edge</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="AttrAccess.get_annot_attrs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_annot_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_attrs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Wrapper around get_node_attrs specific to annotation nodes &quot;&quot;&quot;</span>
+        <span class="n">attr_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">get_node_attrs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">attr_list</span></div>
+
+<div class="viewcode-block" id="AttrAccess.edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.edges">[docs]</a>    <span class="k">def</span> <span class="nf">edges</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">((</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="AttrAccess.has_edge"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.has_edge">[docs]</a>    <span class="k">def</span> <span class="nf">has_edge</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span></div>
+        <span class="c1"># redge = edge[::-1]</span>
+        <span class="c1"># flag = infr.graph.has_edge(*edge) or infr.graph.has_edge(*redge)</span>
+        <span class="c1"># return flag</span>
+
+<div class="viewcode-block" id="AttrAccess.get_edge_data"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_edge_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_edge_data</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">get_edge_data</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AttrAccess.get_nonvisual_edge_data"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_nonvisual_edge_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_nonvisual_edge_data</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">on_missing</span><span class="o">=</span><span class="s1">&#39;filter&#39;</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_edge_data</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">on_missing</span> <span class="o">==</span> <span class="s1">&#39;filter&#39;</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="n">on_missing</span> <span class="o">==</span> <span class="s1">&#39;default&#39;</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">elif</span> <span class="n">on_missing</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;graph does not have edge </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="AttrAccess.get_edge_dataframe"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_edge_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_edge_dataframe</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">all</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+        <span class="k">if</span> <span class="n">edges</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
+        <span class="n">edge_datas</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_nonvisual_edge_data</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">}</span>
+        <span class="n">edge_datas</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">feedback_data_keys</span><span class="p">}</span>
+                      <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">d</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">edge_datas</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">edge_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">edge_datas</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+
+        <span class="n">part</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">]</span>
+        <span class="n">neworder</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial_order</span><span class="p">(</span><span class="n">edge_df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">part</span><span class="p">)</span>
+        <span class="n">edge_df</span> <span class="o">=</span> <span class="n">edge_df</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">neworder</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">:</span>
+            <span class="n">edge_df</span> <span class="o">=</span> <span class="n">edge_df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;review_id&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp_s1&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;timestamp_c2&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp_c1&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># pd.DataFrame.from_dict(edge_datas, orient=&#39;list&#39;)</span>
+        <span class="k">return</span> <span class="n">edge_df</span></div>
+
+<div class="viewcode-block" id="AttrAccess.get_edge_df_text"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AttrAccess.get_edge_df_text">[docs]</a>    <span class="k">def</span> <span class="nf">get_edge_df_text</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">highlight</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_edge_dataframe</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+        <span class="n">df_str</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">highlight</span><span class="p">:</span>
+            <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="n">SAME</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+            <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="n">POSTV</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+            <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="n">DIFF</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="n">NEGTV</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="n">INCMP</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df_str</span></div></div>
+
+
+<div class="viewcode-block" id="Convenience"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.Convenience">[docs]</a><span class="k">class</span> <span class="nc">Convenience</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Convenience.e_"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.Convenience.e_">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pos_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">review_graphs</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">neg_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">review_graphs</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">incomp_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">review_graphs</span><span class="p">[</span><span class="n">INCMP</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unreviewed_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">review_graphs</span><span class="p">[</span><span class="n">UNREV</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unknown_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">infr</span><span class="o">.</span><span class="n">review_graphs</span><span class="p">[</span><span class="n">UNKWN</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Convenience.print_graph_info"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.Convenience.print_graph_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_graph_info</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">graph_info</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">simplify_graph</span><span class="p">())))</span></div>
+
+<div class="viewcode-block" id="Convenience.print_graph_connections"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.Convenience.print_graph_connections">[docs]</a>    <span class="k">def</span> <span class="nf">print_graph_connections</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;orig_name_label&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        label = &#39;orig_name_label&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node_to_label</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_node_attrs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">label_to_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">node_to_label</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                                        <span class="n">node_to_label</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CC info&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">label_to_nodes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,))</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_between</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">get_edge_df_text</span><span class="p">(</span><span class="n">edges</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CC pair info&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">cc1</span><span class="p">),</span> <span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">cc2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">label_to_nodes</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">name_pair = </span><span class="si">{}</span><span class="s1">-vs-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">))</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_between</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">get_edge_df_text</span><span class="p">(</span><span class="n">edges</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Convenience.print_within_connection_info"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.Convenience.print_within_connection_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_within_connection_info</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">edge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">aid</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">edge</span>
+        <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cc</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">_ccs</span><span class="p">[</span><span class="n">nid</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cc</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_to</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="c1"># subgraph = infr.graph.subgraph(cc)</span>
+        <span class="c1"># list(nxu.complement_edges(subgraph))</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_between</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">get_edge_df_text</span><span class="p">(</span><span class="n">edges</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Convenience.pair_connection_info"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.Convenience.pair_connection_info">[docs]</a>    <span class="k">def</span> <span class="nf">pair_connection_info</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helps debugging when ibs.nids has info that annotmatch/staging do not</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.mixin_helpers import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;GZ_Master1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; infr = wbia.AnnotInference(ibs, &#39;all&#39;, autoinit=True)</span>
+<span class="sd">            &gt;&gt;&gt; infr.reset_feedback(&#39;staging&#39;, apply=True)</span>
+<span class="sd">            &gt;&gt;&gt; infr.relabel_using_reviews(rectify=False)</span>
+<span class="sd">            &gt;&gt;&gt; aid1, aid2 = 1349, 3087</span>
+<span class="sd">            &gt;&gt;&gt; aid1, aid2 = 1535, 2549</span>
+<span class="sd">            &gt;&gt;&gt; infr.pair_connection_info(aid1, aid2)</span>
+
+
+<span class="sd">            &gt;&gt;&gt; aid1, aid2 = 4055, 4286</span>
+<span class="sd">            &gt;&gt;&gt; aid1, aid2 = 6555, 6882</span>
+<span class="sd">            &gt;&gt;&gt; aid1, aid2 = 712, 803</span>
+<span class="sd">            &gt;&gt;&gt; aid1, aid2 = 3883, 4220</span>
+<span class="sd">            &gt;&gt;&gt; infr.pair_connection_info(aid1, aid2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+        <span class="n">cc1</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_to</span><span class="p">(</span><span class="n">aid1</span><span class="p">)</span>
+        <span class="n">cc2</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_to</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
+
+        <span class="c1"># First check directly relationships</span>
+
+        <span class="k">def</span> <span class="nf">get_aug_df</span><span class="p">(</span><span class="n">edges</span><span class="p">):</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_edge_dataframe</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">)</span>
+                <span class="n">nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                    <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)])</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">nid1</span><span class="o">=</span><span class="n">nids</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nid2</span><span class="o">=</span><span class="n">nids</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">part</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;nid1&#39;</span><span class="p">,</span> <span class="s1">&#39;nid2&#39;</span><span class="p">,</span> <span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">]</span>
+                <span class="n">neworder</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial_order</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">part</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">neworder</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;review_id&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">df</span>
+
+        <span class="k">def</span> <span class="nf">print_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">lbl</span><span class="p">):</span>
+            <span class="n">df_str</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+            <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">aid1</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+            <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">aid2</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nid1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">}:</span>
+                <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">nid1</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkblue&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nid2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">}:</span>
+                <span class="n">df_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">highlight_regex</span><span class="p">(</span><span class="n">df_str</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_word</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">nid2</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">=====&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=====&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">df_str</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;================&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Pair Connection Info&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;================&#39;</span><span class="p">)</span>
+
+        <span class="n">nid1_</span><span class="p">,</span> <span class="n">nid2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;AIDS        aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;INFR NAMES: nid1, nid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;INFR cc = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">cc1</span><span class="p">),))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;INFR cc1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">cc1</span><span class="p">),))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;INFR cc2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">cc2</span><span class="p">),))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">nid1_</span> <span class="o">==</span> <span class="n">nid2_</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;DISAGREEMENT IN GRAPH AND DB&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;GRAPH AND DB AGREE&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IBS  NAMES: nid1, nid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid1_</span><span class="p">,</span> <span class="n">nid2_</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">nid1_</span> <span class="o">==</span> <span class="n">nid2_</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IBS CC: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid1_</span><span class="p">)),))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IBS CC1: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid1_</span><span class="p">)),))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IBS CC2: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid2_</span><span class="p">)),))</span>
+
+        <span class="c1"># Does this exist in annotmatch?</span>
+        <span class="n">in_am</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in_am = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">in_am</span><span class="p">,))</span>
+
+        <span class="c1"># Does this exist in staging?</span>
+        <span class="n">staging_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_edges</span><span class="p">([(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;staging_rowids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">staging_rowids</span><span class="p">,))</span>
+
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># Make absolutely sure</span>
+            <span class="n">stagedf</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_table_as_pandas</span><span class="p">(</span><span class="s1">&#39;reviews&#39;</span><span class="p">)</span>
+            <span class="n">aid_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;annot_1_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_2_rowid&#39;</span><span class="p">]</span>
+            <span class="n">has_aid1</span> <span class="o">=</span> <span class="p">(</span><span class="n">stagedf</span><span class="p">[</span><span class="n">aid_cols</span><span class="p">]</span> <span class="o">==</span> <span class="n">aid1</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">from_aid1</span> <span class="o">=</span> <span class="n">stagedf</span><span class="p">[</span><span class="n">has_aid1</span><span class="p">]</span>
+            <span class="n">conn_aid2</span> <span class="o">=</span> <span class="p">(</span><span class="n">from_aid1</span><span class="p">[</span><span class="n">aid_cols</span><span class="p">]</span> <span class="o">==</span> <span class="n">aid2</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# connections = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">conn_aid2</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+
+        <span class="c1"># Next check indirect relationships</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
+        <span class="k">if</span> <span class="n">cc1</span> <span class="o">!=</span> <span class="n">cc2</span><span class="p">:</span>
+            <span class="n">edge_df1</span> <span class="o">=</span> <span class="n">get_aug_df</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_between</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc1</span><span class="p">))</span>
+            <span class="n">edge_df2</span> <span class="o">=</span> <span class="n">get_aug_df</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_between</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc2</span><span class="p">))</span>
+            <span class="n">print_df</span><span class="p">(</span><span class="n">edge_df1</span><span class="p">,</span> <span class="s1">&#39;Inside1&#39;</span><span class="p">)</span>
+
+            <span class="n">print_df</span><span class="p">(</span><span class="n">edge_df2</span><span class="p">,</span> <span class="s1">&#39;Inside1&#39;</span><span class="p">)</span>
+
+            <span class="n">out_df1</span> <span class="o">=</span> <span class="n">get_aug_df</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_outgoing</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc1</span><span class="p">))</span>
+            <span class="n">print_df</span><span class="p">(</span><span class="n">out_df1</span><span class="p">,</span> <span class="s1">&#39;Outgoing1&#39;</span><span class="p">)</span>
+
+            <span class="n">out_df2</span> <span class="o">=</span> <span class="n">get_aug_df</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_outgoing</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc2</span><span class="p">))</span>
+            <span class="n">print_df</span><span class="p">(</span><span class="n">out_df2</span><span class="p">,</span> <span class="s1">&#39;Outgoing2&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">subgraph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">cc1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Shortest path between endpoints&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">shortest_path</span><span class="p">(</span><span class="n">subgraph</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+
+        <span class="n">edge_df3</span> <span class="o">=</span> <span class="n">get_aug_df</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_between</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span><span class="p">))</span>
+        <span class="n">print_df</span><span class="p">(</span><span class="n">edge_df3</span><span class="p">,</span> <span class="s1">&#39;Between&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Convenience.node_tag_hist"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.Convenience.node_tag_hist">[docs]</a>    <span class="k">def</span> <span class="nf">node_tag_hist</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="n">tags_list</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_case_tags</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">tag_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_tags</span><span class="o">.</span><span class="n">tag_hist</span><span class="p">(</span><span class="n">tags_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tag_hist</span></div>
+
+<div class="viewcode-block" id="Convenience.edge_tag_hist"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.Convenience.edge_tag_hist">[docs]</a>    <span class="k">def</span> <span class="nf">edge_tag_hist</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="n">tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_values</span><span class="p">(</span><span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="n">tag_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_tags</span><span class="o">.</span><span class="n">tag_hist</span><span class="p">(</span><span class="n">tags_list</span><span class="p">)</span>
+        <span class="c1"># ut.util_tags.tag_coocurrence(tags_list)</span>
+        <span class="k">return</span> <span class="n">tag_hist</span></div></div>
+
+
+<div class="viewcode-block" id="DummyEdges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.DummyEdges">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DummyEdges</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DummyEdges.ensure_mst"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.DummyEdges.ensure_mst">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_mst</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;name_label&#39;</span><span class="p">,</span> <span class="n">meta_decision</span><span class="o">=</span><span class="n">SAME</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensures that all names are names are connected.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            label (str): node attribute to use as the group id to form the mst.</span>
+<span class="sd">            meta_decision (str): if specified adds clique edges as feedback</span>
+<span class="sd">                items with this decision. Otherwise the edges are only</span>
+<span class="sd">                explicitly added to the graph.  This makes feedback items with</span>
+<span class="sd">                user_id=algo:mst and with a confidence of guessing.</span>
+
+<span class="sd">        Ignore:</span>
+<span class="sd">            annots = ibs.annots(infr.aids)</span>
+<span class="sd">            def fix_name(n):</span>
+<span class="sd">                import re</span>
+<span class="sd">                n = re.sub(&#39;  *&#39;, &#39; &#39;, n)</span>
+<span class="sd">                return re.sub(&#39; *-? *BBQ[0-9]*&#39;, &#39;&#39;, n)</span>
+
+<span class="sd">            ut.fix_embed_globals()</span>
+<span class="sd">            new_names = [fix_name(n) for n in annots.names]</span>
+<span class="sd">            set(new_names)</span>
+
+<span class="sd">            annots.names = new_names</span>
+
+<span class="sd">            infr.set_node_attrs(&#39;name_fix&#39;, ut.dzip(infr.aids, new_names))</span>
+<span class="sd">            label = &#39;name_fix&#39;</span>
+<span class="sd">            infr.ensure_mst(label)</span>
+
+<span class="sd">            infr.set_node_attrs(&#39;name_label&#39;, ut.dzip(infr.aids, annots.nids))</span>
+
+<span class="sd">        Ignore:</span>
+<span class="sd">            label = &#39;name_label&#39;</span>
+
+<span class="sd">        Doctest:</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.mixin_dynamic import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph import demo</span>
+<span class="sd">            &gt;&gt;&gt; infr = demo.demodata_infr(num_pccs=3, size=4)</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nCCs&#39;] == 3</span>
+<span class="sd">            &gt;&gt;&gt; infr.clear_edges()</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nCCs&#39;] == 12</span>
+<span class="sd">            &gt;&gt;&gt; infr.ensure_mst()</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nCCs&#39;] == 3</span>
+
+<span class="sd">        Doctest:</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.mixin_dynamic import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; infr = wbia.AnnotInference(&#39;PZ_MTEST&#39;, &#39;all&#39;, autoinit=True)</span>
+<span class="sd">            &gt;&gt;&gt; infr.reset_feedback(&#39;annotmatch&#39;, apply=True)</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nInconsistentCCs&#39;] == 0</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nCCs&#39;] == 41</span>
+<span class="sd">            &gt;&gt;&gt; label = &#39;name_label&#39;</span>
+<span class="sd">            &gt;&gt;&gt; new_edges = infr.find_mst_edges(label=label)</span>
+<span class="sd">            &gt;&gt;&gt; assert len(new_edges) == 0</span>
+<span class="sd">            &gt;&gt;&gt; infr.clear_edges()</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nCCs&#39;] == 119</span>
+<span class="sd">            &gt;&gt;&gt; infr.ensure_mst()</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nCCs&#39;] == 41</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;ensure_mst&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">find_mst_edges</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="c1"># Add new MST edges to original graph</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;adding </span><span class="si">%d</span><span class="s1"> MST edges&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback_from</span><span class="p">(</span><span class="n">new_edges</span><span class="p">,</span> <span class="n">meta_decision</span><span class="o">=</span><span class="n">SAME</span><span class="p">,</span>
+                               <span class="n">confidence</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE</span><span class="o">.</span><span class="n">GUESSING</span><span class="p">,</span>
+                               <span class="n">user_id</span><span class="o">=</span><span class="s1">&#39;algo:mst&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DummyEdges.ensure_cliques"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.DummyEdges.ensure_cliques">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_cliques</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;name_label&#39;</span><span class="p">,</span> <span class="n">meta_decision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Force each name label to be a clique.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            label (str): node attribute to use as the group id to form the</span>
+<span class="sd">                cliques.</span>
+<span class="sd">            meta_decision (str): if specified adds clique edges as feedback</span>
+<span class="sd">                items with this decision. Otherwise the edges are only</span>
+<span class="sd">                explicitly added to the graph.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            infr (?):</span>
+<span class="sd">            label (str): (default = &#39;name_label&#39;)</span>
+<span class="sd">            decision (str): (default = &#39;unreviewed&#39;)</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.graph.mixin_helpers ensure_cliques</span>
+
+<span class="sd">        Doctest:</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.mixin_helpers import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph import demo</span>
+<span class="sd">            &gt;&gt;&gt; label = &#39;name_label&#39;</span>
+<span class="sd">            &gt;&gt;&gt; infr = demo.demodata_infr(num_pccs=3, size=5)</span>
+<span class="sd">            &gt;&gt;&gt; print(infr.status())</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nEdges&#39;] &lt; 33</span>
+<span class="sd">            &gt;&gt;&gt; infr.ensure_cliques()</span>
+<span class="sd">            &gt;&gt;&gt; print(infr.status())</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nEdges&#39;] == 33</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nUnrevEdges&#39;] == 12</span>
+<span class="sd">            &gt;&gt;&gt; assert len(list(infr.find_clique_edges(label))) &gt; 0</span>
+<span class="sd">            &gt;&gt;&gt; infr.ensure_cliques(meta_decision=SAME)</span>
+<span class="sd">            &gt;&gt;&gt; assert infr.status()[&#39;nUnrevEdges&#39;] == 0</span>
+<span class="sd">            &gt;&gt;&gt; assert len(list(infr.find_clique_edges(label))) == 0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;ensure_cliques&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">find_clique_edges</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;ensuring </span><span class="si">%d</span><span class="s1"> clique edges&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">meta_decision</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">ensure_edges_from</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback_from</span><span class="p">(</span><span class="n">new_edges</span><span class="p">,</span> <span class="n">meta_decision</span><span class="o">=</span><span class="n">SAME</span><span class="p">,</span>
+                                   <span class="n">confidence</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE</span><span class="o">.</span><span class="n">GUESSING</span><span class="p">,</span>
+                                   <span class="n">user_id</span><span class="o">=</span><span class="s1">&#39;algo:clique&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="c1"># infr.assert_disjoint_invariant()</span>
+
+<div class="viewcode-block" id="DummyEdges.ensure_full"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.DummyEdges.ensure_full">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_full</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Explicitly places all edges, but does not make any feedback items</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;ensure_full with </span><span class="si">%d</span><span class="s1"> nodes&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">complement</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">ensure_edges_from</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DummyEdges.find_clique_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.DummyEdges.find_clique_edges">[docs]</a>    <span class="k">def</span> <span class="nf">find_clique_edges</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;name_label&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Augmenting edges that would complete each the specified cliques.</span>
+<span class="sd">        (based on the group inferred from `label`)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            label (str): node attribute to use as the group id to form the</span>
+<span class="sd">                cliques.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node_to_label</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_node_attrs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">label_to_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">node_to_label</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                                        <span class="n">node_to_label</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="n">label_to_nodes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">edge_decision</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">==</span> <span class="n">UNREV</span><span class="p">:</span>
+                    <span class="n">new_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="c1"># if infr.has_edge(edge):</span>
+                <span class="c1"># else:</span>
+                <span class="c1">#     new_edges.append(edge)</span>
+        <span class="k">return</span> <span class="n">new_edges</span></div>
+
+<div class="viewcode-block" id="DummyEdges.find_mst_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.DummyEdges.find_mst_edges">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">find_mst_edges</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;name_label&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns edges to augment existing PCCs (by label) in order to ensure</span>
+<span class="sd">        they are connected with positive edges.</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.graph.mixin_helpers find_mst_edges --profile</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.mixin_helpers import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; infr = wbia.AnnotInference(ibs, &#39;all&#39;, autoinit=True)</span>
+<span class="sd">            &gt;&gt;&gt; label = &#39;orig_name_label&#39;</span>
+<span class="sd">            &gt;&gt;&gt; label = &#39;name_label&#39;</span>
+<span class="sd">            &gt;&gt;&gt; infr.find_mst_edges()</span>
+<span class="sd">            &gt;&gt;&gt; infr.ensure_mst()</span>
+
+<span class="sd">        Ignore:</span>
+<span class="sd">            old_mst_edges = [</span>
+<span class="sd">                e for e, d in infr.edges(data=True)</span>
+<span class="sd">                if d.get(&#39;user_id&#39;, None) == &#39;algo:mst&#39;</span>
+<span class="sd">            ]</span>
+<span class="sd">            infr.graph.remove_edges_from(old_mst_edges)</span>
+<span class="sd">            infr.pos_graph.remove_edges_from(old_mst_edges)</span>
+<span class="sd">            infr.neg_graph.remove_edges_from(old_mst_edges)</span>
+<span class="sd">            infr.incomp_graph.remove_edges_from(old_mst_edges)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Find clusters by labels</span>
+        <span class="n">node_to_label</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_node_attrs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">label_to_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">node_to_label</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                                        <span class="n">node_to_label</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="n">weight_heuristic</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">weight_heuristic</span><span class="p">:</span>
+            <span class="n">annots</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
+            <span class="n">node_to_time</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">annots</span><span class="p">,</span> <span class="n">annots</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+            <span class="n">node_to_view</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">annots</span><span class="p">,</span> <span class="n">annots</span><span class="o">.</span><span class="n">viewpoint_code</span><span class="p">)</span>
+            <span class="n">enabled_heuristics</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;view_weight&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time_weight&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">def</span> <span class="nf">_heuristic_weighting</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">avail_uv</span><span class="p">):</span>
+            <span class="n">avail_uv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">avail_uv</span><span class="p">)</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">avail_uv</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="s1">&#39;view_weight&#39;</span> <span class="ow">in</span> <span class="n">enabled_heuristics</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">_rhomb_dist</span>
+                <span class="n">view_edge</span> <span class="o">=</span> <span class="p">[(</span><span class="n">node_to_view</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">node_to_view</span><span class="p">[</span><span class="n">v</span><span class="p">])</span>
+                             <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">avail_uv</span><span class="p">]</span>
+                <span class="n">view_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                    <span class="n">_rhomb_dist</span><span class="o">.</span><span class="n">VIEW_CODE_DIST</span><span class="p">[(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)]</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">view_edge</span>
+                <span class="p">])</span>
+                <span class="c1"># Assume comparable by default and prefer undefined</span>
+                <span class="c1"># more than probably not, but less than definately so.</span>
+                <span class="n">view_weight</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">view_weight</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.5</span>
+                <span class="c1"># Prefer viewpoint 10x more than time</span>
+                <span class="n">weights</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">view_weight</span>
+
+            <span class="k">if</span> <span class="s1">&#39;time_weight&#39;</span> <span class="ow">in</span> <span class="n">enabled_heuristics</span><span class="p">:</span>
+                <span class="c1"># Prefer linking annotations closer in time</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">node_to_time</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+                <span class="n">maxtime</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">safe_max</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nans</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">mintime</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">safe_min</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nans</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">time_denom</span> <span class="o">=</span> <span class="n">maxtime</span> <span class="o">-</span> <span class="n">mintime</span>
+                <span class="c1"># Try linking by time for lynx data</span>
+                <span class="n">time_delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                    <span class="nb">abs</span><span class="p">(</span><span class="n">node_to_time</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="o">-</span> <span class="n">node_to_time</span><span class="p">[</span><span class="n">v</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">avail_uv</span>
+                <span class="p">])</span>
+                <span class="n">time_weight</span> <span class="o">=</span> <span class="n">time_delta</span> <span class="o">/</span> <span class="n">time_denom</span>
+                <span class="n">weights</span> <span class="o">+=</span> <span class="n">time_weight</span>
+
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+            <span class="n">weights</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">weights</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+            <span class="n">avail</span> <span class="o">=</span> <span class="p">[(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">w</span><span class="p">})</span>
+                     <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">avail_uv</span><span class="p">,</span> <span class="n">weights</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">avail</span>
+
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">label_to_nodes</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;finding mst edges&#39;</span><span class="p">,</span>
+                           <span class="n">enabled</span><span class="o">=</span><span class="n">infr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">prog</span><span class="p">:</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">label_to_nodes</span><span class="p">[</span><span class="n">nid</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c1"># We want to make this CC connected</span>
+            <span class="n">pos_sub</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">impossible</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+                <span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">neg_graph</span><span class="p">,</span> <span class="n">nodes</span><span class="p">),</span>
+                <span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">incomp_graph</span><span class="p">,</span> <span class="n">nodes</span><span class="p">),</span>
+                <span class="c1"># nxu.edges_inside(infr.unknown_graph, nodes),</span>
+            <span class="p">)))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">impossible</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">weight_heuristic</span><span class="p">:</span>
+                <span class="c1"># Simple mst augmentation</span>
+                <span class="n">aug_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span><span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">complement</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span> <span class="n">nxu</span><span class="o">.</span><span class="n">complement_edges</span><span class="p">(</span><span class="n">pos_sub</span><span class="p">))</span>
+                <span class="n">avail_uv</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">complement</span> <span class="k">if</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">impossible</span>
+                <span class="p">]</span>
+                <span class="k">if</span> <span class="n">weight_heuristic</span><span class="p">:</span>
+                    <span class="c1"># Can do heuristic weighting to improve the MST</span>
+                    <span class="n">avail</span> <span class="o">=</span> <span class="n">_heuristic_weighting</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">avail_uv</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">avail</span> <span class="o">=</span> <span class="n">avail_uv</span>
+                <span class="c1"># print(len(pos_sub))</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">aug_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span>
+                        <span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">))</span>
+                <span class="k">except</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: MST augmentation is not feasible&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;explicit negative edges might disconnect a PCC&#39;</span><span class="p">)</span>
+                    <span class="n">aug_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span>
+                        <span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="n">new_edges</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">aug_edges</span><span class="p">)</span>
+        <span class="n">prog</span><span class="o">.</span><span class="n">ensure_newline</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">new_edges</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">),</span> <span class="p">(</span>
+                <span class="s1">&#39;alrady have edge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">new_edges</span></div>
+
+<div class="viewcode-block" id="DummyEdges.find_connecting_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.DummyEdges.find_connecting_edges">[docs]</a>    <span class="k">def</span> <span class="nf">find_connecting_edges</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Searches for a small set of edges, which if reviewed as positive would</span>
+<span class="sd">        ensure that each PCC is k-connected.  Note that in somes cases this is</span>
+<span class="sd">        not possible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;name_label&#39;</span>
+        <span class="n">node_to_label</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_node_attrs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">label_to_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">node_to_label</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                                        <span class="n">node_to_label</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="c1"># k = infr.params[&#39;redun.pos&#39;]</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">label_to_nodes</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;finding connecting edges&#39;</span><span class="p">,</span>
+                           <span class="n">enabled</span><span class="o">=</span><span class="n">infr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">prog</span><span class="p">:</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">label_to_nodes</span><span class="p">[</span><span class="n">nid</span><span class="p">])</span>
+            <span class="n">G</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">impossible</span> <span class="o">=</span> <span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">neg_graph</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+            <span class="n">impossible</span> <span class="o">|=</span> <span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">incomp_graph</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+
+            <span class="n">candidates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">complement</span><span class="p">(</span><span class="n">G</span><span class="p">)</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+            <span class="n">candidates</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">impossible</span><span class="p">)</span>
+
+            <span class="n">aug_edges</span> <span class="o">=</span> <span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">candidates</span><span class="p">)</span>
+            <span class="n">new_edges</span> <span class="o">+=</span> <span class="n">aug_edges</span>
+        <span class="n">prog</span><span class="o">.</span><span class="n">ensure_newline</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">new_edges</span></div></div>
+
+
+<div class="viewcode-block" id="AssertInvariants"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AssertInvariants">[docs]</a><span class="k">class</span> <span class="nc">AssertInvariants</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AssertInvariants.assert_edge"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AssertInvariants.assert_edge">[docs]</a>    <span class="k">def</span> <span class="nf">assert_edge</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utool</span>
+        <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span>
+                <span class="s1">&#39;edge=</span><span class="si">{}</span><span class="s1"> does not satisfy ordering constraint&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="AssertInvariants.assert_invariants"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AssertInvariants.assert_invariants">[docs]</a>    <span class="k">def</span> <span class="nf">assert_invariants</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">assert_disjoint_invariant</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">assert_union_invariant</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">assert_consistency_invariant</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">assert_recovery_invariant</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">assert_neg_metagraph</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AssertInvariants.assert_neg_metagraph"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AssertInvariants.assert_neg_metagraph">[docs]</a>    <span class="k">def</span> <span class="nf">assert_neg_metagraph</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks that the negative metgraph is correctly book-kept.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The total weight of all edges in the negative metagraph should equal</span>
+        <span class="c1"># the total number of negative edges.</span>
+        <span class="n">neg_weight</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">neg_metagraph</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">n_neg_edges</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">neg_graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">neg_weight</span> <span class="o">==</span> <span class="n">n_neg_edges</span>
+
+        <span class="c1"># Self loops should correspond to the number of inconsistent components</span>
+        <span class="n">neg_self_loop_nids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
+            <span class="n">ne</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">ne</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">neg_metagraph</span><span class="o">.</span><span class="n">selfloop_edges</span><span class="p">())])</span>
+        <span class="n">incon_nids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">nid_to_errors</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="n">neg_self_loop_nids</span> <span class="o">==</span> <span class="n">incon_nids</span></div>
+
+<div class="viewcode-block" id="AssertInvariants.assert_union_invariant"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AssertInvariants.assert_union_invariant">[docs]</a>    <span class="k">def</span> <span class="nf">assert_union_invariant</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()))</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">graph</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">review_graphs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">edge_union</span> <span class="o">=</span> <span class="nb">set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="n">edge_sets</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">all_edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="n">edge_union</span> <span class="o">!=</span> <span class="n">all_edges</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR STATUS DUMP:&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()))</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s1">&#39;edge sets must have full union. Found union=</span><span class="si">%d</span><span class="s1"> vs all=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">edge_union</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_edges</span><span class="p">)</span>
+                <span class="p">))</span></div>
+
+<div class="viewcode-block" id="AssertInvariants.assert_disjoint_invariant"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AssertInvariants.assert_disjoint_invariant">[docs]</a>    <span class="k">def</span> <span class="nf">assert_disjoint_invariant</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="c1"># infr.print(&#39;assert_disjoint_invariant&#39;, 200)</span>
+        <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()))</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">graph</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">review_graphs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">es1</span><span class="p">,</span> <span class="n">es2</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">edge_sets</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">es1</span><span class="o">.</span><span class="n">isdisjoint</span><span class="p">(</span><span class="n">es2</span><span class="p">),</span> <span class="s1">&#39;edge sets must be disjoint&#39;</span></div>
+
+<div class="viewcode-block" id="AssertInvariants.assert_consistency_invariant"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AssertInvariants.assert_consistency_invariant">[docs]</a>    <span class="k">def</span> <span class="nf">assert_consistency_invariant</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DEBUG_INCON</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># infr.print(&#39;assert_consistency_invariant&#39;, 200)</span>
+        <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.enabled&#39;</span><span class="p">]:</span>
+            <span class="n">incon_ccs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">inconsistent_components</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incon_ccs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;The graph is not consistent. &#39;</span> <span class="o">+</span>
+                                     <span class="n">msg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AssertInvariants.assert_recovery_invariant"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_helpers.AssertInvariants.assert_recovery_invariant">[docs]</a>    <span class="k">def</span> <span class="nf">assert_recovery_invariant</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DEBUG_INCON</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># infr.print(&#39;assert_recovery_invariant&#39;, 200)</span>
+        <span class="n">inconsistent_ccs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">inconsistent_components</span><span class="p">())</span>
+        <span class="n">incon_cc</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">inconsistent_ccs</span><span class="p">))</span>  <span class="c1"># NOQA</span></div></div>
+        <span class="c1"># import utool</span>
+        <span class="c1"># with utool.embed_on_exception_context:</span>
+        <span class="c1">#     assert infr.recovery_cc.issuperset(incon_cc), &#39;diff incon&#39;</span>
+        <span class="c1">#     if False:</span>
+        <span class="c1">#         # nid_to_cc2 = ut.group_items(</span>
+        <span class="c1">#         #     incon_cc,</span>
+        <span class="c1">#         #     map(pos_graph.node_label, incon_cc))</span>
+        <span class="c1">#         infr.print(&#39;infr.recovery_cc = %r&#39; % (infr.recovery_cc,))</span>
+        <span class="c1">#         infr.print(&#39;incon_cc = %r&#39; % (incon_cc,))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.graph.mixin_helpers</span>
+<span class="sd">        python -m wbia.algo.graph.mixin_helpers --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../../../wbia.html">wbia</a><ul>
+  <li><a href="../../algo.html">wbia.algo</a><ul>
+  <li><a href="../graph.html">wbia.algo.graph</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

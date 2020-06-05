@@ -1,0 +1,279 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.guitool.qtype &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.guitool.qtype</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c1">#from wbia.guitool.__PYQT__.QtCore import Qt</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="k">import</span> <span class="n">QLocale</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtGui</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.guitool_decorators</span> <span class="k">import</span> <span class="n">checks_qt_error</span>
+<span class="c1">#if six.PY2:</span>
+<span class="c1">#    from wbia.guitool.__PYQT__.QtCore import QString</span>
+<span class="c1">#    from wbia.guitool.__PYQT__.QtCore import QVariant</span>
+<span class="c1">#elif six.PY3:</span>
+<span class="n">QVariant</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="n">__STR__</span> <span class="o">=</span> <span class="n">unicode</span> <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span> <span class="k">else</span> <span class="nb">str</span>
+
+<span class="n">QString</span> <span class="o">=</span> <span class="n">__STR__</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">SIMPLE_CASTING</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="n">ItemDataRoles</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span>  <span class="p">:</span> <span class="s1">&#39;DisplayRole&#39;</span><span class="p">,</span>       <span class="c1"># key data to be rendered in the form of text. (QString)</span>
+    <span class="mi">1</span>  <span class="p">:</span> <span class="s1">&#39;DecorationRole&#39;</span><span class="p">,</span>     <span class="c1"># data to be rendered as an icon. (QColor, QIcon or QPixmap)</span>
+    <span class="mi">2</span>  <span class="p">:</span> <span class="s1">&#39;EditRole&#39;</span><span class="p">,</span>           <span class="c1"># data in a form suitable for editing in an editor. (QString)</span>
+    <span class="mi">3</span>  <span class="p">:</span> <span class="s1">&#39;ToolTipRole&#39;</span><span class="p">,</span>        <span class="c1"># data displayed in the item&#39;s tooltip. (QString)</span>
+    <span class="mi">4</span>  <span class="p">:</span> <span class="s1">&#39;StatusTipRole&#39;</span><span class="p">,</span>      <span class="c1"># data displayed in the status bar. (QString)</span>
+    <span class="mi">5</span>  <span class="p">:</span> <span class="s1">&#39;WhatsThisRole&#39;</span><span class="p">,</span>      <span class="c1"># data displayed in &quot;What&#39;s This?&quot; mode. (QString)</span>
+    <span class="mi">13</span> <span class="p">:</span> <span class="s1">&#39;SizeHintRole&#39;</span><span class="p">,</span>       <span class="c1"># size hint for item that will be supplied to views. (QSize)</span>
+    <span class="mi">6</span>  <span class="p">:</span> <span class="s1">&#39;FontRole&#39;</span><span class="p">,</span>           <span class="c1"># font used for items rendered with default delegate. (QFont)</span>
+    <span class="mi">7</span>  <span class="p">:</span> <span class="s1">&#39;TextAlignmentRole&#39;</span><span class="p">,</span>  <span class="c1"># text alignment of items with default delegate. (Qt::AlignmentFlag)</span>
+    <span class="mi">8</span>  <span class="p">:</span> <span class="s1">&#39;BackgroundRole&#39;</span><span class="p">,</span>     <span class="c1"># background brush for items with default delegate. (QBrush)</span>
+    <span class="mi">9</span>  <span class="p">:</span> <span class="s1">&#39;ForegroundRole&#39;</span><span class="p">,</span>     <span class="c1"># foreground brush for items rendered with default delegate. (QBrush)</span>
+    <span class="mi">10</span> <span class="p">:</span> <span class="s1">&#39;CheckStateRole&#39;</span><span class="p">,</span>     <span class="c1"># checked state of an item. (Qt::CheckState)</span>
+    <span class="mi">14</span> <span class="p">:</span> <span class="s1">&#39;InitialSortOrderRole&#39;</span><span class="p">,</span>  <span class="c1"># initial sort order of a header view (Qt::SortOrder).</span>
+    <span class="mi">11</span> <span class="p">:</span> <span class="s1">&#39;AccessibleTextRole&#39;</span><span class="p">,</span>    <span class="c1"># text used by accessibility extensions and plugins (QString)</span>
+    <span class="mi">12</span> <span class="p">:</span> <span class="s1">&#39;AccessibleDescriptionRole&#39;</span><span class="p">,</span>  <span class="c1"># accessibe description of the item for (QString)</span>
+    <span class="mi">32</span> <span class="p">:</span> <span class="s1">&#39;UserRole&#39;</span><span class="p">,</span>             <span class="c1"># first role that can be used for application-specific purposes.</span>
+    <span class="mi">8</span>  <span class="p">:</span> <span class="s1">&#39;BackgroundColorRole&#39;</span><span class="p">,</span>  <span class="c1"># Obsolete. Use BackgroundRole instead.</span>
+    <span class="mi">9</span>  <span class="p">:</span> <span class="s1">&#39;TextColorRole&#39;</span><span class="p">,</span>        <span class="c1"># Obsolete. Use ForegroundRole instead.</span>
+<span class="p">}</span>
+
+<span class="n">LOCALE</span> <span class="o">=</span> <span class="n">QLocale</span><span class="p">()</span>
+
+<span class="c1"># Custom types of data that can be displayed (usually be a delegate)</span>
+<span class="n">QT_PIXMAP_TYPES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPixmap</span><span class="p">,</span> <span class="s1">&#39;PIXMAP&#39;</span><span class="p">))</span>
+<span class="n">QT_ICON_TYPES</span>   <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QIcon</span><span class="p">,</span> <span class="s1">&#39;ICON&#39;</span><span class="p">))</span>
+<span class="n">QT_BUTTON_TYPES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s1">&#39;BUTTON&#39;</span><span class="p">,))</span>
+<span class="n">QT_COMBO_TYPES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s1">&#39;COMBO&#39;</span><span class="p">,))</span>
+
+
+<span class="n">QT_IMAGE_TYPES</span>  <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">QT_PIXMAP_TYPES</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">QT_ICON_TYPES</span><span class="p">))</span>
+<span class="c1"># A set of all delegate types</span>
+<span class="n">QT_DELEGATE_TYPES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">QT_IMAGE_TYPES</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">QT_BUTTON_TYPES</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">QT_COMBO_TYPES</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="qindexinfo"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.qtype.qindexinfo">[docs]</a><span class="k">def</span> <span class="nf">qindexinfo</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+    <span class="n">variant</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">SIMPLE_CASTING</span><span class="p">:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">variant</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">variant</span><span class="o">.</span><span class="n">toString</span><span class="p">())</span>
+    <span class="n">row</span>  <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">row</span><span class="p">()</span>
+    <span class="n">col</span>  <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">column</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span></div>
+
+<span class="c1">#def format_float(data):</span>
+<span class="c1">#    #argument_format = {</span>
+<span class="c1">#    #    &#39;e&#39;:    format as [-]9.9e[+|-]999</span>
+<span class="c1">#    #    &#39;E&#39;:    format as [-]9.9E[+|-]999</span>
+<span class="c1">#    #    &#39;f&#39;:    format as [-]9.9</span>
+<span class="c1">#    #    &#39;g&#39;:    use e or f format, whichever is the most concise</span>
+<span class="c1">#    #    &#39;G&#39;:    use E or f format, whichever is the most concise</span>
+<span class="c1">#    #}</span>
+<span class="c1">#    data = 1000000</span>
+<span class="c1">#    print(ut.repr2({</span>
+<span class="c1">#        &#39;out1&#39;: __STR__(QString.number(float(data), format=&#39;g&#39;, precision=8))</span>
+<span class="c1">#    }))</span>
+
+<span class="c1">#    QLocale(QLocale.English).toString(123456789, &#39;f&#39;, 2)</span>
+
+
+<div class="viewcode-block" id="numpy_to_qpixmap"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.qtype.numpy_to_qpixmap">[docs]</a><span class="k">def</span> <span class="nf">numpy_to_qpixmap</span><span class="p">(</span><span class="n">npimg</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">npimg</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span> <span class="o">=</span> <span class="n">npimg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">format_</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QImage</span><span class="o">.</span><span class="n">Format_RGB888</span>
+    <span class="n">qimg</span>    <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QImage</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">format_</span><span class="p">)</span>
+    <span class="n">qpixmap</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPixmap</span><span class="o">.</span><span class="n">fromImage</span><span class="p">(</span><span class="n">qimg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qpixmap</span></div>
+
+
+<div class="viewcode-block" id="numpy_to_qicon"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.qtype.numpy_to_qicon">[docs]</a><span class="k">def</span> <span class="nf">numpy_to_qicon</span><span class="p">(</span><span class="n">npimg</span><span class="p">):</span>
+    <span class="n">qpixmap</span> <span class="o">=</span> <span class="n">numpy_to_qpixmap</span><span class="p">(</span><span class="n">npimg</span><span class="p">)</span>
+    <span class="n">qicon</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QIcon</span><span class="p">(</span><span class="n">qpixmap</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qicon</span></div>
+
+
+<div class="viewcode-block" id="locale_float"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.qtype.locale_float">[docs]</a><span class="k">def</span> <span class="nf">locale_float</span><span class="p">(</span><span class="n">float_</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://qt-project.org/doc/qt-4.8/qlocale.html#toString-9</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">LOCALE</span><span class="o">.</span><span class="n">toString</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">float_</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">)</span></div>
+
+
+<span class="c1">#@profile</span>
+<div class="viewcode-block" id="cast_into_qt"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.qtype.cast_into_qt">[docs]</a><span class="k">def</span> <span class="nf">cast_into_qt</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Casts python data into a representation suitable for QT (usually a string)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">SIMPLE_CASTING</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_str</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="c1">#qnumber = QString.number(float(data), format=&#39;g&#39;, precision=8)</span>
+            <span class="k">return</span> <span class="n">locale_float</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_bool</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span>  <span class="n">ut</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">__STR__</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_str</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="c1">#qnumber = QString.number(float(data), format=&#39;g&#39;, precision=8)</span>
+        <span class="k">return</span> <span class="n">locale_float</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_bool</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span>  <span class="n">ut</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">__STR__</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;None&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;Unknown qtype: </span><span class="si">%r</span><span class="s1"> for data=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cast_from_qt"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.qtype.cast_from_qt">[docs]</a><span class="nd">@checks_qt_error</span>
+<span class="k">def</span> <span class="nf">cast_from_qt</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Casts a QVariant to data &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">SIMPLE_CASTING</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">var</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">reprstr</span> <span class="o">=</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">smart_cast</span><span class="p">(</span><span class="n">reprstr</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">var</span></div>
+    <span class="c1"># TODO: sip api v2 should take care of this.</span>
+
+
+<div class="viewcode-block" id="infer_coltype"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.qtype.infer_coltype">[docs]</a><span class="k">def</span> <span class="nf">infer_coltype</span><span class="p">(</span><span class="n">column_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Infer Column datatypes &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">coltype_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">column_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">column_data</span> <span class="ow">in</span> <span class="n">column_list</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">coltype_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">__STR__</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">column_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">coltype_list</span></div>
+
+
+<div class="viewcode-block" id="to_qcolor"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.qtype.to_qcolor">[docs]</a><span class="k">def</span> <span class="nf">to_qcolor</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+    <span class="n">qcolor</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="o">*</span><span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">qcolor</span></div>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../guitool.html">wbia.guitool</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

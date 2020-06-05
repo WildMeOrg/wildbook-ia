@@ -1,0 +1,236 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.plottool.custom_constants &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for wbia.plottool.custom_constants</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">map</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="c1">#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, &#39;[custom_constants]&#39;, DEBUG=False)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[custom_constants]&#39;</span><span class="p">)</span>
+<span class="c1"># GENERAL FONTS</span>
+
+<span class="n">SMALLEST</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="n">SMALLER</span>  <span class="o">=</span> <span class="mi">8</span>
+<span class="n">SMALL</span>    <span class="o">=</span> <span class="mi">10</span>
+<span class="n">MED</span>      <span class="o">=</span> <span class="mi">12</span>
+<span class="n">LARGE</span>    <span class="o">=</span> <span class="mi">14</span>
+<span class="n">LARGER</span>    <span class="o">=</span> <span class="mi">18</span>
+<span class="c1">#fpargs = dict(family=None, style=None, variant=None, stretch=None, fname=None)</span>
+
+
+<div class="viewcode-block" id="FontProp"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_constants.FontProp">[docs]</a><span class="k">def</span> <span class="nf">FontProp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; overwrite fontproperties with custom settings</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        fname=u&#39;&#39;,</span>
+<span class="sd">        name=u&#39;&#39;,</span>
+<span class="sd">        style=u&#39;normal&#39;,</span>
+<span class="sd">        variant=u&#39;normal&#39;,</span>
+<span class="sd">        weight=u&#39;normal&#39;,</span>
+<span class="sd">        stretch=u&#39;normal&#39;,</span>
+<span class="sd">        size=u&#39;medium&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;family&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;monospace&#39;</span>
+    <span class="n">font_prop</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">font_manager</span><span class="o">.</span><span class="n">FontProperties</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">font_prop</span></div>
+
+<span class="n">FONTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
+<span class="n">FONTS</span><span class="o">.</span><span class="n">smallest</span>  <span class="o">=</span> <span class="n">FontProp</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">SMALLEST</span><span class="p">)</span>
+<span class="n">FONTS</span><span class="o">.</span><span class="n">small</span>     <span class="o">=</span> <span class="n">FontProp</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">SMALL</span><span class="p">)</span>
+<span class="n">FONTS</span><span class="o">.</span><span class="n">smaller</span>   <span class="o">=</span> <span class="n">FontProp</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">SMALLER</span><span class="p">)</span>
+<span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>       <span class="o">=</span> <span class="n">FontProp</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">MED</span><span class="p">)</span>
+<span class="n">FONTS</span><span class="o">.</span><span class="n">large</span>     <span class="o">=</span> <span class="n">FontProp</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">LARGE</span><span class="p">)</span>
+<span class="n">FONTS</span><span class="o">.</span><span class="n">medbold</span>   <span class="o">=</span> <span class="n">FontProp</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">MED</span><span class="p">)</span>
+<span class="n">FONTS</span><span class="o">.</span><span class="n">largebold</span> <span class="o">=</span> <span class="n">FontProp</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">LARGE</span><span class="p">)</span>
+
+<span class="c1"># SPECIFIC FONTS</span>
+
+<span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+    <span class="c1"># personal</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">legend</span>   <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">small</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">figtitle</span> <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">axtitle</span>  <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">small</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">subtitle</span> <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>
+    <span class="c1">#FONTS.xlabel   = FONTS.smaller</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">xlabel</span>   <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">small</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">ylabel</span>   <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">small</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">relative</span> <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">smallest</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># personal</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">legend</span>   <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">figtitle</span> <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">large</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">axtitle</span>  <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">subtitle</span> <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>
+    <span class="c1">#FONTS.xlabel   = FONTS.smaller</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">xlabel</span>   <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">ylabel</span>   <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">relative</span> <span class="o">=</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">med</span>
+
+<span class="c1"># COLORS</span>
+
+<span class="n">RED</span>           <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">YELLOW</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">GREEN</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">CYAN</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">BLUE</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>  <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">MAGENTA</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+
+<span class="n">ORANGE</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">BLACK</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>  <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">WHITE</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">GRAY</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">127</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">LIGHTGRAY</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">220</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">DEEP_PINK</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span>  <span class="mi">20</span><span class="p">,</span> <span class="mi">147</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">PINK</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">LIGHT_PINK</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">FALSE_RED</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span>  <span class="mi">51</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">TRUE_GREEN</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="c1"># TRUE_BLUE     = np.array((  0, 255, 255, 255)) / 255.0</span>
+<span class="n">TRUE_BLUE</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">115</span><span class="p">,</span> <span class="mi">207</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">DARK_GREEN</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">DARK_BLUE</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>  <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">DARK_RED</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">127</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>    <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">DARK_ORANGE</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">127</span><span class="p">,</span>  <span class="mi">63</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">DARK_YELLOW</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">127</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">PURPLE</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">102</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">BRIGHT_PURPLE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">LIGHT_PURPLE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">BRIGHT_GREEN</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span> <span class="mi">39</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span>  <span class="mi">20</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">PURPLE2</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">150</span><span class="p">,</span>  <span class="mi">51</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">LIGHT_BLUE</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">102</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">LIGHT_GREEN</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">102</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">NEUTRAL</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">225</span><span class="p">,</span> <span class="mi">229</span><span class="p">,</span> <span class="mi">231</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">NEUTRAL_BLUE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">159</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">UNKNOWN_PURP</span>  <span class="o">=</span> <span class="n">PURPLE</span>
+
+
+<span class="c1"># GOLDEN RATIOS</span>
+<span class="n">PHI_numer</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">PHI_denom</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">PHI</span> <span class="o">=</span> <span class="n">PHI_numer</span> <span class="o">/</span> <span class="n">PHI_denom</span>
+
+
+<div class="viewcode-block" id="golden_wh2"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_constants.golden_wh2">[docs]</a><span class="k">def</span> <span class="nf">golden_wh2</span><span class="p">(</span><span class="n">sz</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">PHI</span> <span class="o">*</span> <span class="n">sz</span><span class="p">,</span> <span class="n">sz</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="golden_wh"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_constants.golden_wh">[docs]</a><span class="k">def</span> <span class="nf">golden_wh</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="s1">&#39;returns a width / height with a golden aspect ratio&#39;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">round</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="o">.</span><span class="mi">618</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="o">.</span><span class="mi">312</span><span class="p">)))))</span></div>
+
+
+<span class="c1"># FIGURE GEOMETRY</span>
+<span class="n">DPI</span> <span class="o">=</span> <span class="mi">96</span>
+<span class="c1">#FIGSIZE = (24) # default windows fullscreen</span>
+<span class="n">FIGSIZE_MED</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">FIGSIZE_SQUARE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+<span class="n">FIGSIZE_GOLD</span> <span class="o">=</span> <span class="n">golden_wh2</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">FIGSIZE_BIGGER</span> <span class="o">=</span> <span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+<span class="n">FIGSIZE_HUGE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+
+<span class="c1">#FIGSIZE = FIGSIZE_MED</span>
+<span class="c1"># Quality drawings</span>
+<span class="n">FIGSIZE</span> <span class="o">=</span> <span class="n">FIGSIZE_GOLD</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../contents.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  <li><a href="../plottool.html">wbia.plottool</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>
