@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# recrusive sed command for ibeis modificiations
-export IBEIS_DIR='~/code/ibeis'
-# This should work generally to get the ibeis dir
-export IBEIS_DIR=$(python2.7 -c "import os, ibeis; print(os.path.dirname(os.path.dirname(os.path.realpath(ibeis.__file__))))")
+# recrusive sed command for wbia modificiations
+export IBEIS_DIR='~/code/wbia'
+# This should work generally to get the wbia dir
+export IBEIS_DIR=$(python2.7 -c "import os, wbia; print(os.path.dirname(os.path.dirname(os.path.realpath(wbia.__file__))))")
 
 
 find $IBEIS_DIR -name "*.py" -type f -exec sed -n 's/#!\/usr\/bin\/env python *$/#!\/usr\/bin\/env python2.7/g' {} +

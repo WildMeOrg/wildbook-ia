@@ -337,8 +337,8 @@ EOL'
         sudo ln -s /usr/local/bin/python2.7 /usr/bin/python27
 
         sudo -H pip2.7 install virtualenv
-        virtualenv-2.7 ~/ibeis27
-        source ibeis27/bin/activate
+        virtualenv-2.7 ~/wbia27
+        source wbia27/bin/activate
         python --version
         '''))
 

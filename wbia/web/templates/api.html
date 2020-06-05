@@ -1,0 +1,146 @@
+{% extends "layout.html" %}
+{% block content %}
+  <div class="jumbotron">
+    <h1>IBEIS RESTful API</h1>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row"><b>GET</b></th>
+          <td>Retrieves data from IBEIS</td>
+        </tr>
+        <tr>
+          <th scope="row"><b>PUT</b></th>
+          <td>Sets data in IBEIS using specified items and the new values.  PUT can also be used to update the state of IBEIS by running algorithm subroutines</td>
+        </tr>
+        <tr>
+          <th scope="row"><b>POST</b></th>
+          <td>Adds data to IBEIS using new values</td>
+        </tr>
+        <tr>
+          <th scope="row"><b>DELETE</b></th>
+          <td>Deletes data from IBEIS using specified items</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>User Authentication - used for all web pages</h2>
+    <div class="well well-lg"><pre>Username: wbia<br/>Password: wbia</pre></div>
+
+    <h2>Token Authentication - used for all API calls</h2>
+    <div class="well well-lg"><pre>Name:   {{ app_name }}<br/>Secret: {{ app_secret }}</pre></div>
+
+    <h4>Code snippets</h4>
+    <div class="well well-lg"><pre>
+Python Version:
+    def get_signature(key, message):
+        return str(hmac.new(key, message, sha1).digest().encode("base64").rstrip('\n'))
+
+    def get_authorization_header(url):
+        app_name = 'IBEIS'
+        app_secret = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
+
+        url = str(request.url)
+        hash_ = get_signature(app_secret, url)
+        header = '%s:%s' % (app_name, hash_, )
+        return header
+
+
+C# Version:
+    private static string GetSignature(string key, byte[] messageToSendBytes)
+    {
+        var keyHMAC = new HMACSHA1(Encoding.ASCII.GetBytes(key));
+        var keyBytes = keyHMAC.ComputeHash(messageToSendBytes);
+        return Convert.ToBase64String(keyBytes);
+    }
+
+    public static string GetAuthorizationHeader(string url)
+    {
+        string appName = "IBEIS";
+        string appSecret = "CB73808F-A6F6-094B-5FCD-385EBAFF8FC0";
+
+        var messageToSendBytes = Encoding.ASCII.GetBytes(url);
+
+        var secretKeySignature = GetSignature(appSecret, messageToSendBytes);
+        return string.Format("{0}:{1}", appName, secretKeySignature);
+    }
+
+
+Javascript Version (using CryptoJS):
+    httpAuth = function() {
+        var getSignature = function(message, key) {
+            var hash = CryptoJS.HmacSHA1(message, key);
+            return CryptoJS.enc.Base64.stringify(hash);
+        }
+        return {
+            getAuthorizationHeader: function(url) {
+                var app_name = 'IBEIS'
+                var app_secret = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
+
+                var hash = getSignature(url, app_secret)
+                var header = app_name.concat(':', hash)
+                return header
+            },
+        }
+    }();
+
+
+Java Version:
+    private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
+
+    private static String getSignature(String key, byte[] messageToSendBytes) throws NoSuchAlgorithmException, InvalidKeyException {
+        SecretKeySpec keyHmac = new SecretKeySpec(key.getBytes(), HMAC_SHA1_ALGORITHM);
+        Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
+        mac.init(keyHmac);
+        return new String(Base64.encodeBase64(mac.doFinal(messageToSendBytes)));
+    }
+
+    public static String getAuthorizationHeader(String url) throws NoSuchAlgorithmException, InvalidKeyException {
+        String appName = "IBEIS";
+        String appSecret = "CB73808F-A6F6-094B-5FCD-385EBAFF8FC0";
+        return appName + ":" + getSignature(appSecret, url.getBytes());
+    }</pre></div>
+
+    <h4>Example Request</h4>
+    <div class="well well-lg"><pre>
+Request:
+    Name:    IBEIS
+    Secret:  CB73808F-A6F6-094B-5FCD-385EBAFF8FC0
+    Method:  GET
+    URL:     {{ app_url }}    * NOTE: The URL sent to the server includes the protocol and port.
+    Headers: {
+        'Authorization': '{{ app_auth }}'
+    }
+
+Response: {
+    "status": {
+        "cache": -1,
+        "message": "",
+        "code": 200,
+        "success": true
+    },
+    "response": "testdb1"
+}</pre></div>
+
+    <h2>Documentation</h2>
+    <div class="well well-lg"><pre>http://erotemic.github.io/wbia/wbia.control.html<br/>http://erotemic.github.io/wbia/wbia.web.html</pre></div>
+
+    <h2>GET API calls</h2>
+    <div class="well well-lg"><pre>{% for (method, url) in rule_list['GET'] %}{{ method }} : {{ url }} <br/>{% endfor %}</pre></div>
+
+    <h2>PUT API calls</h2>
+    <div class="well well-lg"><pre>{% for (method, url) in rule_list['PUT'] %}{{ method }} : {{ url }} <br/>{% endfor %}</pre></div>
+
+    <h2>POST API calls</h2>
+    <div class="well well-lg"><pre>{% for (method, url) in rule_list['POST'] %}{{ method }} : {{ url }} <br/>{% endfor %}</pre></div>
+
+    <h2>DELETE API calls</h2>
+    <div class="well well-lg"><pre>{% for (method, url) in rule_list['DELETE'] %}{{ method }} : {{ url }} <br/>{% endfor %}</pre></div>
+
+  </div>
+{% endblock %}

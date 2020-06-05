@@ -5,9 +5,9 @@ from __future__ import absolute_import, division, print_function
 if __name__ == '__main__':
     """
     SeeAlso:
-        ~/code/ibeis/ibeis/tests/reset_testdbs.py
+        ~/code/wbia/wbia/tests/reset_testdbs.py
     """
-    import ibeis
-    from ibeis.tests import reset_testdbs
-    ibeis.ENABLE_WILDBOOK_SIGNAL = False
+    import wbia
+    from wbia.tests import reset_testdbs
+    wbia.ENABLE_WILDBOOK_SIGNAL = False
     reset_testdbs.reset_testdbs()

@@ -171,15 +171,15 @@ def autogen_explicit_imports():
     Excpliticly generated injectable code in order to aid auto complete
     programs like jedi as well as allow for a more transparent stack trace.
 
-    python -m ibeis dev_autogen_explicit_injects
+    python -m wbia dev_autogen_explicit_injects
     """
-    import ibeis  # NOQA
-    from ibeis.control import controller_inject
+    import wbia  # NOQA
+    from wbia.control import controller_inject
     controller_inject.dev_autogen_explicit_injects()
 
 
-NAME = 'ibeis'
-VERSION = parse_version('ibeis/__init__.py')  # must be global for git tags
+NAME = 'wbia'
+VERSION = parse_version('wbia/__init__.py')  # must be global for git tags
 
 if __name__ == '__main__':
     extras_require = {
@@ -204,7 +204,7 @@ if __name__ == '__main__':
         entry_points={
             'console_scripts': [
                 # Register specific python functions as command line scripts
-                'ibeis=ibeis.__main__:run_ibeis',
+                'wbia=wbia.__main__:run_wbia',
             ],
         },
         #cython_files=CYTHON_FILES,
@@ -219,12 +219,12 @@ if __name__ == '__main__':
         ],
         packages=find_packages('.')
         # packages=[
-        #     'ibeis', 'ibeis/algo', 'ibeis/control', 'ibeis/dbio',
-        #     'ibeis/expt', 'ibeis/gui', 'ibeis/init', 'ibeis/other',
-        #     'ibeis/scripts', 'ibeis/templates', 'ibeis/tests', 'ibeis/viz',
-        #     'ibeis/web', 'ibeis/algo/detect', 'ibeis/algo/hots',
-        #     'ibeis/algo/preproc', 'ibeis/algo/hots/smk',
-        #     'ibeis/viz/interact'
+        #     'wbia', 'wbia/algo', 'wbia/control', 'wbia/dbio',
+        #     'wbia/expt', 'wbia/gui', 'wbia/init', 'wbia/other',
+        #     'wbia/scripts', 'wbia/templates', 'wbia/tests', 'wbia/viz',
+        #     'wbia/web', 'wbia/algo/detect', 'wbia/algo/hots',
+        #     'wbia/algo/preproc', 'wbia/algo/hots/smk',
+        #     'wbia/viz/interact'
         # ],
     )
     setup(**kwargs)

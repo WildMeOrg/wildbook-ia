@@ -1,16 +1,16 @@
-FROM wildme/ibeis-base:latest as org.wildme.ibeis.dependencies
+FROM wildme/wbia-base:latest as org.wildme.wbia.dependencies
 
 ARG AZURE_DEVOPS_CACHEBUSTER=0
 
 RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
 
 # Clone other Github repositories
-RUN git clone https://github.com/opencv/opencv.git                        /ibeis/opencv \
- && git clone https://github.com/opencv/opencv_contrib.git                /ibeis/opencv_contrib \
- && git clone https://github.com/Theano/libgpuarray.git                   /ibeis/libgpuarray \
- && git clone https://github.com/Theano/Theano.git                        /ibeis/Theano \
- && git clone https://github.com/Lasagne/Lasagne.git                      /ibeis/Lasagne \
- && git clone https://github.com/networkx/networkx.git                    /ibeis/networkx
+RUN git clone https://github.com/opencv/opencv.git                        /wbia/opencv \
+ && git clone https://github.com/opencv/opencv_contrib.git                /wbia/opencv_contrib \
+ && git clone https://github.com/Theano/libgpuarray.git                   /wbia/libgpuarray \
+ && git clone https://github.com/Theano/Theano.git                        /wbia/Theano \
+ && git clone https://github.com/Lasagne/Lasagne.git                      /wbia/Lasagne \
+ && git clone https://github.com/networkx/networkx.git                    /wbia/networkx
 
 # Install basic Python3 dependencies (and ones that were missing in IBEIS install)
 RUN /virtualenv/env3/bin/pip install \
@@ -19,13 +19,13 @@ RUN /virtualenv/env3/bin/pip install \
 
 # Install OpenCV
 RUN . /virtualenv/env3/bin/activate \
- && cd /ibeis/opencv \
+ && cd /wbia/opencv \
  && git checkout 3.4.4 \
- && cd /ibeis/opencv_contrib \
+ && cd /wbia/opencv_contrib \
  && git checkout 3.4.4 \
- && rm -rf /ibeis/opencv/build \
- && mkdir -p /ibeis/opencv/build \
- && cd /ibeis/opencv/build \
+ && rm -rf /wbia/opencv/build \
+ && mkdir -p /wbia/opencv/build \
+ && cd /wbia/opencv/build \
  && cmake \
      -D CMAKE_C_COMPILER=gcc \
      -D CMAKE_CXX_COMPILER=g++ \
@@ -64,13 +64,13 @@ RUN . /virtualenv/env3/bin/activate \
      -D ENABLE_FAST_MATH=1 \
      -D CUDA_FAST_MATH=1 \
      -D OPENCV_ENABLE_NONFREE=ON \
-     -D OPENCV_EXTRA_MODULES_PATH=/ibeis/opencv_contrib/modules \
+     -D OPENCV_EXTRA_MODULES_PATH=/wbia/opencv_contrib/modules \
      .. \
  && make -j2 \
  && make install \
  && ldconfig \
  && cd .. \
- && rm -rf /ibeis/opencv/build
+ && rm -rf /wbia/opencv/build
 
 RUN ln -s /virtualenv/env3/python/cv2/python-3.6/cv2.cpython-36m-x86_64-linux-gnu.so /virtualenv/env3/lib/python3.6/site-packages/cv2.so
 
@@ -78,10 +78,10 @@ RUN /virtualenv/env3/bin/pip install \
     cython==0.28.1
 
 # Install libgpuarray (pygpu)
-RUN cd /ibeis/libgpuarray \
+RUN cd /wbia/libgpuarray \
  && git checkout 04c2892 \
- && mkdir -p /ibeis/libgpuarray/build \
- && cd /ibeis/libgpuarray/build \
+ && mkdir -p /wbia/libgpuarray/build \
+ && cd /wbia/libgpuarray/build \
  && cmake \
     -D CMAKE_BUILD_TYPE=Release \
     -D CMAKE_INSTALL_PREFIX=/virtualenv/env3 \
@@ -91,7 +91,7 @@ RUN cd /ibeis/libgpuarray \
  && cd .. \
  && /virtualenv/env3/bin/python setup.py build_ext -L /virtualenv/env3/lib -I /virtualenv/env3/include \
  && /virtualenv/env3/bin/pip install -e . \
- && rm -rf /ibeis/libgpuarray/build
+ && rm -rf /wbia/libgpuarray/build
 
 # Install basic Python3 dependencies (and ones that were missing in IBEIS install)
 RUN /virtualenv/env3/bin/pip install \
@@ -127,9 +127,9 @@ RUN /virtualenv/env3/bin/pip install git+https://github.com/aleju/imgaug \
  && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 
 # Install Python dependencies
-RUN cd /ibeis/Theano \
+RUN cd /wbia/Theano \
  && /virtualenv/env3/bin/pip install -e . \
- && cd /ibeis/Lasagne \
+ && cd /wbia/Lasagne \
  && /virtualenv/env3/bin/pip install -e . \
- && cd /ibeis/networkx \
+ && cd /wbia/networkx \
  && /virtualenv/env3/bin/pip install -e .

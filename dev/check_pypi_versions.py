@@ -11,7 +11,7 @@ import ubelt as ub
 
 def pypi_info(package_name, version=None):
     """
-    package_name = 'ibeis'
+    package_name = 'wbia'
     version = '2.0.0'
     version = '2.0.1'
     version = '2.0.2'
@@ -67,7 +67,7 @@ def main():
         'plottool_ibeis',
         'pyhesaff',
         'pyflann_ibeis',
-        'ibeis',
+        'wbia',
     ]
 
     print('--- force module side effects --- ')
@@ -90,6 +90,6 @@ def main():
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/ibeis/dev/check_pypi_versions.py
+        python ~/code/wbia/dev/check_pypi_versions.py
     """
     main()

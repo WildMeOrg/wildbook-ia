@@ -12,12 +12,12 @@ AppName=IBEIS
 AppVersion=1.4.4
 ;AppVerName=IBEIS 1
 AppPublisher=Rensselaer Polytechnic Institute
-AppPublisherURL=ibeis.org ;www.rpi.edu/~crallj/
-AppSupportURL=ibeis.org ;ww.rpi.edu/~crallj/
-AppUpdatesURL=ibeis.org ;www.rpi.edu/~crallj/
+AppPublisherURL=wbia.org ;www.rpi.edu/~crallj/
+AppSupportURL=wbia.org ;ww.rpi.edu/~crallj/
+AppUpdatesURL=wbia.org ;www.rpi.edu/~crallj/
 DefaultDirName={pf}\IBEIS
 DefaultGroupName=IBEIS
-OutputBaseFilename=ibeis-win32-setup
+OutputBaseFilename=wbia-win32-setup
 SetupIconFile=ibsicon.ico
 Compression=lzma
 SolidCompression=yes
@@ -29,13 +29,13 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "..\dist\ibeis\IBEISApp.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\dist\ibeis\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\wbia\IBEISApp.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\wbia\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\ibeis"; Filename: "{app}\IBEISApp.exe"
-Name: "{commondesktop}\ibeis"; Filename: "{app}\IBEISApp.exe"; Tasks: desktopicon
+Name: "{group}\wbia"; Filename: "{app}\IBEISApp.exe"
+Name: "{commondesktop}\wbia"; Filename: "{app}\IBEISApp.exe"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\IBEISApp.exe"; Description: "{cm:LaunchProgram,IBEIS}"; Flags: nowait postinstall skipifsilent

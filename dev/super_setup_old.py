@@ -11,8 +11,8 @@ git config --global push.default current
 export CODE_DIR=~/code
 mkdir $CODE_DIR
 cd $CODE_DIR
-git clone https://github.com/WildbookOrg/ibeis.git
-cd ibeis
+git clone https://github.com/WildbookOrg/wbia.git
+cd wbia
 
 python super_setup.py --bootstrap
 OR (if in virtual environment)
@@ -28,37 +28,37 @@ THEN
 ./super_setup.py --status
 
 # If on current branch copy so super setup isn't overwriten as we go
-python -c "import utool as ut; ut.copy('super_setup.py', '_ibeis_setup.py')"
+python -c "import utool as ut; ut.copy('super_setup.py', '_wbia_setup.py')"
 
 # Status
-python _ibeis_setup.py -y --gg "git status"
-python _ibeis_setup.py -y --gg "git branch"
+python _wbia_setup.py -y --gg "git status"
+python _wbia_setup.py -y --gg "git branch"
 
 # Setup Next
-#python _ibeis_setup.py -y --gg "git pull"
-#python _ibeis_setup.py -y --gg "git checkout master"
-#python _ibeis_setup.py -y --gg "git pull"
-#python _ibeis_setup.py -y --gg "git checkout -b next"
-#python _ibeis_setup.py -y --gg "git checkout next"
-#python _ibeis_setup.py -y --gg "git push -u origin next"
-#python _ibeis_setup.py -y --gg "git push remote origin/next"
-####python _ibeis_setup.py -y --gg "git merge master"
+#python _wbia_setup.py -y --gg "git pull"
+#python _wbia_setup.py -y --gg "git checkout master"
+#python _wbia_setup.py -y --gg "git pull"
+#python _wbia_setup.py -y --gg "git checkout -b next"
+#python _wbia_setup.py -y --gg "git checkout next"
+#python _wbia_setup.py -y --gg "git push -u origin next"
+#python _wbia_setup.py -y --gg "git push remote origin/next"
+####python _wbia_setup.py -y --gg "git merge master"
 
 
-#python _ibeis_setup.py -y --gg "git checkout ^HEAD"
-#python _ibeis_setup.py -y --gg "git checkout master"
-#python _ibeis_setup.py -y --gg "git checkout next"
+#python _wbia_setup.py -y --gg "git checkout ^HEAD"
+#python _wbia_setup.py -y --gg "git checkout master"
+#python _wbia_setup.py -y --gg "git checkout next"
 
 
 # -- MERGE topic -> next
-##python _ibeis_setup.py -y --gg "git checkout topic"
-##python _ibeis_setup.py -y --gg "git checkout next"
-##python _ibeis_setup.py -y --gg "git merge topic"
+##python _wbia_setup.py -y --gg "git checkout topic"
+##python _wbia_setup.py -y --gg "git checkout next"
+##python _wbia_setup.py -y --gg "git merge topic"
 
 
 # -- MERGE next -> master
-python _ibeis_setup.py -y --gg "git checkout master"
-python _ibeis_setup.py -y --gg "git merge next"
+python _wbia_setup.py -y --gg "git checkout master"
+python _wbia_setup.py -y --gg "git merge next"
 
 # -- SAFER MERGE topic -> next
 python super_setup.py --checkout next
@@ -69,10 +69,10 @@ python super_setup.py --checkout next
 python super_setup.py --merge merge_next_joncrall_dev_branch
 
 # Push
-python _ibeis_setup.py -y --gg "git push"
+python _wbia_setup.py -y --gg "git push"
 
-#python _ibeis_setup.py -y --gg "git checkout master"
-#python _ibeis_setup.py -y --gg "git checkout next"
+#python _wbia_setup.py -y --gg "git checkout master"
+#python _wbia_setup.py -y --gg "git checkout next"
 
 
 # MAKE A NEW BRANCH
@@ -173,7 +173,7 @@ Register these packages with the python enviroment.
     # Install external modules
     python super_setup.py --develop
 
-    # Install the ibeis module
+    # Install the wbia module
     pip install -e .
 
  --- /USAGE ---
@@ -373,7 +373,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     #     jon_repo_base = 'git@hyrule.cs.rpi.edu
     #     jason_repo_base = 'git@hyrule.cs.rpi.edu
 
-    ibeis_rman = ut.RepoManager([
+    wbia_rman = ut.RepoManager([
         'https://github.com/WildbookOrg/utool.git',
         # 'https://github.com/WildbookOrg/sandbox_utools.git',
         'https://github.com/WildbookOrg/vtool_ibeis.git',
@@ -388,25 +388,25 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         tpl_rman.add_repo(cv_repo)
 
     if WITH_GUI:
-        ibeis_rman.add_repos([
+        wbia_rman.add_repos([
             'https://github.com/WildbookOrg/plottool_ibeis.git',
         ])
 
         if WITH_QT:
-            ibeis_rman.add_repos([
+            wbia_rman.add_repos([
                 'https://github.com/WildbookOrg/guitool_ibeis.git',
             ])
             tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5', 'PyQt')))
 
     if WITH_CUSTOM_TPL:
         flann_repo = ut.Repo('https://github.com/WildbookOrg/flann.git', CODE_DIR, modname='pyflann')
-        ibeis_rman.add_repo(flann_repo)
-        ibeis_rman.add_repos([
+        wbia_rman.add_repo(flann_repo)
+        wbia_rman.add_repos([
             'https://github.com/WildbookOrg/hesaff.git',
         ])
 
     if WITH_CNN:
-        ibeis_rman.add_repos([
+        wbia_rman.add_repos([
             'https://github.com/WildbookOrg/ibeis_cnn.git',
             'https://github.com/WildbookOrg/pydarknet.git',
         ])
@@ -426,42 +426,42 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         ])
 
     if WITH_FLUKEMATCH:
-        ibeis_rman.add_repos([
+        wbia_rman.add_repos([
             'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
         ])
 
     if WITH_CURVRANK:
-        ibeis_rman.add_repos([
+        wbia_rman.add_repos([
             'https://github.com/WildbookOrg/ibeis-curvrank-module.git'
         ])
 
     if WITH_PYRF:
-        ibeis_rman.add_repos([
+        wbia_rman.add_repos([
             'https://github.com/WildbookOrg/pyrf.git',
         ])
 
     if False:
         # Depricated
-        ibeis_rman.add_repos([
+        wbia_rman.add_repos([
             #'https://github.com/WildbookOrg/pybing.git',
             #'https://github.com/aweinstock314/cyth.git',
             #'https://github.com/hjweide/pygist',
         ])
 
     # Add main repo (Must be checked last due to dependency issues)
-    ibeis_rman.add_repos([
-        'https://github.com/WildbookOrg/ibeis.git',
+    wbia_rman.add_repos([
+        'https://github.com/WildbookOrg/wbia.git',
     ])
 
     #-----------
     # Custom third party build/install scripts
     #-----------
-    define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3)
+    define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3)
 
-    return tpl_rman, ibeis_rman
+    return tpl_rman, wbia_rman
 
 
-def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
+def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
     """
     export THEANO_FLAGS="device=cpu,print_active_device=True,enable_initial_driver_test=True"
     set THEANO_FLAGS=device=cpu,print_active_device=True,enable_initial_driver_test=True,print_test_value=True
@@ -575,7 +575,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     # PYFLANN SETUP SCRIPTS
     #===================
 
-    ibeis_rman['pyflann'].add_script('build', ut.codeblock(
+    wbia_rman['pyflann'].add_script('build', ut.codeblock(
         r'''
         # STARTBLOCK bash
         {python_bash_setup}
@@ -599,10 +599,10 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         make -j$NCPUS
 
         # ENDBLOCK bash
-        ''').format(repo_dir=ibeis_rman['pyflann'].dpath, **script_fmtdict)
+        ''').format(repo_dir=wbia_rman['pyflann'].dpath, **script_fmtdict)
     )
 
-    ibeis_rman['pyflann'].add_script('install', ut.codeblock(
+    wbia_rman['pyflann'].add_script('install', ut.codeblock(
         r'''
         # STARTBLOCK bash
         # The pyflann source lives here
@@ -619,14 +619,14 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         python -c "from vtool_ibeis._pyflann_backend import pyflann as pyflann; print(pyflann.__file__)" --verb-flann
         python -c "from vtool_ibeis._pyflann_backend import pyflann as pyflann; print(pyflann)" --verb-flann
         # ENDBLOCK bash
-        ''').format(repo_dir=ibeis_rman['pyflann'].dpath)
+        ''').format(repo_dir=wbia_rman['pyflann'].dpath)
     )
 
     #===================
     # HESAFF
     #===================
 
-    ibeis_rman['hesaff'].add_script('build', ut.codeblock(
+    wbia_rman['hesaff'].add_script('build', ut.codeblock(
         r'''
         # STARTBLOCK bash
         {python_bash_setup}
@@ -676,7 +676,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     # PYDARKNET
     #===================
 
-    ibeis_rman['pydarknet'].add_script('build', ut.codeblock(
+    wbia_rman['pydarknet'].add_script('build', ut.codeblock(
         r'''
         # STARTBLOCK bash
         {python_bash_setup}
@@ -732,7 +732,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     # PYRF
     #===================
 
-    ibeis_rman['pyrf'].add_script('build', ut.codeblock(
+    wbia_rman['pyrf'].add_script('build', ut.codeblock(
         r'''
         # STARTBLOCK bash
         {python_bash_setup}
@@ -965,10 +965,10 @@ def GET_ARGFLAG(arg, *args, **kwargs):
     return arg.lstrip('--') in sys.argv or ut.get_argflag(arg, *args, **kwargs)
 
 
-def move_wildme(ibeis_rman, fmt):
+def move_wildme(wbia_rman, fmt):
     wildme_user = 'WildbookOrg'
     wildme_remote = 'wildme'
-    for repo in ibeis_rman.repos:
+    for repo in wbia_rman.repos:
 
         try:
             gitrepo = repo.as_gitpython()
@@ -1005,7 +1005,7 @@ def move_wildme(ibeis_rman, fmt):
         repo.change_url_format(fmt)
 
 
-def execute_commands(tpl_rman, ibeis_rman):
+def execute_commands(tpl_rman, wbia_rman):
     import utool as ut
 
     GET_ARGVAL = ut.get_argval
@@ -1024,20 +1024,20 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     CODE_DIR, pythoncmd, WIN32, PY2, PY3 = get_sysinfo()
 
-    print('ibeis_rman = %r' % (ibeis_rman,))
+    print('wbia_rman = %r' % (wbia_rman,))
 
     wildme_ssh_flags = GET_ARGFLAG('--move-wildme') or GET_ARGFLAG('--move-wildme-ssh')
     wildme_https_flags = GET_ARGFLAG('--move-wildme-https') or GET_ARGFLAG('--move-wildme-http')
     if wildme_ssh_flags or wildme_https_flags:
         fmt = 'ssh' if wildme_ssh_flags else 'https'
-        move_wildme(ibeis_rman, fmt)
+        move_wildme(wbia_rman, fmt)
 
     # Commands on global git repos
     if GET_ARGFLAG('--status'):
-        ibeis_rman.issue('git status')
+        wbia_rman.issue('git status')
         sys.exit(0)
 
-    ibeis_rman.ensure()
+    wbia_rman.ensure()
 
     if GET_ARGFLAG('--dump') or GET_ARGFLAG('--dump-scripts'):
         dpath = '_super_scripts/' + 'scripts' + get_plat_specifier()
@@ -1045,9 +1045,9 @@ def execute_commands(tpl_rman, ibeis_rman):
         dumps = [
             (tpl_rman, 'cv2', 'build'),
             (tpl_rman, 'cv2', 'install'),
-            (ibeis_rman, 'flann', 'build'),
-            (ibeis_rman, 'flann', 'install'),
-            (ibeis_rman, 'hesaff', 'build'),
+            (wbia_rman, 'flann', 'build'),
+            (wbia_rman, 'flann', 'install'),
+            (wbia_rman, 'hesaff', 'build'),
             (tpl_rman, 'PyQt', 'system_to_venv'),
             (tpl_rman, 'libgpuarray', 'build'),
         ]
@@ -1080,9 +1080,9 @@ def execute_commands(tpl_rman, ibeis_rman):
         script.exec_()
 
     if GET_ARGFLAG('--flann'):
-        script = ibeis_rman['flann'].get_script('build')
+        script = wbia_rman['flann'].get_script('build')
         script.exec_()
-        script = ibeis_rman['flann'].get_script('install')
+        script = wbia_rman['flann'].get_script('install')
         script.exec_()
 
     if GET_ARGFLAG('--pyqt'):
@@ -1090,15 +1090,15 @@ def execute_commands(tpl_rman, ibeis_rman):
         script.exec_()
 
     if GET_ARGFLAG('--hesaff'):
-        script = ibeis_rman['hesaff'].get_script('build')
+        script = wbia_rman['hesaff'].get_script('build')
         script.exec_()
 
     if GET_ARGFLAG('--pydarknet'):
-        script = ibeis_rman['pydarknet'].get_script('build')
+        script = wbia_rman['pydarknet'].get_script('build')
         script.exec_()
 
     if GET_ARGFLAG('--pyrf'):
-        script = ibeis_rman['pyrf'].get_script('build')
+        script = wbia_rman['pyrf'].get_script('build')
         script.exec_()
 
     if GET_ARGFLAG('--torch'):
@@ -1130,13 +1130,13 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     if GET_ARGFLAG('--fix') or GET_ARGFLAG('--check'):
         missing_dynlib = tpl_rman.check_cpp_build()
-        missing_dynlib += ibeis_rman.check_cpp_build()
+        missing_dynlib += wbia_rman.check_cpp_build()
 
         missing_install = tpl_rman.check_installed()
-        missing_install += ibeis_rman.check_installed()
+        missing_install += wbia_rman.check_installed()
 
         problems = []
-        problems += ibeis_rman.check_importable()
+        problems += wbia_rman.check_importable()
         problems += tpl_rman.check_importable()
 
     if GET_ARGFLAG('--fix'):
@@ -1156,61 +1156,61 @@ def execute_commands(tpl_rman, ibeis_rman):
                 print('Not sure how to fix %r' % (repo,))
 
     if GET_ARGFLAG('--pull'):
-        ibeis_rman.issue('git pull')
+        wbia_rman.issue('git pull')
 
     if GET_ARGFLAG('--build'):
         # Build tpl repos
         # tpl_rman.custom_build()
-        # ibeis_rman.custom_build()
+        # wbia_rman.custom_build()
         # Build only IBEIS repos with setup.py
-        _rman = ibeis_rman.only_with_pysetup()
+        _rman = wbia_rman.only_with_pysetup()
         _rman.issue('{pythoncmd} setup.py build'.format(pythoncmd=pythoncmd))
 
     # Like install, but better if you are developing
     if GET_ARGFLAG('--develop'):
-        _rman = ibeis_rman.only_with_pysetup()
+        _rman = wbia_rman.only_with_pysetup()
         # # _rman.issue('{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd),
         #               # sudo=not ut.in_virtual_env())
         _rman.issue('{pythoncmd} -m pip install -e .'.format(pythoncmd=pythoncmd),
                     sudo=not ut.in_virtual_env())
 
     if GET_ARGFLAG('--clean'):
-        _rman = ibeis_rman.only_with_pysetup()
+        _rman = wbia_rman.only_with_pysetup()
         _rman.issue('{pythoncmd} setup.py clean'.format(pythoncmd=pythoncmd))
 
     if GET_ARGFLAG('--install'):
         print('WARNING: Dont use install if you are a developer. Use develop instead.')
-        _rman = ibeis_rman.only_with_pysetup()
+        _rman = wbia_rman.only_with_pysetup()
         _rman.issue('python setup.py install'.format(pythoncmd=pythoncmd))
 
     if GET_ARGFLAG('--push'):
-        ibeis_rman.issue('git push')
+        wbia_rman.issue('git push')
 
     if GET_ARGFLAG('--branch'):
-        ibeis_rman.issue('git branch')
+        wbia_rman.issue('git branch')
         sys.exit(0)
 
     if GET_ARGFLAG('--tag-status'):
-        ibeis_rman.issue('git tag')
+        wbia_rman.issue('git tag')
 
     # Tag everything
     tag_name = GET_ARGVAL('--newtag', type_=str, default=None)
     if tag_name is not None:
-        ibeis_rman.issue('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
-        ibeis_rman.issue('git push --tags')
+        wbia_rman.issue('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
+        wbia_rman.issue('git push --tags')
 
     if GET_ARGFLAG('--bext'):
-        ibeis_rman.issue('{pythoncmd} setup.py build_ext --inplace'.format(pythoncmd=pythoncmd))
+        wbia_rman.issue('{pythoncmd} setup.py build_ext --inplace'.format(pythoncmd=pythoncmd))
 
     commit_msg = GET_ARGVAL('--commit', type_=str, default=None)
     if commit_msg is not None:
-        ibeis_rman.issue('git commit -am "{commit_msg}"'.format(**locals()))
+        wbia_rman.issue('git commit -am "{commit_msg}"'.format(**locals()))
 
     # Change Branch
     branch_name = GET_ARGVAL('--checkout', type_=str, default=None)
     if branch_name is not None:
         try:
-            ibeis_rman.issue('git checkout "{branch_name}"'.format(**locals()))
+            wbia_rman.issue('git checkout "{branch_name}"'.format(**locals()))
         except Exception:
             print('ERROR: Could not checkout branch: %r' % (branch_name, ))
 
@@ -1218,26 +1218,26 @@ def execute_commands(tpl_rman, ibeis_rman):
     newbranch_name = GET_ARGVAL('--newbranch', type_=str, default=None)
     if newbranch_name is not None:
         #rman.issue('git stash"'.format(**locals()))
-        ibeis_rman.issue('git checkout -b "{newbranch_name}"'.format(**locals()))
-        ibeis_rman.issue('git push --set-upstream origin {newbranch_name}'.format(**locals()))
+        wbia_rman.issue('git checkout -b "{newbranch_name}"'.format(**locals()))
+        wbia_rman.issue('git push --set-upstream origin {newbranch_name}'.format(**locals()))
         #rman.issue('git stash pop"'.format(**locals()))
 
     # Creates new branches
     newlocalbranch_name = GET_ARGVAL('--newlocalbranch', type_=str, default=None)
     if newlocalbranch_name is not None:
         #rman.issue('git stash"'.format(**locals()))
-        ibeis_rman.issue('git checkout -b "{newlocalbranch_name}"'.format(**locals()))
+        wbia_rman.issue('git checkout -b "{newlocalbranch_name}"'.format(**locals()))
         #rman.issue('git push --set-upstream origin {newlocalbranch_name}'.format(**locals()))
         #rman.issue('git stash pop"'.format(**locals()))
 
     # Creates new branches
     mergebranch_name = GET_ARGVAL('--merge', type_=str, default=None)
     if mergebranch_name is not None:
-        ibeis_rman.issue('git merge "{mergebranch_name}"'.format(**locals()))
+        wbia_rman.issue('git merge "{mergebranch_name}"'.format(**locals()))
 
     # Change ownership
     if GET_ARGFLAG('--serverchmod'):
-        ibeis_rman.issue('chmod -R 755 *')
+        wbia_rman.issue('chmod -R 755 *')
 
     if GET_ARGFLAG('--chown'):
         # Fixes problems where repos are checked out as root
@@ -1247,21 +1247,21 @@ def execute_commands(tpl_rman, ibeis_rman):
         if username is None:
             raise AssertionError('cannot find username in commandline or environment vars')
         usergroup = username
-        ibeis_rman.issue('chown -R {username}:{usergroup} *'.format(**locals()),
+        wbia_rman.issue('chown -R {username}:{usergroup} *'.format(**locals()),
                          sudo=True)
 
     upstream_branch = GET_ARGVAL('--set-upstream', type_=str, default=None)
     if upstream_branch is not None:
         # git 2.0
-        ibeis_rman.issue('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
+        wbia_rman.issue('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
 
     upstream_push = GET_ARGVAL('--upstream-push', type_=str, default=None)
     if upstream_push is not None:
-        ibeis_rman.issue('git push --set-upstream origin {upstream_push}'.format(**locals()))
+        wbia_rman.issue('git push --set-upstream origin {upstream_push}'.format(**locals()))
 
     if GET_ARGFLAG('--test'):
         failures = []
-        for repo_dpath in ibeis_rman.repo_dirs:
+        for repo_dpath in wbia_rman.repo_dirs:
             # ut.getp_
             mod_dpaths = ut.get_submodules_from_dpath(repo_dpath, recursive=False,
                                                       only_packages=True)
@@ -1288,7 +1288,7 @@ def execute_commands(tpl_rman, ibeis_rman):
         if gg_cmd is not None:
             ans = 'yes' if GET_ARGFLAG('-y') else input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
             if ans == 'yes':
-                ibeis_rman.issue(gg_cmd)
+                wbia_rman.issue(gg_cmd)
 
 
 def is_running_as_root():
@@ -1394,8 +1394,8 @@ def main():
     except Exception:
         ensure_utool(CODE_DIR, pythoncmd)
 
-    tpl_rman, ibeis_rman = initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3)
-    execute_commands(tpl_rman, ibeis_rman)
+    tpl_rman, wbia_rman = initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3)
+    execute_commands(tpl_rman, wbia_rman)
 
 
 if __name__ == '__main__':

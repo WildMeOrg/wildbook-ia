@@ -1,4 +1,4 @@
-FROM wildme/ibeis-dependencies:latest as org.wildme.ibeis.provision
+FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
 
 MAINTAINER Wild Me <dev@wildme.org>
 
@@ -10,49 +10,49 @@ ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
 
 # Clone IBEIS VSTS repositories
-RUN git clone --branch next https://github.com/WildbookOrg/brambox                     /ibeis/brambox \
- && git clone --branch master https://github.com/WildbookOrg/flann                     /ibeis/flann \
- && git clone --branch master https://github.com/WildbookOrg/hesaff                    /ibeis/hesaff \
- && git clone --branch next https://github.com/WildbookOrg/ibeis-flukematch-module     /ibeis/ibeis-flukematch-module \
- && git clone --branch next https://github.com/WildbookOrg/ibeis-curvrank-module       /ibeis/ibeis-curvrank-module \
- && git clone --branch next https://github.com/WildbookOrg/ibeis-deepsense-module      /ibeis/ibeis-deepsense-module \
- && git clone --branch next https://github.com/WildbookOrg/ibeis-finfindr-module       /ibeis/ibeis-finfindr-module \
- && git clone --branch next https://github.com/WildbookOrg/ibeis-kaggle7-module        /ibeis/ibeis-kaggle7-module \
- && git clone --branch next https://github.com/WildbookOrg/ibeis-2d-orientation-module /ibeis/ibeis-2d-orientation-module \
- && git clone --branch master https://github.com/WildbookOrg/ibeis                     /ibeis/ibeis \
- && git clone --branch next https://github.com/WildbookOrg/ibeis_cnn                   /ibeis/ibeis_cnn \
- && git clone --branch next https://github.com/WildbookOrg/lightnet                    /ibeis/lightnet \
- && git clone --branch next https://github.com/WildbookOrg/pydarknet                   /ibeis/pydarknet \
- && git clone --branch next https://github.com/WildbookOrg/pyrf                        /ibeis/pyrf \
- && git clone --branch next https://github.com/WildbookOrg/utool                       /ibeis/utool \
- && git clone --branch master https://github.com/WildbookOrg/vtool                     /ibeis/vtool
+RUN git clone --branch next https://github.com/WildbookOrg/brambox                     /wbia/brambox \
+ && git clone --branch master https://github.com/WildbookOrg/flann                     /wbia/flann \
+ && git clone --branch master https://github.com/WildbookOrg/hesaff                    /wbia/hesaff \
+ && git clone --branch next https://github.com/WildbookOrg/ibeis-flukematch-module     /wbia/ibeis-flukematch-module \
+ && git clone --branch next https://github.com/WildbookOrg/ibeis-curvrank-module       /wbia/ibeis-curvrank-module \
+ && git clone --branch next https://github.com/WildbookOrg/ibeis-deepsense-module      /wbia/ibeis-deepsense-module \
+ && git clone --branch next https://github.com/WildbookOrg/ibeis-finfindr-module       /wbia/ibeis-finfindr-module \
+ && git clone --branch next https://github.com/WildbookOrg/ibeis-kaggle7-module        /wbia/ibeis-kaggle7-module \
+ && git clone --branch next https://github.com/WildbookOrg/wbia-2d-orientation-module /wbia/wbia-2d-orientation-module \
+ && git clone --branch master https://github.com/WildbookOrg/wbia                     /wbia/wbia \
+ && git clone --branch next https://github.com/WildbookOrg/ibeis_cnn                   /wbia/ibeis_cnn \
+ && git clone --branch next https://github.com/WildbookOrg/lightnet                    /wbia/lightnet \
+ && git clone --branch next https://github.com/WildbookOrg/pydarknet                   /wbia/pydarknet \
+ && git clone --branch next https://github.com/WildbookOrg/pyrf                        /wbia/pyrf \
+ && git clone --branch next https://github.com/WildbookOrg/utool                       /wbia/utool \
+ && git clone --branch master https://github.com/WildbookOrg/vtool                     /wbia/vtool
 
-RUN cd /ibeis/ibeis-curvrank-module/ibeis_curvrank \
+RUN cd /wbia/ibeis-curvrank-module/ibeis_curvrank \
  && git init \
  && git remote add vs https://github.com/WildbookOrg/ibeis_curvrank \
  && git fetch vs \
- && git checkout functional-ibeis
+ && git checkout functional-wbia
 
-RUN cd /ibeis/ibeis-kaggle7-module/ibeis_kaggle7 \
+RUN cd /wbia/ibeis-kaggle7-module/wbia_kaggle7 \
  && git init \
  && git remote add vs https://github.com/WildbookOrg/whale-identification-2018 \
  && git fetch vs \
  && git checkout next
 
-RUN cd /ibeis/ibeis-2d-orientation-module/ibeis_2d_orientation \
+RUN cd /wbia/wbia-2d-orientation-module/wbia_2d_orientation \
  && git init \
  && git remote add vs https://github.com/WildbookOrg/2D-Orientation-v2 \
  && git fetch vs \
  && git checkout plugin
 
 # Build and install utool and ubelt
-RUN cd /ibeis/utool \
+RUN cd /wbia/utool \
  && /virtualenv/env3/bin/pip install -e .
 
 RUN /virtualenv/env3/bin/pip install ubelt
 
 # TODO Temporarily disabled: Checkout latest version of all other repos
-#RUN cd /ibeis/ibeis \
+#RUN cd /wbia/wbia \
 # && /virtualenv/env3/bin/python super_setup.py pull \
 # && /virtualenv/env3/bin/python super_setup.py pull
 
@@ -66,56 +66,56 @@ RUN . /virtualenv/env3/bin/activate \
 # TODO remove hesaff checkout v2.0.0 once the "next" branch is working
 # TODO remove vtool checkout v2.0.0 once the "master" branch is working
 RUN . /virtualenv/env3/bin/activate \
- && cd /ibeis/flann \
+ && cd /wbia/flann \
  && git checkout v2.0.0 \
  && /bin/bash unix_build.sh \
- && cd /ibeis/hesaff \
+ && cd /wbia/hesaff \
  && git checkout v2.0.0 \
  && /bin/bash unix_build.sh \
- && cd /ibeis/lightnet \
+ && cd /wbia/lightnet \
  && /virtualenv/env3/bin/pip install -r requirements.txt \
  && /virtualenv/env3/bin/pip install -r develop.txt \
- && cd /ibeis/ibeis-flukematch-module \
+ && cd /wbia/ibeis-flukematch-module \
  && /bin/bash unix_build.sh \
- && cd /ibeis/ibeis-curvrank-module \
+ && cd /wbia/ibeis-curvrank-module \
  && /bin/bash unix_build.sh \
- && cd /ibeis/pydarknet \
+ && cd /wbia/pydarknet \
  && /bin/bash unix_build.sh \
- && cd /ibeis/pyrf \
+ && cd /wbia/pyrf \
  && /bin/bash unix_build.sh \
- && cd /ibeis/vtool \
+ && cd /wbia/vtool \
  && git checkout v2.0.0 \
  && /bin/bash unix_build.sh
 
 # Install Python repositories
 RUN . /virtualenv/env3/bin/activate \
- && cd /ibeis/ibeis_cnn \
+ && cd /wbia/ibeis_cnn \
  && pip install -e . \
- && cd /ibeis/hesaff \
+ && cd /wbia/hesaff \
  && pip install -e . \
- && cd /ibeis/brambox \
+ && cd /wbia/brambox \
  && pip install -e . \
- && cd /ibeis/lightnet \
+ && cd /wbia/lightnet \
  && pip install -e . \
- && cd /ibeis/pydarknet \
+ && cd /wbia/pydarknet \
  && pip install -e . \
- && cd /ibeis/pyrf \
+ && cd /wbia/pyrf \
  && pip install -e . \
- && cd /ibeis/utool \
+ && cd /wbia/utool \
  && pip install -e . \
- && cd /ibeis/vtool \
+ && cd /wbia/vtool \
  && pip install -e . \
- && cd /ibeis/ibeis \
+ && cd /wbia/wbia \
  && pip install -e . \
- && cd /ibeis/ibeis-flukematch-module \
+ && cd /wbia/ibeis-flukematch-module \
  && pip install -e . \
- && cd /ibeis/ibeis-curvrank-module \
+ && cd /wbia/ibeis-curvrank-module \
  && pip install -e . \
- && cd /ibeis/ibeis-deepsense-module \
+ && cd /wbia/ibeis-deepsense-module \
  && pip install -e . \
- && cd /ibeis/ibeis-finfindr-module \
+ && cd /wbia/ibeis-finfindr-module \
  && pip install -e . \
- && cd /ibeis/ibeis-kaggle7-module \
+ && cd /wbia/ibeis-kaggle7-module \
  && pip install -e . \
- && cd /ibeis/ibeis-2d-orientation-module \
+ && cd /wbia/wbia-2d-orientation-module \
  && pip install -e .
