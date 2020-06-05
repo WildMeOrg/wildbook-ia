@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.dtool.example_depcache &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.dtool.example_depcache &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.dtool.example_depcache</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.dtool.example_depcache</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -56,8 +171,12 @@
     <span class="n">register_preproc</span> <span class="o">=</span> <span class="n">_depcdecors</span><span class="p">[</span><span class="s1">&#39;preproc&#39;</span><span class="p">]</span>
     <span class="n">register_subprop</span> <span class="o">=</span> <span class="n">_depcdecors</span><span class="p">[</span><span class="s1">&#39;subprop&#39;</span><span class="p">]</span>
 
-    <span class="nd">@register_preproc</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;dummy&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">DUMMY_ROOT_TABLENAME</span><span class="p">],</span>
-                      <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span>
+    <span class="nd">@register_preproc</span><span class="p">(</span>
+        <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;dummy&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">DUMMY_ROOT_TABLENAME</span><span class="p">],</span>
+        <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">],</span>
+        <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span>
     <span class="k">def</span> <span class="nf">dummy_global_preproc_func</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
@@ -81,9 +200,9 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;algorithm&#39;</span><span class="p">,</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">),</span>
     <span class="p">]</span></div>
     <span class="c1"># FIXME: triggers duplicate error</span>
-    <span class="c1">#_sub_config_list = [</span>
+    <span class="c1"># _sub_config_list = [</span>
     <span class="c1">#    DummyKptsConfig</span>
-    <span class="c1">#]</span>
+    <span class="c1"># ]</span>
 
 
 <div class="viewcode-block" id="DummyNNConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyNNConfig">[docs]</a><span class="k">class</span> <span class="nc">DummyNNConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
@@ -97,10 +216,7 @@
 
 
 <div class="viewcode-block" id="DummySVERConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummySVERConfig">[docs]</a><span class="k">class</span> <span class="nc">DummySVERConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
-    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;sver_on&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;xy_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">01</span><span class="p">)</span>
-    <span class="p">]</span></div>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;sver_on&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;xy_thresh&#39;</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)]</span></div>
 
 
 <div class="viewcode-block" id="DummyChipConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyChipConfig">[docs]</a><span class="k">class</span> <span class="nc">DummyChipConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
@@ -115,9 +231,11 @@
 <span class="sd">        &gt;&gt;&gt; cfg.histeq = False</span>
 <span class="sd">        &gt;&gt;&gt; print(cfg)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;resize_dim&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span>
-                     <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;heigh&#39;</span><span class="p">,</span> <span class="s1">&#39;diag&#39;</span><span class="p">]),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+            <span class="s1">&#39;resize_dim&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;heigh&#39;</span><span class="p">,</span> <span class="s1">&#39;diag&#39;</span><span class="p">]</span>
+        <span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;dim_size&#39;</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="s1">&#39;sz&#39;</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;preserve_aspect&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;histeq&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -159,6 +277,7 @@
 <span class="sd">        &gt;&gt;&gt; #depc.new_request(&#39;probchip&#39;, [1, 2, 3])</span>
 <span class="sd">        &gt;&gt;&gt; fg_rowids2 = depc.get_rowids(&#39;fgweight&#39;, root_rowids, config)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;testerror&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="s1">&#39;.png&#39;</span><span class="p">),</span>
@@ -169,9 +288,9 @@
     <span class="c1"># Different pipeline components can go here as well as dependencies</span>
     <span class="c1"># that were not explicitly enumerated in the tree structure</span>
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c1">#ut.ParamInfo(&#39;score_method&#39;, &#39;csum&#39;),</span>
+        <span class="c1"># ut.ParamInfo(&#39;score_method&#39;, &#39;csum&#39;),</span>
         <span class="c1"># should this be the only thing here?</span>
-        <span class="c1">#ut.ParamInfo(&#39;daids&#39;, None),</span>
+        <span class="c1"># ut.ParamInfo(&#39;daids&#39;, None),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;distinctiveness_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
     <span class="p">]</span>
@@ -181,7 +300,7 @@
         <span class="n">DummyKptsConfig</span><span class="p">,</span>
         <span class="n">DummyIndexerConfig</span><span class="p">,</span>
         <span class="n">DummyNNConfig</span><span class="p">,</span>
-        <span class="n">DummySVERConfig</span>
+        <span class="n">DummySVERConfig</span><span class="p">,</span>
     <span class="p">]</span></div>
 
 
@@ -196,7 +315,7 @@
             <span class="n">DummyKptsConfig</span><span class="p">,</span>
             <span class="n">DummyIndexerConfig</span><span class="p">,</span>
             <span class="n">DummyNNConfig</span><span class="p">,</span>
-            <span class="n">DummySVERConfig</span>
+            <span class="n">DummySVERConfig</span><span class="p">,</span>
         <span class="p">]</span></div>
 
 <div class="viewcode-block" id="DummyVsOneConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.DummyVsOneConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -218,6 +337,7 @@
 <span class="sd">        &gt;&gt;&gt; algo_config = DummyVsManyConfig()</span>
 <span class="sd">        &gt;&gt;&gt; print(algo_config)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">pass</span></div>
 
 
@@ -233,7 +353,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fm</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">-vs-</span><span class="si">%d</span><span class="s1">) </span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">daid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">score</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">-vs-</span><span class="si">%d</span><span class="s1">) </span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">daid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">score</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="testdata_depc"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.example_depcache.testdata_depc">[docs]</a><span class="k">def</span> <span class="nf">testdata_depc</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -243,8 +363,8 @@
 
     <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_valid_test_imgkeys</span><span class="p">(),</span>
-                         <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_valid_test_imgkeys</span><span class="p">(),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="n">dummy_root</span> <span class="o">=</span> <span class="s1">&#39;dummy_annot&#39;</span>
 
@@ -256,16 +376,21 @@
     <span class="n">cache_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dtool_repo</span><span class="p">,</span> <span class="s1">&#39;DEPCACHE&#39;</span><span class="p">)</span>
 
     <span class="n">depc</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">DependencyCache</span><span class="p">(</span>
-        <span class="n">root_tablename</span><span class="o">=</span><span class="n">dummy_root</span><span class="p">,</span> <span class="n">default_fname</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span>
+        <span class="n">root_tablename</span><span class="o">=</span><span class="n">dummy_root</span><span class="p">,</span>
+        <span class="n">default_fname</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span>
         <span class="n">cache_dpath</span><span class="o">=</span><span class="n">cache_dpath</span><span class="p">,</span>
         <span class="n">get_root_uuid</span><span class="o">=</span><span class="n">get_root_uuid</span><span class="p">,</span>
-        <span class="c1">#root_asobject=root_asobject,</span>
-        <span class="n">use_globals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># root_asobject=root_asobject,</span>
+        <span class="n">use_globals</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
 
-    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span>
-                           <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">],</span>
-                           <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">)],</span>
-                           <span class="n">configclass</span><span class="o">=</span><span class="n">DummyChipConfig</span><span class="p">)</span>
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+        <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span>
+        <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">],</span>
+        <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">)],</span>
+        <span class="n">configclass</span><span class="o">=</span><span class="n">DummyChipConfig</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">def</span> <span class="nf">dummy_preproc_chip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">annot_rowid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        TODO: Infer properties from docstr?</span>
@@ -282,25 +407,27 @@
             <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># Demonstates using asobject to get input to function as a dictionary</span>
         <span class="c1"># of properties</span>
-        <span class="c1">#for annot in annot_list:</span>
-        <span class="c1">#print(&#39;[preproc] Computing chips of aid=%r&#39; % (aid,))</span>
+        <span class="c1"># for annot in annot_list:</span>
+        <span class="c1"># print(&#39;[preproc] Computing chips of aid=%r&#39; % (aid,))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc] Computing chips&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">annot_rowid_list</span><span class="p">:</span>
-            <span class="c1">#aid = annot[&#39;aid&#39;]</span>
-            <span class="c1">#chip_fpath = annot[&#39;gpath&#39;]</span>
+            <span class="c1"># aid = annot[&#39;aid&#39;]</span>
+            <span class="c1"># chip_fpath = annot[&#39;gpath&#39;]</span>
             <span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">gpath_list</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
-            <span class="c1">#w, h = vt.image.open_image_size(chip_fpath)</span>
+            <span class="c1"># w, h = vt.image.open_image_size(chip_fpath)</span>
             <span class="n">chip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">)</span>
             <span class="n">size</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">chip</span><span class="p">)</span>
-            <span class="c1">#size = (w, h)</span>
+            <span class="c1"># size = (w, h)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dummpy preproc chip yeilds&#39;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;* chip_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip_fpath</span><span class="p">,))</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;* size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">size</span><span class="p">,))</span>
-            <span class="c1">#yield size, chip_fpath</span>
+            <span class="c1"># yield size, chip_fpath</span>
             <span class="k">yield</span> <span class="n">size</span><span class="p">,</span> <span class="n">chip</span>
 
     <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-        <span class="s1">&#39;probchip&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;probchip&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span>
         <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">)],</span>
         <span class="n">configclass</span><span class="o">=</span><span class="n">ProbchipConfig</span><span class="p">,</span>
     <span class="p">)</span>
@@ -314,15 +441,19 @@
                     <span class="k">continue</span>
             <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">rowid</span><span class="p">)</span>
             <span class="n">probchip</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
-            <span class="c1">#probchip = np.zeros((64, 64))</span>
+            <span class="c1"># probchip = np.zeros((64, 64))</span>
             <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="n">rowid</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">size</span><span class="p">,</span> <span class="n">probchip</span>
 
     <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-        <span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;chip&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
-        <span class="c1">#default_onthefly=True,</span>
+        <span class="s1">&#39;keypoint&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;chip&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="c1"># default_onthefly=True,</span>
         <span class="n">configclass</span><span class="o">=</span><span class="n">DummyKptsConfig</span><span class="p">,</span>
-        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;Used to store individual chip features (ellipses)&#39;</span><span class="p">,)</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;Used to store individual chip features (ellipses)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">def</span> <span class="nf">dummy_preproc_kpts</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">chip_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
@@ -333,8 +464,7 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">chip_rowids</span><span class="p">,</span> <span class="s1">&#39;chip_rowids&#39;</span><span class="p">)</span>
         <span class="c1"># This is in here to attempt to trigger a failure of the chips dont</span>
         <span class="c1"># exist and the feature cache is called.</span>
-        <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="n">chip_rowids</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">,</span>
-                                          <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="n">chip_rowids</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;computing featurse from chip_fpath_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,))</span>
 
         <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">chip_rowids</span><span class="p">:</span>
@@ -345,7 +475,9 @@
             <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">num</span>
 
-    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="s1">&#39;descriptor&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;vecs&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],)</span>
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+        <span class="s1">&#39;descriptor&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;vecs&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="p">)</span>
     <span class="k">def</span> <span class="nf">dummy_preproc_vecs</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">kp_rowid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
@@ -353,7 +485,9 @@
         <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">kp_rowid</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">7</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">,</span>
 
-    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;fgweight&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],)</span>
+    <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+        <span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;fgweight&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="p">)</span>
     <span class="k">def</span> <span class="nf">dummy_preproc_fgweight</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">kpts_rowid</span><span class="p">,</span> <span class="n">probchip_rowid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
@@ -362,8 +496,12 @@
             <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">7</span> <span class="o">+</span> <span class="n">rowid1</span><span class="p">),</span>
 
     <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-        <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span> <span class="n">coltypes</span><span class="o">=</span><span class="n">DummyAnnotMatch</span><span class="p">,</span>
-        <span class="n">requestclass</span><span class="o">=</span><span class="n">DummyVsManyRequest</span><span class="p">,</span> <span class="n">configclass</span><span class="o">=</span><span class="n">DummyVsManyConfig</span><span class="p">)</span>
+        <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="o">=</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span>
+        <span class="n">coltypes</span><span class="o">=</span><span class="n">DummyAnnotMatch</span><span class="p">,</span>
+        <span class="n">requestclass</span><span class="o">=</span><span class="n">DummyVsManyRequest</span><span class="p">,</span>
+        <span class="n">configclass</span><span class="o">=</span><span class="n">DummyVsManyConfig</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">def</span> <span class="nf">vsmany_matching</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        CommandLine:</span>
@@ -375,30 +513,34 @@
 
         <span class="n">sver_on</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">dummy_sver_cfg</span><span class="p">[</span><span class="s1">&#39;sver_on&#39;</span><span class="p">]</span>
         <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaids</span><span class="p">))</span>  <span class="c1"># NOQA</span>
-        <span class="c1">#dummy_preproc_kpts</span>
+        <span class="c1"># dummy_preproc_kpts</span>
         <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaids</span><span class="p">:</span>
             <span class="n">dnid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
             <span class="n">unique_nids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">sver_on</span><span class="p">:</span>
-                <span class="n">annot_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">]</span>
-                <span class="n">name_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">]</span>
+                <span class="n">annot_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
+                <span class="n">name_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">annot_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">,</span> <span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="o">.</span><span class="mi">9</span><span class="p">]</span>
-                <span class="n">name_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">]</span>
-            <span class="n">annot_match</span> <span class="o">=</span> <span class="n">DummyAnnotMatch</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">,</span>
-                                          <span class="n">annot_score_list</span><span class="p">,</span> <span class="n">unique_nids</span><span class="p">,</span>
-                                          <span class="n">name_score_list</span><span class="p">)</span>
+                <span class="n">annot_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">]</span>
+                <span class="n">name_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">]</span>
+            <span class="n">annot_match</span> <span class="o">=</span> <span class="n">DummyAnnotMatch</span><span class="p">(</span>
+                <span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">,</span> <span class="n">annot_score_list</span><span class="p">,</span> <span class="n">unique_nids</span><span class="p">,</span> <span class="n">name_score_list</span>
+            <span class="p">)</span>
             <span class="k">yield</span> <span class="n">annot_match</span>
 
     <span class="n">SIMPLE</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">SIMPLE</span><span class="p">:</span>
 
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;chipmask&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;mask&#39;</span><span class="p">],</span>
-            <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">)])</span>
+            <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;chipmask&#39;</span><span class="p">,</span>
+            <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span>
+            <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;mask&#39;</span><span class="p">],</span>
+            <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">)],</span>
+        <span class="p">)</span>
         <span class="k">def</span> <span class="nf">dummy_manual_chipmask</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
             <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">interact_impaint</span>
+
             <span class="n">mask_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">cache_dpath</span><span class="p">,</span> <span class="s1">&#39;ManualChipMask&#39;</span><span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">mask_dpath</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -412,7 +554,9 @@
                 <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">mask_fpath</span>
 
-        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;notchdata&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],)</span>
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;notchdata&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="p">)</span>
         <span class="k">def</span> <span class="nf">dummy_preproc_notch</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
@@ -421,10 +565,12 @@
                 <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">5</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">),</span>
 
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="s1">&#39;keypoint&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;spam&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">,</span> <span class="s1">&#39;keypoint&#39;</span><span class="p">],</span>
             <span class="p">[</span><span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="s1">&#39;eggs&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;vector&#39;</span><span class="p">,</span> <span class="s1">&#39;textdata&#39;</span><span class="p">],</span>
             <span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">readfrom</span><span class="p">)],</span>
-            <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;I dont like spam&#39;</span><span class="p">,)</span>
+            <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;I dont like spam&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">def</span> <span class="nf">dummy_preproc_spam</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;config&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -438,70 +584,106 @@
                 <span class="k">yield</span> <span class="p">(</span><span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="mi">3665</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">uuid</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span> <span class="s1">&#39;tmp.txt&#39;</span><span class="p">)</span>
 
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="s1">&#39;nnindexer&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint*&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;flann&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">str</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="s1">&#39;nnindexer&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;keypoint*&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;flann&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="nb">str</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
             <span class="n">configclass</span><span class="o">=</span><span class="n">DummyIndexerConfig</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">def</span> <span class="nf">dummy_preproc_indexer</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;COMPUTING DUMMY INDEXER&#39;</span><span class="p">)</span>
-            <span class="c1">#assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
+            <span class="c1"># assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
             <span class="k">for</span> <span class="n">parent_rowids</span> <span class="ow">in</span> <span class="n">parent_rowids_list</span><span class="p">:</span>
-                <span class="k">yield</span> <span class="p">(</span><span class="s1">&#39;really cool flann object&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">),)</span>
+                <span class="k">yield</span> <span class="p">(</span>
+                    <span class="s1">&#39;really cool flann object&#39;</span>
+                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+                    <span class="o">+</span> <span class="s1">&#39; &#39;</span>
+                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">),</span>
+                <span class="p">)</span>
 
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="s1">&#39;notchpair&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="s1">&#39;notch&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;pairscore&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
-            <span class="c1">#configclass=DummyIndexerConfig,</span>
+            <span class="s1">&#39;notchpair&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="s1">&#39;notch&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;pairscore&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="c1"># configclass=DummyIndexerConfig,</span>
         <span class="p">)</span>
         <span class="k">def</span> <span class="nf">dummy_notchpair</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;COMPUTING MULTITEST 1 &#39;</span><span class="p">)</span>
-            <span class="c1">#assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
+            <span class="c1"># assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
             <span class="k">for</span> <span class="n">nn1</span><span class="p">,</span> <span class="n">nn2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="p">(</span><span class="n">nn1</span> <span class="o">+</span> <span class="n">nn2</span><span class="p">,)</span>
 
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="s1">&#39;multitest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="s1">&#39;fgweight*&#39;</span><span class="p">,</span> <span class="s1">&#39;notchpair*&#39;</span><span class="p">,</span> <span class="s1">&#39;notchpair*&#39;</span><span class="p">,</span> <span class="s1">&#39;notchpair&#39;</span><span class="p">,</span> <span class="s1">&#39;nnindexer&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">str</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
-            <span class="c1">#configclass=DummyIndexerConfig,</span>
+            <span class="s1">&#39;multitest&#39;</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;keypoint&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;notch&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;notch&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;fgweight*&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;notchpair*&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;notchpair*&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;notchpair&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;nnindexer&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="nb">str</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="c1"># configclass=DummyIndexerConfig,</span>
         <span class="p">)</span>
         <span class="k">def</span> <span class="nf">dummy_multitest</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;COMPUTING MULTITEST 1 &#39;</span><span class="p">)</span>
-            <span class="c1">#assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
+            <span class="c1"># assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
             <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="p">(</span><span class="s1">&#39;cool multi object&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),)</span>
 
         <span class="c1"># TEST MULTISET DEPENDENCIES</span>
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="s1">&#39;multitest_score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;multitest&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
-            <span class="c1">#configclass=DummyIndexerConfig,</span>
+            <span class="s1">&#39;multitest_score&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;multitest&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="c1"># configclass=DummyIndexerConfig,</span>
         <span class="p">)</span>
         <span class="k">def</span> <span class="nf">dummy_multitest_score</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;COMPUTING DEPENDENCY OF MULTITEST 1 &#39;</span><span class="p">)</span>
-            <span class="c1">#assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
+            <span class="c1"># assert len(parent_rowids_list) == 1, &#39;handles only one indexer&#39;</span>
             <span class="k">for</span> <span class="n">parent_rowids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="p">(</span><span class="n">parent_rowids</span><span class="p">,)</span>
 
         <span class="c1"># TEST MULTISET DEPENDENCIES</span>
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="s1">&#39;multitest_score_x&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;multitest_score&#39;</span><span class="p">,</span> <span class="s1">&#39;multitest_score&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
-            <span class="c1">#configclass=DummyIndexerConfig,</span>
+            <span class="s1">&#39;multitest_score_x&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;multitest_score&#39;</span><span class="p">,</span> <span class="s1">&#39;multitest_score&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="nb">int</span><span class="p">],</span>  <span class="c1"># [(&#39;extern&#39;, ut.load_data)],</span>
+            <span class="c1"># configclass=DummyIndexerConfig,</span>
         <span class="p">)</span>
         <span class="k">def</span> <span class="nf">multitest_score_x</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;hack&#39;</span><span class="p">)</span>
+
         <span class="c1"># REGISTER MATCHING ALGORITHMS</span>
 
-        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;neighbs&#39;</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qx2_idx&#39;</span><span class="p">,</span> <span class="s1">&#39;qx2_dist&#39;</span><span class="p">],</span>
-                               <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                               <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="s1">&#39;nnindexer&#39;</span><span class="p">,</span> <span class="s1">&#39;nnindexer&#39;</span><span class="p">])</span>
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;neighbs&#39;</span><span class="p">,</span>
+            <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qx2_idx&#39;</span><span class="p">,</span> <span class="s1">&#39;qx2_dist&#39;</span><span class="p">],</span>
+            <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+            <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="s1">&#39;nnindexer&#39;</span><span class="p">,</span> <span class="s1">&#39;nnindexer&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
         <span class="k">def</span> <span class="nf">neighbs</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            CommandLine:</span>
 <span class="sd">                python -m dtool.base --exec-VsManySimilarityRequest</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="c1">#dummy_preproc_kpts</span>
+            <span class="c1"># dummy_preproc_kpts</span>
             <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qaid</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qaid</span><span class="p">])</span>
 
-        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;neighbs_score&#39;</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qx2_dist&#39;</span><span class="p">],</span>
-                               <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                               <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;neighbs&#39;</span><span class="p">])</span>
+        <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
+            <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;neighbs_score&#39;</span><span class="p">,</span>
+            <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qx2_dist&#39;</span><span class="p">],</span>
+            <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+            <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;neighbs&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
         <span class="k">def</span> <span class="nf">neighbs_score</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            CommandLine:</span>
@@ -510,12 +692,13 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;hack&#39;</span><span class="p">)</span>
 
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="s1">&#39;vsone&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">dummy_root</span><span class="p">,</span> <span class="n">dummy_root</span><span class="p">],</span>
+            <span class="s1">&#39;vsone&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">dummy_root</span><span class="p">,</span> <span class="n">dummy_root</span><span class="p">],</span>
             <span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;match_obj&#39;</span><span class="p">,</span> <span class="s1">&#39;fm&#39;</span><span class="p">],</span>
             <span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">DummyVsOneMatch</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
             <span class="n">requestclass</span><span class="o">=</span><span class="n">DummyVsOneRequest</span><span class="p">,</span>
             <span class="n">configclass</span><span class="o">=</span><span class="n">DummyVsOneConfig</span><span class="p">,</span>
-            <span class="n">chunksize</span><span class="o">=</span><span class="mi">2</span>
+            <span class="n">chunksize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">def</span> <span class="nf">compute_vsone_matching</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
@@ -544,6 +727,7 @@
 <span class="sd">    example of different ways to get data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">+---&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Running getter example&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * tablename=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">))</span>
@@ -556,7 +740,7 @@
     <span class="n">tbl_rowids</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># NOQA</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=False)&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tbl_rowids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">),))</span>
-    <span class="c1">#assert tbl_rowids[0] is None</span>
+    <span class="c1"># assert tbl_rowids[0] is None</span>
 
     <span class="c1"># The default is for the data to be computed though. Manaual interactions will</span>
     <span class="c1"># launch as necessary.</span>
@@ -587,8 +771,12 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extern_data = table.get_row_data(tbl_rowids, (excol,))&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">varinfo_str</span><span class="p">(</span><span class="n">extern_data</span><span class="p">,</span> <span class="s1">&#39;extern_data&#39;</span><span class="p">))</span>
         <span class="c1"># you can lookup the hidden paths as follows</span>
-        <span class="n">extern_paths</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">,</span> <span class="p">(</span><span class="n">excol</span> <span class="o">+</span> <span class="n">dtool</span><span class="o">.</span><span class="n">depcache_table</span><span class="o">.</span><span class="n">EXTERN_SUFFIX</span><span class="p">,))</span>  <span class="c1"># NOQA</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extern_paths = table.get_row_data(tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,))&#39;</span><span class="p">)</span>
+        <span class="n">extern_paths</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span>
+            <span class="n">tbl_rowids</span><span class="p">,</span> <span class="p">(</span><span class="n">excol</span> <span class="o">+</span> <span class="n">dtool</span><span class="o">.</span><span class="n">depcache_table</span><span class="o">.</span><span class="n">EXTERN_SUFFIX</span><span class="p">,)</span>
+        <span class="p">)</span>  <span class="c1"># NOQA</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;extern_paths = table.get_row_data(tbl_rowids, (excol + dtool.depcache_table.EXTERN_SUFFIX,))&#39;</span>
+        <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">varinfo_str</span><span class="p">(</span><span class="n">extern_paths</span><span class="p">,</span> <span class="s1">&#39;extern_paths&#39;</span><span class="p">))</span>
 
     <span class="c1"># But you can also just the root rowids directly. This is the simplest way</span>
@@ -654,18 +842,18 @@
 
     <span class="n">table</span> <span class="o">=</span> <span class="n">depc</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>  <span class="c1"># NOQA</span>
 
-    <span class="c1">#example_getter_methods(depc, &#39;vsmany&#39;, root_rowids)</span>
+    <span class="c1"># example_getter_methods(depc, &#39;vsmany&#39;, root_rowids)</span>
     <span class="c1"># example_getter_methods(depc, &#39;chipmask&#39;, root_rowids)</span>
     <span class="c1"># example_getter_methods(depc, &#39;keypoint&#39;, root_rowids)</span>
     <span class="c1"># example_getter_methods(depc, &#39;chip&#39;, root_rowids)</span>
 
     <span class="n">test_getters</span><span class="p">(</span><span class="n">depc</span><span class="p">)</span>
 
-    <span class="c1">#import wbia.plottool as pt</span>
+    <span class="c1"># import wbia.plottool as pt</span>
     <span class="c1"># pt.ensureqt()</span>
 
     <span class="n">graph</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">make_graph</span><span class="p">()</span>  <span class="c1"># NOQA</span>
-    <span class="c1">#pt.show_nx(graph)</span>
+    <span class="c1"># pt.show_nx(graph)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---------- 111 -----------&#39;</span><span class="p">)</span>
 
@@ -691,19 +879,27 @@
     <span class="n">req</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">new_request</span><span class="p">(</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">req</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 
-    <span class="c1">#ut.InstanceList(</span>
+    <span class="c1"># ut.InstanceList(</span>
     <span class="n">db</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">fname_to_db</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c1">#db_list = ut.InstanceList(depc.fname_to_db.values())</span>
-    <span class="c1">#db_list.print_table_csv(&#39;config&#39;, exclude_columns=&#39;config_strid&#39;)</span>
+    <span class="c1"># db_list = ut.InstanceList(depc.fname_to_db.values())</span>
+    <span class="c1"># db_list.print_table_csv(&#39;config&#39;, exclude_columns=&#39;config_strid&#39;)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config table&#39;</span><span class="p">)</span>
     <span class="n">tablename</span> <span class="o">=</span> <span class="s1">&#39;config&#39;</span>
-    <span class="n">column_list</span><span class="p">,</span> <span class="n">column_names</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_column_data</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span>
-                                                         <span class="p">[</span><span class="s1">&#39;config_strid&#39;</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">interleave</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;, &#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))))</span>
-                     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[[</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">column_list</span><span class="p">]))]))</span>
+    <span class="n">column_list</span><span class="p">,</span> <span class="n">column_names</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_column_data</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;config_strid&#39;</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">interleave</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;, &#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))))</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[[</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">column_list</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">depc</span></div>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -712,18 +908,37 @@
 <span class="sd">        python -m dtool.example_depcache --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -731,55 +946,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

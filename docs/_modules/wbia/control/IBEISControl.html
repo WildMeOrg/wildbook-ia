@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.IBEISControl &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.control.IBEISControl &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../control.html">wbia.control</a> &raquo;</li>
+
+      <li>wbia.control.IBEISControl</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.control.IBEISControl</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -106,7 +223,7 @@
     <span class="s1">&#39;wbia.control.manual_wbiacontrol_funcs&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.control.manual_wildbook_funcs&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.control.manual_meta_funcs&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;wbia.control.manual_lbltype_funcs&#39;</span><span class="p">,</span>   <span class="c1"># DEPRICATE</span>
+    <span class="s1">&#39;wbia.control.manual_lbltype_funcs&#39;</span><span class="p">,</span>  <span class="c1"># DEPRICATE</span>
     <span class="s1">&#39;wbia.control.manual_lblannot_funcs&#39;</span><span class="p">,</span>  <span class="c1"># DEPRICATE</span>
     <span class="s1">&#39;wbia.control.manual_lblimage_funcs&#39;</span><span class="p">,</span>  <span class="c1"># DEPRICATE</span>
     <span class="s1">&#39;wbia.control.manual_image_funcs&#39;</span><span class="p">,</span>
@@ -135,7 +252,6 @@
     <span class="s1">&#39;wbia.core_parts&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.algo.smk.vocab_indexer&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.algo.smk.smk_pipeline&#39;</span><span class="p">,</span>
-
     <span class="c1"># ((&#39;--no-cnn&#39;, &#39;--nocnn&#39;), &#39;ibeis_cnn&#39;),</span>
     <span class="c1"># ((&#39;--no-cnn&#39;, &#39;--nocnn&#39;), &#39;ibeis_cnn._plugin&#39;),</span>
     <span class="c1"># ((&#39;--no-fluke&#39;, &#39;--nofluke&#39;), &#39;ibeis_flukematch.plugin&#39;),</span>
@@ -155,7 +271,10 @@
 
 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--kaggle7&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--kaggleseven&#39;</span><span class="p">):</span>
     <span class="n">AUTOLOAD_PLUGIN_MODNAMES</span> <span class="o">+=</span> <span class="p">[</span>
-        <span class="p">((</span><span class="s1">&#39;--no-kaggle7&#39;</span><span class="p">,</span> <span class="s1">&#39;--nokaggle7&#39;</span><span class="p">,</span> <span class="s1">&#39;--no-kaggleseven&#39;</span><span class="p">,</span> <span class="s1">&#39;--nokaggleseven&#39;</span><span class="p">),</span> <span class="s1">&#39;wbia_kaggle7._plugin&#39;</span><span class="p">),</span>
+        <span class="p">(</span>
+            <span class="p">(</span><span class="s1">&#39;--no-kaggle7&#39;</span><span class="p">,</span> <span class="s1">&#39;--nokaggle7&#39;</span><span class="p">,</span> <span class="s1">&#39;--no-kaggleseven&#39;</span><span class="p">,</span> <span class="s1">&#39;--nokaggleseven&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;wbia_kaggle7._plugin&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">]</span>
 
 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--orient2d&#39;</span><span class="p">):</span>
@@ -172,8 +291,13 @@
 <span class="sd">UTOOL_NO_CNN=True python -c &quot;import wbia&quot;</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">AUTOLOAD_PLUGIN_MODNAMES</span><span class="p">,</span> <span class="s1">&#39;loading plugins&#39;</span><span class="p">,</span>
-                           <span class="n">enabled</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span>
+    <span class="n">AUTOLOAD_PLUGIN_MODNAMES</span><span class="p">,</span>
+    <span class="s1">&#39;loading plugins&#39;</span><span class="p">,</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">,</span>
+    <span class="n">adjust</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="n">flag</span><span class="p">,</span> <span class="n">modname</span> <span class="o">=</span> <span class="n">modname</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="n">flag</span><span class="p">):</span>
@@ -184,6 +308,7 @@
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">if</span> <span class="s1">&#39;ibeis_cnn&#39;</span> <span class="ow">in</span> <span class="n">modname</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">warnings</span>
+
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to load plugin: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span>
@@ -207,12 +332,13 @@
 <span class="sd">        python -m wbia dev_autogen_explicit_injects</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_autogen_explicit_controller</span>
+
         <span class="n">BASE_CLASS</span> <span class="o">=</span> <span class="n">_autogen_explicit_controller</span><span class="o">.</span><span class="n">ExplicitInjectIBEISController</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">BASE_CLASS</span> <span class="o">=</span> <span class="nb">object</span>
 
 
-<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="n">__ALL_CONTROLLERS__</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Global variable containing all created controllers</span>
@@ -221,9 +347,17 @@
 
 
 <div class="viewcode-block" id="request_IBEISController"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.request_IBEISController">[docs]</a><span class="k">def</span> <span class="nf">request_IBEISController</span><span class="p">(</span>
-        <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">,</span>
-        <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request_stagingversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">force_serial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">asproxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">check_hsdb</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">wbaddr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">,</span>
+    <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">request_dbversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">request_stagingversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">force_serial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">asproxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">check_hsdb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Alternative to directory instantiating a new controller object. Might</span>
 <span class="sd">    return a memory cached object</span>
@@ -268,14 +402,19 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Convert hold hotspotter dirs if necessary</span>
         <span class="k">if</span> <span class="n">check_hsdb</span> <span class="ow">and</span> <span class="n">ingest_hsdb</span><span class="o">.</span><span class="n">check_unconverted_hsdb</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
-            <span class="n">ibs</span> <span class="o">=</span> <span class="n">ingest_hsdb</span><span class="o">.</span><span class="n">convert_hsdb_to_wbia</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span>
-                                                    <span class="n">wbaddr</span><span class="o">=</span><span class="n">wbaddr</span><span class="p">,</span>
-                                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="n">ibs</span> <span class="o">=</span> <span class="n">ingest_hsdb</span><span class="o">.</span><span class="n">convert_hsdb_to_wbia</span><span class="p">(</span>
+                <span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="n">wbaddr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISController</span><span class="p">(</span>
-                <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="n">wbaddr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
-                <span class="n">force_serial</span><span class="o">=</span><span class="n">force_serial</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">,</span>
-                <span class="n">request_stagingversion</span><span class="o">=</span><span class="n">request_stagingversion</span><span class="p">)</span>
+                <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span>
+                <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span>
+                <span class="n">wbaddr</span><span class="o">=</span><span class="n">wbaddr</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">force_serial</span><span class="o">=</span><span class="n">force_serial</span><span class="p">,</span>
+                <span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">,</span>
+                <span class="n">request_stagingversion</span><span class="o">=</span><span class="n">request_stagingversion</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="n">__IBEIS_CONTROLLER_CACHE__</span><span class="p">[</span><span class="n">dbdir</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span>
     <span class="k">return</span> <span class="n">ibs</span></div>
 
@@ -295,9 +434,10 @@
         <span class="k">pass</span>
 
 
-<span class="c1">#-----------------</span>
+<span class="c1"># -----------------</span>
 <span class="c1"># IBEIS CONTROLLER</span>
-<span class="c1">#-----------------</span>
+<span class="c1"># -----------------</span>
+
 
 <div class="viewcode-block" id="IBEISController"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">IBEISController</span><span class="p">(</span><span class="n">BASE_CLASS</span><span class="p">):</span>
@@ -315,16 +455,23 @@
 <span class="sd">        theta - angle of rotation for a chip</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1">#-------------------------------</span>
+    <span class="c1"># -------------------------------</span>
     <span class="c1"># --- CONSTRUCTOR / PRIVATES ---</span>
-    <span class="c1">#-------------------------------</span>
+    <span class="c1"># -------------------------------</span>
 
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                 <span class="n">request_dbversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request_stagingversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">force_serial</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">wbaddr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">request_dbversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">request_stagingversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">force_serial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Creates a new IBEIS Controller associated with one database &quot;&quot;&quot;</span>
-        <span class="c1">#if verbose and ut.VERBOSE:</span>
+        <span class="c1"># if verbose and ut.VERBOSE:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[ibs.__init__] new IBEISController&#39;</span><span class="p">)</span>
 
         <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="kc">None</span>
@@ -334,7 +481,7 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">depc_part</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1">#ibs.allow_override = &#39;override+warn&#39;</span>
+        <span class="c1"># ibs.allow_override = &#39;override+warn&#39;</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="n">force_serial</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--utool-force-serial&#39;</span><span class="p">,</span> <span class="s1">&#39;--force-serial&#39;</span><span class="p">,</span> <span class="s1">&#39;--serial&#39;</span><span class="p">)):</span>
@@ -354,8 +501,10 @@
         <span class="c1"># _send_wildbook_request will do nothing if no wildbook address is</span>
         <span class="c1"># specified</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_send_wildbook_request</span><span class="p">(</span><span class="n">wbaddr</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sql</span><span class="p">(</span><span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">,</span>
-                      <span class="n">request_stagingversion</span><span class="o">=</span><span class="n">request_stagingversion</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sql</span><span class="p">(</span>
+            <span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">,</span>
+            <span class="n">request_stagingversion</span><span class="o">=</span><span class="n">request_stagingversion</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_config</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--noclean&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span><span class="p">:</span>
             <span class="c1"># ibs._init_burned_in_species()</span>
@@ -370,8 +519,8 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">CONTAINERIZED</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">production</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">PRODUCTION</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] CONTAINERIZED: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,</span> <span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] PRODUCTION: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">production</span><span class="p">,</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] CONTAINERIZED: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] PRODUCTION: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">production</span><span class="p">,))</span>
 
         <span class="c1"># Hack to store HTTPS flag (deliver secure content in web)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">https</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">HTTPS</span>
@@ -450,14 +599,15 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns info about the underlying SQL cache memory</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">total_size_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">,</span>
-                                                <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;size(table_cache): &#39;</span><span class="p">)</span>
+        <span class="n">total_size_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;size(table_cache): &#39;</span>
+        <span class="p">)</span>
         <span class="n">total_size_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">len(table_cache) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">))</span>
         <span class="n">table_size_str_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;size(table_cache[</span><span class="si">%s</span><span class="s1">]): &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">)]</span>
-        <span class="n">cachestats_str</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">total_size_str</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">table_size_str_list</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  * &#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">cachestats_str</span> <span class="o">=</span> <span class="n">total_size_str</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">table_size_str_list</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  * &#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cachestats_str</span></div>
 
 <div class="viewcode-block" id="IBEISController.print_cachestats_str"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.print_cachestats_str">[docs]</a>    <span class="k">def</span> <span class="nf">print_cachestats_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -476,11 +626,12 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] _initialize_self()&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">util_class</span><span class="o">.</span><span class="n">inject_all_external_modules</span><span class="p">(</span>
-            <span class="n">ibs</span><span class="p">,</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">CONTROLLER_CLASSNAME</span><span class="p">,</span>
-            <span class="n">allow_override</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="p">,</span>
+            <span class="n">controller_inject</span><span class="o">.</span><span class="n">CONTROLLER_CLASSNAME</span><span class="p">,</span>
+            <span class="n">allow_override</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;get_database_species&#39;</span><span class="p">),</span> <span class="s1">&#39;issue with ibsfuncs&#39;</span>
-        <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;get_annot_pair_timedelta&#39;</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s1">&#39;issue with annotmatch_funcs&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;get_annot_pair_timedelta&#39;</span><span class="p">),</span> <span class="s1">&#39;issue with annotmatch_funcs&#39;</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">register_controller</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_on_reload</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -498,12 +649,16 @@
 
 <div class="viewcode-block" id="IBEISController.load_plugin_module"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.load_plugin_module">[docs]</a>    <span class="k">def</span> <span class="nf">load_plugin_module</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">inject_instance</span><span class="p">(</span>
-            <span class="n">ibs</span><span class="p">,</span> <span class="n">classkey</span><span class="o">=</span><span class="n">module</span><span class="o">.</span><span class="n">CLASS_INJECT_KEY</span><span class="p">,</span>
-            <span class="n">allow_override</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+            <span class="n">ibs</span><span class="p">,</span>
+            <span class="n">classkey</span><span class="o">=</span><span class="n">module</span><span class="o">.</span><span class="n">CLASS_INJECT_KEY</span><span class="p">,</span>
+            <span class="n">allow_override</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span><span class="p">,</span>
+            <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
     <span class="c1"># We should probably not implement __del__</span>
     <span class="c1"># see: https://docs.python.org/2/reference/datamodel.html#object.__del__</span>
-    <span class="c1">#def __del__(ibs):</span>
+    <span class="c1"># def __del__(ibs):</span>
     <span class="c1">#    ibs.cleanup()</span>
 
     <span class="c1"># ------------</span>
@@ -562,7 +717,7 @@
         <span class="c1"># duct_tape.fix_compname_configs(ibs)</span>
         <span class="c1"># duct_tape.remove_database_slag(ibs)</span>
         <span class="c1"># duct_tape.fix_nulled_yaws(ibs)</span>
-        <span class="n">lbltype_names</span>    <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">lbltype_names</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="n">lbltype_defaults</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="n">lbltype_ids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_lbltype</span><span class="p">(</span><span class="n">lbltype_names</span><span class="p">,</span> <span class="n">lbltype_defaults</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lbltype_names</span><span class="p">,</span> <span class="n">lbltype_ids</span><span class="p">))</span>
@@ -571,6 +726,7 @@
     <span class="k">def</span> <span class="nf">_init_sql</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request_stagingversion</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Load or create sql database &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">duct_tape</span>  <span class="c1"># NOQA</span>
+
         <span class="c1"># LOAD THE DEPENDENCY CACHE BEFORE THE MAIN DATABASE SO THAT ANY UPDATE</span>
         <span class="c1"># CALLS TO THE CORE DATABASE WILL HAVE ACCESS TO THE CACHE DATABASES IF</span>
         <span class="c1"># THEY ARE NEEDED.  THIS IS A DECISION MADE ON 8/16/16 BY JP AND JC TO</span>
@@ -619,6 +775,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_sql_helpers</span>
         <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">DB_SCHEMA</span>
+
         <span class="c1"># Before load, ensure database has been backed up for the day</span>
         <span class="n">backup_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--loadbackup&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">sqldb_fpath</span> <span class="o">=</span> <span class="kc">None</span>
@@ -629,18 +786,20 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CHOSE BACKUP sqldb_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sqldb_fpath</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_needs_backup</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_daily_database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
-                                                          <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span>
-                                                          <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
+                <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_daily_database_backup</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span>
+                <span class="p">)</span>
             <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span>
-                    <span class="s1">&#39;Failed making daily backup. &#39;</span>
-                    <span class="s1">&#39;Run with --nobackup to disable&#39;</span><span class="p">))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                    <span class="n">ex</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s1">&#39;Failed making daily backup. &#39;</span> <span class="s1">&#39;Run with --nobackup to disable&#39;</span><span class="p">),</span>
+                <span class="p">)</span>
                 <span class="kn">import</span> <span class="nn">utool</span>
+
                 <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
                 <span class="k">raise</span>
         <span class="c1"># IBEIS SQL State Database</span>
-        <span class="c1">#ibs.db_version_expected = &#39;1.1.1&#39;</span>
+        <span class="c1"># ibs.db_version_expected = &#39;1.1.1&#39;</span>
         <span class="k">if</span> <span class="n">request_dbversion</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="s1">&#39;2.0.0&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -648,8 +807,12 @@
         <span class="c1"># TODO: add this functionality to SQLController</span>
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">new_version</span><span class="p">,</span> <span class="n">new_fname</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">sql_control</span><span class="o">.</span><span class="n">dev_test_new_schema_version</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span><span class="p">,</span> <span class="n">version_next</span><span class="o">=</span><span class="s1">&#39;2.0.0&#39;</span><span class="p">)</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span><span class="p">,</span>
+                <span class="n">version_next</span><span class="o">=</span><span class="s1">&#39;2.0.0&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="n">new_version</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span> <span class="o">=</span> <span class="n">new_fname</span>
         <span class="k">if</span> <span class="n">sqldb_fpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -659,8 +822,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span>
-            <span class="n">fpath</span><span class="o">=</span><span class="n">sqldb_fpath</span><span class="p">,</span> <span class="n">text_factory</span><span class="o">=</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span>
-            <span class="n">inmemory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
+            <span class="n">fpath</span><span class="o">=</span><span class="n">sqldb_fpath</span><span class="p">,</span>
+            <span class="n">text_factory</span><span class="o">=</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span>
+            <span class="n">inmemory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
             <span class="n">always_check_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">readonly</span>
@@ -673,10 +838,10 @@
                 <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span><span class="p">,</span>
                 <span class="n">DB_SCHEMA</span><span class="p">,</span>
                 <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">,</span>
-                <span class="n">dobackup</span><span class="o">=</span><span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span>
+                <span class="n">dobackup</span><span class="o">=</span><span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="c1">#import sys</span>
-        <span class="c1">#sys.exit(1)</span>
+        <span class="c1"># import sys</span>
+        <span class="c1"># sys.exit(1)</span>
 
     <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">_init_sqldbstaging</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">request_stagingversion</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -704,6 +869,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_sql_helpers</span>
         <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">STAGING_SCHEMA</span>
+
         <span class="c1"># Before load, ensure database has been backed up for the day</span>
         <span class="n">backup_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--loadbackup-staging&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">sqlstaging_fpath</span> <span class="o">=</span> <span class="kc">None</span>
@@ -715,13 +881,14 @@
         <span class="c1"># HACK</span>
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_needs_backup</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_daily_database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
-                                                          <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span><span class="p">,</span>
-                                                          <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
+                <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_daily_database_backup</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span>
+                <span class="p">)</span>
             <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span>
-                    <span class="s1">&#39;Failed making daily backup. &#39;</span>
-                    <span class="s1">&#39;Run with --nobackup to disable&#39;</span><span class="p">))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                    <span class="n">ex</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s1">&#39;Failed making daily backup. &#39;</span> <span class="s1">&#39;Run with --nobackup to disable&#39;</span><span class="p">),</span>
+                <span class="p">)</span>
                 <span class="k">raise</span>
         <span class="c1"># IBEIS SQL State Database</span>
         <span class="k">if</span> <span class="n">request_stagingversion</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -731,8 +898,12 @@
         <span class="c1"># TODO: add this functionality to SQLController</span>
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">new_version</span><span class="p">,</span> <span class="n">new_fname</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">sql_control</span><span class="o">.</span><span class="n">dev_test_new_schema_version</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging_version_expected</span><span class="p">,</span> <span class="n">version_next</span><span class="o">=</span><span class="s1">&#39;1.1.1&#39;</span><span class="p">)</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span><span class="p">,</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">staging_version_expected</span><span class="p">,</span>
+                <span class="n">version_next</span><span class="o">=</span><span class="s1">&#39;1.1.1&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">staging_version_expected</span> <span class="o">=</span> <span class="n">new_version</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span> <span class="o">=</span> <span class="n">new_fname</span>
         <span class="k">if</span> <span class="n">sqlstaging_fpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -742,8 +913,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span>
-            <span class="n">fpath</span><span class="o">=</span><span class="n">sqlstaging_fpath</span><span class="p">,</span> <span class="n">text_factory</span><span class="o">=</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span>
-            <span class="n">inmemory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
+            <span class="n">fpath</span><span class="o">=</span><span class="n">sqlstaging_fpath</span><span class="p">,</span>
+            <span class="n">text_factory</span><span class="o">=</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span>
+            <span class="n">inmemory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
             <span class="n">always_check_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">readonly</span>
@@ -757,8 +930,8 @@
                 <span class="n">STAGING_SCHEMA</span><span class="p">,</span>
                 <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="c1">#import sys</span>
-        <span class="c1">#sys.exit(1)</span>
+        <span class="c1"># import sys</span>
+        <span class="c1"># sys.exit(1)</span>
 
     <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">_init_depcache</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -784,12 +957,14 @@
             <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">,</span>
             <span class="s1">&#39;bbox&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">,</span>
             <span class="s1">&#39;verts&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">,</span>
-            <span class="s1">&#39;image_uuid&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">aids</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">)),</span>
+            <span class="s1">&#39;image_uuid&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">aids</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+            <span class="p">),</span>
             <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">,</span>
             <span class="s1">&#39;occurrence_text&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_occurrence_text</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">DependencyCache</span><span class="p">(</span>
-            <span class="c1">#root_tablename=&#39;annot&#39;,   # const.ANNOTATION_TABLE</span>
+            <span class="c1"># root_tablename=&#39;annot&#39;,   # const.ANNOTATION_TABLE</span>
             <span class="n">root_tablename</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
             <span class="n">default_fname</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span> <span class="o">+</span> <span class="s1">&#39;_depcache&#39;</span><span class="p">,</span>
             <span class="n">cache_dpath</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span>
@@ -836,19 +1011,21 @@
         <span class="n">ibs2</span> <span class="o">=</span> <span class="n">IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">ibs2</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c1">#if ibs.qreq is not None:</span>
+        <span class="c1"># if ibs.qreq is not None:</span>
         <span class="c1">#    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)</span>
         <span class="k">return</span> <span class="n">ibs2</span></div>
 
 <div class="viewcode-block" id="IBEISController.backup_database"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.backup_database">[docs]</a>    <span class="k">def</span> <span class="nf">backup_database</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_sql_helpers</span>
-        <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span>
-                                     <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
-        <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span><span class="p">,</span>
-                                     <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span></div>
+
+        <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
+        <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">database_backup</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span>
+        <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_send_wildbook_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wbaddr</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">requests</span>
+
         <span class="k">if</span> <span class="n">wbaddr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="k">try</span><span class="p">:</span>
@@ -860,13 +1037,13 @@
         <span class="c1">#     print(&#39;[ibs._send_wildbook_request] Invalid URL: %r&#39; % wbaddr)</span>
         <span class="c1">#     return None</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.wb_reqst] Could not connect to Wildbook server at </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
-                  <span class="n">wbaddr</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.wb_reqst] Could not connect to Wildbook server at </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">wbaddr</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">response</span>
 
-    <span class="k">def</span> <span class="nf">_init_dirs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="s1">&#39;testdb_1&#39;</span><span class="p">,</span>
-                   <span class="n">workdir</span><span class="o">=</span><span class="s1">&#39;~/wbia_workdir&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init_dirs</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="s1">&#39;testdb_1&#39;</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="s1">&#39;~/wbia_workdir&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define ibs directories</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -877,33 +1054,33 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs._init_dirs] ibs.dbdir = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dbdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dbdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">workdir</span><span class="p">,</span> <span class="n">dbname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="n">dbname</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span> <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">sqldb</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span> <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">sqlstaging</span>
 
         <span class="c1"># Make sure you are not nesting databases</span>
-        <span class="k">assert</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span> <span class="o">!=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dirsplit</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span><span class="p">),</span> \
-            <span class="s1">&#39;cannot work in _ibsdb internals&#39;</span>
-        <span class="k">assert</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span> <span class="o">!=</span> <span class="n">dbname</span><span class="p">,</span>\
-            <span class="s1">&#39;cannot create db in _ibsdb internals&#39;</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span>      <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span> <span class="o">!=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dirsplit</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span>
+        <span class="p">),</span> <span class="s1">&#39;cannot work in _ibsdb internals&#39;</span>
+        <span class="k">assert</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span> <span class="o">!=</span> <span class="n">dbname</span><span class="p">,</span> <span class="s1">&#39;cannot create db in _ibsdb internals&#39;</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
         <span class="c1"># All internal paths live in &lt;dbdir&gt;/_ibsdb</span>
         <span class="c1"># TODO: constantify these</span>
         <span class="c1"># so non controller objects (like in score normalization) have access</span>
         <span class="c1"># to these</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span>      <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">trashdir</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">trashdir</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span>   <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">backups</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">logsdir</span>     <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">logs</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span>     <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span>      <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">uploadsdir</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">uploads</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">trashdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">trashdir</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">backups</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">logsdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">logs</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">uploadsdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">uploads</span><span class="p">)</span>
         <span class="c1"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_wbia_cache</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">thumb_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">thumbs</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">flanndir</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">flann</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span>     <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">qres</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">flanndir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">flann</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">qres</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">bigcachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">bigcache</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">distinctdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">distinctdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
@@ -916,22 +1093,22 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">_verbose</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span>    <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">,</span>   <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">logsdir</span><span class="p">,</span>     <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span>     <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span><span class="p">,</span>      <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span><span class="p">,</span>     <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">flanndir</span><span class="p">,</span>    <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span><span class="p">,</span>     <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">logsdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">flanndir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">bigcachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">thumb_dpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">distinctdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">get_smart_patrol_dir</span><span class="p">()</span></div>
 
-    <span class="c1">#--------------</span>
+    <span class="c1"># --------------</span>
     <span class="c1"># --- DIRS ----</span>
-    <span class="c1">#--------------</span>
+    <span class="c1"># --------------</span>
 
 <div class="viewcode-block" id="IBEISController.get_dbname"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_dbname">[docs]</a>    <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/core/db/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
     <span class="k">def</span> <span class="nf">get_dbname</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -989,7 +1166,7 @@
         <span class="k">if</span> <span class="n">engine_slot</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;null&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">]:</span>
             <span class="n">engine_shelve_dir</span> <span class="o">=</span> <span class="s1">&#39;engine_shelves&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">engine_shelve_dir</span> <span class="o">=</span> <span class="s1">&#39;engine_shelves_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_slot</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">engine_shelve_dir</span> <span class="o">=</span> <span class="s1">&#39;engine_shelves_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_slot</span><span class="p">,)</span>
         <span class="k">return</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="n">engine_shelve_dir</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IBEISController.get_trashdir"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_trashdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_trashdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -1105,9 +1282,9 @@
             <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">smart_patrol_dpath</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">smart_patrol_dpath</span></div>
 
-    <span class="c1">#------------------</span>
+    <span class="c1"># ------------------</span>
     <span class="c1"># --- WEB CORE ----</span>
-    <span class="c1">#------------------</span>
+    <span class="c1"># ------------------</span>
 
 <div class="viewcode-block" id="IBEISController.get_current_log_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_current_log_text">[docs]</a>    <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/log/current/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
     <span class="k">def</span> <span class="nf">get_current_log_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -1134,17 +1311,19 @@
 <div class="viewcode-block" id="IBEISController.get_dbinfo"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_dbinfo">[docs]</a>    <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/core/db/info/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
     <span class="k">def</span> <span class="nf">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">dbinfo</span>
+
         <span class="n">locals_</span> <span class="o">=</span> <span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">locals_</span><span class="p">[</span><span class="s1">&#39;info_str&#39;</span><span class="p">]</span></div>
-        <span class="c1">#return ut.repr2(dbinfo.get_dbinfo(ibs), nl=1)[&#39;infostr&#39;]</span>
+        <span class="c1"># return ut.repr2(dbinfo.get_dbinfo(ibs), nl=1)[&#39;infostr&#39;]</span>
 
-    <span class="c1">#--------------</span>
+    <span class="c1"># --------------</span>
     <span class="c1"># --- MISC ----</span>
-    <span class="c1">#--------------</span>
+    <span class="c1"># --------------</span>
 
 <div class="viewcode-block" id="IBEISController.copy_database"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.copy_database">[docs]</a>    <span class="k">def</span> <span class="nf">copy_database</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dest_dbdir</span><span class="p">):</span>
         <span class="c1"># TODO: rectify with rsync, script, and merge script.</span>
         <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">sysres</span>
+
         <span class="n">sysres</span><span class="o">.</span><span class="n">copy_wbiadb</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="n">dest_dbdir</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IBEISController.dump_database_csv"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.dump_database_csv">[docs]</a>    <span class="k">def</span> <span class="nf">dump_database_csv</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -1175,10 +1354,11 @@
 <span class="sd">            &gt;&gt;&gt; pt.imshow(icon)</span>
 <span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#if ibs.get_dbname() == &#39;Oxford&#39;:</span>
+        <span class="c1"># if ibs.get_dbname() == &#39;Oxford&#39;:</span>
         <span class="c1">#    pass</span>
-        <span class="c1">#else:</span>
+        <span class="c1"># else:</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;force_icon_aid&#39;</span><span class="p">):</span>
             <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">force_icon_aid</span>
         <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1194,10 +1374,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># HACK: (this should probably be a db setting)</span>
                 <span class="c1"># use an specific aid to get the icon</span>
-                <span class="n">aid</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s1">&#39;Oxford&#39;</span><span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
-                    <span class="s1">&#39;seaturtles&#39;</span><span class="p">:</span> <span class="mi">37</span><span class="p">,</span>
-                <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Oxford&#39;</span><span class="p">:</span> <span class="mi">73</span><span class="p">,</span> <span class="s1">&#39;seaturtles&#39;</span><span class="p">:</span> <span class="mi">37</span><span class="p">,}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># otherwise just grab a random aid</span>
                     <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
@@ -1213,7 +1390,7 @@
         <span class="c1"># hash_str = hex(id(ibs))</span>
         <span class="c1"># ibsstr = &#39;&lt;%s(%s) at %s&gt;&#39; % (typestr, dbname, hash_str, )</span>
         <span class="n">hash_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()</span>
-        <span class="n">ibsstr</span> <span class="o">=</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) with UUID </span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">hash_str</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">ibsstr</span> <span class="o">=</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) with UUID </span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">hash_str</span><span class="p">,)</span>
         <span class="k">return</span> <span class="n">ibsstr</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -1242,11 +1419,13 @@
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="c1"># Hack to allow for wbia objects to be pickled</span>
         <span class="kn">import</span> <span class="nn">wbia</span>
+
         <span class="n">dbdir</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;dbdir&#39;</span><span class="p">]</span>
         <span class="n">machine_name</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;machine_name&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">machine_name</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">(),</span> <span class="p">(</span>
-                <span class="s1">&#39;wbia objects can only be picked and unpickled on the same machine&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">machine_name</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span>
+            <span class="p">),</span> <span class="s1">&#39;wbia objects can only be picked and unpickled on the same machine&#39;</span>
         <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">iswarning</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="n">iswarning</span><span class="p">)</span>
@@ -1257,11 +1436,14 @@
 
 <div class="viewcode-block" id="IBEISController.predict_ws_injury_interim_svm"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.predict_ws_injury_interim_svm">[docs]</a>    <span class="k">def</span> <span class="nf">predict_ws_injury_interim_svm</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">classify_shark</span>
+
         <span class="k">return</span> <span class="n">classify_shark</span><span class="o">.</span><span class="n">predict_ws_injury_interim_svm</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IBEISController.get_web_port_via_scan"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_web_port_via_scan">[docs]</a>    <span class="k">def</span> <span class="nf">get_web_port_via_scan</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">url_base</span><span class="o">=</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port_base</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
-                              <span class="n">scan_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.get_web_port_via_scan"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_web_port_via_scan">[docs]</a>    <span class="k">def</span> <span class="nf">get_web_port_via_scan</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">url_base</span><span class="o">=</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port_base</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">scan_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
         <span class="kn">import</span> <span class="nn">requests</span>
+
         <span class="n">api_rule</span> <span class="o">=</span> <span class="n">CORE_DB_UUID_INIT_API_RULE</span>
         <span class="n">target_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">candidate_port</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">port_base</span><span class="p">,</span> <span class="n">port_base</span> <span class="o">+</span> <span class="n">scan_limit</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
@@ -1270,9 +1452,9 @@
                 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">candidate_url</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to find IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to find IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,))</span>
                 <span class="k">continue</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,</span> <span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,))</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
                 <span class="n">candidate_uuid</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;response&#39;</span><span class="p">)</span>
@@ -1280,7 +1462,7 @@
                 <span class="k">return</span> <span class="n">candidate_port</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">AssertionError</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid response from IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid response from IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,))</span>
                 <span class="k">continue</span>
 
         <span class="k">return</span> <span class="kc">None</span></div></div>
@@ -1297,20 +1479,39 @@
 <span class="sd">        python -m wbia.control.IBEISControl --allexamples</span>
 <span class="sd">        python -m wbia.control.IBEISControl --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#from wbia.control import IBEISControl</span>
+    <span class="c1"># from wbia.control import IBEISControl</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1318,57 +1519,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../control.html">wbia.control</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

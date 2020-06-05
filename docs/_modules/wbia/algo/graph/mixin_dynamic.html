@@ -1,36 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.mixin_dynamic &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.graph.mixin_dynamic &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+
+      <li>wbia.algo.graph.mixin_dynamic</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.graph.mixin_dynamic</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -58,9 +177,9 @@
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span><span class="p">,</span>
-                                    <span class="n">UNINFERABLE</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">SAME</span><span class="p">,</span> <span class="n">DIFF</span><span class="p">,</span> <span class="n">NULL</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span><span class="p">,</span> <span class="n">UNINFERABLE</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">SAME</span><span class="p">,</span> <span class="n">DIFF</span><span class="p">,</span> <span class="n">NULL</span>  <span class="c1"># NOQA</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">DECISION_LEVEL</span> <span class="o">=</span> <span class="mi">4</span>
@@ -114,11 +233,13 @@
         <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
         <span class="c1"># Only add edges that don&#39;t exist</span>
         <span class="n">new_edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">infr</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">new_edges</span><span class="p">,</span>
-                                  <span class="n">evidence_decision</span><span class="o">=</span><span class="n">UNREV</span><span class="p">,</span>
-                                  <span class="n">meta_decision</span><span class="o">=</span><span class="n">UNREV</span><span class="p">,</span>
-                                  <span class="n">decision</span><span class="o">=</span><span class="n">UNREV</span><span class="p">,</span>
-                                  <span class="n">num_reviews</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
+            <span class="n">new_edges</span><span class="p">,</span>
+            <span class="n">evidence_decision</span><span class="o">=</span><span class="n">UNREV</span><span class="p">,</span>
+            <span class="n">meta_decision</span><span class="o">=</span><span class="n">UNREV</span><span class="p">,</span>
+            <span class="n">decision</span><span class="o">=</span><span class="n">UNREV</span><span class="p">,</span>
+            <span class="n">num_reviews</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="c1"># No inference is needed by expliclty creating unreviewed edges that</span>
         <span class="c1"># already implicitly existsed.</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">_add_review_edges_from</span><span class="p">(</span><span class="n">new_edges</span><span class="p">,</span> <span class="n">decision</span><span class="o">=</span><span class="n">UNREV</span><span class="p">)</span>
@@ -174,15 +295,15 @@
         <span class="k">return</span> <span class="n">UNREV</span>
 
 <div class="viewcode-block" id="DynamicUpdate.on_between"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_dynamic.DynamicUpdate.on_between">[docs]</a>    <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">on_between</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">,</span>
-                   <span class="n">merge_nid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_between</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">,</span> <span class="n">merge_nid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Callback when a review is made between two PCCs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">action</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;between&#39;</span><span class="p">]</span>
 
         <span class="n">infr</span><span class="o">.</span><span class="n">_update_neg_metagraph</span><span class="p">(</span>
-            <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">,</span> <span class="n">merge_nid</span><span class="o">=</span><span class="n">merge_nid</span><span class="p">)</span>
+            <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">,</span> <span class="n">merge_nid</span><span class="o">=</span><span class="n">merge_nid</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">merge_nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># A merge occurred</span>
@@ -208,7 +329,8 @@
         <span class="n">action</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;within&#39;</span><span class="p">]</span>
 
         <span class="n">infr</span><span class="o">.</span><span class="n">_update_neg_metagraph</span><span class="p">(</span>
-            <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">split_nids</span><span class="o">=</span><span class="n">split_nids</span><span class="p">)</span>
+            <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">split_nids</span><span class="o">=</span><span class="n">split_nids</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">split_nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># A split occurred</span>
@@ -231,8 +353,9 @@
         <span class="k">return</span> <span class="n">action</span></div>
 
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">_update_neg_metagraph</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">,</span>
-                              <span class="n">merge_nid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_nids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_update_neg_metagraph</span><span class="p">(</span>
+        <span class="n">infr</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">,</span> <span class="n">merge_nid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_nids</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update the negative metagraph based a new review</span>
 
@@ -296,11 +419,14 @@
                 <span class="n">cc1</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">component</span><span class="p">(</span><span class="n">new_nid</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">other_nid</span> <span class="ow">in</span> <span class="n">extern_nids</span><span class="p">:</span>
                     <span class="n">cc2</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">component</span><span class="p">(</span><span class="n">other_nid</span><span class="p">)</span>
-                    <span class="n">num</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">nxu</span><span class="o">.</span><span class="n">edges_between</span><span class="p">(</span>
-                        <span class="n">infr</span><span class="o">.</span><span class="n">neg_graph</span><span class="p">,</span> <span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span><span class="p">,</span> <span class="n">assume_dense</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+                    <span class="n">num</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+                        <span class="mi">1</span>
+                        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">nxu</span><span class="o">.</span><span class="n">edges_between</span><span class="p">(</span>
+                            <span class="n">infr</span><span class="o">.</span><span class="n">neg_graph</span><span class="p">,</span> <span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span><span class="p">,</span> <span class="n">assume_dense</span><span class="o">=</span><span class="kc">False</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
                     <span class="k">if</span> <span class="n">num</span><span class="p">:</span>
-                        <span class="n">split_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                            <span class="p">(</span><span class="n">new_nid</span><span class="p">,</span> <span class="n">other_nid</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">num</span><span class="p">}))</span>
+                        <span class="n">split_edges</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_nid</span><span class="p">,</span> <span class="n">other_nid</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">num</span><span class="p">}))</span>
 
             <span class="n">nmg</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="n">old_nid</span><span class="p">)</span>
             <span class="n">nmg</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">split_nids</span><span class="p">)</span>
@@ -377,8 +503,9 @@
                 <span class="n">new_nid</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">node_label</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="n">infr</span><span class="o">.</span><span class="n">update_extern_neg_redun</span><span class="p">(</span><span class="n">new_nid</span><span class="p">,</span> <span class="n">may_remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">infr</span><span class="o">.</span><span class="n">update_pos_redun</span><span class="p">(</span><span class="n">new_nid</span><span class="p">,</span> <span class="n">may_remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_between</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">,</span>
-                                     <span class="n">merge_nid</span><span class="o">=</span><span class="n">new_nid</span><span class="p">)</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_between</span><span class="p">(</span>
+                <span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">,</span> <span class="n">merge_nid</span><span class="o">=</span><span class="n">new_nid</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">action</span>
 
     <span class="nd">@profile</span>
@@ -422,8 +549,9 @@
                     <span class="n">infr</span><span class="o">.</span><span class="n">_check_inconsistency</span><span class="p">(</span><span class="n">new_nid1</span><span class="p">)</span>
                     <span class="n">infr</span><span class="o">.</span><span class="n">_check_inconsistency</span><span class="p">(</span><span class="n">new_nid2</span><span class="p">)</span>
                 <span class="c1"># Signal that a split occurred</span>
-                <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_within</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span>
-                                        <span class="n">split_nids</span><span class="o">=</span><span class="p">(</span><span class="n">new_nid1</span><span class="p">,</span> <span class="n">new_nid2</span><span class="p">))</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_within</span><span class="p">(</span>
+                    <span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">split_nids</span><span class="o">=</span><span class="p">(</span><span class="n">new_nid1</span><span class="p">,</span> <span class="n">new_nid2</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">all_consistent</span><span class="p">:</span>
                     <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;neg-within-clean&#39;</span><span class="p">)</span>
@@ -442,8 +570,7 @@
                 <span class="c1"># nothing to do if a negative edge is added between two PCCs</span>
                 <span class="c1"># where at least one is inconsistent</span>
                 <span class="k">pass</span>
-            <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_between</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">new_nid1</span><span class="p">,</span>
-                                     <span class="n">new_nid2</span><span class="p">)</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_between</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">new_nid1</span><span class="p">,</span> <span class="n">new_nid2</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">action</span>
 
     <span class="nd">@profile</span>
@@ -464,8 +591,7 @@
         <span class="n">print_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">prefix</span> <span class="o">=</span> <span class="p">{</span><span class="n">INCMP</span><span class="p">:</span> <span class="s1">&#39;incmp&#39;</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">:</span> <span class="s1">&#39;unrev&#39;</span><span class="p">,</span>
-                      <span class="n">UNKWN</span><span class="p">:</span> <span class="s1">&#39;unkown&#39;</span><span class="p">}[</span><span class="n">decision</span><span class="p">]</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="p">{</span><span class="n">INCMP</span><span class="p">:</span> <span class="s1">&#39;incmp&#39;</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">:</span> <span class="s1">&#39;unrev&#39;</span><span class="p">,</span> <span class="n">UNKWN</span><span class="p">:</span> <span class="s1">&#39;unkown&#39;</span><span class="p">}[</span><span class="n">decision</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;decision can only be UNREV, INCMP, or UNKWN&#39;</span><span class="p">)</span>
 
@@ -500,9 +626,13 @@
                         <span class="n">infr</span><span class="o">.</span><span class="n">_check_inconsistency</span><span class="p">(</span><span class="n">new_nid1</span><span class="p">)</span>
                         <span class="n">infr</span><span class="o">.</span><span class="n">_check_inconsistency</span><span class="p">(</span><span class="n">new_nid2</span><span class="p">)</span>
                     <span class="c1"># Signal that a split occurred</span>
-                    <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_within</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span>
-                                            <span class="n">nid1</span><span class="p">,</span> <span class="n">split_nids</span><span class="o">=</span><span class="p">(</span><span class="n">new_nid1</span><span class="p">,</span>
-                                                              <span class="n">new_nid2</span><span class="p">))</span>
+                    <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_within</span><span class="p">(</span>
+                        <span class="n">edge</span><span class="p">,</span>
+                        <span class="n">decision</span><span class="p">,</span>
+                        <span class="n">prev_decision</span><span class="p">,</span>
+                        <span class="n">nid1</span><span class="p">,</span>
+                        <span class="n">split_nids</span><span class="o">=</span><span class="p">(</span><span class="n">new_nid1</span><span class="p">,</span> <span class="n">new_nid2</span><span class="p">),</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">all_consistent</span><span class="p">:</span>
                         <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-within-pos-clean&#39;</span> <span class="o">%</span> <span class="n">prefix</span><span class="p">)</span>
@@ -511,14 +641,12 @@
                         <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-within-pos-dirty&#39;</span> <span class="o">%</span> <span class="n">prefix</span><span class="p">)</span>
                         <span class="c1"># Overwriting a positive edge that is not a split</span>
                         <span class="c1"># in an inconsistent component, means no inference.</span>
-                    <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_within</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span>
-                                            <span class="n">new_nid1</span><span class="p">)</span>
+                    <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_within</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">new_nid1</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">prev_decision</span> <span class="o">==</span> <span class="n">NEGTV</span><span class="p">:</span>
                 <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-within-neg-dirty&#39;</span> <span class="o">%</span> <span class="n">prefix</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="ow">not</span> <span class="n">all_consistent</span>
                 <span class="n">infr</span><span class="o">.</span><span class="n">_check_inconsistency</span><span class="p">(</span><span class="n">nid1</span><span class="p">)</span>
-                <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_within</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span>
-                                        <span class="n">new_nid1</span><span class="p">)</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">on_within</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">new_nid1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">all_consistent</span><span class="p">:</span>
                     <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-within-clean&#39;</span> <span class="o">%</span> <span class="n">prefix</span><span class="p">)</span>
@@ -622,8 +750,7 @@
         <span class="n">old_error_edges</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">nid_to_errors</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="p">[])</span>
         <span class="c1"># Remove priority from old error edges</span>
         <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.update_attrs&#39;</span><span class="p">]:</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="s1">&#39;maybe_error&#39;</span><span class="p">,</span>
-                                <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">old_error_edges</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">]))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="s1">&#39;maybe_error&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">old_error_edges</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">]))</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">_remove_edge_priority</span><span class="p">(</span><span class="n">old_error_edges</span><span class="p">)</span>
         <span class="n">was_clean</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_error_edges</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">was_clean</span>
@@ -634,8 +761,7 @@
         <span class="n">infr</span><span class="o">.</span><span class="n">nid_to_errors</span><span class="p">[</span><span class="n">nid</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_error_edges</span>
         <span class="c1"># choose one and give it insanely high priority</span>
         <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.update_attrs&#39;</span><span class="p">]:</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="s1">&#39;maybe_error&#39;</span><span class="p">,</span>
-                                <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">new_error_edges</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="s1">&#39;maybe_error&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">new_error_edges</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">]))</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">_increase_priority</span><span class="p">(</span><span class="n">new_error_edges</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Recovery.maybe_error_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_dynamic.Recovery.maybe_error_edges">[docs]</a>    <span class="k">def</span> <span class="nf">maybe_error_edges</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
@@ -673,8 +799,9 @@
             <span class="n">infr</span><span class="o">.</span><span class="n">recover_graph</span><span class="o">.</span><span class="n">remove_nodes_from</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span>
             <span class="n">num</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">recover_graph</span><span class="o">.</span><span class="n">number_of_components</span><span class="p">()</span>
             <span class="c1"># num = len(list(nx.connected_components(infr.recover_graph)))</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;An inconsistent PCC recovered, &#39;</span>
-                   <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> inconsistent PCC(s) remain&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s1">&#39;An inconsistent PCC recovered, &#39;</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> inconsistent PCC(s) remain&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">update_pos_redun</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">update_extern_neg_redun</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -682,16 +809,15 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">was_clean</span><span class="p">,</span> <span class="n">is_clean</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_mincut_edge_weights</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edges_</span><span class="p">):</span>
-        <span class="n">conf_gen</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_values</span><span class="p">(</span><span class="s1">&#39;confidence&#39;</span><span class="p">,</span> <span class="n">edges_</span><span class="p">,</span>
-                                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;unspecified&#39;</span><span class="p">)</span>
+        <span class="n">conf_gen</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_values</span><span class="p">(</span><span class="s1">&#39;confidence&#39;</span><span class="p">,</span> <span class="n">edges_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;unspecified&#39;</span><span class="p">)</span>
         <span class="n">conf_gen</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;unspecified&#39;</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conf_gen</span><span class="p">]</span>
         <span class="n">code_to_conf</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE_TO_INT</span>
         <span class="n">code_to_conf</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;absolutely_sure&#39;</span> <span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span>
-            <span class="s1">&#39;pretty_sure&#39;</span>     <span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
-            <span class="s1">&#39;not_sure&#39;</span>        <span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
-            <span class="s1">&#39;guessing&#39;</span>        <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="s1">&#39;unspecified&#39;</span>     <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s1">&#39;absolutely_sure&#39;</span><span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span>
+            <span class="s1">&#39;pretty_sure&#39;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
+            <span class="s1">&#39;not_sure&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+            <span class="s1">&#39;guessing&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s1">&#39;unspecified&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">confs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">code_to_conf</span><span class="p">,</span> <span class="n">conf_gen</span><span class="p">))</span>
         <span class="c1"># confs = np.array([0 if c is None else c for c in confs])</span>
@@ -711,7 +837,10 @@
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;Not connected&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">))</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
             <span class="s1">&#39;Find hypothesis errors in </span><span class="si">{}</span><span class="s1"> nodes with </span><span class="si">{}</span><span class="s1"> neg edges&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="nb">len</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">neg_edges</span><span class="p">)),</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">neg_edges</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="mi">3</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="n">pos_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
 
@@ -719,14 +848,15 @@
         <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_mincut_edge_weights</span><span class="p">(</span><span class="n">pos_edges</span><span class="p">)</span>
 
         <span class="n">capacity</span> <span class="o">=</span> <span class="s1">&#39;weight&#39;</span>
-        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">capacity</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">pos_edges</span><span class="p">,</span> <span class="n">pos_weight</span><span class="p">))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span>
+            <span class="n">pos_subgraph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">capacity</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">pos_edges</span><span class="p">,</span> <span class="n">pos_weight</span><span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="c1"># Solve a multicut problem for multiple pairs of terminal nodes.</span>
         <span class="c1"># Running multiple min-cuts produces a k-factor approximation</span>
         <span class="n">maybe_error_edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="n">join_weight</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">neg_edges</span><span class="p">,</span> <span class="n">neg_weight</span><span class="p">):</span>
-            <span class="n">cut_weight</span><span class="p">,</span> <span class="n">parts</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_cut</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span>
-                                               <span class="n">capacity</span><span class="o">=</span><span class="n">capacity</span><span class="p">)</span>
+            <span class="n">cut_weight</span><span class="p">,</span> <span class="n">parts</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_cut</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">capacity</span><span class="o">=</span><span class="n">capacity</span><span class="p">)</span>
             <span class="n">cut_edgeset</span> <span class="o">=</span> <span class="n">nxu</span><span class="o">.</span><span class="n">edges_cross</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">join_weight</span> <span class="o">&lt;</span> <span class="n">cut_weight</span><span class="p">:</span>
                 <span class="n">join_edgeset</span> <span class="o">=</span> <span class="p">{(</span><span class="n">s</span><span class="p">,</span> <span class="n">t</span><span class="p">)}</span>
@@ -774,8 +904,7 @@
         <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">graph</span> <span class="ow">is</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">:</span>
             <span class="n">ccs</span> <span class="o">=</span> <span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_components</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">unique_labels</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">pos_graph</span><span class="o">.</span><span class="n">node_label</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()}</span>
+            <span class="n">unique_labels</span> <span class="o">=</span> <span class="p">{</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">node_label</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()}</span>
             <span class="n">ccs</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_to</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">unique_labels</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">ccs</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">cc</span></div>
@@ -954,11 +1083,12 @@
         <span class="n">k_neg</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;redun.neg&#39;</span><span class="p">]</span>
         <span class="n">pos_graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span>
         <span class="n">neg_nids</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">nid2</span> <span class="k">for</span> <span class="n">nid2</span><span class="p">,</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">neg_nid_freq</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="n">nid2</span>
+            <span class="k">for</span> <span class="n">nid2</span><span class="p">,</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">neg_nid_freq</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="n">freq</span> <span class="o">&gt;=</span> <span class="n">k_neg</span> <span class="ow">or</span>
-                <span class="n">freq</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span> <span class="ow">or</span>
-                <span class="n">freq</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_to</span><span class="p">(</span><span class="n">nid2</span><span class="p">))</span>
+                <span class="n">freq</span> <span class="o">&gt;=</span> <span class="n">k_neg</span>
+                <span class="ow">or</span> <span class="n">freq</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="n">freq</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">connected_to</span><span class="p">(</span><span class="n">nid2</span><span class="p">))</span>
             <span class="p">)</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">neg_nids</span>
@@ -1068,8 +1198,7 @@
                 <span class="k">yield</span> <span class="n">edge</span></div>
 
 <div class="viewcode-block" id="Redundancy.update_extern_neg_redun"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_dynamic.Redundancy.update_extern_neg_redun">[docs]</a>    <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">update_extern_neg_redun</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">may_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">may_remove</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_extern_neg_redun</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">may_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">may_remove</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if `nid` is negative redundant to any other `cc` it has at least</span>
 <span class="sd">        one negative review to.</span>
@@ -1100,8 +1229,9 @@
                 <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;neg_redun skip update nid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,),</span> <span class="mi">6</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Redundancy.update_neg_redun_to"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_dynamic.Redundancy.update_neg_redun_to">[docs]</a>    <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">update_neg_redun_to</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">other_nids</span><span class="p">,</span> <span class="n">may_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">may_remove</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                            <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_neg_redun_to</span><span class="p">(</span>
+        <span class="n">infr</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">other_nids</span><span class="p">,</span> <span class="n">may_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">may_remove</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if nid1 is neg redundant to other_nids.</span>
 <span class="sd">        Edges are either removed or added to the queue appropriately.</span>
@@ -1122,8 +1252,7 @@
         <span class="n">infr</span><span class="o">.</span><span class="n">_set_neg_redun_flags</span><span class="p">(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">other_nids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Redundancy.update_pos_redun"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_dynamic.Redundancy.update_pos_redun">[docs]</a>    <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">update_pos_redun</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">may_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">may_remove</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_pos_redun</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">may_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">may_remove</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if a PCC is newly, or no longer positive redundant.</span>
 <span class="sd">        Edges are either removed or added to the queue appropriately.</span>
@@ -1170,8 +1299,7 @@
             <span class="n">infr</span><span class="o">.</span><span class="n">remove_internal_priority</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.update_attrs&#39;</span><span class="p">]:</span>
                 <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-                    <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-                    <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">),</span> <span class="p">[</span><span class="s1">&#39;same&#39;</span><span class="p">])</span>
+                    <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">),</span> <span class="p">[</span><span class="s1">&#39;same&#39;</span><span class="p">]),</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">was_pos_redun</span><span class="p">:</span>
@@ -1183,8 +1311,7 @@
             <span class="n">infr</span><span class="o">.</span><span class="n">reinstate_internal_priority</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.update_attrs&#39;</span><span class="p">]:</span>
                 <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-                    <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-                    <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">),</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
+                    <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">),</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
                 <span class="p">)</span>
 
     <span class="nd">@profile</span>
@@ -1304,7 +1431,6 @@
 
 <div class="viewcode-block" id="NonDynamicUpdate"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_dynamic.NonDynamicUpdate">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">NonDynamicUpdate</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
 <div class="viewcode-block" id="NonDynamicUpdate.apply_nondynamic_update"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_dynamic.NonDynamicUpdate.apply_nondynamic_update">[docs]</a>    <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">apply_nondynamic_update</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -1331,34 +1457,33 @@
         <span class="n">categories</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">categorize_edges</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">ne_to_edges</span><span class="p">)</span>
 
         <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="s1">&#39;same&#39;</span><span class="p">])</span>
+            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="s1">&#39;same&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
+            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="s1">&#39;diff&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
+            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">INCMP</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="n">INCMP</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
+            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">UNKWN</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="n">UNKWN</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
+            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">UNREV</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
         <span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
             <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="s1">&#39;diff&#39;</span><span class="p">])</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="s1">&#39;inconsistent_internal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+                <span class="p">[</span><span class="s1">&#39;inconsistent_internal&#39;</span><span class="p">],</span>
+            <span class="p">),</span>
         <span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
             <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">INCMP</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="n">INCMP</span><span class="p">])</span>
-        <span class="p">)</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">UNKWN</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="n">UNKWN</span><span class="p">])</span>
-        <span class="p">)</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">UNREV</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
-        <span class="p">)</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="s1">&#39;inconsistent_internal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
-                    <span class="p">[</span><span class="s1">&#39;inconsistent_internal&#39;</span><span class="p">])</span>
-        <span class="p">)</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-            <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="s1">&#39;inconsistent_external&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
-                    <span class="p">[</span><span class="s1">&#39;inconsistent_external&#39;</span><span class="p">])</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="s1">&#39;inconsistent_external&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+                <span class="p">[</span><span class="s1">&#39;inconsistent_external&#39;</span><span class="p">],</span>
+            <span class="p">),</span>
         <span class="p">)</span>
 
         <span class="c1"># Ensure bookkeeping is taken care of</span>
@@ -1382,20 +1507,17 @@
             <span class="n">cc</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">component_nodes</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
             <span class="n">pos_subgraph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">cc</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">neg_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">neg_graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">))</span>
-            <span class="n">recover_hypothesis</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">hypothesis_errors</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">,</span>
-                                                             <span class="n">neg_edges</span><span class="p">))</span>
+            <span class="n">recover_hypothesis</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">hypothesis_errors</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="p">,</span> <span class="n">neg_edges</span><span class="p">))</span>
             <span class="n">nid_to_errors</span><span class="p">[</span><span class="n">nid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">recover_hypothesis</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">recover_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">pos_subgraph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
 
         <span class="c1"># Delete old hypothesis</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-            <span class="s1">&#39;maybe_error&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">nid_to_errors</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
+            <span class="s1">&#39;maybe_error&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">nid_to_errors</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
         <span class="p">)</span>
         <span class="c1"># Set new hypothesis</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-            <span class="s1">&#39;maybe_error&#39;</span><span class="p">,</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">nid_to_errors</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="kc">True</span><span class="p">])</span>
+            <span class="s1">&#39;maybe_error&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">nid_to_errors</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="p">[</span><span class="kc">True</span><span class="p">])</span>
         <span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">nid_to_errors</span> <span class="o">=</span> <span class="n">nid_to_errors</span>
 
@@ -1419,8 +1541,7 @@
             <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="n">POSTV</span><span class="p">:</span>
-                    <span class="n">rev_graph</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_graph</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span>
-                                                             <span class="n">dynamic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">rev_graph</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_graph</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">rev_graph</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_graph</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
 
@@ -1431,8 +1552,7 @@
 
         <span class="c1"># Get reviewed edges using fast lookup structures</span>
         <span class="n">ne_to_edges</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">key</span><span class="p">:</span> <span class="n">nxu</span><span class="o">.</span><span class="n">group_name_edges</span><span class="p">(</span><span class="n">rev_graph</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">node_to_label</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">states</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">nxu</span><span class="o">.</span><span class="n">group_name_edges</span><span class="p">(</span><span class="n">rev_graph</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">node_to_label</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">states</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">ne_to_edges</span></div>
 
@@ -1477,23 +1597,28 @@
         <span class="n">name_edges</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">incon_internal_ne</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span> <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span> <span class="ow">in</span> <span class="n">name_edges</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]),</span> <span class="p">(</span>
-                <span class="s1">&#39;All positive edges should be internal to a PCC&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span> <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span> <span class="ow">in</span> <span class="n">name_edges</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span>
+            <span class="p">),</span> <span class="s1">&#39;All positive edges should be internal to a PCC&#39;</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_edges</span><span class="p">[</span><span class="n">INCMP</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">incon_internal_ne</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_edges</span><span class="p">[</span><span class="n">UNREV</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">incon_internal_ne</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_edges</span><span class="p">[</span><span class="n">UNKWN</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">incon_internal_ne</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
-            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span> <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span> <span class="ow">in</span> <span class="n">incon_internal_ne</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;incon_internal edges should be internal to a PCC&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span> <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span> <span class="ow">in</span> <span class="n">incon_internal_ne</span>
+            <span class="p">),</span> <span class="s1">&#39;incon_internal edges should be internal to a PCC&#39;</span>
 
         <span class="c1"># External inconsistentices are edges leaving inconsistent components</span>
         <span class="n">incon_internal_nids</span> <span class="o">=</span> <span class="p">{</span><span class="n">n1</span> <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span> <span class="ow">in</span> <span class="n">incon_internal_ne</span><span class="p">}</span>
         <span class="n">incon_external_ne</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
         <span class="c1"># Find all edges leaving an inconsistent PCC</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span><span class="p">:</span>
-            <span class="n">incon_external_ne</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-                <span class="p">(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">)</span> <span class="k">for</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="n">name_edges</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">nid1</span> <span class="ow">in</span> <span class="n">incon_internal_nids</span> <span class="ow">or</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="n">incon_internal_nids</span>
-            <span class="p">})</span>
+            <span class="n">incon_external_ne</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="p">(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="n">name_edges</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">nid1</span> <span class="ow">in</span> <span class="n">incon_internal_nids</span> <span class="ow">or</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="n">incon_internal_nids</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span><span class="p">:</span>
             <span class="n">name_edges</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">incon_external_ne</span><span class="p">)</span>
 
@@ -1506,30 +1631,28 @@
 
         <span class="c1"># Find edges within consistent PCCs</span>
         <span class="n">positive</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">nid1</span><span class="p">:</span> <span class="n">union</span><span class="p">(</span>
-                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">)]</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span><span class="p">)</span>
+            <span class="n">nid1</span><span class="p">:</span> <span class="n">union</span><span class="p">(</span><span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">)]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="n">name_edges</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span>
         <span class="p">}</span>
         <span class="c1"># Find edges between 1-negative-redundant consistent PCCs</span>
         <span class="n">negative</span> <span class="o">=</span> <span class="p">{</span>
             <span class="p">(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">):</span> <span class="n">union</span><span class="p">(</span>
-                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">)]</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span><span class="p">)</span>
+                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">)]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span>
+            <span class="p">)</span>
             <span class="k">for</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="n">name_edges</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span>
         <span class="p">}</span>
         <span class="c1"># Find edges internal to inconsistent PCCs</span>
         <span class="n">incon_internal</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">nid</span><span class="p">:</span> <span class="n">union</span><span class="p">(</span>
-                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid</span><span class="p">,</span> <span class="n">nid</span><span class="p">)]</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span><span class="p">)</span>
+                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid</span><span class="p">,</span> <span class="n">nid</span><span class="p">)]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span>
+            <span class="p">)</span>
             <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">incon_internal_nids</span>
         <span class="p">}</span>
         <span class="c1"># Find edges leaving inconsistent PCCs</span>
         <span class="n">incon_external</span> <span class="o">=</span> <span class="p">{</span>
             <span class="p">(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">):</span> <span class="n">union</span><span class="p">(</span>
-                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">)]</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span><span class="p">)</span>
+                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">)]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span>
+            <span class="p">)</span>
             <span class="k">for</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="n">incon_external_ne</span>
         <span class="p">}</span>
         <span class="c1"># Unknown names may have been comparable but the reviewer did not</span>
@@ -1569,18 +1692,37 @@
 <span class="sd">        python -m wbia.algo.graph.mixin_dynamic --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1588,59 +1730,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../graph.html">wbia.algo.graph</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

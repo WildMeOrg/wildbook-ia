@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia._wbia_object &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia._wbia_object &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia._wbia_object</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia._wbia_object</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -38,6 +153,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[_wbia_object]&#39;</span><span class="p">)</span>
 
 
@@ -70,6 +186,7 @@
 <span class="sd">        &gt;&gt;&gt; _find_wbia_attrs(ibs, objname, blacklist)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">re</span>
+
     <span class="n">getter_prefix</span> <span class="o">=</span> <span class="s1">&#39;get_&#39;</span> <span class="o">+</span> <span class="n">objname</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
     <span class="n">found_getters</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_module</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">getter_prefix</span><span class="p">)</span>
     <span class="n">pat</span> <span class="o">=</span> <span class="n">getter_prefix</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;attr&#39;</span><span class="p">,</span> <span class="s1">&#39;.*&#39;</span><span class="p">)</span>
@@ -86,9 +203,16 @@
     <span class="k">return</span> <span class="n">matched_getters</span><span class="p">,</span> <span class="n">matched_setters</span>
 
 
-<span class="k">def</span> <span class="nf">_inject_getter_attrs</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">objname</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">configurable_attrs</span><span class="p">,</span>
-                         <span class="n">depc_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">depcache_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">settable_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aliased_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_inject_getter_attrs</span><span class="p">(</span>
+    <span class="n">metaself</span><span class="p">,</span>
+    <span class="n">objname</span><span class="p">,</span>
+    <span class="n">attrs</span><span class="p">,</span>
+    <span class="n">configurable_attrs</span><span class="p">,</span>
+    <span class="n">depc_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">depcache_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">settable_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">aliased_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Used by the metaclass to inject methods and properties into the class</span>
 <span class="sd">    inheriting from ObjectList1D</span>
@@ -105,8 +229,7 @@
     <span class="k">if</span> <span class="n">depcache_attrs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">metaself</span><span class="o">.</span><span class="n">_depcache_attrs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">metaself</span><span class="o">.</span><span class="n">_depcache_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
-                                    <span class="k">for</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">depcache_attrs</span><span class="p">]</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">_depcache_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">depcache_attrs</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">aliased_attrs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">metaself</span><span class="o">.</span><span class="n">_attrs_aliases</span> <span class="o">=</span> <span class="n">aliased_attrs</span>
     <span class="k">else</span><span class="p">:</span>
@@ -131,19 +254,20 @@
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span> <span class="ow">and</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">[</span><span class="n">attrname</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
                 <span class="n">_rowid_setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_setter</span><span class="p">,</span> <span class="s1">&#39;_set_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_setter</span>
 
     <span class="k">def</span> <span class="nf">_make_caching_getter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_caching</span> <span class="ow">and</span>
-                                     <span class="n">attrname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_caching</span> <span class="ow">and</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">):</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">[</span><span class="n">attrname</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">_rowid_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">[</span><span class="n">attrname</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
             <span class="k">return</span> <span class="n">data</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_getter</span><span class="p">,</span> <span class="s1">&#39;_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_getter</span>
 
@@ -152,9 +276,11 @@
 
     <span class="k">def</span> <span class="nf">_make_setters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
         <span class="n">ibs_funcname</span> <span class="o">=</span> <span class="s1">&#39;set_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">_rowid_setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">ibs_callable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">ibs_funcname</span><span class="p">)</span>
             <span class="n">ibs_callable</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_rowid_setter</span><span class="p">,</span> <span class="s1">&#39;_rowid_set_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
         <span class="n">_setter</span> <span class="o">=</span> <span class="n">_make_caching_setter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_setter</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_rowid_setter</span><span class="p">,</span> <span class="n">_setter</span>
@@ -163,24 +289,28 @@
 
     <span class="k">def</span> <span class="nf">_make_getters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
         <span class="n">ibs_funcname</span> <span class="o">=</span> <span class="s1">&#39;get_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">_rowid_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">):</span>
             <span class="n">ibs_callable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">ibs_funcname</span><span class="p">)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">ibs_callable</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asarray</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">data</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_rowid_getter</span><span class="p">,</span> <span class="s1">&#39;_rowid_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
         <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_caching_getter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span>
 
     <span class="k">def</span> <span class="nf">_make_cfg_getters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
         <span class="n">ibs_funcname</span> <span class="o">=</span> <span class="s1">&#39;get_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">_rowid_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">):</span>
             <span class="n">ibs_callable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">ibs_funcname</span><span class="p">)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">ibs_callable</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asarray</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">data</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_rowid_getter</span><span class="p">,</span> <span class="s1">&#39;_rowid_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
         <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_caching_getter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span>
@@ -192,6 +322,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asarray</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">data</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_rowid_getter</span><span class="p">,</span> <span class="s1">&#39;_rowid_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
         <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_caching_getter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span>
@@ -223,8 +354,7 @@
     <span class="k">if</span> <span class="n">depcache_attrs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">depcache_attrs</span><span class="p">:</span>
             <span class="n">attrname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
-            <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_depc_getters</span><span class="p">(</span><span class="n">depc_name</span><span class="p">,</span> <span class="n">attrname</span><span class="p">,</span>
-                                                        <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+            <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_depc_getters</span><span class="p">(</span><span class="n">depc_name</span><span class="p">,</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
             <span class="n">prop</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="o">=</span><span class="n">_getter</span><span class="p">,</span> <span class="n">fset</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
             <span class="n">rowid_getters</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">))</span>
             <span class="n">getters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_getter</span><span class="p">)</span>
@@ -259,10 +389,13 @@
         <span class="c1"># TODO: turn on autogenertion given a flag</span>
         <span class="k">def</span> <span class="nf">expand_closure_source</span><span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
             <span class="n">source</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_sourcecode</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-            <span class="n">closure_vars</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">cell_contents</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span>
-                            <span class="nb">zip</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_freevars</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">func_closure</span><span class="p">)]</span>
+            <span class="n">closure_vars</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">cell_contents</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_freevars</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">func_closure</span><span class="p">)</span>
+            <span class="p">]</span>
             <span class="n">source</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
             <span class="kn">import</span> <span class="nn">re</span>
+
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">closure_vars</span><span class="p">:</span>
                 <span class="n">source</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">b&#39;</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">b&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">source</span><span class="p">)</span>
             <span class="n">source</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;def .*\(self&#39;</span><span class="p">,</span> <span class="s1">&#39;def &#39;</span> <span class="o">+</span> <span class="n">funcname</span> <span class="o">+</span> <span class="s1">&#39;(self&#39;</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
@@ -289,17 +422,20 @@
             <span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;    </span><span class="si">%s</span><span class="s1"> = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">alias</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
             <span class="n">explicit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
 
-        <span class="n">explicit_source</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-            <span class="s1">&#39;from wbia import _wbia_object&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;class _</span><span class="si">%s</span><span class="s1">_base_class(_wbia_object.ObjectList1D):&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;    __needs_inject__ = False&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="p">])</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,)</span>
+        <span class="n">explicit_source</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;from wbia import _wbia_object&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;class _</span><span class="si">%s</span><span class="s1">_base_class(_wbia_object.ObjectList1D):&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;    __needs_inject__ = False&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,)</span>
         <span class="n">explicit_source</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">explicit_lines</span><span class="p">)</span>
         <span class="n">explicit_fname</span> <span class="o">=</span> <span class="s1">&#39;_autogen_</span><span class="si">%s</span><span class="s1">_base.py&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,)</span>
         <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="n">explicit_fname</span><span class="p">),</span> <span class="n">explicit_source</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">attr_to_aliases</span><span class="p">:</span>
@@ -311,6 +447,7 @@
 <span class="sd">    This actually stores a ObjectList1D of length 1 and</span>
 <span class="sd">    simply calls those functions where available</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj1d</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj1d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obj1d</span> <span class="o">=</span> <span class="n">obj1d</span>
@@ -357,16 +494,16 @@
         <span class="k">return</span> <span class="n">metadata</span></div>
 
 
-<span class="c1">#@ut.reloadable_class</span>
+<span class="c1"># @ut.reloadable_class</span>
 <div class="viewcode-block" id="ObjectList1D"><a class="viewcode-back" href="../../wbia.html#wbia._wbia_object.ObjectList1D">[docs]</a><span class="k">class</span> <span class="nc">ObjectList1D</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">HashComparable2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An object that efficiently operates on a list of wbia objects using</span>
 <span class="sd">    vectorized code. Single instances can be returned as ObjectScalar0D&#39;s</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">caching</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">asarray</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">caching</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">asarray</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span> <span class="o">=</span> <span class="n">rowids</span>
-        <span class="c1">#self._islist = True</span>
+        <span class="c1"># self._islist = True</span>
         <span class="c1"># Internal cache</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># Internal behaviors</span>
@@ -376,11 +513,15 @@
         <span class="c1"># Private attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rowid_to_idx</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_asarray</span> <span class="o">=</span> <span class="n">asarray</span>
-        <span class="c1">#ut.make_index_lookup(self._rowids)</span>
+        <span class="c1"># ut.make_index_lookup(self._rowids)</span>
 
     <span class="k">def</span> <span class="nf">__vector_attributes__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">attrs</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attrs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configurable_attrs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_depcache_attrs</span> <span class="o">+</span>
-                 <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attrs_aliases</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_attrs</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configurable_attrs</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_depcache_attrs</span>
+            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attrs_aliases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">attrs</span>
 
 <div class="viewcode-block" id="ObjectList1D.set_caching"><a class="viewcode-back" href="../../wbia.html#wbia._wbia_object.ObjectList1D.set_caching">[docs]</a>    <span class="k">def</span> <span class="nf">set_caching</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
@@ -406,11 +547,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
         <span class="c1"># Create a new instance pointing only to the requested subset</span>
-        <span class="n">newself</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span>
-                                 <span class="n">caching</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_caching</span><span class="p">)</span>
+        <span class="n">newself</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
+            <span class="n">rowids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="n">caching</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_caching</span>
+        <span class="p">)</span>
         <span class="c1"># Pass along any internally cached values</span>
-        <span class="n">_new_internal</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
-                         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">_new_internal</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
         <span class="n">newself</span><span class="o">.</span><span class="n">_internal_attrs</span> <span class="o">=</span> <span class="n">_new_internal</span>
         <span class="k">return</span> <span class="n">newself</span></div>
 
@@ -453,7 +596,7 @@
         <span class="n">scalar_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))]</span>
         <span class="k">return</span> <span class="n">scalar_list</span></div>
 
-<div class="viewcode-block" id="ObjectList1D.compress"><a class="viewcode-back" href="../../wbia.html#wbia._wbia_object.ObjectList1D.compress">[docs]</a>    <span class="k">def</span> <span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">flags</span><span class="p">):</span>
+<div class="viewcode-block" id="ObjectList1D.compress"><a class="viewcode-back" href="../../wbia.html#wbia._wbia_object.ObjectList1D.compress">[docs]</a>    <span class="k">def</span> <span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flags</span><span class="p">):</span>
         <span class="n">idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span></div>
 
@@ -462,7 +605,7 @@
         <span class="n">dict_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">vals</span><span class="p">))</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">dict_list</span></div>
 
-<div class="viewcode-block" id="ObjectList1D.chunks"><a class="viewcode-back" href="../../wbia.html#wbia._wbia_object.ObjectList1D.chunks">[docs]</a>    <span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">chunksize</span><span class="p">):</span>
+<div class="viewcode-block" id="ObjectList1D.chunks"><a class="viewcode-back" href="../../wbia.html#wbia._wbia_object.ObjectList1D.chunks">[docs]</a>    <span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))):</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span></div>
 
@@ -529,12 +672,12 @@
 <span class="sd">        &gt;&gt;&gt; assert v.vecs[0] is v.vecs[1]</span>
 <span class="sd">        &gt;&gt;&gt; assert v.vecs[0] is not v.vecs[2]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">obj1d</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span> <span class="o">=</span> <span class="n">obj1d</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unique_inverse</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_alignment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span><span class="p">,</span>
-                                                 <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unique_inverse</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_alignment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -564,8 +707,9 @@
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;ObjectView1D has no attribute </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span><span class="p">:</span>
             <span class="n">rowid_to_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-            <span class="n">miss_rowids</span> <span class="o">=</span> <span class="p">[</span><span class="n">rowid</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span>
-                           <span class="k">if</span> <span class="n">rowid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rowid_to_value</span><span class="p">]</span>
+            <span class="n">miss_rowids</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">rowid</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span> <span class="k">if</span> <span class="n">rowid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rowid_to_value</span>
+            <span class="p">]</span>
             <span class="n">miss_data</span> <span class="o">=</span> <span class="n">_rowid_getter</span><span class="p">(</span><span class="n">miss_rowids</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">miss_rowids</span><span class="p">,</span> <span class="n">miss_data</span><span class="p">):</span>
                 <span class="n">rowid_to_value</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
@@ -609,11 +753,9 @@
 <span class="sd">            &gt;&gt;&gt; assert v2._cache is v1._cache</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">rowids</span><span class="p">):</span>
-            <span class="n">childview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">obj1d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="p">,</span>
-                                       <span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">)</span>
+            <span class="n">childview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">obj1d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">childview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">([</span><span class="n">rowids</span><span class="p">],</span> <span class="n">obj1d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="p">,</span>
-                                       <span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">)</span>
+            <span class="n">childview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">([</span><span class="n">rowids</span><span class="p">],</span> <span class="n">obj1d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">)</span>
             <span class="n">childview</span> <span class="o">=</span> <span class="n">ObjectScalar0D</span><span class="p">(</span><span class="n">childview</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">childview</span></div></div>
 
@@ -625,18 +767,37 @@
 <span class="sd">        python -m wbia._wbia_object --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -644,55 +805,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../contents.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  <li><a href="../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

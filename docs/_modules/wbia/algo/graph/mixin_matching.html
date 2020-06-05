@@ -1,36 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.mixin_matching &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.graph.mixin_matching &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+
+      <li>wbia.algo.graph.mixin_matching</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.graph.mixin_matching</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -46,6 +165,7 @@
 <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph.nx_utils</span> <span class="k">import</span> <span class="n">e_</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span>  <span class="c1"># NOQA</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -56,15 +176,29 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="AnnotInfrMatching.exec_matching"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_matching.AnnotInfrMatching.exec_matching">[docs]</a>    <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">exec_matching</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name_method</span><span class="o">=</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">invalidate_supercache</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">exec_matching</span><span class="p">(</span>
+        <span class="n">infr</span><span class="p">,</span>
+        <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name_method</span><span class="o">=</span><span class="s1">&#39;node&#39;</span><span class="p">,</span>
+        <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">invalidate_supercache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads chip matches into the inference structure</span>
 <span class="sd">        Uses graph name labeling and ignores wbia labeling</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">_make_rankings</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">prog_hook</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">name_method</span><span class="p">,</span>
-                            <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">invalidate_supercache</span><span class="o">=</span><span class="n">invalidate_supercache</span><span class="p">)</span></div>
+        <span class="n">infr</span><span class="o">.</span><span class="n">_make_rankings</span><span class="p">(</span>
+            <span class="n">qaids</span><span class="p">,</span>
+            <span class="n">daids</span><span class="p">,</span>
+            <span class="n">prog_hook</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="p">,</span>
+            <span class="n">name_method</span><span class="p">,</span>
+            <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+            <span class="n">invalidate_supercache</span><span class="o">=</span><span class="n">invalidate_supercache</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_set_vsmany_info</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">):</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">vsmany_qreq_</span> <span class="o">=</span> <span class="n">qreq_</span>
@@ -72,10 +206,17 @@
         <span class="n">infr</span><span class="o">.</span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_</span>
 
-    <span class="k">def</span> <span class="nf">_make_rankings</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                       <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name_method</span><span class="o">=</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                       <span class="n">invalidate_supercache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="c1">#from wbia.algo.graph import graph_iden</span>
+    <span class="k">def</span> <span class="nf">_make_rankings</span><span class="p">(</span>
+        <span class="n">infr</span><span class="p">,</span>
+        <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name_method</span><span class="o">=</span><span class="s1">&#39;node&#39;</span><span class="p">,</span>
+        <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">invalidate_supercache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># from wbia.algo.graph import graph_iden</span>
 
         <span class="c1"># TODO: expose other ranking algos like SMK</span>
         <span class="n">rank_algo</span> <span class="o">=</span> <span class="s1">&#39;LNBNN&#39;</span>
@@ -95,10 +236,10 @@
                 <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
                 <span class="s1">&#39;Knorm&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
                 <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span>
+                <span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="n">cfgdict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">ranker_params</span><span class="p">)</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Using LNBNN config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgdict</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Using LNBNN config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgdict</span><span class="p">,))</span>
         <span class="c1"># hack for using current nids</span>
         <span class="k">if</span> <span class="n">name_method</span> <span class="o">==</span> <span class="s1">&#39;node&#39;</span><span class="p">:</span>
             <span class="n">aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">aslist</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">aslist</span><span class="p">(</span><span class="n">daids</span><span class="p">)))</span>
@@ -112,9 +253,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Unknown name_method=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name_method</span><span class="p">))</span>
 
-        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span>
-                                      <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="n">custom_nid_lookup</span><span class="p">,</span>
-                                      <span class="n">verbose</span><span class="o">=</span><span class="n">infr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span>
+            <span class="n">qaids</span><span class="p">,</span>
+            <span class="n">daids</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span>
+            <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="n">custom_nid_lookup</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">infr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># cacher = qreq_.get_big_cacher()</span>
         <span class="c1"># if not cacher.exists():</span>
@@ -122,17 +267,20 @@
         <span class="c1">#     # import sys</span>
         <span class="c1">#     # sys.exit(1)</span>
 
-        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
-                                <span class="n">invalidate_supercache</span><span class="o">=</span><span class="n">invalidate_supercache</span><span class="p">)</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span>
+            <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+            <span class="n">invalidate_supercache</span><span class="o">=</span><span class="n">invalidate_supercache</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">_set_vsmany_info</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>
 
-        <span class="n">edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">_cm_breaking</span><span class="p">(</span>
-            <span class="n">cm_list</span><span class="p">,</span> <span class="n">review_cfg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ranks_top&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}))</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">_cm_breaking</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">review_cfg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ranks_top&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}))</span>
         <span class="k">return</span> <span class="n">edges</span>
         <span class="c1"># return cm_list</span>
 
     <span class="k">def</span> <span class="nf">_make_matches_from</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">pairfeat</span>
+
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">verifier_params</span>
         <span class="n">extr</span> <span class="o">=</span> <span class="n">pairfeat</span><span class="o">.</span><span class="n">PairwiseFeatureExtractor</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
@@ -159,11 +307,9 @@
         <span class="n">match_list</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_make_matches_from</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">prog_hook</span><span class="p">)</span>
 
         <span class="c1"># TODO: is this code necessary anymore?</span>
-        <span class="n">vsone_matches</span> <span class="o">=</span> <span class="p">{</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span> <span class="n">match</span>
-                         <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">match</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">match_list</span><span class="p">)}</span>
+        <span class="n">vsone_matches</span> <span class="o">=</span> <span class="p">{</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span> <span class="n">match</span> <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">match</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">match_list</span><span class="p">)}</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">vsone_matches</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">vsone_matches</span><span class="p">)</span>
-        <span class="n">edge_to_score</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="n">match</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">match</span> <span class="ow">in</span>
-                         <span class="n">vsone_matches</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">edge_to_score</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="n">match</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">vsone_matches</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edge_to_score</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">edge_to_score</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">match_list</span></div>
@@ -175,8 +321,7 @@
         <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">cm_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span>
         <span class="c1"># TODO: keep chip matches in dictionary by default?</span>
-        <span class="n">aid2_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">cm_list</span><span class="p">])</span>
+        <span class="n">aid2_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">([</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">cm_list</span><span class="p">])</span>
         <span class="n">switch_order</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="n">aid1</span> <span class="ow">in</span> <span class="n">aid2_idx</span><span class="p">:</span>
@@ -234,7 +379,7 @@
             <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">rank_list</span><span class="p">)</span>
 
             <span class="n">top_sortx</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[:</span><span class="n">ranks_top</span><span class="p">]</span>
-            <span class="n">bot_sortx</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span> <span class="o">-</span> <span class="n">ranks_bot</span><span class="p">:]</span>
+            <span class="n">bot_sortx</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span> <span class="o">-</span> <span class="n">ranks_bot</span> <span class="p">:]</span>
             <span class="n">short_sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">top_sortx</span> <span class="o">+</span> <span class="n">bot_sortx</span><span class="p">)</span>
 
             <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">short_sortx</span><span class="p">)</span>
@@ -245,9 +390,20 @@
                 <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">edges</span>
 
-    <span class="k">def</span> <span class="nf">_cm_training_pairs</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cm_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                           <span class="n">top_gt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mid_gt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">bot_gt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">top_gf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                           <span class="n">mid_gf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">bot_gf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rand_gt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rand_gf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cm_training_pairs</span><span class="p">(</span>
+        <span class="n">infr</span><span class="p">,</span>
+        <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">cm_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">top_gt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">mid_gt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">bot_gt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">top_gf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">mid_gf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">bot_gf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">rand_gt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">rand_gf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs training data for a pairwise classifier</span>
 
@@ -283,21 +439,19 @@
         <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;building pairs&#39;</span><span class="p">):</span>
             <span class="n">all_gt_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_gt_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
             <span class="n">all_gf_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_gf_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-            <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_percentile_parts</span><span class="p">(</span><span class="n">all_gt_aids</span><span class="p">,</span> <span class="n">top_gt</span><span class="p">,</span> <span class="n">mid_gt</span><span class="p">,</span>
-                                               <span class="n">bot_gt</span><span class="p">)</span>
-            <span class="n">gf_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_percentile_parts</span><span class="p">(</span><span class="n">all_gf_aids</span><span class="p">,</span> <span class="n">top_gf</span><span class="p">,</span> <span class="n">mid_gf</span><span class="p">,</span>
-                                               <span class="n">bot_gf</span><span class="p">)</span>
+            <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_percentile_parts</span><span class="p">(</span><span class="n">all_gt_aids</span><span class="p">,</span> <span class="n">top_gt</span><span class="p">,</span> <span class="n">mid_gt</span><span class="p">,</span> <span class="n">bot_gt</span><span class="p">)</span>
+            <span class="n">gf_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_percentile_parts</span><span class="p">(</span><span class="n">all_gf_aids</span><span class="p">,</span> <span class="n">top_gf</span><span class="p">,</span> <span class="n">mid_gf</span><span class="p">,</span> <span class="n">bot_gf</span><span class="p">)</span>
             <span class="c1"># get unscored examples</span>
-            <span class="n">unscored_gt_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">qnid</span> <span class="o">==</span> <span class="n">dnids</span><span class="p">]</span>
-                                <span class="k">if</span> <span class="n">aid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid2_idx</span><span class="p">]</span>
+            <span class="n">unscored_gt_aids</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">qnid</span> <span class="o">==</span> <span class="n">dnids</span><span class="p">]</span> <span class="k">if</span> <span class="n">aid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid2_idx</span>
+            <span class="p">]</span>
             <span class="n">rand_gt_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_sample</span><span class="p">(</span><span class="n">unscored_gt_aids</span><span class="p">,</span> <span class="n">rand_gt</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
             <span class="c1"># gf_aids = cm.get_groundfalse_daids()</span>
             <span class="n">_gf_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">qnid</span> <span class="o">!=</span> <span class="n">dnids</span><span class="p">]</span>
             <span class="n">_gf_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qnid</span> <span class="o">!=</span> <span class="n">dnids</span><span class="p">)</span>
             <span class="c1"># gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)</span>
             <span class="n">rand_gf_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_sample</span><span class="p">(</span><span class="n">_gf_aids</span><span class="p">,</span> <span class="n">rand_gf</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="n">chosen_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">gt_aids</span> <span class="o">+</span> <span class="n">gf_aids</span> <span class="o">+</span> <span class="n">rand_gf_aids</span> <span class="o">+</span>
-                                     <span class="n">rand_gt_aids</span><span class="p">)</span>
+            <span class="n">chosen_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">gt_aids</span> <span class="o">+</span> <span class="n">gf_aids</span> <span class="o">+</span> <span class="n">rand_gf_aids</span> <span class="o">+</span> <span class="n">rand_gt_aids</span><span class="p">)</span>
             <span class="n">aid_pairs</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">chosen_daids</span> <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span> <span class="o">!=</span> <span class="n">aid</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">aid_pairs</span>
@@ -311,8 +465,9 @@
             <span class="k">for</span> <span class="n">daid</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(),</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_scores</span><span class="p">()):</span>
                 <span class="n">all_scores</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
 
-        <span class="n">max_scores</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="nb">max</span><span class="p">(</span><span class="n">scores</span><span class="p">),</span> <span class="n">aid</span><span class="p">)</span>
-                            <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">all_scores</span><span class="o">.</span><span class="n">items</span><span class="p">())[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">max_scores</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="nb">max</span><span class="p">(</span><span class="n">scores</span><span class="p">),</span> <span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">all_scores</span><span class="o">.</span><span class="n">items</span><span class="p">())[</span>
+            <span class="p">::</span><span class="o">-</span><span class="mi">1</span>
+        <span class="p">]</span>
         <span class="n">ranked_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">max_scores</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ranked_aids</span>
 
@@ -404,7 +559,6 @@
 
 
 <div class="viewcode-block" id="InfrLearning"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_matching.InfrLearning">[docs]</a><span class="k">class</span> <span class="nc">InfrLearning</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
 <div class="viewcode-block" id="InfrLearning.learn_deploy_verifiers"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_matching.InfrLearning.learn_deploy_verifiers">[docs]</a>    <span class="k">def</span> <span class="nf">learn_deploy_verifiers</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">publish</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Uses current knowledge to train verifiers for new unseen pairs.</span>
@@ -423,6 +577,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;learn_deploy_verifiers&#39;</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">vsone</span>
+
         <span class="n">pblm</span> <span class="o">=</span> <span class="n">vsone</span><span class="o">.</span><span class="n">OneVsOneProblem</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">pblm</span><span class="o">.</span><span class="n">primary_task_key</span> <span class="o">=</span> <span class="s1">&#39;match_state&#39;</span>
         <span class="n">pblm</span><span class="o">.</span><span class="n">default_clf_key</span> <span class="o">=</span> <span class="s1">&#39;RF&#39;</span>
@@ -458,6 +613,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;learn_evaluataion_verifiers&#39;</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">vsone</span>
+
         <span class="n">pblm</span> <span class="o">=</span> <span class="n">vsone</span><span class="o">.</span><span class="n">OneVsOneProblem</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
         <span class="n">pblm</span><span class="o">.</span><span class="n">primary_task_key</span> <span class="o">=</span> <span class="s1">&#39;match_state&#39;</span>
         <span class="n">pblm</span><span class="o">.</span><span class="n">eval_clf_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RF&#39;</span><span class="p">]</span>
@@ -474,23 +630,26 @@
 <span class="sd">        This is the default action.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">deploy</span>
+
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_primary_database_species</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Loading task_thresh for species: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Loading task_thresh for species: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
         <span class="k">assert</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">task_thresh_dict</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">task_thresh_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;infr.task_thresh: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">,</span> <span class="p">))</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Loading verifiers for species: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;infr.task_thresh: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">,))</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Loading verifiers for species: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span> <span class="o">=</span> <span class="n">deploy</span><span class="o">.</span><span class="n">Deployer</span><span class="p">()</span><span class="o">.</span><span class="n">load_published</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="InfrLearning.load_latest_classifiers"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_matching.InfrLearning.load_latest_classifiers">[docs]</a>    <span class="k">def</span> <span class="nf">load_latest_classifiers</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">dpath</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">deploy</span>
+
         <span class="n">task_clf_fpaths</span> <span class="o">=</span> <span class="n">deploy</span><span class="o">.</span><span class="n">Deployer</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span><span class="o">.</span><span class="n">find_latest_local</span><span class="p">()</span>
         <span class="n">classifiers</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">task_key</span><span class="p">,</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">task_clf_fpaths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">clf_info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">clf_info</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;task_key&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">task_key</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s1">&#39;bad saved clf at fpath=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">clf_info</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;task_key&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">task_key</span>
+            <span class="p">),</span> <span class="s1">&#39;bad saved clf at fpath=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
             <span class="n">classifiers</span><span class="p">[</span><span class="n">task_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">clf_info</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span> <span class="o">=</span> <span class="n">classifiers</span></div>
         <span class="c1"># return classifiers</span>
@@ -566,8 +725,9 @@
 
         <span class="n">reviewed_edges</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">edge</span><span class="p">:</span> <span class="n">state</span>
-            <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">existing_edges</span><span class="p">,</span>
-                                   <span class="n">infr</span><span class="o">.</span><span class="n">edge_decision_from</span><span class="p">(</span><span class="n">existing_edges</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">existing_edges</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">edge_decision_from</span><span class="p">(</span><span class="n">existing_edges</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">state</span> <span class="o">!=</span> <span class="n">UNREV</span>
         <span class="p">}</span>
 
@@ -616,8 +776,11 @@
         <span class="c1"># First try to augment only with unreviewed existing edges</span>
         <span class="n">unrev_avail</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">unreviewed_graph</span><span class="p">,</span> <span class="n">pcc</span><span class="p">))</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">check_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span>
-                <span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">pos_k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">unrev_avail</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="n">check_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span>
+                    <span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">pos_k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">unrev_avail</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">:</span>
             <span class="n">check_edges</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">check_edges</span><span class="p">:</span>
@@ -629,12 +792,16 @@
             <span class="n">n_complement</span> <span class="o">=</span> <span class="n">n_max</span> <span class="o">-</span> <span class="n">pos_sub</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">full_avail</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_complement</span><span class="p">:</span>
                 <span class="c1"># can use the faster algorithm</span>
-                <span class="n">check_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span>
-                    <span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">pos_k</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                <span class="n">check_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span><span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">pos_k</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># have to use the slow approximate algo</span>
-                <span class="n">check_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span>
-                    <span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">pos_k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">full_avail</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                <span class="n">check_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">nxu</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span>
+                        <span class="n">pos_sub</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">pos_k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">full_avail</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
         <span class="n">check_edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span> <span class="n">check_edges</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">check_edges</span>
 
@@ -662,8 +829,7 @@
         <span class="n">pcc_gen</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">())</span>
         <span class="n">prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">pcc_gen</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">pcc</span> <span class="ow">in</span> <span class="n">prog</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">infr</span><span class="o">.</span><span class="n">is_pos_redundant</span><span class="p">(</span><span class="n">pcc</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">relax</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                         <span class="n">assume_connected</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">infr</span><span class="o">.</span><span class="n">is_pos_redundant</span><span class="p">(</span><span class="n">pcc</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">relax</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_connected</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">find_pos_augment_edges</span><span class="p">(</span><span class="n">pcc</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">):</span>
                     <span class="nb">print</span><span class="p">()</span>
                     <span class="k">yield</span> <span class="n">nxu</span><span class="o">.</span><span class="n">e_</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
@@ -740,26 +906,33 @@
 
         <span class="c1"># do LNBNN query for new edges</span>
         <span class="c1"># Use one-vs-many to establish candidate edges to classify</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">exec_matching</span><span class="p">(</span><span class="n">name_method</span><span class="o">=</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="p">{</span>
-            <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="mi">700</span><span class="p">,</span>
-            <span class="s1">&#39;requery&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="s1">&#39;can_match_samename&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s1">&#39;can_match_sameimg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="c1"># &#39;sv_on&#39;: False,</span>
-        <span class="p">})</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">exec_matching</span><span class="p">(</span>
+            <span class="n">name_method</span><span class="o">=</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="mi">700</span><span class="p">,</span>
+                <span class="s1">&#39;requery&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;can_match_samename&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;can_match_sameimg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># &#39;sv_on&#39;: False,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
         <span class="c1"># infr.apply_match_edges(review_cfg={&#39;ranks_top&#39;: 5})</span>
         <span class="n">ranks_top</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;ranking.ntop&#39;</span><span class="p">]</span>
         <span class="n">lnbnn_results</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">_cm_breaking</span><span class="p">(</span><span class="n">review_cfg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ranks_top&#39;</span><span class="p">:</span> <span class="n">ranks_top</span><span class="p">}))</span>
 
         <span class="n">candidate_edges</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span>
-            <span class="nb">zip</span><span class="p">(</span><span class="n">lnbnn_results</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">edge_decision_from</span><span class="p">(</span><span class="n">lnbnn_results</span><span class="p">))</span>
+            <span class="n">edge</span>
+            <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lnbnn_results</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">edge_decision_from</span><span class="p">(</span><span class="n">lnbnn_results</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">UNREV</span>
         <span class="p">}</span>
 
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;ranking alg found </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1"> unreviewed edges&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="nb">len</span><span class="p">(</span><span class="n">candidate_edges</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">lnbnn_results</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+            <span class="s1">&#39;ranking alg found </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1"> unreviewed edges&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">candidate_edges</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">lnbnn_results</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">candidate_edges</span></div>
 
@@ -807,8 +980,9 @@
 
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">need_flags</span><span class="p">):</span>
             <span class="n">need_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">need_flags</span><span class="p">)</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">{}</span><span class="s1"> edges without probabilities&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                       <span class="nb">len</span><span class="p">(</span><span class="n">need_edges</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="s1">&#39;There are </span><span class="si">{}</span><span class="s1"> edges without probabilities&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">need_edges</span><span class="p">)),</span> <span class="mi">1</span>
+            <span class="p">)</span>
 
             <span class="c1"># Only recompute for the needed edges</span>
             <span class="n">task_probs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_make_task_probs</span><span class="p">(</span><span class="n">need_edges</span><span class="p">)</span>
@@ -853,14 +1027,22 @@
 <span class="sd">            &gt;&gt;&gt; edges = list(infr.edges())</span>
 <span class="sd">            &gt;&gt;&gt; infr.ensure_priority_scores(edges)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Checking for verifiers: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Checking for verifiers: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span><span class="p">,))</span>
 
         <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span> <span class="ow">and</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Prioritizing </span><span class="si">{}</span><span class="s1"> edges with one-vs-one probs&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                       <span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Using thresholds: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">,</span> <span class="p">))</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Using infr.params[autoreview.enabled]          : </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoreview.enabled&#39;</span><span class="p">],</span> <span class="p">))</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Using infr.params[autoreview.prioritize_nonpos]: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoreview.prioritize_nonpos&#39;</span><span class="p">],</span> <span class="p">))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="s1">&#39;Prioritizing </span><span class="si">{}</span><span class="s1"> edges with one-vs-one probs&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)),</span>
+                <span class="mi">1</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Using thresholds: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">,))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="s1">&#39;Using infr.params[autoreview.enabled]          : </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoreview.enabled&#39;</span><span class="p">],)</span>
+            <span class="p">)</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="s1">&#39;Using infr.params[autoreview.prioritize_nonpos]: </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoreview.prioritize_nonpos&#39;</span><span class="p">],)</span>
+            <span class="p">)</span>
 
             <span class="n">infr</span><span class="o">.</span><span class="n">ensure_task_probs</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">load_published</span><span class="p">()</span>
@@ -872,7 +1054,7 @@
             <span class="c1"># Read match_probs into a DataFrame</span>
             <span class="n">primary_probs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">match_probs</span><span class="p">,</span> <span class="n">priority_edges</span><span class="p">),</span>
-                <span class="n">index</span><span class="o">=</span><span class="n">nxu</span><span class="o">.</span><span class="n">ensure_multi_index</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">))</span>
+                <span class="n">index</span><span class="o">=</span><span class="n">nxu</span><span class="o">.</span><span class="n">ensure_multi_index</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">)),</span>
             <span class="p">)</span>
 
             <span class="c1"># Convert match-state probabilities into priorities</span>
@@ -895,20 +1077,23 @@
                     <span class="c1"># Give positives that pass automatic thresholds high priority</span>
                     <span class="n">_probs</span> <span class="o">=</span> <span class="n">primary_probs</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span>
                     <span class="n">flags</span> <span class="o">=</span> <span class="n">_probs</span> <span class="o">&gt;</span> <span class="n">primary_thresh</span><span class="p">[</span><span class="n">POSTV</span><span class="p">]</span>
-                    <span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span>
-                                                         <span class="n">_probs</span><span class="p">[</span><span class="n">flags</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span> <span class="n">_probs</span><span class="p">[</span><span class="n">flags</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="p">)</span>
 
                     <span class="c1"># Give negatives that pass automatic thresholds high priority</span>
                     <span class="n">_probs</span> <span class="o">=</span> <span class="n">primary_probs</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span>
                     <span class="n">flags</span> <span class="o">=</span> <span class="n">_probs</span> <span class="o">&gt;</span> <span class="n">primary_thresh</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">]</span>
-                    <span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span>
-                                                         <span class="n">_probs</span><span class="p">[</span><span class="n">flags</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span> <span class="n">_probs</span><span class="p">[</span><span class="n">flags</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="p">)</span>
 
                     <span class="c1"># Give not-comps that pass automatic thresholds high priority</span>
                     <span class="n">_probs</span> <span class="o">=</span> <span class="n">primary_probs</span><span class="p">[</span><span class="n">INCMP</span><span class="p">]</span>
                     <span class="n">flags</span> <span class="o">=</span> <span class="n">_probs</span> <span class="o">&gt;</span> <span class="n">primary_thresh</span><span class="p">[</span><span class="n">INCMP</span><span class="p">]</span>
-                    <span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span>
-                                                         <span class="n">_probs</span><span class="p">[</span><span class="n">flags</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">default_priority</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span> <span class="n">_probs</span><span class="p">[</span><span class="n">flags</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="p">)</span>
 
             <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="s1">&#39;prob_match&#39;</span><span class="p">,</span> <span class="n">prob_match</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span><span class="s1">&#39;default_priority&#39;</span><span class="p">,</span> <span class="n">default_priority</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
@@ -918,7 +1103,9 @@
         <span class="k">elif</span> <span class="n">infr</span><span class="o">.</span><span class="n">cm_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
                 <span class="s1">&#39;Prioritizing </span><span class="si">{}</span><span class="s1"> edges with one-vs-vsmany scores&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">),</span> <span class="mi">1</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="c1"># Not given any deploy classifier, this is the best we can do</span>
             <span class="n">scores</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_make_lnbnn_scores</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)</span>
             <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;normscore&#39;</span>
@@ -926,7 +1113,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
                 <span class="s1">&#39;WARNING: No verifiers to prioritize </span><span class="si">{}</span><span class="s1"> edge(s)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)))</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;random&#39;</span>
             <span class="n">priority</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">))</span> <span class="o">+</span> <span class="mf">1e-6</span>
 
@@ -947,15 +1136,19 @@
             <span class="n">infr</span><span class="o">.</span><span class="n">apply_edge_truth</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;redun.enabled&#39;</span><span class="p">]:</span>
-            <span class="n">priority_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">filter_edges_flagged_as_redun</span><span class="p">(</span>
-                <span class="n">candidate_edges</span><span class="p">))</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Got </span><span class="si">{}</span><span class="s1"> candidate edges, </span><span class="si">{}</span><span class="s1"> are new, &#39;</span>
-                       <span class="s1">&#39;and </span><span class="si">{}</span><span class="s1"> are non-redundant&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                           <span class="nb">len</span><span class="p">(</span><span class="n">candidate_edges</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_edges</span><span class="p">),</span>
-                           <span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)))</span>
+            <span class="n">priority_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">filter_edges_flagged_as_redun</span><span class="p">(</span><span class="n">candidate_edges</span><span class="p">))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="s1">&#39;Got </span><span class="si">{}</span><span class="s1"> candidate edges, </span><span class="si">{}</span><span class="s1"> are new, &#39;</span>
+                <span class="s1">&#39;and </span><span class="si">{}</span><span class="s1"> are non-redundant&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">candidate_edges</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_edges</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Got </span><span class="si">{}</span><span class="s1"> candidate edges and </span><span class="si">{}</span><span class="s1"> are new&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="nb">len</span><span class="p">(</span><span class="n">candidate_edges</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="s1">&#39;Got </span><span class="si">{}</span><span class="s1"> candidate edges and </span><span class="si">{}</span><span class="s1"> are new&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">candidate_edges</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">priority_edges</span> <span class="o">=</span> <span class="n">candidate_edges</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -978,13 +1171,14 @@
             <span class="n">candidate_edges</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">find_lnbnn_candidate_edges</span><span class="p">()</span>
         <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;dummy_verif&#39;</span><span class="p">):</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Searching for dummy candidates&#39;</span><span class="p">)</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;dummy vsone params =&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span>
-                <span class="n">infr</span><span class="o">.</span><span class="n">dummy_verif</span><span class="o">.</span><span class="n">dummy_params</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="s1">&#39;dummy vsone params =&#39;</span>
+                <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">dummy_verif</span><span class="o">.</span><span class="n">dummy_params</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">ranks_top</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;ranking.ntop&#39;</span><span class="p">]</span>
             <span class="n">candidate_edges</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">dummy_verif</span><span class="o">.</span><span class="n">find_candidate_edges</span><span class="p">(</span><span class="n">K</span><span class="o">=</span><span class="n">ranks_top</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-                <span class="s1">&#39;No method available to search for candidate edges&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;No method available to search for candidate edges&#39;</span><span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">add_candidate_edges</span><span class="p">(</span><span class="n">candidate_edges</span><span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">assert_consistency_invariant</span><span class="p">()</span></div>
 
@@ -996,15 +1190,13 @@
         <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;no classifiers exist&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-                <span class="s1">&#39;need to deploy or implement eval prediction&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;need to deploy or implement eval prediction&#39;</span><span class="p">)</span>
         <span class="n">task_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">task_probs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># infr.print(&#39;[make_taks_probs] predict {} for {} edges&#39;.format(</span>
         <span class="c1">#     ut.conj_phrase(task_keys, &#39;and&#39;), len(edges)))</span>
         <span class="k">for</span> <span class="n">task_key</span> <span class="ow">in</span> <span class="n">task_keys</span><span class="p">:</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;predict </span><span class="si">{}</span><span class="s1"> for </span><span class="si">{}</span><span class="s1"> edges&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">task_key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;predict </span><span class="si">{}</span><span class="s1"> for </span><span class="si">{}</span><span class="s1"> edges&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">task_key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)))</span>
             <span class="n">verif</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">verifiers</span><span class="p">[</span><span class="n">task_key</span><span class="p">]</span>
             <span class="n">probs_df</span> <span class="o">=</span> <span class="n">verif</span><span class="o">.</span><span class="n">predict_proba_df</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
             <span class="n">task_probs</span><span class="p">[</span><span class="n">task_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">probs_df</span>
@@ -1029,18 +1221,37 @@
 <span class="sd">        python -m wbia.algo.graph.mixin_matching --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1048,59 +1259,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../graph.html">wbia.algo.graph</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

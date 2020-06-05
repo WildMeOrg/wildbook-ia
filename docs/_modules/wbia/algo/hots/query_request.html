@@ -1,36 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.hots.query_request &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.hots.query_request &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../hots.html">wbia.algo.hots</a> &raquo;</li>
+
+      <li>wbia.algo.hots.query_request</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.hots.query_request</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -50,14 +169,16 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">neighbor_index_cache</span>
-<span class="c1">#from wbia.algo.hots import multi_index</span>
+
+<span class="c1"># from wbia.algo.hots import multi_index</span>
 <span class="c1"># from wbia.algo.hots import scorenorm</span>
 <span class="c1"># from wbia.algo.hots import distinctiveness_normalizer</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">query_params</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">chip_match</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
-<span class="c1">#import warnings</span>
+
+<span class="c1"># import warnings</span>
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">VERBOSE_QREQ</span><span class="p">,</span> <span class="n">VERYVERBOSE_QREQ</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_module_verbosity_flags</span><span class="p">(</span><span class="s1">&#39;qreq&#39;</span><span class="p">)</span>
@@ -69,6 +190,7 @@
 <span class="sd">        (wbia.IBEISController, list, list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
@@ -76,10 +198,17 @@
 
 
 <div class="viewcode-block" id="new_wbia_query_request"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.new_wbia_query_request">[docs]</a><span class="nd">@profile</span>
-<span class="k">def</span> <span class="nf">new_wbia_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                            <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unique_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                            <span class="n">use_memcache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                            <span class="n">query_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">new_wbia_query_request</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">qaid_list</span><span class="p">,</span>
+    <span class="n">daid_list</span><span class="p">,</span>
+    <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">unique_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_memcache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">query_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    wbia entry point to create a new query request object</span>
 
@@ -188,6 +317,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq] piperoot = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">piperoot</span><span class="p">,))</span>
     <span class="k">if</span> <span class="n">piperoot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">piperoot</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;smk&#39;</span><span class="p">]:</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="k">import</span> <span class="n">smk_pipeline</span>
+
         <span class="k">if</span> <span class="n">query_cfg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">cfgdict</span>
         <span class="k">else</span><span class="p">:</span>
@@ -206,7 +336,8 @@
         <span class="n">requestclass</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">requestclass_dict</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">custom_nid_lookup</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;unsupported&#39;</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">request</span> <span class="o">=</span> <span class="n">requestclass</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>  <span class="c1"># NOQA</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="n">tablename</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="n">tablename</span>
+        <span class="p">)</span>
     <span class="k">elif</span> <span class="n">piperoot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">piperoot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;vsmany&#39;</span><span class="p">]:</span>
         <span class="c1"># Hack to ensure that correct depcache style request gets called</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
@@ -214,7 +345,8 @@
         <span class="n">requestclass</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">requestclass_dict</span><span class="p">[</span><span class="n">piperoot</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">custom_nid_lookup</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;unsupported&#39;</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">request</span> <span class="o">=</span> <span class="n">requestclass</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>  <span class="c1"># NOQA</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="n">piperoot</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="n">piperoot</span>
+        <span class="p">)</span>
         <span class="c1"># assert qreq_.qparams.pipeline_root != &#39;vsone&#39;, &#39;pipeline vsone is depricated&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
@@ -227,7 +359,8 @@
 
         <span class="k">if</span> <span class="n">unique_species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">unique_species_</span> <span class="o">=</span> <span class="n">apply_species_with_detector_hack</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+                <span class="n">ibs</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">unique_species_</span> <span class="o">=</span> <span class="n">unique_species</span>
         <span class="c1"># &lt;/HACK&gt;</span>
@@ -251,11 +384,18 @@
         <span class="c1"># &lt;/HACK&gt;</span>
         <span class="n">_indexer_request_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">use_memcache</span><span class="o">=</span><span class="n">use_memcache</span><span class="p">)</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">QueryRequest</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span>
-            <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span>
-            <span class="n">query_config2_</span><span class="p">,</span> <span class="n">data_config2_</span><span class="p">,</span>
-            <span class="n">_indexer_request_params</span><span class="p">,</span> <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="n">custom_nid_lookup</span><span class="p">)</span>
-        <span class="c1">#qreq_.query_config2_ = query_config2_</span>
-        <span class="c1">#qreq_.data_config2_ = data_config2_</span>
+            <span class="n">qaid_list</span><span class="p">,</span>
+            <span class="n">daid_list</span><span class="p">,</span>
+            <span class="n">qparams</span><span class="p">,</span>
+            <span class="n">qresdir</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="p">,</span>
+            <span class="n">query_config2_</span><span class="p">,</span>
+            <span class="n">data_config2_</span><span class="p">,</span>
+            <span class="n">_indexer_request_params</span><span class="p">,</span>
+            <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="n">custom_nid_lookup</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># qreq_.query_config2_ = query_config2_</span>
+        <span class="c1"># qreq_.data_config2_ = data_config2_</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_species</span> <span class="o">=</span> <span class="n">unique_species_</span>  <span class="c1"># HACK</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq] * unique_species = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">unique_species</span><span class="p">,))</span>
@@ -268,8 +408,7 @@
 
 
 <div class="viewcode-block" id="apply_species_with_detector_hack"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.apply_species_with_detector_hack">[docs]</a><span class="nd">@profile</span>
-<span class="k">def</span> <span class="nf">apply_species_with_detector_hack</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span>
-                                     <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">apply_species_with_detector_hack</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    HACK turns of featweights if they cannot be applied</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -286,18 +425,16 @@
     <span class="c1"># candetect = (len(unique_species) == 1 and</span>
     <span class="c1">#              ibs.has_species_detector(unique_species[0]))</span>
 
-    <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
-        <span class="s1">&#39;unique_species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,</span> <span class="p">),</span>
-        <span class="s1">&#39;yellow&#39;</span>
-    <span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;unique_species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,),</span> <span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
     <span class="n">candetect</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">unique_species</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">has_species_detector</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
-                <span class="s1">&#39;Species </span><span class="si">%r</span><span class="s1"> is not supported with ibs.has_species_detector()&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">),</span>
-                <span class="s1">&#39;yellow&#39;</span>
+                <span class="s1">&#39;Species </span><span class="si">%r</span><span class="s1"> is not supported with ibs.has_species_detector()&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,),</span>
+                <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">candetect</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">break</span>
@@ -305,24 +442,22 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">candetect</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
-                <span class="s1">&#39;[qreq] HACKING FG_WEIGHT OFF (db species is not supported)&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;yellow&#39;</span>
+                <span class="s1">&#39;[qreq] HACKING FG_WEIGHT OFF (db species is not supported)&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq]  * len(unique_species) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq]  * unique_species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,))</span>
-        <span class="c1">#print(&#39;[qreq]  * valid species = %r&#39; % (</span>
+        <span class="c1"># print(&#39;[qreq]  * valid species = %r&#39; % (</span>
         <span class="c1">#    ibs.get_species_with_detectors(),))</span>
-        <span class="c1">#cfg._featweight_cfg.featweight_enabled = &#39;ERR&#39;</span>
+        <span class="c1"># cfg._featweight_cfg.featweight_enabled = &#39;ERR&#39;</span>
         <span class="n">cfgdict</span><span class="p">[</span><span class="s1">&#39;featweight_enabled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># &#39;ERR&#39;</span>
         <span class="n">cfgdict</span><span class="p">[</span><span class="s1">&#39;fg_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1">#print(ibs.get_annot_species_texts(aid_list))</span>
+        <span class="c1"># print(ibs.get_annot_species_texts(aid_list))</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq] Using fgweights of unique_species=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                <span class="n">unique_species</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq] Using fgweights of unique_species=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">unique_species</span></div>
 
 
@@ -331,6 +466,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Request object for pipline parameter run</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_isnewreq</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
@@ -350,6 +486,7 @@
             <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">wbia</span>
+
             <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">()</span>
 
         <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># The nearest neighbor mechanism</span>
@@ -357,7 +494,7 @@
         <span class="n">qreq_</span><span class="o">.</span><span class="n">dstcnvs_normer</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">hasloaded</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="c1"># Pipeline configuration</span>
-        <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># Parameters relating to pipeline execution</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Parameters relating to pipeline execution</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">query_config2_</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">data_config2_</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">_indexer_request_params</span> <span class="o">=</span> <span class="kc">None</span>
@@ -375,9 +512,18 @@
 
 <div class="viewcode-block" id="QueryRequest.new_query_request"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.new_query_request">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span>
-                          <span class="n">query_config2_</span><span class="p">,</span> <span class="n">data_config2_</span><span class="p">,</span>
-                          <span class="n">_indexer_request_params</span><span class="p">,</span> <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">qaid_list</span><span class="p">,</span>
+        <span class="n">daid_list</span><span class="p">,</span>
+        <span class="n">qparams</span><span class="p">,</span>
+        <span class="n">qresdir</span><span class="p">,</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">query_config2_</span><span class="p">,</span>
+        <span class="n">data_config2_</span><span class="p">,</span>
+        <span class="n">_indexer_request_params</span><span class="p">,</span>
+        <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        old way of calling new</span>
 
@@ -394,7 +540,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
-        <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span> <span class="o">=</span> <span class="n">qparams</span>   <span class="c1"># Parameters relating to pipeline execution</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span> <span class="o">=</span> <span class="n">qparams</span>  <span class="c1"># Parameters relating to pipeline execution</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">query_config2_</span> <span class="o">=</span> <span class="n">query_config2_</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">data_config2_</span> <span class="o">=</span> <span class="n">data_config2_</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">qresdir</span> <span class="o">=</span> <span class="n">qresdir</span>
@@ -417,8 +563,7 @@
         <span class="k">if</span> <span class="n">custom_nid_lookup</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">unique_aids</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">custom_nid_lookup</span><span class="p">,</span>
-                                             <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_aids</span><span class="p">)</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">custom_nid_lookup</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_aids</span><span class="p">)</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">unique_nids</span><span class="p">)</span>
 
         <span class="c1"># qreq_.nid_to_groupuuid = qreq_._make_namegroup_uuids()</span>
@@ -472,8 +617,7 @@
         <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span>
         <span class="n">grouped_visual_uuids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">visual_uuids</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
         <span class="n">group_hashes</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">combine_hashes</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">bytes</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">uuids</span><span class="p">),</span>
-                              <span class="n">hasher</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">())</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">combine_hashes</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">bytes</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">uuids</span><span class="p">),</span> <span class="n">hasher</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">())</span>
             <span class="k">for</span> <span class="n">uuids</span> <span class="ow">in</span> <span class="n">grouped_visual_uuids</span>
         <span class="p">]</span>
         <span class="n">nid_to_grouphash</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">,</span> <span class="n">group_hashes</span><span class="p">))</span>
@@ -489,6 +633,7 @@
 <span class="sd">        TODO. dont use uuids anymore. they are slow</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">uuid</span>
+
         <span class="k">for</span> <span class="n">bytes_</span> <span class="ow">in</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_pcc_hashes</span><span class="p">(</span><span class="n">aids</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="n">bytes_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">16</span><span class="p">])</span></div>
 
@@ -561,8 +706,7 @@
         <span class="c1"># attributes are used in the pipeline.</span>
         <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="s1">&#39;PCC_UUIDS&#39;</span><span class="p">))</span>
         <span class="n">pcc_hashes</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_pcc_hashes</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
-        <span class="n">pcc_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">combine_hashes</span><span class="p">(</span><span class="n">pcc_hashes</span><span class="p">,</span>
-                                          <span class="n">hasher</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">())</span>
+        <span class="n">pcc_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">combine_hashes</span><span class="p">(</span><span class="n">pcc_hashes</span><span class="p">,</span> <span class="n">hasher</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">())</span>
         <span class="n">pcc_hashstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">convert_bytes_to_bigbase</span><span class="p">(</span><span class="n">pcc_hash</span><span class="p">)</span>
         <span class="n">pcc_hashstr</span> <span class="o">=</span> <span class="n">pcc_hashstr</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span>
 
@@ -573,8 +717,7 @@
         <span class="k">if</span> <span class="n">with_nids</span><span class="p">:</span>
             <span class="n">unique_nids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
             <span class="n">n_nids</span> <span class="o">=</span> <span class="s1">&#39;n&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">))</span>
-            <span class="n">pcc_hashid</span> <span class="o">=</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="n">n_aids</span><span class="p">,</span> <span class="n">n_nids</span><span class="p">,</span> <span class="n">pcc_hashstr</span><span class="p">])</span>
+            <span class="n">pcc_hashid</span> <span class="o">=</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">label</span><span class="p">,</span> <span class="n">n_aids</span><span class="p">,</span> <span class="n">n_nids</span><span class="p">,</span> <span class="n">pcc_hashstr</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">pcc_hashid</span> <span class="o">=</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">label</span><span class="p">,</span> <span class="n">n_aids</span><span class="p">,</span> <span class="n">pcc_hashstr</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">pcc_hashid</span></div>
@@ -597,7 +740,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># Unload attributes that should not be saved</span>
-        <span class="c1">#state[&#39;ibs&#39;] = None</span>
+        <span class="c1"># state[&#39;ibs&#39;] = None</span>
         <span class="n">state</span><span class="p">[</span><span class="s1">&#39;prog_hook&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">state</span><span class="p">[</span><span class="s1">&#39;indexer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">state</span><span class="p">[</span><span class="s1">&#39;normalizer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -613,16 +756,16 @@
 
         <span class="c1"># Hack for the actual wbia object</span>
         <span class="c1"># (The ibs object itself should now do this hack)</span>
-        <span class="c1">#state[&#39;dbdir&#39;] = qreq_.ibs.get_dbdir()</span>
+        <span class="c1"># state[&#39;dbdir&#39;] = qreq_.ibs.get_dbdir()</span>
         <span class="k">return</span> <span class="n">state</span>
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="c1"># Hack for the actual wbia object</span>
         <span class="c1"># (The ibs object itself should now do this hack)</span>
-        <span class="c1">#import wbia</span>
-        <span class="c1">#dbdir = state[&#39;dbdir&#39;]</span>
-        <span class="c1">#del state[&#39;dbdir&#39;]</span>
-        <span class="c1">#state[&#39;ibs&#39;] = wbia.opendb(dbdir=dbdir, web=False)</span>
+        <span class="c1"># import wbia</span>
+        <span class="c1"># dbdir = state[&#39;dbdir&#39;]</span>
+        <span class="c1"># del state[&#39;dbdir&#39;]</span>
+        <span class="c1"># state[&#39;ibs&#39;] = wbia.opendb(dbdir=dbdir, web=False)</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
         <span class="c1"># Internal caching objects and views</span>
@@ -645,7 +788,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">typestr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_shortinfo_parts</span><span class="p">()</span>
-        <span class="c1">#print(&#39;parts = %r&#39; % (parts,))</span>
+        <span class="c1"># print(&#39;parts = %r&#39; % (parts,))</span>
         <span class="n">custom_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">typestr</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parts</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">custom_str</span>
 
@@ -704,16 +847,14 @@
         <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
         <span class="c1"># Use new annotation objects</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_data_config2</span><span class="p">()</span>
-        <span class="n">qreq_</span><span class="o">.</span><span class="n">_internal_dannots</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">,</span>
-                                                   <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">_internal_dannots</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_internal_qaids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">):</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids_mask</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Invalidate mask</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
         <span class="c1"># Use new annotation objects</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">()</span>
-        <span class="n">qreq_</span><span class="o">.</span><span class="n">_internal_qannots</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span><span class="p">,</span>
-                                                   <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">_internal_qannots</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 
 <div class="viewcode-block" id="QueryRequest.shallowcopy"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.shallowcopy">[docs]</a>    <span class="k">def</span> <span class="nf">shallowcopy</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -733,7 +874,7 @@
 <span class="sd">            &gt;&gt;&gt; assert len(qreq_.qaids) != len(qreq2_.qaids), &#39;should be diff&#39;</span>
 <span class="sd">            &gt;&gt;&gt; #assert qreq_.metadata is not qreq2_.metadata</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#qreq2_ = copy.copy(qreq_)  # copy calls setstate and getstate</span>
+        <span class="c1"># qreq2_ = copy.copy(qreq_)  # copy calls setstate and getstate</span>
         <span class="n">qreq2_</span> <span class="o">=</span> <span class="n">QueryRequest</span><span class="p">()</span>
         <span class="n">qreq2_</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
         <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaids</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="k">else</span> <span class="n">qaids</span>
@@ -742,13 +883,13 @@
         <span class="n">qreq2_</span><span class="o">.</span><span class="n">set_external_qaids</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
         <span class="c1"># The shallow copy does not bring over output / query data</span>
         <span class="n">qreq2_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1">#qreq2_.metadata = {}</span>
+        <span class="c1"># qreq2_.metadata = {}</span>
         <span class="n">qreq2_</span><span class="o">.</span><span class="n">hasloaded</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">qreq2_</span></div>
 
     <span class="c1"># --- State Modification ---</span>
 
-    <span class="c1">#def remove_internal_daids(qreq_, remove_daids):</span>
+    <span class="c1"># def remove_internal_daids(qreq_, remove_daids):</span>
     <span class="c1">#    r&quot;&quot;&quot;</span>
     <span class="c1">#    DEPRICATE</span>
 
@@ -792,7 +933,7 @@
     <span class="c1">#        warnings.warn(&#39;Implement point removal from trees&#39;)</span>
     <span class="c1">#        qreq_.indexer.remove_wbia_support(qreq_, remove_daids)</span>
 
-    <span class="c1">#def add_internal_daids(qreq_, new_daids):</span>
+    <span class="c1"># def add_internal_daids(qreq_, new_daids):</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
     <span class="c1">#    DEPRICATE</span>
 
@@ -843,13 +984,11 @@
         <span class="k">if</span> <span class="n">masked_daid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">masked_daid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids_mask</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1">#with ut.EmbedOnException():</span>
+            <span class="c1"># with ut.EmbedOnException():</span>
             <span class="c1"># input denotes invalid elements mark all elements not in that</span>
             <span class="c1"># list as True</span>
-            <span class="n">flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_uncovered_mask</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">,</span>
-                                          <span class="n">masked_daid_list</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;unequal len internal daids&#39;</span><span class="p">)</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_uncovered_mask</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">,</span> <span class="n">masked_daid_list</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">),</span> <span class="s1">&#39;unequal len internal daids&#39;</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids_mask</span> <span class="o">=</span> <span class="n">flags</span></div>
 
 <div class="viewcode-block" id="QueryRequest.set_internal_masked_qaids"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.set_internal_masked_qaids">[docs]</a>    <span class="k">def</span> <span class="nf">set_internal_masked_qaids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">masked_qaid_list</span><span class="p">):</span>
@@ -877,10 +1016,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># input denotes invalid elements mark all elements not in that</span>
             <span class="c1"># list as True</span>
-            <span class="n">flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_uncovered_mask</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span><span class="p">,</span>
-                                          <span class="n">masked_qaid_list</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;unequal len internal qaids&#39;</span><span class="p">)</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_uncovered_mask</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span><span class="p">,</span> <span class="n">masked_qaid_list</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span><span class="p">),</span> <span class="s1">&#39;unequal len internal qaids&#39;</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids_mask</span> <span class="o">=</span> <span class="n">flags</span></div>
 
     <span class="c1"># --- INTERNAL INTERFACE ---</span>
@@ -901,14 +1038,14 @@
             <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">_internal_dannots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids_mask</span><span class="p">)</span>
 
 <div class="viewcode-block" id="QueryRequest.get_internal_daids"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.get_internal_daids">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_daids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
-        <span class="c1">#return np.array(qreq_.internal_dannots.aid)</span>
+        <span class="c1"># return np.array(qreq_.internal_dannots.aid)</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids_mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QueryRequest.get_internal_qaids"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.get_internal_qaids">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_qaids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
-        <span class="c1">#return np.array(qreq_.internal_qannots.aid)</span>
+        <span class="c1"># return np.array(qreq_.internal_qannots.aid)</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span>
         <span class="k">else</span><span class="p">:</span>
@@ -962,10 +1099,14 @@
         <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QueryRequest.get_qreq_dannot_fgweights"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.get_qreq_dannot_fgweights">[docs]</a>    <span class="k">def</span> <span class="nf">get_qreq_dannot_fgweights</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span>
+            <span class="n">daids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="QueryRequest.get_qreq_qannot_fgweights"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.get_qreq_qannot_fgweights">[docs]</a>    <span class="k">def</span> <span class="nf">get_qreq_qannot_fgweights</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span>
+            <span class="n">qaids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dnids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
@@ -988,8 +1129,7 @@
 <div class="viewcode-block" id="QueryRequest.get_external_query_groundtruth"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.get_external_query_groundtruth">[docs]</a>    <span class="k">def</span> <span class="nf">get_external_query_groundtruth</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; gets groundtruth that are accessible via this query &quot;&quot;&quot;</span>
         <span class="n">external_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span>
-        <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span>
-            <span class="n">qaids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">external_daids</span><span class="p">)</span>
+        <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">external_daids</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">gt_aids</span></div>
 
     <span class="c1"># External id-hashes</span>
@@ -1040,8 +1180,9 @@
         <span class="k">return</span> <span class="n">pipe_hashstr</span></div>
 
 <div class="viewcode-block" id="QueryRequest.get_cfgstr"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.get_cfgstr">[docs]</a>    <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">with_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                   <span class="n">hash_pipe</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span>
+        <span class="n">qreq_</span><span class="p">,</span> <span class="n">with_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hash_pipe</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        main cfgstring used to identify the &#39;querytype&#39;</span>
 <span class="sd">        FIXME: name params + data</span>
@@ -1120,7 +1261,7 @@
         <span class="n">subhook</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">subhook</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">subhook</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;finished preload&#39;</span><span class="p">)</span></div>
-        <span class="c1">#if hook is not None:</span>
+        <span class="c1"># if hook is not None:</span>
         <span class="c1">#    hook.set_progress(4, 4, lbl=&#39;preloading features&#39;)</span>
 
 <div class="viewcode-block" id="QueryRequest.lazy_load"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.lazy_load">[docs]</a>    <span class="nd">@profile</span>
@@ -1169,19 +1310,17 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq] ensure_chips&#39;</span><span class="p">)</span>
         <span class="n">external_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span>
         <span class="n">external_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span>
-        <span class="c1">#np.union1d(external_qaids, external_daids)</span>
+        <span class="c1"># np.union1d(external_qaids, external_daids)</span>
         <span class="c1"># TODO check if configs are the same</span>
         <span class="n">externgetkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">check_external_storage</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">num_retries</span><span class="o">=</span><span class="n">num_retries</span>
+            <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check_external_storage</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_retries</span><span class="o">=</span><span class="n">num_retries</span>
         <span class="p">)</span>
         <span class="n">q_chip_fpath</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span>  <span class="c1"># NOQA</span>
-            <span class="n">external_qaids</span><span class="p">,</span>
-            <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span><span class="p">,</span> <span class="o">**</span><span class="n">externgetkw</span><span class="p">)</span>
+            <span class="n">external_qaids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span><span class="p">,</span> <span class="o">**</span><span class="n">externgetkw</span>
+        <span class="p">)</span>
         <span class="n">d_chip_fpath</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span>  <span class="c1"># NOQA</span>
-            <span class="n">external_daids</span><span class="p">,</span>
-            <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">,</span> <span class="o">**</span><span class="n">externgetkw</span><span class="p">)</span></div>
+            <span class="n">external_daids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">,</span> <span class="o">**</span><span class="n">externgetkw</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="QueryRequest.ensure_features"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.ensure_features">[docs]</a>    <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">ensure_features</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1206,7 +1345,7 @@
 <span class="sd">            &gt;&gt;&gt; result = qreq_.ensure_features(verbose)</span>
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#with ut.EmbedOnException():</span>
+        <span class="c1"># with ut.EmbedOnException():</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq] ensure_features&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">prog_hook</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1243,16 +1382,19 @@
                 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qreq] loading single indexer normalizer&#39;</span><span class="p">)</span>
                 <span class="n">indexer</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_wbia_nnindexer</span><span class="p">(</span>
-                    <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span>
-                    <span class="o">**</span><span class="n">qreq_</span><span class="o">.</span><span class="n">_indexer_request_params</span><span class="p">)</span>
-            <span class="c1">#elif index_method == &#39;multi&#39;:</span>
+                    <span class="n">qreq_</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                    <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">qreq_</span><span class="o">.</span><span class="n">_indexer_request_params</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="c1"># elif index_method == &#39;multi&#39;:</span>
             <span class="c1">#    if ut.VERYVERBOSE or verbose:</span>
             <span class="c1">#        print(&#39;[qreq] loading multi indexer normalizer&#39;)</span>
             <span class="c1">#    indexer = multi_index.request_wbia_mindexer(</span>
             <span class="c1">#        qreq_, verbose=verbose)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unknown index_method=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index_method</span><span class="p">,))</span>
-            <span class="c1">#if qreq_.prog_hook is not None:</span>
+            <span class="c1"># if qreq_.prog_hook is not None:</span>
             <span class="c1">#    hook.set_progress(4, 4, lbl=&#39;building indexer&#39;)</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="n">indexer</span>
             <span class="k">return</span> <span class="kc">True</span></div>
@@ -1280,12 +1422,15 @@
             <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">qauuid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_pcc_uuids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">qauuid_list</span><span class="p">):</span>
-            <span class="n">fname</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">get_chipmatch_fname</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qauuid</span><span class="o">=</span><span class="n">qauuid</span><span class="p">,</span>
-                                                   <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">)</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">get_chipmatch_fname</span><span class="p">(</span>
+                <span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qauuid</span><span class="o">=</span><span class="n">qauuid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span>
+            <span class="p">)</span>
             <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">fpath</span></div>
 
-<div class="viewcode-block" id="QueryRequest.execute"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">invalidate_supercache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryRequest.execute"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_request.QueryRequest.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span>
+        <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">invalidate_supercache</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Runs the hotspotter pipeline and returns chip match objects.</span>
 
@@ -1306,18 +1451,27 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">shallow_qreq_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">)</span>
-            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">shallow_qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
-                                            <span class="n">invalidate_supercache</span><span class="o">=</span><span class="n">invalidate_supercache</span><span class="p">)</span>
-            <span class="c1">#cm_list = qreq_.ibs.query_chips(</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">shallow_qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span>
+                <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                <span class="n">invalidate_supercache</span><span class="o">=</span><span class="n">invalidate_supercache</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="c1"># cm_list = qreq_.ibs.query_chips(</span>
             <span class="c1">#    qreq_=shallow_qreq_, use_bigcache=False )</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
+
             <span class="c1"># Send query to hotspotter (runs the query)</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="o">=</span> <span class="n">prog_hook</span>
             <span class="n">cm_list</span> <span class="o">=</span> <span class="n">mc4</span><span class="o">.</span><span class="n">submit_query_request</span><span class="p">(</span>
-                <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">save_qcache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">use_supercache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">invalidate_supercache</span><span class="o">=</span><span class="n">invalidate_supercache</span><span class="p">)</span>
+                <span class="n">qreq_</span><span class="p">,</span>
+                <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                <span class="n">use_bigcache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">save_qcache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                <span class="n">use_supercache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">invalidate_supercache</span><span class="o">=</span><span class="n">invalidate_supercache</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">cm_list</span></div></div>
 
 
@@ -1332,6 +1486,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">cfg1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
     <span class="n">cfg2</span> <span class="o">=</span> <span class="n">cfg1</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
@@ -1353,17 +1508,35 @@
 <span class="sd">        python -m wbia.algo.hots.query_request --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1371,59 +1544,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../hots.html">wbia.algo.hots</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

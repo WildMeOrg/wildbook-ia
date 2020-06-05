@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.plottool.test_vtk_poly &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.plottool.test_vtk_poly &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+
+      <li>wbia.plottool.test_vtk_poly</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.plottool.test_vtk_poly</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -39,11 +156,13 @@
 
 <div class="viewcode-block" id="rhombicuboctahedron"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.test_vtk_poly.rhombicuboctahedron">[docs]</a><span class="k">def</span> <span class="nf">rhombicuboctahedron</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">vtk</span>
+
     <span class="c1"># First, you need to store the vertex locations.</span>
 
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
     <span class="n">fu</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># full unit</span>
-    <span class="n">hu</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>  <span class="c1"># half unit</span>
+    <span class="n">hu</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># half unit</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">fu</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># diag</span>
     <span class="n">hh</span> <span class="o">=</span> <span class="n">hu</span> <span class="o">+</span> <span class="n">d</span>  <span class="c1"># half height</span>
 
@@ -52,21 +171,17 @@
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
     <span class="kn">import</span> <span class="nn">six</span>
     <span class="kn">import</span> <span class="nn">itertools</span>
+
     <span class="n">counter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">,</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
 
     <span class="n">vertex_locations</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPoints</span><span class="p">()</span>
     <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetNumberOfPoints</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
 
-    <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-        <span class="p">(</span><span class="o">-</span><span class="n">hu</span><span class="p">,</span> <span class="o">-</span><span class="n">hu</span><span class="p">,</span> <span class="n">hh</span><span class="p">),</span>
-        <span class="p">(</span> <span class="n">hu</span><span class="p">,</span> <span class="o">-</span><span class="n">hu</span><span class="p">,</span> <span class="n">hh</span><span class="p">),</span>
-        <span class="p">(</span> <span class="n">hu</span><span class="p">,</span>  <span class="n">hu</span><span class="p">,</span> <span class="n">hh</span><span class="p">),</span>
-        <span class="p">(</span><span class="o">-</span><span class="n">hu</span><span class="p">,</span>  <span class="n">hu</span><span class="p">,</span> <span class="n">hh</span><span class="p">),</span>
-    <span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="o">-</span><span class="n">hu</span><span class="p">,</span> <span class="o">-</span><span class="n">hu</span><span class="p">,</span> <span class="n">hh</span><span class="p">),</span> <span class="p">(</span><span class="n">hu</span><span class="p">,</span> <span class="o">-</span><span class="n">hu</span><span class="p">,</span> <span class="n">hh</span><span class="p">),</span> <span class="p">(</span><span class="n">hu</span><span class="p">,</span> <span class="n">hu</span><span class="p">,</span> <span class="n">hh</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="n">hu</span><span class="p">,</span> <span class="n">hu</span><span class="p">,</span> <span class="n">hh</span><span class="p">),])</span><span class="o">.</span><span class="n">T</span>
     <span class="n">plist</span> <span class="o">=</span> <span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">]</span>
 
     <span class="c1"># three of the six main faces</span>
-    <span class="c1">#perms = list(itertools.permutations((0, 1, 2), 3))</span>
+    <span class="c1"># perms = list(itertools.permutations((0, 1, 2), 3))</span>
     <span class="n">perms</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
 
     <span class="n">vertex_array</span> <span class="o">=</span> <span class="p">[]</span>
@@ -115,30 +230,30 @@
         <span class="s1">&#39;F&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">]],</span>
         <span class="s1">&#39;R&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">]],</span>
         <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">]],</span>
-        <span class="s1">&#39;FL&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;BL&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;UL&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;DL&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;UFL&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;DFL&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;UBL&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;DBL&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;UFR&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;DFR&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;UBR&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;DBR&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;FR&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;BR&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;UR&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;DR&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;DF&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;DB&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;UF&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="p">],</span>
-        <span class="s1">&#39;UB&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="p">],</span>
+        <span class="s1">&#39;FL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],],</span>
+        <span class="s1">&#39;BL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],],</span>
+        <span class="s1">&#39;UL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],],</span>
+        <span class="s1">&#39;DL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],],</span>
+        <span class="s1">&#39;UFL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],],</span>
+        <span class="s1">&#39;DFL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],],</span>
+        <span class="s1">&#39;UBL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],],</span>
+        <span class="s1">&#39;DBL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],],</span>
+        <span class="s1">&#39;UFR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],],</span>
+        <span class="s1">&#39;DFR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],],</span>
+        <span class="s1">&#39;UBR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],],</span>
+        <span class="s1">&#39;DBR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],],</span>
+        <span class="s1">&#39;FR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],],</span>
+        <span class="s1">&#39;BR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],],</span>
+        <span class="s1">&#39;UR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],],</span>
+        <span class="s1">&#39;DR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],],</span>
+        <span class="s1">&#39;DF&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],],</span>
+        <span class="s1">&#39;DB&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],],</span>
+        <span class="s1">&#39;UF&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],],</span>
+        <span class="s1">&#39;UB&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vpdict</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],],</span>
     <span class="p">}</span>
 
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vert_ids</span> <span class="ow">in</span> <span class="n">face_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="c1">#if key != &#39;L&#39;:</span>
+        <span class="c1"># if key != &#39;L&#39;:</span>
         <span class="c1">#    continue</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert_ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
@@ -149,7 +264,7 @@
         <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="c1"># Next you create a vtkPolyData to store your face and vertex information</span>
-    <span class="c1">#that</span>
+    <span class="c1"># that</span>
     <span class="c1"># represents your polyhedron.</span>
     <span class="n">pd</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyData</span><span class="p">()</span>
     <span class="n">pd</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">vertex_locations</span><span class="p">)</span>
@@ -170,11 +285,11 @@
     <span class="n">ug</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">vertex_locations</span><span class="p">)</span>
     <span class="n">ug</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">vtk</span><span class="o">.</span><span class="n">VTK_POLYHEDRON</span><span class="p">,</span> <span class="n">face_stream</span><span class="p">)</span>
 
-    <span class="c1">#writer = vtk.vtkUnstructuredGridWriter()</span>
-    <span class="c1">#writer.SetFileName(&quot;rhombicuboctahedron.vtk&quot;)</span>
+    <span class="c1"># writer = vtk.vtkUnstructuredGridWriter()</span>
+    <span class="c1"># writer.SetFileName(&quot;rhombicuboctahedron.vtk&quot;)</span>
     <span class="c1">##writer.SetInputData(ug)</span>
-    <span class="c1">#writer.SetInput(ug)</span>
-    <span class="c1">#writer.Write()</span>
+    <span class="c1"># writer.SetInput(ug)</span>
+    <span class="c1"># writer.Write()</span>
 
     <span class="n">mapper</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDataSetMapper</span><span class="p">()</span>
     <span class="n">mapper</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">ug</span><span class="p">)</span>
@@ -188,8 +303,8 @@
 
         <span class="n">textureCoords</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkFloatArray</span><span class="p">()</span>
         <span class="n">textureCoords</span><span class="o">.</span><span class="n">SetNumberOfComponents</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-        <span class="c1">#coords = ut.take(vertex_array, face_dict[&#39;L&#39;])</span>
-        <span class="c1">#for coord in coords:</span>
+        <span class="c1"># coords = ut.take(vertex_array, face_dict[&#39;L&#39;])</span>
+        <span class="c1"># for coord in coords:</span>
         <span class="c1">#    textureCoords.InsertNextTuple(tuple(coord))</span>
         <span class="n">textureCoords</span><span class="o">.</span><span class="n">InsertNextTuple</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
         <span class="n">textureCoords</span><span class="o">.</span><span class="n">InsertNextTuple</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
@@ -228,85 +343,86 @@
 <div class="viewcode-block" id="rhombic_dodecahedron"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.test_vtk_poly.rhombic_dodecahedron">[docs]</a><span class="k">def</span> <span class="nf">rhombic_dodecahedron</span><span class="p">():</span>
     <span class="c1"># http://www.vtk.org/pipermail/vtkusers/2014-September/085077.html</span>
     <span class="kn">import</span> <span class="nn">vtk</span>
+
     <span class="c1"># This is a Rhombic Dodecahedron.</span>
 
     <span class="c1"># First, you need to store the vertex locations.</span>
     <span class="n">vertex_locations</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPoints</span><span class="p">()</span>
     <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetNumberOfPoints</span><span class="p">(</span><span class="mi">14</span><span class="p">)</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.00000</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.57735</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.000000</span><span class="p">,</span>  <span class="mf">0.57735</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">3</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.00000</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">4</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.57735</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.57735</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">6</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.000000</span><span class="p">,</span>  <span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.15470</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">7</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.000000</span><span class="p">,</span>  <span class="mf">0.000000</span><span class="p">,</span>  <span class="mf">1.15470</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">8</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.000000</span><span class="p">,</span>  <span class="mf">0.816497</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.57735</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span> <span class="mi">9</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.000000</span><span class="p">,</span>  <span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.57735</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.816497</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.00000</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.57735</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.000000</span><span class="p">,</span>  <span class="mf">0.57735</span><span class="p">))</span>
-    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="p">(</span> <span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.816497</span><span class="p">,</span>  <span class="mf">0.00000</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.00000</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.57735</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.000000</span><span class="p">,</span> <span class="mf">0.57735</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.00000</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.57735</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.57735</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.000000</span><span class="p">,</span> <span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.15470</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.000000</span><span class="p">,</span> <span class="mf">0.000000</span><span class="p">,</span> <span class="mf">1.15470</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.000000</span><span class="p">,</span> <span class="mf">0.816497</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.57735</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.000000</span><span class="p">,</span> <span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.57735</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.816497</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.00000</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.000000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.57735</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.000000</span><span class="p">,</span> <span class="mf">0.57735</span><span class="p">))</span>
+    <span class="n">vertex_locations</span><span class="o">.</span><span class="n">SetPoint</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.816497</span><span class="p">,</span> <span class="mf">0.00000</span><span class="p">))</span>
 
     <span class="c1"># Next, you describe the polygons that represent the faces using the vertex</span>
     <span class="c1"># indices in the vtkPoints that stores the vertex locations. There are a</span>
-    <span class="c1">#number</span>
+    <span class="c1"># number</span>
     <span class="c1"># of ways to do this that you can find in examples on the Wiki.</span>
 
     <span class="n">polygon_faces</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCellArray</span><span class="p">()</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">7</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">5</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">7</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">9</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">7</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">9</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="mi">3</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">2</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">7</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">2</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="mi">0</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">5</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">6</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">4</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">6</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">4</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="mi">0</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">1</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">6</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="mi">3</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">8</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">6</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">8</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
@@ -320,27 +436,27 @@
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">8</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="mi">3</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">9</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">3</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="mi">0</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">2</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="n">q</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">4</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="mi">5</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
     <span class="n">polygon_faces</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
     <span class="c1"># Next you create a vtkPolyData to store your face and vertex information</span>
-    <span class="c1">#that</span>
+    <span class="c1"># that</span>
     <span class="c1"># represents your polyhedron.</span>
     <span class="n">pd</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyData</span><span class="p">()</span>
     <span class="n">pd</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">vertex_locations</span><span class="p">)</span>
@@ -348,9 +464,9 @@
 
     <span class="c1"># If you wanted to be able to load in the saved file and select the entire</span>
     <span class="c1"># polyhedron, you would need to save it as a vtkUnstructuredGrid, and you</span>
-    <span class="c1">#would</span>
+    <span class="c1"># would</span>
     <span class="c1"># need to put the data into a vtkPolyhedron. This is a bit more involved</span>
-    <span class="c1">#than</span>
+    <span class="c1"># than</span>
     <span class="c1"># the vtkPolyData that I used above. For a more in-depth discussion, see:</span>
     <span class="c1"># http://www.vtk.org/Wiki/VTK/Polyhedron_Support</span>
 
@@ -370,19 +486,19 @@
     <span class="n">ug</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">vertex_locations</span><span class="p">)</span>
     <span class="n">ug</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">vtk</span><span class="o">.</span><span class="n">VTK_POLYHEDRON</span><span class="p">,</span> <span class="n">face_stream</span><span class="p">)</span>
 
-    <span class="c1">#--------------#</span>
+    <span class="c1"># --------------#</span>
     <span class="c1"># output stuff #</span>
-    <span class="c1">#--------------#</span>
+    <span class="c1"># --------------#</span>
 
     <span class="n">writer</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkUnstructuredGridWriter</span><span class="p">()</span>
-    <span class="n">writer</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="s2">&quot;rhombic_dodecahedron.vtk&quot;</span><span class="p">)</span>
-    <span class="c1">#writer.SetInputData(ug)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="s1">&#39;rhombic_dodecahedron.vtk&#39;</span><span class="p">)</span>
+    <span class="c1"># writer.SetInputData(ug)</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">ug</span><span class="p">)</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">Write</span><span class="p">()</span>
 
-    <span class="c1">#---------------------#</span>
+    <span class="c1"># ---------------------#</span>
     <span class="c1"># visualization stuff #</span>
-    <span class="c1">#---------------------#</span>
+    <span class="c1"># ---------------------#</span>
     <span class="c1"># mapper = vtk.vtkPolyDataMapper()</span>
     <span class="c1"># mapper.SetInputData(pd)</span>
     <span class="n">mapper</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDataSetMapper</span><span class="p">()</span>
@@ -404,6 +520,7 @@
     <span class="n">renw</span><span class="o">.</span><span class="n">Render</span><span class="p">()</span>
     <span class="n">iren</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span></div>
 
+
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -414,13 +531,30 @@
     <span class="n">rhombicuboctahedron</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -428,57 +562,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../plottool.html">wbia.plottool</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

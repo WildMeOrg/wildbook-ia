@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.guitool.PrefWidget2 &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.guitool.PrefWidget2 &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../guitool.html">wbia.guitool</a> &raquo;</li>
+
+      <li>wbia.guitool.PrefWidget2</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.guitool.PrefWidget2</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -52,6 +169,7 @@
 <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="k">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QAbstractItemModel</span><span class="p">,</span> <span class="n">QModelIndex</span><span class="p">,</span> <span class="n">QObject</span>
 <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">_fromUtf8</span><span class="p">,</span> <span class="n">_encoding</span><span class="p">,</span> <span class="n">_translate</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
 <span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[PrefWidget2]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="n">VERBOSE_CONFIG</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verbconf&#39;</span><span class="p">)</span>
@@ -61,6 +179,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decorator to help catch errors that QT wont report</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">report_thread_error_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -71,18 +190,20 @@
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
             <span class="n">et</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
             <span class="k">raise</span>
+
     <span class="k">return</span> <span class="n">report_thread_error_wrapper</span></div>
 
 
 <div class="viewcode-block" id="qindexstr"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.qindexstr">[docs]</a><span class="k">def</span> <span class="nf">qindexstr</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
     <span class="k">return</span> <span class="s1">&#39;QIndex(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span> <span class="n">index</span><span class="o">.</span><span class="n">column</span><span class="p">())</span></div>
 
-<span class="c1">#DELEGATE_BASE = QtWidgets.QAbstractItemDelegate</span>
+
+<span class="c1"># DELEGATE_BASE = QtWidgets.QAbstractItemDelegate</span>
 <span class="c1"># DELEGATE_BASE = QtWidgets.QItemDelegate</span>
 <span class="n">DELEGATE_BASE</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyledItemDelegate</span>
 
 
-<span class="c1">#def inject_none_on_delete_event(editor):</span>
+<span class="c1"># def inject_none_on_delete_event(editor):</span>
 <span class="c1">#    def keyPressEvent(self, event):</span>
 <span class="c1">#        if event.matches(QtGui.QKeySequence.Delete):</span>
 <span class="c1">#            utool.embed()</span>
@@ -91,16 +212,17 @@
 <span class="c1">#        #return super(NoneSpinBox, self).keyPressEvent(event)</span>
 
 
-<span class="c1">#class NoneSpinBox(QtWidgets.QDoubleSpinBox):</span>
+<span class="c1"># class NoneSpinBox(QtWidgets.QDoubleSpinBox):</span>
 <div class="viewcode-block" id="NoneSpinBox"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox">[docs]</a><span class="k">class</span> <span class="nc">NoneSpinBox</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QDoubleSpinBox</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom spin box that handles None / nan values</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_EXP</span> <span class="o">=</span> <span class="mi">29</span>
-    <span class="n">HARD_MIN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">**</span> <span class="n">_EXP</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span>
+    <span class="n">HARD_MIN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">_EXP</span><span class="p">))</span> <span class="o">-</span> <span class="mf">1.0</span>
     <span class="n">HARD_MAX</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">_EXP</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span>
     <span class="n">NONE_VALUE</span> <span class="o">=</span> <span class="n">HARD_MIN</span> <span class="o">+</span> <span class="mf">1.0</span>
-    <span class="c1">#NONE_VALUE = float(&#39;nan&#39;)</span>
+    <span class="c1"># NONE_VALUE = float(&#39;nan&#39;)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;type_&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
@@ -120,38 +242,41 @@
 <div class="viewcode-block" id="NoneSpinBox.setMinimum"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.setMinimum">[docs]</a>    <span class="k">def</span> <span class="nf">setMinimum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; hack to get around None being invalid &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hack_min</span> <span class="o">=</span> <span class="n">min_</span></div>
-        <span class="c1">#super(NoneSpinBox, self).setMinimum(-2 ** 29)</span>
+        <span class="c1"># super(NoneSpinBox, self).setMinimum(-2 ** 29)</span>
 
 <div class="viewcode-block" id="NoneSpinBox.setMaximum"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.setMaximum">[docs]</a>    <span class="k">def</span> <span class="nf">setMaximum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hack_max</span> <span class="o">=</span> <span class="n">max_</span></div>
-        <span class="c1">#super(NoneSpinBox, self).setMaximum(2 ** 29)</span>
+        <span class="c1"># super(NoneSpinBox, self).setMaximum(2 ** 29)</span>
 
 <div class="viewcode-block" id="NoneSpinBox.setRange"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.setRange">[docs]</a>    <span class="k">def</span> <span class="nf">setRange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hack_min</span> <span class="o">=</span> <span class="n">min_</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hack_max</span> <span class="o">=</span> <span class="n">max_</span></div>
-        <span class="c1">#super(NoneSpinBox, self).setRange(-2 ** 29, 2 ** 29)</span>
+        <span class="c1"># super(NoneSpinBox, self).setRange(-2 ** 29, 2 ** 29)</span>
 
 <div class="viewcode-block" id="NoneSpinBox.stepBy"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.stepBy">[docs]</a>    <span class="k">def</span> <span class="nf">stepBy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
-        <span class="c1">#print(&#39;step by %r&#39; % (steps,))</span>
+        <span class="c1"># print(&#39;step by %r&#39; % (steps,))</span>
         <span class="n">current_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">current_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">post_nan_value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">current_value</span> <span class="o">+</span> <span class="n">steps</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">singleStep</span><span class="p">())</span></div>
-            <span class="c1">#super(NoneSpinBox, self).stepBy(steps)</span>
+            <span class="c1"># super(NoneSpinBox, self).stepBy(steps)</span>
 
 <div class="viewcode-block" id="NoneSpinBox.validate"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">re</span>
-        <span class="c1">#print(&#39;validate text = %r, pos=%r&#39; % (text, pos))</span>
+
+        <span class="c1"># print(&#39;validate text = %r, pos=%r&#39; % (text, pos))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_ok</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">)):</span>
             <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QValidator</span><span class="o">.</span><span class="n">Acceptable</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1">#state =  super(NoneSpinBox, self).validate(text, pos)</span>
+            <span class="c1"># state =  super(NoneSpinBox, self).validate(text, pos)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hack_min</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">):</span>
                 <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QValidator</span><span class="o">.</span><span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">):</span>
-                    <span class="c1">#print(&#39;INVALIDATE text = %r&#39; % (text,))</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span>
+                    <span class="sa">r</span><span class="s1">&#39;^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">,</span>
+                <span class="p">):</span>
+                    <span class="c1"># print(&#39;INVALIDATE text = %r&#39; % (text,))</span>
                     <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QValidator</span><span class="o">.</span><span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
@@ -162,7 +287,7 @@
                             <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QValidator</span><span class="o">.</span><span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                         <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QValidator</span><span class="o">.</span><span class="n">Intermediate</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
-        <span class="c1">#print(&#39;state = %r&#39; % (state,))</span>
+        <span class="c1"># print(&#39;state = %r&#39; % (state,))</span>
         <span class="k">return</span> <span class="n">state</span></div>
 
 <div class="viewcode-block" id="NoneSpinBox.value"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.value">[docs]</a>    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -173,26 +298,26 @@
             <span class="k">return</span> <span class="n">internal_value</span></div>
 
 <div class="viewcode-block" id="NoneSpinBox.setValue"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.setValue">[docs]</a>    <span class="k">def</span> <span class="nf">setValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="c1">#print(&#39;[spin] setValue = %r&#39; % (value,))</span>
+        <span class="c1"># print(&#39;[spin] setValue = %r&#39; % (value,))</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NONE_VALUE</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valueFromText</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="c1">#if value.lower().startswith(&#39;n&#39;):</span>
+            <span class="c1"># if value.lower().startswith(&#39;n&#39;):</span>
             <span class="c1">#    value = self.NONE_VALUE</span>
-            <span class="c1">#else:</span>
+            <span class="c1"># else:</span>
             <span class="c1">#    value = self.type_(value)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NONE_VALUE</span><span class="p">:</span>
-            <span class="c1">#print(&#39;value = %r&#39; % (value,))</span>
-            <span class="c1">#print(&#39;self._hack_min = %r&#39; % (self._hack_min,))</span>
-            <span class="c1">#print(&#39;self._hack_max = %r&#39; % (self._hack_max,))</span>
+            <span class="c1"># print(&#39;value = %r&#39; % (value,))</span>
+            <span class="c1"># print(&#39;self._hack_min = %r&#39; % (self._hack_min,))</span>
+            <span class="c1"># print(&#39;self._hack_max = %r&#39; % (self._hack_max,))</span>
             <span class="n">value</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hack_min</span><span class="p">)</span>
             <span class="n">value</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hack_max</span><span class="p">)</span>
-            <span class="c1">#print(&#39;value = %r&#39; % (value,))</span>
+            <span class="c1"># print(&#39;value = %r&#39; % (value,))</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">NoneSpinBox</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="NoneSpinBox.valueFromText"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.valueFromText">[docs]</a>    <span class="k">def</span> <span class="nf">valueFromText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
-        <span class="c1">#print(&#39;[spin] valueFromText text = %r&#39; % (text,))</span>
+        <span class="c1"># print(&#39;[spin] valueFromText text = %r&#39; % (text,))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_ok</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">)):</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NONE_VALUE</span>
         <span class="k">else</span><span class="p">:</span>
@@ -202,14 +327,14 @@
                 <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unknown self.type_=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type_</span><span class="p">,))</span>
-        <span class="c1">#print(&#39; * return value = %r&#39; % (value,))</span>
+        <span class="c1"># print(&#39; * return value = %r&#39; % (value,))</span>
         <span class="k">return</span> <span class="n">value</span></div>
 
 <div class="viewcode-block" id="NoneSpinBox.textFromValue"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.NoneSpinBox.textFromValue">[docs]</a>    <span class="k">def</span> <span class="nf">textFromValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="c1">#print(&#39;[spin] textFromValue value = %r&#39; % (value,))</span>
+        <span class="c1"># print(&#39;[spin] textFromValue value = %r&#39; % (value,))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_ok</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">NONE_VALUE</span><span class="p">:</span>
             <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
-            <span class="c1">#return str(self.NONE_VALUE)</span>
+            <span class="c1"># return str(self.NONE_VALUE)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
                 <span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
@@ -217,8 +342,8 @@
                 <span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unknown self.type_=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type_</span><span class="p">,))</span>
-                <span class="c1">#return super(NoneSpinBox, self).textFromValue(value)</span>
-        <span class="c1">#print(&#39; * return text = %r&#39; % (text,))</span>
+                <span class="c1"># return super(NoneSpinBox, self).textFromValue(value)</span>
+        <span class="c1"># print(&#39; * return text = %r&#39; % (text,))</span>
         <span class="k">return</span> <span class="n">text</span></div></div>
 
 
@@ -241,6 +366,7 @@
 <span class="sd">        #http://doc.qt.io/qt-4.8/style-reference.html</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="c1"># def __init__(self, parent):</span>
     <span class="c1">#     super(ConfigValueDelegate, self).__init__(parent)</span>
 
@@ -256,8 +382,8 @@
         <span class="c1">#     leafNode.print_tree()</span>
         <span class="c1">#     # print(&#39;[DELEGATE] * painting editor for %s at %s&#39; % (leafNode, qindexstr(index)))</span>
         <span class="k">if</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">is_combo</span><span class="p">:</span>
-            <span class="c1">#print(&#39;[DELEGATE] * painting editor for %s at %s&#39; % (leafNode, qindexstr(index)))</span>
-            <span class="c1">#painter.save()</span>
+            <span class="c1"># print(&#39;[DELEGATE] * painting editor for %s at %s&#39; % (leafNode, qindexstr(index)))</span>
+            <span class="c1"># painter.save()</span>
             <span class="n">curent_value</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
             <span class="n">style</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">style</span><span class="p">()</span>
             <span class="n">opt</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyleOptionComboBox</span><span class="p">()</span>
@@ -282,9 +408,9 @@
             <span class="n">style</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">style</span><span class="p">()</span>
             <span class="n">opt</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyleOptionSpinBox</span><span class="p">()</span>
             <span class="c1"># opt.currentText doesn&#39;t exist for SpinBox</span>
-            <span class="c1">#opt.currentText = curent_value  #</span>
+            <span class="c1"># opt.currentText = curent_value  #</span>
             <span class="n">opt</span><span class="o">.</span><span class="n">rect</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">rect</span>
-            <span class="c1">#opt.editable = False</span>
+            <span class="c1"># opt.editable = False</span>
             <span class="k">if</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">qt_is_editable</span><span class="p">():</span>
                 <span class="n">opt</span><span class="o">.</span><span class="n">state</span> <span class="o">|=</span> <span class="n">style</span><span class="o">.</span><span class="n">State_Enabled</span>
             <span class="n">element</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyle</span><span class="o">.</span><span class="n">CE_ItemViewItem</span>
@@ -292,7 +418,7 @@
             <span class="n">painter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
             <span class="n">style</span><span class="o">.</span><span class="n">drawComplexControl</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">painter</span><span class="p">)</span>
             <span class="n">style</span><span class="o">.</span><span class="n">drawControl</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">painter</span><span class="p">)</span>
-            <span class="c1">#self.drawDisplay(painter, opt, opt.rect, str(curent_value))</span>
+            <span class="c1"># self.drawDisplay(painter, opt, opt.rect, str(curent_value))</span>
             <span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">setLeft</span><span class="p">(</span><span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">left</span><span class="p">()</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
             <span class="n">curent_value</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
             <span class="n">painter</span><span class="o">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignLeft</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">curent_value</span><span class="p">))</span>
@@ -300,7 +426,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ConfigValueDelegate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">paint</span><span class="p">(</span><span class="n">painter</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
 
-    <span class="c1">#def sizeHint(self, option, index):</span>
+    <span class="c1"># def sizeHint(self, option, index):</span>
     <span class="c1">#    size_hint = super(ConfigValueDelegate, self).sizeHint(option, index)</span>
     <span class="c1">#    print(&#39;size_hint = %r&#39; % (size_hint,))</span>
     <span class="c1">#    #size_hint = QtCore.QSize(50, 21)</span>
@@ -318,6 +444,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DELEGATE] newEditor for </span><span class="si">%s</span><span class="s1"> at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">leafNode</span><span class="p">,</span> <span class="n">qindexstr</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">leafNode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">is_combo</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">wbia.guitool</span>
+
             <span class="n">options</span> <span class="o">=</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">valid_values</span>
             <span class="n">curent_value</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
@@ -325,7 +452,7 @@
             <span class="n">editor</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newComboBox</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">curent_value</span><span class="p">)</span>
             <span class="n">editor</span><span class="o">.</span><span class="n">currentIndexChanged</span><span class="p">[</span><span class="s1">&#39;int&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currentIndexChanged</span><span class="p">)</span>
             <span class="n">editor</span><span class="o">.</span><span class="n">setAutoFillBackground</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="c1">#elif leafNode is not None and leafNode.type_ is float:</span>
+        <span class="c1"># elif leafNode is not None and leafNode.type_ is float:</span>
         <span class="c1">#    curent_value = index.model().data(index)</span>
         <span class="c1">#    # TODO: min / max</span>
         <span class="c1">#    if False:</span>
@@ -334,9 +461,9 @@
         <span class="c1">#    editor.setSingleStep(0.1)</span>
         <span class="c1">#    editor.setAutoFillBackground(True)</span>
         <span class="c1">#    editor.setHidden(False)</span>
-        <span class="k">elif</span> <span class="p">(</span><span class="n">leafNode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">is_spin</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">leafNode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">is_spin</span><span class="p">:</span>
             <span class="c1"># TODO: Find a way for the user to enter a None into int boxes</span>
-            <span class="c1">#editor = QtWidgets.QDoubleSpinBox(parent)</span>
+            <span class="c1"># editor = QtWidgets.QDoubleSpinBox(parent)</span>
             <span class="n">editor</span> <span class="o">=</span> <span class="n">NoneSpinBox</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="n">leafNode</span><span class="o">.</span><span class="n">type_</span><span class="p">,</span> <span class="n">none_ok</span><span class="o">=</span><span class="n">leafNode</span><span class="o">.</span><span class="n">none_ok</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">min_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -347,7 +474,7 @@
             <span class="n">step_</span> <span class="o">=</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">step_</span>
             <span class="k">if</span> <span class="n">step_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="nb">float</span><span class="p">:</span>
-                    <span class="n">step_</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span>
+                    <span class="n">step_</span> <span class="o">=</span> <span class="mf">0.1</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">step_</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="n">editor</span><span class="o">.</span><span class="n">setSingleStep</span><span class="p">(</span><span class="n">step_</span><span class="p">)</span>
@@ -355,13 +482,13 @@
             <span class="n">editor</span><span class="o">.</span><span class="n">setAutoFillBackground</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">editor</span><span class="o">.</span><span class="n">setHidden</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">curent_value</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-            <span class="c1">#print(&#39;curent_value = %r&#39; % (curent_value,))</span>
+            <span class="c1"># print(&#39;curent_value = %r&#39; % (curent_value,))</span>
             <span class="n">editor</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">curent_value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">editor</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ConfigValueDelegate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">createEditor</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
             <span class="n">editor</span><span class="o">.</span><span class="n">setAutoFillBackground</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">editor</span><span class="o">.</span><span class="n">keyPressEvent</span>
-            <span class="c1">#none_ok</span>
+            <span class="c1"># none_ok</span>
         <span class="k">return</span> <span class="n">editor</span></div>
 
 <div class="viewcode-block" id="ConfigValueDelegate.setEditorData"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.ConfigValueDelegate.setEditorData">[docs]</a>    <span class="k">def</span> <span class="nf">setEditorData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
@@ -387,15 +514,15 @@
             <span class="k">if</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DELEGATE] * current_value = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_value</span><span class="p">,))</span>
             <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">current_value</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="p">(</span><span class="n">leafNode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">is_spin</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">leafNode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">leafNode</span><span class="o">.</span><span class="n">is_spin</span><span class="p">:</span>
             <span class="n">current_value</span> <span class="o">=</span> <span class="n">editor</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
-            <span class="c1">#if editor.textFromValue(current_value) == &#39;None&#39;:</span>
+            <span class="c1"># if editor.textFromValue(current_value) == &#39;None&#39;:</span>
             <span class="c1">#    current_value = None</span>
             <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">current_value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ConfigValueDelegate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setModelData</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
 
-    <span class="c1">#def onKeyPress():</span>
+    <span class="c1"># def onKeyPress():</span>
     <span class="c1">#    pass</span>
 
     <span class="c1"># @QtCore.pyqtSlot()</span>
@@ -417,27 +544,30 @@
         <span class="k">if</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DELEGATE] updateEditorGeometry at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qindexstr</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span>
         <span class="n">editor</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="p">)</span></div>
-        <span class="c1">#return super(ConfigValueDelegate, self).updateEditorGeometry(editor, option, index)</span>
+        <span class="c1"># return super(ConfigValueDelegate, self).updateEditorGeometry(editor, option, index)</span>
 
 <div class="viewcode-block" id="ConfigValueDelegate.editorEvent"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.ConfigValueDelegate.editorEvent">[docs]</a>    <span class="k">def</span> <span class="nf">editorEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">if</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DELEGATE] editorEvent event=</span><span class="si">%r</span><span class="s1"> with model=</span><span class="si">%r</span><span class="s1">, option=</span><span class="si">%r</span><span class="s1">, index=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;[DELEGATE] editorEvent event=</span><span class="si">%r</span><span class="s1"> with model=</span><span class="si">%r</span><span class="s1">, option=</span><span class="si">%r</span><span class="s1">, index=</span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">,)</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ConfigValueDelegate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">editorEvent</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ConfigValueDelegate.eventFilter"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.ConfigValueDelegate.eventFilter">[docs]</a>    <span class="k">def</span> <span class="nf">eventFilter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DELEGATE] eventFilter editor=</span><span class="si">%r</span><span class="s1">, event=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="n">event</span><span class="p">))</span>
-        <span class="c1">#if event.type() == QtCore.QEvent.KeyPress:</span>
+        <span class="c1"># if event.type() == QtCore.QEvent.KeyPress:</span>
         <span class="c1">#    if event.matches(QtGui.QKeySequence.Delete):</span>
         <span class="c1">#        #self.valueChanged.emit(None)</span>
         <span class="c1">#        print(&#39;[DELEGATE] DELETE eventFilter editor=%r, event=%r&#39; % (editor, event))</span>
         <span class="c1">#        return True</span>
-        <span class="n">handled</span> <span class="o">=</span>  <span class="nb">super</span><span class="p">(</span><span class="n">ConfigValueDelegate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">eventFilter</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+        <span class="n">handled</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ConfigValueDelegate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">eventFilter</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;handled = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">handled</span><span class="p">,))</span>
         <span class="k">return</span> <span class="n">handled</span></div></div>
 
-    <span class="c1">#def editorChanged(self, index):</span>
+    <span class="c1"># def editorChanged(self, index):</span>
     <span class="c1">#    check = self.editor.itemText(index)</span>
     <span class="c1">#    id_seq = self.parent.selectedIndexes[0][0]</span>
     <span class="c1">#    update.updateCheckSeq(self.parent.db, id_seq, check)</span>
@@ -447,10 +577,11 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convention states only items with column index 0 can have children</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="nd">@report_thread_error</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rootNode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QConfigModel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rootNode</span>  <span class="o">=</span> <span class="n">rootNode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rootNode</span> <span class="o">=</span> <span class="n">rootNode</span>
 
 <div class="viewcode-block" id="QConfigModel.index2Pref"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.QConfigModel.index2Pref">[docs]</a>    <span class="nd">@report_thread_error</span>
     <span class="k">def</span> <span class="nf">index2Pref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">QModelIndex</span><span class="p">()):</span>
@@ -461,7 +592,7 @@
                 <span class="k">return</span> <span class="n">item</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootNode</span></div>
 
-    <span class="c1">#-----------</span>
+    <span class="c1"># -----------</span>
     <span class="c1"># Overloaded ItemModel Read Functions</span>
 <div class="viewcode-block" id="QConfigModel.rowCount"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.QConfigModel.rowCount">[docs]</a>    <span class="nd">@report_thread_error</span>
     <span class="k">def</span> <span class="nf">rowCount</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QModelIndex</span><span class="p">()):</span>
@@ -483,17 +614,20 @@
             <span class="k">return</span> <span class="n">QVariantHack</span><span class="p">()</span>
         <span class="c1"># Specify CheckState Role:</span>
         <span class="n">flags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
-        <span class="c1">#if role == Qt.CheckStateRole and (flags &amp; Qt.ItemIsUserCheckable or flags &amp; Qt.ItemIsTristate):</span>
+        <span class="c1"># if role == Qt.CheckStateRole and (flags &amp; Qt.ItemIsUserCheckable or flags &amp; Qt.ItemIsTristate):</span>
         <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">CheckStateRole</span> <span class="ow">and</span> <span class="n">flags</span> <span class="o">&amp;</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsUserCheckable</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span><span class="o">.</span><span class="n">qt_get_data</span><span class="p">(</span><span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>
             <span class="n">data_to_state</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="kc">True</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">,</span>
-                <span class="kc">None</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">PartiallyChecked</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">PartiallyChecked</span><span class="p">,</span>
-                <span class="kc">False</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span><span class="p">,</span>
+                <span class="kc">True</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">,</span>
+                <span class="s1">&#39;True&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">,</span>
+                <span class="kc">None</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">PartiallyChecked</span><span class="p">,</span>
+                <span class="s1">&#39;None&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">PartiallyChecked</span><span class="p">,</span>
+                <span class="kc">False</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span><span class="p">,</span>
+                <span class="s1">&#39;False&#39;</span><span class="p">:</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span><span class="p">,</span>
             <span class="p">}</span>
             <span class="n">state</span> <span class="o">=</span> <span class="n">data_to_state</span><span class="p">[</span><span class="n">data</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">state</span>
-        <span class="c1">#elif role == QtCore.Qt.SizeHintRole:</span>
+        <span class="c1"># elif role == QtCore.Qt.SizeHintRole:</span>
         <span class="c1">#    #return QtCore.QSize(40, 30)</span>
         <span class="c1">#    return QVariantHack()</span>
         <span class="k">if</span> <span class="n">role</span> <span class="o">!=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span> <span class="ow">and</span> <span class="n">role</span> <span class="o">!=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">:</span>
@@ -514,8 +648,11 @@
         <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">elif</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">CheckStateRole</span><span class="p">:</span>
-            <span class="n">state_to_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">PartiallyChecked</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                             <span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+            <span class="n">state_to_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="n">Qt</span><span class="o">.</span><span class="n">PartiallyChecked</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">}</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">state_to_data</span><span class="p">[</span><span class="n">value</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -530,8 +667,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[setData] type(value) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">leafPref</span><span class="o">.</span><span class="n">qt_set_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[setData] Notified of </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
-                  <span class="p">(</span><span class="s1">&#39;acceptance&#39;</span> <span class="k">if</span> <span class="n">result</span> <span class="k">else</span> <span class="s1">&#39;rejection&#39;</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[setData] Notified of </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;acceptance&#39;</span> <span class="k">if</span> <span class="n">result</span> <span class="k">else</span> <span class="s1">&#39;rejection&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[setData] --- FINISH setData() ---&#39;</span><span class="p">)</span>
@@ -546,7 +682,7 @@
         <span class="k">if</span> <span class="n">parent</span><span class="o">.</span><span class="n">isValid</span><span class="p">()</span> <span class="ow">and</span> <span class="n">parent</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">QModelIndex</span><span class="p">()</span>
         <span class="n">parentPref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index2Pref</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
-        <span class="n">childPref</span>  <span class="o">=</span> <span class="n">parentPref</span><span class="o">.</span><span class="n">qt_child</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="n">childPref</span> <span class="o">=</span> <span class="n">parentPref</span><span class="o">.</span><span class="n">qt_child</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">childPref</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">createIndex</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">childPref</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -583,9 +719,9 @@
             <span class="k">if</span> <span class="n">childPref</span> <span class="ow">and</span> <span class="n">childPref</span><span class="o">.</span><span class="n">qt_is_editable</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">childPref</span><span class="o">.</span><span class="n">is_checkable</span><span class="p">():</span>
                     <span class="n">flags</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEnabled</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsUserCheckable</span>
-                    <span class="c1">#flags = Qt.ItemIsEnabled | Qt.ItemIsTristate | Qt.ItemIsUserCheckable</span>
-                    <span class="c1">#flags |= Qt.ItemIsSelectable</span>
-                    <span class="c1">#flags = Qt.ItemIsEnabled | Qt.ItemIsTristate</span>
+                    <span class="c1"># flags = Qt.ItemIsEnabled | Qt.ItemIsTristate | Qt.ItemIsUserCheckable</span>
+                    <span class="c1"># flags |= Qt.ItemIsSelectable</span>
+                    <span class="c1"># flags = Qt.ItemIsEnabled | Qt.ItemIsTristate</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">flags</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEnabled</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsSelectable</span>
             <span class="k">else</span><span class="p">:</span>
@@ -688,6 +824,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wraps a dtool.Config object for internal qt use</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">param_info</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
@@ -886,7 +1023,7 @@
         <span class="k">if</span> <span class="n">column</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
-        <span class="c1">#if data is None:</span>
+        <span class="c1"># if data is None:</span>
         <span class="c1">#    data = &#39;None&#39;</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
@@ -963,12 +1100,13 @@
 <span class="sd">        &gt;&gt;&gt; widget.resize(400, 500)</span>
 <span class="sd">        &gt;&gt;&gt; guitool.qtapp_loop(qwin=widget, freq=10)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="c1"># data_changed(key)</span>
     <span class="n">data_changed</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">with_buttons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                 <span class="n">changed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_buttons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">changed</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">EditConfigWidget</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
         <span class="n">rootNode</span> <span class="o">=</span> <span class="n">ConfigNodeWrapper</span><span class="p">(</span><span class="s1">&#39;root&#39;</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user_mode</span> <span class="o">=</span> <span class="n">user_mode</span>
@@ -982,6 +1120,7 @@
 
 <div class="viewcode-block" id="EditConfigWidget.init_layout"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.EditConfigWidget.init_layout">[docs]</a>    <span class="k">def</span> <span class="nf">init_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+
         <span class="c1"># Create the tree view and buttons</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QTreeView</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="n">ConfigValueDelegate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span><span class="p">)</span>
@@ -989,23 +1128,27 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_with_buttons</span><span class="p">:</span>
             <span class="n">buttons</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">default_but</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">newButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Defaults&#39;</span><span class="p">,</span> <span class="n">pressed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_to_default</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">default_but</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">newButton</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Defaults&#39;</span><span class="p">,</span> <span class="n">pressed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_to_default</span>
+            <span class="p">)</span>
             <span class="n">buttons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_but</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">orig_but</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">newButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Original&#39;</span><span class="p">,</span> <span class="n">pressed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_to_original</span><span class="p">)</span>
             <span class="n">buttons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_but</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_mode</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">print_internals</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">newButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Print Internals&#39;</span><span class="p">,</span>
-                                                    <span class="n">pressed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">print_internals</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">print_internals</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">newButton</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Print Internals&#39;</span><span class="p">,</span> <span class="n">pressed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">print_internals</span>
+                <span class="p">)</span>
                 <span class="n">buttons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">print_internals</span><span class="p">)</span>
 
             <span class="c1"># Add compoments to the layout</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hbox</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QHBoxLayout</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">button</span> <span class="ow">in</span> <span class="n">buttons</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">hbox</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">button</span><span class="p">)</span>
-                <span class="n">button</span><span class="o">.</span><span class="n">setSizePolicy</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Expanding</span><span class="p">,</span>
-                                     <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Maximum</span><span class="p">)</span>
+                <span class="n">button</span><span class="o">.</span><span class="n">setSizePolicy</span><span class="p">(</span>
+                    <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Expanding</span><span class="p">,</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Maximum</span>
+                <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">vbox</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vbox</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span><span class="p">)</span>
@@ -1016,51 +1159,55 @@
 <div class="viewcode-block" id="EditConfigWidget.init_mvc"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.PrefWidget2.EditConfigWidget.init_mvc">[docs]</a>    <span class="k">def</span> <span class="nf">init_mvc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">operator</span>
         <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">reduce</span>
-        <span class="n">edit_triggers</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="fm">__or__</span><span class="p">,</span> <span class="p">[</span>
-            <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">CurrentChanged</span><span class="p">,</span>
-            <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">DoubleClicked</span><span class="p">,</span>
-            <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SelectedClicked</span><span class="p">,</span>
-            <span class="c1"># QtWidgets.QAbstractItemView.EditKeyPressed,</span>
-            <span class="c1"># QtWidgets.QAbstractItemView.AnyKeyPressed,</span>
-        <span class="p">])</span>
+
+        <span class="n">edit_triggers</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span>
+            <span class="n">operator</span><span class="o">.</span><span class="fm">__or__</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">CurrentChanged</span><span class="p">,</span>
+                <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">DoubleClicked</span><span class="p">,</span>
+                <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SelectedClicked</span><span class="p">,</span>
+                <span class="c1"># QtWidgets.QAbstractItemView.EditKeyPressed,</span>
+                <span class="c1"># QtWidgets.QAbstractItemView.AnyKeyPressed,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span><span class="o">.</span><span class="n">setEditTriggers</span><span class="p">(</span><span class="n">edit_triggers</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_model</span><span class="p">)</span>
         <span class="n">view_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span><span class="o">.</span><span class="n">header</span><span class="p">()</span>
-        <span class="c1">#import utool</span>
-        <span class="c1">#utool.embed()</span>
-        <span class="c1">#view_header.setDefaultSectionSize(250)</span>
-        <span class="c1">#self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)</span>
+        <span class="c1"># import utool</span>
+        <span class="c1"># utool.embed()</span>
+        <span class="c1"># view_header.setDefaultSectionSize(250)</span>
+        <span class="c1"># self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span><span class="o">.</span><span class="n">setHorizontalScrollBarPolicy</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">ScrollBarAsNeeded</span><span class="p">)</span>
-        <span class="c1">#view_header.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,</span>
+        <span class="c1"># view_header.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,</span>
         <span class="c1">#                          QtWidgets.QSizePolicy.MinimumExpanding)</span>
-        <span class="c1">#view_header.setSizePolicy(QtWidgets.QSizePolicy.Preferred,</span>
+        <span class="c1"># view_header.setSizePolicy(QtWidgets.QSizePolicy.Preferred,</span>
         <span class="c1">#                          QtWidgets.QSizePolicy.Preferred)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span><span class="o">.</span><span class="n">resizeColumnToContents</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span><span class="o">.</span><span class="n">resizeColumnToContents</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="c1">#self.tree_view.setAnimated(True)</span>
-        <span class="c1">#view_header.setStretchLastSection(True)</span>
+        <span class="c1"># self.tree_view.setAnimated(True)</span>
+        <span class="c1"># view_header.setStretchLastSection(True)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">view_header</span><span class="o">.</span><span class="n">setResizeMode</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QHeaderView</span><span class="o">.</span><span class="n">ResizeToContents</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="n">view_header</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QHeaderView</span><span class="o">.</span><span class="n">ResizeToContents</span><span class="p">)</span>
 
-        <span class="c1">#view_header.setResizeMode(QtWidgets.QHeaderView.Interactive)</span>
-        <span class="c1">#import utool</span>
-        <span class="c1">#utool.embed()</span>
-        <span class="c1">#self.tree_view.header().resizeSection(0, 250)</span>
-        <span class="c1">#setDefaultSectionSize(</span>
+        <span class="c1"># view_header.setResizeMode(QtWidgets.QHeaderView.Interactive)</span>
+        <span class="c1"># import utool</span>
+        <span class="c1"># utool.embed()</span>
+        <span class="c1"># self.tree_view.header().resizeSection(0, 250)</span>
+        <span class="c1"># setDefaultSectionSize(</span>
 
         <span class="c1"># from wbia.guitool import api_item_view</span>
         <span class="c1"># api_item_view.set_column_persistant_editor(self.tree_view, 1)</span>
         <span class="c1"># # Persistant editors</span>
-        <span class="c1">#num_rows = 4  # self.tree_view.model.rowCount()</span>
-        <span class="c1">#print(&#39;view.set_persistant: %r rows&#39; % num_rows)</span>
+        <span class="c1"># num_rows = 4  # self.tree_view.model.rowCount()</span>
+        <span class="c1"># print(&#39;view.set_persistant: %r rows&#39; % num_rows)</span>
         <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
             <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree_view</span>
             <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_model</span>
             <span class="n">column</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()):</span>
-                <span class="n">index</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
                 <span class="n">view</span><span class="o">.</span><span class="n">openPersistentEditor</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">config_model</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_change</span><span class="p">)</span></div>
@@ -1111,18 +1258,37 @@
 <span class="sd">        python -m wbia.guitool.PrefWidget2 --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1130,57 +1296,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../guitool.html">wbia.guitool</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

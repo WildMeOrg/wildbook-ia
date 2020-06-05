@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.manual_species_funcs &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.control.manual_species_funcs &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../control.html">wbia.control</a> &raquo;</li>
+
+      <li>wbia.control.manual_species_funcs</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.control.manual_species_funcs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -45,28 +162,30 @@
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c1"># NOQA</span>
-<span class="c1">#import numpy as np</span>
-<span class="c1">#import vtool as vt</span>
+
+<span class="c1"># import numpy as np</span>
+<span class="c1"># import vtool as vt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">SPECIES_ROWID</span>   <span class="o">=</span> <span class="s1">&#39;species_rowid&#39;</span>
-<span class="n">SPECIES_UUID</span>    <span class="o">=</span> <span class="s1">&#39;species_uuid&#39;</span>
-<span class="n">SPECIES_TEXT</span>    <span class="o">=</span> <span class="s1">&#39;species_text&#39;</span>
-<span class="n">SPECIES_NICE</span>    <span class="o">=</span> <span class="s1">&#39;species_nice&#39;</span>
-<span class="n">SPECIES_CODE</span>    <span class="o">=</span> <span class="s1">&#39;species_code&#39;</span>
-<span class="n">SPECIES_NOTE</span>    <span class="o">=</span> <span class="s1">&#39;species_note&#39;</span>
+<span class="n">SPECIES_ROWID</span> <span class="o">=</span> <span class="s1">&#39;species_rowid&#39;</span>
+<span class="n">SPECIES_UUID</span> <span class="o">=</span> <span class="s1">&#39;species_uuid&#39;</span>
+<span class="n">SPECIES_TEXT</span> <span class="o">=</span> <span class="s1">&#39;species_text&#39;</span>
+<span class="n">SPECIES_NICE</span> <span class="o">=</span> <span class="s1">&#39;species_nice&#39;</span>
+<span class="n">SPECIES_CODE</span> <span class="o">=</span> <span class="s1">&#39;species_code&#39;</span>
+<span class="n">SPECIES_NOTE</span> <span class="o">=</span> <span class="s1">&#39;species_note&#39;</span>
 <span class="n">SPECIES_ENABLED</span> <span class="o">=</span> <span class="s1">&#39;species_toggle_enabled&#39;</span>
 
 
@@ -79,7 +198,7 @@
 <span class="sd">        list_ (list): all nids of known animals</span>
 <span class="sd">        (does not include unknown names)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#all_known_species_rowids = ibs._get_all_known_lblannot_rowids(const.SPECIES_KEY)</span>
+    <span class="c1"># all_known_species_rowids = ibs._get_all_known_lblannot_rowids(const.SPECIES_KEY)</span>
     <span class="n">all_known_species_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">all_known_species_rowids</span>
 
@@ -111,7 +230,7 @@
 
 
 <div class="viewcode-block" id="sanitize_species_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.sanitize_species_texts">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="c1">#@register_api(&#39;/api/species/sanitize/&#39;, methods=[&#39;PUT&#39;])</span>
+<span class="c1"># @register_api(&#39;/api/species/sanitize/&#39;, methods=[&#39;PUT&#39;])</span>
 <span class="k">def</span> <span class="nf">sanitize_species_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    changes unknown species to the unknown value</span>
@@ -173,32 +292,42 @@
 
 <span class="k">def</span> <span class="nf">_convert_species_nice_to_text</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">re</span>
+
     <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="n">nice</span><span class="p">):</span>
         <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[ ]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
         <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9_\+]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
         <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[_]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
         <span class="n">nice</span> <span class="o">=</span> <span class="n">nice</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">nice</span>
-    <span class="k">return</span> <span class="p">[</span> <span class="n">_convert</span><span class="p">(</span><span class="n">species_nice</span><span class="p">)</span> <span class="k">for</span> <span class="n">species_nice</span> <span class="ow">in</span> <span class="n">species_nice_list</span> <span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">_convert</span><span class="p">(</span><span class="n">species_nice</span><span class="p">)</span> <span class="k">for</span> <span class="n">species_nice</span> <span class="ow">in</span> <span class="n">species_nice_list</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">_convert_species_nice_to_code</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">re</span>
+
     <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[_]+&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^A-Z0-9\+]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">text</span>
+
     <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">_convert_species_nice_to_text</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">[</span> <span class="n">_convert</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span> <span class="k">for</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">species_text_list</span> <span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">_convert</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span> <span class="k">for</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">species_text_list</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="add_species"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.add_species">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">adder</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">add_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">species_code_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">species_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">species_note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">add_species</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">species_nice_list</span><span class="p">,</span>
+    <span class="n">species_text_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species_code_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species_note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Adds a list of species.</span>
 
@@ -240,7 +369,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Strip all spaces</span>
-    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">species_nice_list</span> <span class="p">]</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">species_nice_list</span>
+    <span class="p">]</span>
 
     <span class="k">if</span> <span class="n">species_text_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">_convert_species_nice_to_text</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">)</span>
@@ -252,10 +383,13 @@
         <span class="n">species_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">))]</span>
 
     <span class="c1"># Sanatize to remove invalid names</span>
-    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-        <span class="n">species_nice</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">species_nice</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">species_nice</span> <span class="ow">in</span> <span class="n">species_nice_list</span>
-    <span class="p">])</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">species_nice</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="n">species_nice</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">species_nice</span> <span class="ow">in</span> <span class="n">species_nice_list</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
     <span class="n">species_uuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">species_uuid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
     <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
     <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
@@ -265,11 +399,26 @@
     <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
     <span class="c1"># TODO Allow for better ensure=False without using partial</span>
     <span class="c1"># Just autogenerate these functions</span>
-    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">SPECIES_UUID</span><span class="p">,</span> <span class="n">SPECIES_TEXT</span><span class="p">,</span> <span class="n">SPECIES_NICE</span><span class="p">,</span> <span class="n">SPECIES_CODE</span><span class="p">,</span> <span class="n">SPECIES_NOTE</span><span class="p">]</span>
-    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">species_uuid_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">,</span> <span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_code_list</span><span class="p">,</span> <span class="n">species_note_list</span><span class="p">))</span>
-    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
-                                             <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">species_uuid_list</span><span class="p">,</span>
+            <span class="n">species_text_list</span><span class="p">,</span>
+            <span class="n">species_nice_list</span><span class="p">,</span>
+            <span class="n">species_code_list</span><span class="p">,</span>
+            <span class="n">species_note_list</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">get_rowid_from_superkey</span><span class="p">,</span>
+        <span class="n">superkey_paramx</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">temp_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">))</span>
     <span class="n">temp_list</span><span class="p">[</span><span class="n">flag_list</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>  <span class="c1"># NOQA</span>
     <span class="n">temp_list</span><span class="p">[</span><span class="n">flag_list</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span>  <span class="c1"># NOQA</span>
@@ -286,18 +435,18 @@
             <span class="p">]</span>
 
     <span class="k">return</span> <span class="n">species_rowid_list</span></div>
-    <span class="c1">#value_list = ibs.sanitize_species_texts(species_text_list)</span>
-    <span class="c1">#lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]</span>
-    <span class="c1">#lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)</span>
-    <span class="c1">#species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, species_note_list)</span>
+    <span class="c1"># value_list = ibs.sanitize_species_texts(species_text_list)</span>
+    <span class="c1"># lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]</span>
+    <span class="c1"># lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)</span>
+    <span class="c1"># species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, species_note_list)</span>
     <span class="c1">##species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else</span>
     <span class="c1">#                      rowid for rowid in species_rowid_list]</span>
-    <span class="c1">#return species_rowid_list</span>
+    <span class="c1"># return species_rowid_list</span>
 
 
 <div class="viewcode-block" id="delete_species"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.delete_species">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">deleter</span>
-<span class="c1">#@cache_invalidator(const.SPECIES_TABLE)</span>
+<span class="c1"># @cache_invalidator(const.SPECIES_TABLE)</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">delete_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -313,7 +462,7 @@
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> speciess&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span></div>
-    <span class="c1">#ibs.delete_lblannots(species_rowid_list)</span>
+    <span class="c1"># ibs.delete_lblannots(species_rowid_list)</span>
 
 
 <div class="viewcode-block" id="delete_empty_species"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.delete_empty_species">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -328,7 +477,7 @@
     <span class="n">unused_species_text_set</span> <span class="o">=</span> <span class="n">species_text_set</span> <span class="o">-</span> <span class="n">used_species_text_set</span>
     <span class="n">unused_species_text_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">unused_species_text_set</span><span class="p">)</span>
     <span class="n">unused_species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">unused_species_text_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Deleting unused species: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unused_species_text_list</span><span class="p">,</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Deleting unused species: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unused_species_text_list</span><span class="p">,))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_species</span><span class="p">(</span><span class="n">unused_species_rowid_list</span><span class="p">)</span></div>
 
 
@@ -393,16 +542,25 @@
         <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">species_text_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sanitize_species_texts</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">)</span>
-        <span class="c1">#lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]</span>
-        <span class="c1">#lbltype_rowid_list = [lbltype_rowid] * len(species_text_list_)</span>
-        <span class="c1">#species_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_text_list_)</span>
+        <span class="c1"># lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]</span>
+        <span class="c1"># lbltype_rowid_list = [lbltype_rowid] * len(species_text_list_)</span>
+        <span class="c1"># species_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_text_list_)</span>
         <span class="c1"># Ugg species and names need their own table</span>
-        <span class="c1">#species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else</span>
+        <span class="c1"># species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else</span>
         <span class="c1">#                      rowid for rowid in species_rowid_list]</span>
-        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_ROWID</span><span class="p">,),</span> <span class="n">species_text_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">SPECIES_TEXT</span><span class="p">)</span>
+        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">SPECIES_ROWID</span><span class="p">,),</span>
+            <span class="n">species_text_list_</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="n">SPECIES_TEXT</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="c1"># BIG HACK FOR ENFORCING UNKNOWN SPECIESS HAVE ROWID 0</span>
-        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
-                               <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_text_list_</span><span class="p">)]</span>
+        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span>
+            <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+            <span class="k">else</span> <span class="n">rowid</span>
+            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_text_list_</span><span class="p">)</span>
+        <span class="p">]</span>
     <span class="k">return</span> <span class="n">species_rowid_list</span></div>
 
 
@@ -422,9 +580,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/species/rowid/uuid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_ROWID</span><span class="p">,),</span> <span class="n">species_uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">SPECIES_UUID</span><span class="p">)</span>
-    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
-                           <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_uuid_list</span><span class="p">)]</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_ROWID</span><span class="p">,),</span> <span class="n">species_uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">SPECIES_UUID</span>
+    <span class="p">)</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
+        <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_uuid_list</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">species_rowid_list</span></div>
 
 
@@ -441,7 +603,7 @@
 <span class="sd">        URL:    /api/species/uuid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">uuids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_UUID</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
-    <span class="c1">#notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="c1"># notes_list = ibs.get_lblannot_notes(nid_list)</span>
     <span class="k">return</span> <span class="n">uuids_list</span></div>
 
 
@@ -473,12 +635,17 @@
 <span class="sd">        [&#39;zebra_plains&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;, &#39;bear_polar+head&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># FIXME: use standalone species table</span>
-    <span class="c1">#species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)</span>
-    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_TEXT</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
-    <span class="n">species_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
-                         <span class="k">if</span> <span class="n">rowid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">else</span> <span class="n">species_text</span>
-                         <span class="k">for</span> <span class="n">species_text</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)]</span>
-    <span class="n">species_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_text_list</span> <span class="p">]</span>
+    <span class="c1"># species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_TEXT</span><span class="p">,),</span> <span class="n">species_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">rowid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">else</span> <span class="n">species_text</span>
+        <span class="k">for</span> <span class="n">species_text</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_text_list</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">species_text_list</span></div>
 
 
@@ -511,13 +678,17 @@
 <span class="sd">        [&#39;Zebra (Plains)&#39;, &quot;Zebra (Grevy&#39;s)&quot;, &#39;Polar Bear&#39;, &#39;bear_polar+head&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># FIXME: use standalone species table</span>
-    <span class="c1">#species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)</span>
-    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_NICE</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="c1"># species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_NICE</span><span class="p">,),</span> <span class="n">species_rowid_list</span>
+    <span class="p">)</span>
     <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">rowid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">else</span> <span class="n">species_nice</span>
         <span class="k">for</span> <span class="n">species_nice</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
     <span class="p">]</span>
-    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;Unknown&#39;</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_nice_list</span> <span class="p">]</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Unknown&#39;</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_nice_list</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">species_nice_list</span></div>
 
 
@@ -533,8 +704,12 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/species/code/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">species_code_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_CODE</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
-    <span class="n">species_code_list</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;UNKNOWN&#39;</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_code_list</span> <span class="p">]</span>
+    <span class="n">species_code_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_CODE</span><span class="p">,),</span> <span class="n">species_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">species_code_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;UNKNOWN&#39;</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_code_list</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">species_code_list</span></div>
 
 
@@ -551,7 +726,7 @@
 <span class="sd">        URL:    /api/species/note/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_NOTE</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
-    <span class="c1">#notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="c1"># notes_list = ibs.get_lblannot_notes(nid_list)</span>
     <span class="k">return</span> <span class="n">notes_list</span></div>
 
 
@@ -620,18 +795,37 @@
 <span class="sd">        python -m wbia.control.manual_species_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -639,57 +833,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../control.html">wbia.control</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

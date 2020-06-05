@@ -1,50 +1,173 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.verif.sklearn_utils &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.verif.sklearn_utils &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../verif.html">wbia.algo.verif</a> &raquo;</li>
+
+      <li>wbia.algo.verif.sklearn_utils</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.verif.sklearn_utils</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+
 <span class="c1"># import warning</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_array</span>
+
 <span class="c1"># from sklearn.utils import check_random_state</span>
 <span class="kn">from</span> <span class="nn">sklearn.externals.six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+
 <span class="c1"># from sklearn.model_selection._split import (_BaseKFold, KFold)</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection._split</span> <span class="k">import</span> <span class="p">(</span><span class="n">_BaseKFold</span><span class="p">,)</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection._split</span> <span class="k">import</span> <span class="n">_BaseKFold</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -125,8 +248,9 @@
         <span class="n">unique_groups</span><span class="p">,</span> <span class="n">group_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
         <span class="c1"># grouped_ids = list(grouping.keys())</span>
         <span class="n">grouped_y</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">group_idxs</span><span class="p">)</span>
-        <span class="n">grouped_y_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="n">bincount</span><span class="p">(</span><span class="n">y_</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_classes</span><span class="p">)</span> <span class="k">for</span> <span class="n">y_</span> <span class="ow">in</span> <span class="n">grouped_y</span><span class="p">])</span>
+        <span class="n">grouped_y_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">bincount</span><span class="p">(</span><span class="n">y_</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_classes</span><span class="p">)</span> <span class="k">for</span> <span class="n">y_</span> <span class="ow">in</span> <span class="n">grouped_y</span><span class="p">]</span>
+        <span class="p">)</span>
 
         <span class="n">target_freq</span> <span class="o">=</span> <span class="n">grouped_y_counts</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">target_ratio</span> <span class="o">=</span> <span class="n">target_freq</span> <span class="o">/</span> <span class="n">target_freq</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -150,10 +274,12 @@
             <span class="c1"># Compute loss</span>
             <span class="n">losses</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="c1"># others = np.nan_to_num(split_diffs)</span>
-            <span class="n">other_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-                <span class="nb">sum</span><span class="p">(</span><span class="n">split_diffs</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">split_diffs</span><span class="p">[:</span><span class="n">x</span><span class="p">])</span>
-                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_splits</span><span class="p">)</span>
-            <span class="p">])</span>
+            <span class="n">other_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="nb">sum</span><span class="p">(</span><span class="n">split_diffs</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:])</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">split_diffs</span><span class="p">[:</span><span class="n">x</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_splits</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
             <span class="c1"># penalize unbalanced splits</span>
             <span class="n">ratio_loss</span> <span class="o">=</span> <span class="n">other_diffs</span> <span class="o">+</span> <span class="n">cand_diffs</span>
             <span class="c1"># penalize heavy splits</span>
@@ -163,7 +289,7 @@
             <span class="c1"># print(&#39;group_freq = %r&#39; % (group_freq,))</span>
             <span class="c1"># print(&#39;freq_loss = %s&#39; % (ut.repr2(freq_loss, precision=2),))</span>
             <span class="c1"># print(&#39;ratio_loss = %s&#39; % (ut.repr2(ratio_loss, precision=2),))</span>
-            <span class="c1">#-------</span>
+            <span class="c1"># -------</span>
             <span class="n">splitx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
             <span class="c1"># print(&#39;losses = %r, splitx=%r&#39; % (losses, splitx))</span>
             <span class="n">split_freq</span><span class="p">[</span><span class="n">splitx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cand_freq</span><span class="p">[</span><span class="n">splitx</span><span class="p">]</span>
@@ -213,6 +339,7 @@
 <div class="viewcode-block" id="temp"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.temp">[docs]</a><span class="k">def</span> <span class="nf">temp</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">sklearn</span> <span class="k">import</span> <span class="n">model_selection</span>
     <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">sklearn_utils</span>
+
     <span class="k">def</span> <span class="nf">check_balance</span><span class="p">(</span><span class="n">idxs</span><span class="p">):</span>
         <span class="c1"># from sklearn.utils.fixes import bincount</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------&#39;</span><span class="p">)</span>
@@ -265,13 +392,14 @@
     <span class="c1"># Make mistakes at specified rate</span>
     <span class="n">classes_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p_wrong</span><span class="p">)))</span>
     <span class="n">y_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">y</span> <span class="k">if</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">p_wrong</span><span class="p">[</span><span class="n">y</span><span class="p">]</span> <span class="k">else</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">classes_</span><span class="p">)</span>
-         <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">y_true</span><span class="p">])</span>
+        <span class="p">[</span><span class="n">y</span> <span class="k">if</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">p_wrong</span><span class="p">[</span><span class="n">y</span><span class="p">]</span> <span class="k">else</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">classes_</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">y_true</span><span class="p">]</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">y_pred</span></div>
 
 
-<div class="viewcode-block" id="classification_report2"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.classification_report2">[docs]</a><span class="k">def</span> <span class="nf">classification_report2</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                           <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="classification_report2"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.classification_report2">[docs]</a><span class="k">def</span> <span class="nf">classification_report2</span><span class="p">(</span>
+    <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    References:</span>
 <span class="sd">        https://csem.flinders.edu.au/research/techreps/SIE07001.pdf</span>
@@ -334,8 +462,7 @@
     <span class="c1"># Real data is on the rows,</span>
     <span class="c1"># Pred data is on the cols.</span>
 
-    <span class="n">cm</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">confusion_matrix</span><span class="p">(</span>
-        <span class="n">y_true_</span><span class="p">,</span> <span class="n">y_pred_</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight</span><span class="p">)</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">y_true_</span><span class="p">,</span> <span class="n">y_pred_</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight</span><span class="p">)</span>
     <span class="n">confusion</span> <span class="o">=</span> <span class="n">cm</span>  <span class="c1"># NOQA</span>
 
     <span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>  <span class="c1"># number of classes</span>
@@ -367,8 +494,7 @@
     <span class="n">pprob</span> <span class="o">=</span> <span class="n">pred_total</span> <span class="o">/</span> <span class="n">N</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="p">[[</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">],</span>
-         <span class="p">[</span><span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cm</span>
+        <span class="p">[[</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">],</span> <span class="p">[</span><span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cm</span>
         <span class="p">(</span><span class="n">A</span> <span class="o">*</span> <span class="n">D</span> <span class="o">-</span> <span class="n">B</span> <span class="o">*</span> <span class="n">C</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">A</span> <span class="o">+</span> <span class="n">C</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">B</span> <span class="o">+</span> <span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">A</span> <span class="o">+</span> <span class="n">B</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">C</span> <span class="o">+</span> <span class="n">D</span><span class="p">))</span>
 
         <span class="c1"># c2 = vt.ConfusionMetrics().fit(scores, y)</span>
@@ -385,15 +511,17 @@
 
     <span class="n">mccs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">bms</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">bms</span> <span class="o">*</span> <span class="n">mks</span><span class="p">))</span>
 
-    <span class="n">perclass_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-        <span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="n">tpas</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;recall&#39;</span><span class="p">,</span> <span class="n">tprs</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="n">fprs</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;markedness&#39;</span><span class="p">,</span> <span class="n">mks</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;bookmaker&#39;</span><span class="p">,</span> <span class="n">bms</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;mcc&#39;</span><span class="p">,</span> <span class="n">mccs</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;support&#39;</span><span class="p">,</span> <span class="n">real_total</span><span class="p">),</span>
-    <span class="p">])</span>
+    <span class="n">perclass_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="n">tpas</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;recall&#39;</span><span class="p">,</span> <span class="n">tprs</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="n">fprs</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;markedness&#39;</span><span class="p">,</span> <span class="n">mks</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;bookmaker&#39;</span><span class="p">,</span> <span class="n">bms</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;mcc&#39;</span><span class="p">,</span> <span class="n">mccs</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;support&#39;</span><span class="p">,</span> <span class="n">real_total</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
 
     <span class="n">tpa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">tpas</span> <span class="o">*</span> <span class="n">rprob</span><span class="p">)</span>
     <span class="n">tpr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">tprs</span> <span class="o">*</span> <span class="n">rprob</span><span class="p">)</span>
@@ -410,26 +538,30 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">mcc_combo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">mccs_</span><span class="p">)</span>
 
-    <span class="n">combined_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-        <span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="n">tpa</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;recall&#39;</span><span class="p">,</span> <span class="n">tpr</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="n">fpr</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;markedness&#39;</span><span class="p">,</span> <span class="n">mk</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;bookmaker&#39;</span><span class="p">,</span> <span class="n">bm</span><span class="p">),</span>
-        <span class="c1"># (&#39;mcc&#39;, np.sign(bm) * np.sqrt(np.abs(bm * mk))),</span>
-        <span class="p">(</span><span class="s1">&#39;mcc&#39;</span><span class="p">,</span> <span class="n">mcc_combo</span><span class="p">),</span>
-        <span class="c1"># np.sign(bm) * np.sqrt(np.abs(bm * mk))),</span>
-        <span class="p">(</span><span class="s1">&#39;support&#39;</span><span class="p">,</span> <span class="n">real_total</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
-    <span class="p">])</span>
+    <span class="n">combined_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="n">tpa</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;recall&#39;</span><span class="p">,</span> <span class="n">tpr</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="n">fpr</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;markedness&#39;</span><span class="p">,</span> <span class="n">mk</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;bookmaker&#39;</span><span class="p">,</span> <span class="n">bm</span><span class="p">),</span>
+            <span class="c1"># (&#39;mcc&#39;, np.sign(bm) * np.sqrt(np.abs(bm * mk))),</span>
+            <span class="p">(</span><span class="s1">&#39;mcc&#39;</span><span class="p">,</span> <span class="n">mcc_combo</span><span class="p">),</span>
+            <span class="c1"># np.sign(bm) * np.sqrt(np.abs(bm * mk))),</span>
+            <span class="p">(</span><span class="s1">&#39;support&#39;</span><span class="p">,</span> <span class="n">real_total</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
 
     <span class="c1"># Not sure how to compute this. Should it agree with the sklearn impl?</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="o">==</span> <span class="s1">&#39;hack&#39;</span><span class="p">:</span>
         <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">mcc_known</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">matthews_corrcoef</span><span class="p">(</span>
-            <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight</span><span class="p">)</span>
+            <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight</span>
+        <span class="p">)</span>
         <span class="n">mcc_raw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">bm</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">bm</span> <span class="o">*</span> <span class="n">mk</span><span class="p">))</span>
 
         <span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+
         <span class="k">def</span> <span class="nf">gmean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gmean</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -499,16 +631,17 @@
     <span class="n">real_id</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">target_names</span><span class="p">]</span>
     <span class="n">confusion_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">confusion</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">pred_id</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">real_id</span><span class="p">)</span>
 
-    <span class="n">confusion_df</span> <span class="o">=</span> <span class="n">confusion_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">confusion</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span> <span class="n">columns</span><span class="o">=</span><span class="n">pred_id</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Σp&#39;</span><span class="p">]))</span>
+    <span class="n">confusion_df</span> <span class="o">=</span> <span class="n">confusion_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">confusion</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span> <span class="n">columns</span><span class="o">=</span><span class="n">pred_id</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Σp&#39;</span><span class="p">])</span>
+    <span class="p">)</span>
     <span class="n">confusion_df</span><span class="p">[</span><span class="s1">&#39;Σr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">confusion</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
     <span class="n">confusion_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;real&#39;</span>
     <span class="n">confusion_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pred&#39;</span>
 
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">confusion_df</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">confusion_df</span><span class="p">)</span> <span class="o">&lt;</span> <span class="o">.</span><span class="mi">000001</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">confusion_df</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">confusion_df</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.000001</span><span class="p">):</span>
         <span class="n">confusion_df</span> <span class="o">=</span> <span class="n">confusion_df</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
     <span class="n">confusion_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">N</span>
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">confusion_df</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">confusion_df</span><span class="p">)</span> <span class="o">&lt;</span> <span class="o">.</span><span class="mi">000001</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">confusion_df</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">confusion_df</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.000001</span><span class="p">):</span>
         <span class="n">confusion_df</span> <span class="o">=</span> <span class="n">confusion_df</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
     <span class="c1"># np.nan</span>
 
@@ -534,10 +667,14 @@
 
     <span class="k">def</span> <span class="nf">matthews_corrcoef</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">sklearn.metrics.classification</span> <span class="k">import</span> <span class="p">(</span>
-            <span class="n">_check_targets</span><span class="p">,</span> <span class="n">LabelEncoder</span><span class="p">,</span> <span class="n">confusion_matrix</span><span class="p">)</span>
+            <span class="n">_check_targets</span><span class="p">,</span>
+            <span class="n">LabelEncoder</span><span class="p">,</span>
+            <span class="n">confusion_matrix</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="n">y_type</span><span class="p">,</span> <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span> <span class="o">=</span> <span class="n">_check_targets</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">y_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;binary&quot;</span><span class="p">,</span> <span class="s2">&quot;multiclass&quot;</span><span class="p">}:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not supported&quot;</span> <span class="o">%</span> <span class="n">y_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">y_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;binary&#39;</span><span class="p">,</span> <span class="s1">&#39;multiclass&#39;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is not supported&#39;</span> <span class="o">%</span> <span class="n">y_type</span><span class="p">)</span>
         <span class="n">lb</span> <span class="o">=</span> <span class="n">LabelEncoder</span><span class="p">()</span>
         <span class="n">lb</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">]))</span>
         <span class="n">y_true</span> <span class="o">=</span> <span class="n">lb</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">y_true</span><span class="p">)</span>
@@ -552,7 +689,7 @@
         <span class="n">cov_ytyt</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t_sum</span><span class="p">,</span> <span class="n">t_sum</span><span class="p">)</span>
         <span class="n">mcc</span> <span class="o">=</span> <span class="n">cov_ytyp</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cov_ytyt</span> <span class="o">*</span> <span class="n">cov_ypyp</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">mcc</span><span class="p">):</span>
-            <span class="k">return</span> <span class="mf">0.</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">mcc</span>
 
@@ -563,15 +700,17 @@
         <span class="c1"># These scales are chosen somewhat arbitrarily in the context of a</span>
         <span class="c1"># computer vision application with relatively reasonable quality data</span>
         <span class="c1"># https://stats.stackexchange.com/questions/118219/how-to-interpret</span>
-        <span class="n">mcc_significance_scales</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-            <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;perfect&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="s1">&#39;very strong&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="s1">&#39;strong&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;significant&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="s1">&#39;moderate&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="s1">&#39;weak&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;negligible&#39;</span><span class="p">),</span>
-        <span class="p">])</span>
+        <span class="n">mcc_significance_scales</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;perfect&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="s1">&#39;very strong&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="s1">&#39;strong&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;significant&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="s1">&#39;moderate&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="s1">&#39;weak&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;negligible&#39;</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mcc_significance_scales</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mcc</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">k</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
@@ -579,7 +718,7 @@
                 <span class="k">break</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="n">float_precision</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="nb">print</span><span class="p">((</span><span class="s1">&#39;MCC</span><span class="se">\&#39;</span><span class="s1"> = %.&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">float_precision</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">mcc</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;MCC&#39; = %.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">float_precision</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">mcc</span><span class="p">,))</span>
         <span class="n">report</span><span class="p">[</span><span class="s1">&#39;mcc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mcc</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">pass</span>
@@ -601,6 +740,7 @@
 <span class="sd">        &gt;&gt;&gt;                            target_names=probs.columns)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">six</span>
+
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;argmax&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
             <span class="n">pred_enc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">probs</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
@@ -612,8 +752,9 @@
     <span class="k">return</span> <span class="n">pred_enc</span></div>
 
 
-<div class="viewcode-block" id="predict_with_thresh"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.predict_with_thresh">[docs]</a><span class="k">def</span> <span class="nf">predict_with_thresh</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">threshes</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">multi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_flags</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="predict_with_thresh"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.predict_with_thresh">[docs]</a><span class="k">def</span> <span class="nf">predict_with_thresh</span><span class="p">(</span>
+    <span class="n">probs</span><span class="p">,</span> <span class="n">threshes</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">multi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_flags</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    if force is true, everything will make a prediction, even if nothing passes</span>
@@ -653,11 +794,11 @@
 
     <span class="c1"># if force:</span>
     <span class="c1">#     bin_flags = (probs &gt;= threshes)</span>
-    <span class="n">bin_flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">probs</span> <span class="o">&gt;</span> <span class="n">threshes</span><span class="p">)</span>
+    <span class="n">bin_flags</span> <span class="o">=</span> <span class="n">probs</span> <span class="o">&gt;</span> <span class="n">threshes</span>
     <span class="n">num_states</span> <span class="o">=</span> <span class="n">bin_flags</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">no_predict</span>    <span class="o">=</span> <span class="p">(</span><span class="n">num_states</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">multi_predict</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_states</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">no_predict</span> <span class="o">=</span> <span class="n">num_states</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">multi_predict</span> <span class="o">=</span> <span class="n">num_states</span> <span class="o">&gt;</span> <span class="mi">1</span>
 
     <span class="n">pred_enc</span> <span class="o">=</span> <span class="n">bin_flags</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
@@ -715,8 +856,7 @@
         <span class="n">missing</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">class_names</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">classname</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">:</span>
-                <span class="n">probs_df</span> <span class="o">=</span> <span class="n">probs_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
-                    <span class="n">classname</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probs_df</span><span class="p">))})</span>
+                <span class="n">probs_df</span> <span class="o">=</span> <span class="n">probs_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">classname</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probs_df</span><span class="p">))})</span>
     <span class="k">return</span> <span class="n">probs_df</span></div>
 
 
@@ -726,6 +866,7 @@
 <span class="sd">    hacks around limitations of sklearn.ensemble.VotingClassifier</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clf_list</span><span class="p">,</span> <span class="n">voting</span><span class="o">=</span><span class="s1">&#39;soft&#39;</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clf_list</span> <span class="o">=</span> <span class="n">clf_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">voting</span> <span class="o">=</span> <span class="n">voting</span>
@@ -762,8 +903,9 @@
             <span class="n">n_samples</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">n_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes_</span><span class="p">)</span>
             <span class="n">probas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_estimators</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">ex</span><span class="p">,</span> <span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">mapper</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clf_list</span><span class="p">,</span>
-                                                   <span class="bp">self</span><span class="o">.</span><span class="n">class_idx_mappers</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">ex</span><span class="p">,</span> <span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">mapper</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clf_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_idx_mappers</span><span class="p">)</span>
+            <span class="p">):</span>
                 <span class="n">proba</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
                 <span class="c1"># Use mapper to map indicies of clf classes to ensemble classes</span>
                 <span class="n">probas</span><span class="p">[</span><span class="n">ex</span><span class="p">][:,</span> <span class="n">mapper</span><span class="p">]</span> <span class="o">=</span> <span class="n">proba</span>
@@ -772,8 +914,9 @@
 <div class="viewcode-block" id="PrefitEstimatorEnsemble.predict_proba"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.PrefitEstimatorEnsemble.predict_proba">[docs]</a>    <span class="k">def</span> <span class="nf">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predict class probabilities for X in &#39;soft&#39; voting &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">voting</span> <span class="o">==</span> <span class="s1">&#39;hard&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;predict_proba is not available when&quot;</span>
-                                 <span class="s2">&quot; voting=</span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">voting</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="s1">&#39;predict_proba is not available when&#39;</span> <span class="s1">&#39; voting=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">voting</span>
+            <span class="p">)</span>
         <span class="n">avg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_collect_probas</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">avg</span></div>
 
@@ -795,11 +938,11 @@
             <span class="n">maj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>  <span class="c1"># &#39;hard&#39; voting</span>
             <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-            <span class="n">maj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span>
-                                      <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
-                                                <span class="n">weights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)),</span>
-                                      <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                                      <span class="n">arr</span><span class="o">=</span><span class="n">predictions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">))</span>
+            <span class="n">maj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)),</span>
+                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">arr</span><span class="o">=</span><span class="n">predictions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">),</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">maj</span></div>
 
     <span class="k">def</span> <span class="nf">_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
@@ -835,13 +978,30 @@
     <span class="k">return</span> <span class="n">eclf</span></div>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -849,59 +1009,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../verif.html">wbia.algo.verif</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

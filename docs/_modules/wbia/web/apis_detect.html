@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.apis_detect &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.web.apis_detect &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.web.apis_detect</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.web.apis_detect</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -48,9 +163,10 @@
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">))</span>
-<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_route</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -129,15 +245,17 @@
     <span class="c1"># TODO: Return confidence here as well</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
     <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;algo&#39;</span>        <span class="p">:</span> <span class="s1">&#39;rf&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;species&#39;</span>     <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
-        <span class="s1">&#39;sensitivity&#39;</span> <span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
-        <span class="s1">&#39;nms&#39;</span>         <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;nms_thresh&#39;</span>  <span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+        <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;rf&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
-        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;pyrfdetect&#39;</span><span class="p">)</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span>
+            <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;pyrfdetect&#39;</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">aids_list</span></div>
 
     <span class="c1"># results_list = depc.get_property(&#39;detections&#39;, gid_list, None, config=config)</span>
@@ -147,8 +265,13 @@
 
 
 <div class="viewcode-block" id="review_detection_test"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.review_detection_test">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/test/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">review_detection_test</span><span class="p">(</span><span class="n">image_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">result_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                          <span class="n">callback_method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">review_detection_test</span><span class="p">(</span>
+    <span class="n">image_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">result_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="k">if</span> <span class="n">image_uuid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">result_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">results_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detection_yolo_test</span><span class="p">()</span>
@@ -158,11 +281,15 @@
         <span class="n">callback_url</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;callback_url&#39;</span><span class="p">,</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;process_detection_html&#39;</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">callback_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">callback_method</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;callback_method&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">)</span>
-    <span class="n">template_html</span> <span class="o">=</span> <span class="n">review_detection_html</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid</span><span class="p">,</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="n">include_jquery</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">template_html</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        &lt;script src=&quot;http://code.jquery.com/jquery-2.2.1.min.js&quot; ia-dependency=&quot;javascript&quot;&gt;&lt;/script&gt;</span>
-<span class="s1">        </span><span class="si">%s</span><span class="s1"></span>
-<span class="s1">    &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_html</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">template_html</span> <span class="o">=</span> <span class="n">review_detection_html</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid</span><span class="p">,</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="n">include_jquery</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">template_html</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &lt;script src=&quot;http://code.jquery.com/jquery-2.2.1.min.js&quot; ia-dependency=&quot;javascript&quot;&gt;&lt;/script&gt;</span>
+<span class="s2">        </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">    &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">template_html</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">template_html</span></div>
 
 
@@ -170,6 +297,7 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/test/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">detection_yolo_test</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
     <span class="kn">from</span> <span class="nn">random</span> <span class="k">import</span> <span class="n">shuffle</span>  <span class="c1"># NOQA</span>
+
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">shuffle</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
@@ -181,6 +309,7 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/test/detect/cnn/lightnet/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">detection_lightnet_test</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
     <span class="kn">from</span> <span class="nn">random</span> <span class="k">import</span> <span class="n">shuffle</span>  <span class="c1"># NOQA</span>
+
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">shuffle</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
@@ -189,7 +318,15 @@
 
 
 <div class="viewcode-block" id="review_detection_html"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.review_detection_html">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">review_detection_html</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid</span><span class="p">,</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="n">include_jquery</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">review_detection_html</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">image_uuid</span><span class="p">,</span>
+    <span class="n">result_list</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+    <span class="n">include_jquery</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the detection review interface for a particular image UUID and a list of results for that image.</span>
 
@@ -215,22 +352,22 @@
         <span class="k">return</span> <span class="s1">&#39;INVALID IMAGE UUID&#39;</span>
 
     <span class="n">default_config</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;autointerest&#39;</span>            <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;interest_bypass&#39;</span>         <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;metadata&#39;</span>                <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;metadata_viewpoint&#39;</span>      <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;metadata_quality&#39;</span>        <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;metadata_flags&#39;</span>          <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;metadata_flags_aoi&#39;</span>      <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;metadata_flags_multiple&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;metadata_species&#39;</span>        <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;metadata_label&#39;</span>          <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;metadata_quickhelp&#39;</span>      <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;parts&#39;</span>                   <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;modes_rectangle&#39;</span>         <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;modes_diagonal&#39;</span>          <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;modes_diagonal2&#39;</span>         <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;staged&#39;</span>                  <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;autointerest&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;interest_bypass&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_viewpoint&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_quality&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_flags&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_flags_aoi&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_flags_multiple&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_species&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_label&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_quickhelp&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;parts&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;modes_rectangle&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;modes_diagonal&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;modes_diagonal2&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;staged&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -242,8 +379,14 @@
     <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">height</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_uuid</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Image </span><span class="si">%r</span><span class="s1"> for review has either no width or no height (w = </span><span class="si">%s</span><span class="s1">, h = </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">image_uuid</span><span class="p">,</span>
+            <span class="n">width</span><span class="p">,</span>
+            <span class="n">height</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+            <span class="s1">&#39;Image </span><span class="si">%r</span><span class="s1"> for review has either no width or no height (w = </span><span class="si">%s</span><span class="s1">, h = </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">vals</span>
+        <span class="p">)</span>
 
     <span class="n">annotation_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
@@ -261,23 +404,27 @@
 
         <span class="k">if</span> <span class="n">viewpoint1</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">viewpoint2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">viewpoint3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">viewpoint</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">viewpoint1</span><span class="p">,</span> <span class="n">viewpoint2</span><span class="p">,</span> <span class="n">viewpoint3</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">convert_viewpoint_to_tuple</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">)</span>
+            <span class="n">viewpoint1</span><span class="p">,</span> <span class="n">viewpoint2</span><span class="p">,</span> <span class="n">viewpoint3</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">convert_viewpoint_to_tuple</span><span class="p">(</span>
+                <span class="n">viewpoint</span>
+            <span class="p">)</span>
 
-        <span class="n">annotation_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-            <span class="s1">&#39;id&#39;</span>      <span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-            <span class="s1">&#39;left&#39;</span>    <span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">width</span><span class="p">),</span>
-            <span class="s1">&#39;top&#39;</span>     <span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">height</span><span class="p">),</span>
-            <span class="s1">&#39;width&#39;</span>   <span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">width</span><span class="p">),</span>
-            <span class="s1">&#39;height&#39;</span>  <span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">height</span><span class="p">),</span>
-            <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;class&#39;</span><span class="p">]),</span>
-            <span class="s1">&#39;theta&#39;</span>   <span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
-            <span class="s1">&#39;viewpoint1&#39;</span> <span class="p">:</span> <span class="n">viewpoint1</span><span class="p">,</span>
-            <span class="s1">&#39;viewpoint2&#39;</span> <span class="p">:</span> <span class="n">viewpoint2</span><span class="p">,</span>
-            <span class="s1">&#39;viewpoint3&#39;</span> <span class="p">:</span> <span class="n">viewpoint3</span><span class="p">,</span>
-            <span class="s1">&#39;quality&#39;</span>    <span class="p">:</span> <span class="n">quality</span><span class="p">,</span>
-            <span class="s1">&#39;multiple&#39;</span>   <span class="p">:</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;multiple&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;interest&#39;</span>   <span class="p">:</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interest&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
-        <span class="p">})</span>
+        <span class="n">annotation_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">width</span><span class="p">),</span>
+                <span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">height</span><span class="p">),</span>
+                <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">width</span><span class="p">),</span>
+                <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">height</span><span class="p">),</span>
+                <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;class&#39;</span><span class="p">]),</span>
+                <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                <span class="s1">&#39;viewpoint1&#39;</span><span class="p">:</span> <span class="n">viewpoint1</span><span class="p">,</span>
+                <span class="s1">&#39;viewpoint2&#39;</span><span class="p">:</span> <span class="n">viewpoint2</span><span class="p">,</span>
+                <span class="s1">&#39;viewpoint3&#39;</span><span class="p">:</span> <span class="n">viewpoint3</span><span class="p">,</span>
+                <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="n">quality</span><span class="p">,</span>
+                <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;multiple&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;interest&#39;</span><span class="p">:</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interest&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
 
     <span class="n">species</span> <span class="o">=</span> <span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">SPECIES_KEY</span><span class="p">]</span>
 
@@ -296,35 +443,35 @@
     <span class="p">]</span>
 
     <span class="k">if</span> <span class="n">include_jquery</span><span class="p">:</span>
-        <span class="n">json_file_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">[</span><span class="s1">&#39;javascript&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery.min.js&#39;</span><span class="p">],</span>
-        <span class="p">]</span> <span class="o">+</span> <span class="n">json_file_list</span>
+        <span class="n">json_file_list</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;javascript&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery.min.js&#39;</span><span class="p">],]</span> <span class="o">+</span> <span class="n">json_file_list</span>
 
     <span class="n">EMBEDDED_CSS</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="n">EMBEDDED_JAVASCRIPT</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
     <span class="n">css_template_fmtstr</span> <span class="o">=</span> <span class="s1">&#39;&lt;style type=&quot;text/css&quot; ia-dependency=&quot;css&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/style&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
-    <span class="n">json_template_fmtstr</span> <span class="o">=</span> <span class="s1">&#39;&lt;script type=&quot;text/javascript&quot; ia-dependency=&quot;javascript&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/script&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">json_template_fmtstr</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;&lt;script type=&quot;text/javascript&quot; ia-dependency=&quot;javascript&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/script&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="p">)</span>
     <span class="k">for</span> <span class="n">css_file</span> <span class="ow">in</span> <span class="n">css_file_list</span><span class="p">:</span>
         <span class="n">css_filepath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">root_path</span><span class="p">,</span> <span class="s1">&#39;static&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">css_file</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">css_filepath_list</span><span class="p">))</span> <span class="k">as</span> <span class="n">css_file</span><span class="p">:</span>
-            <span class="n">EMBEDDED_CSS</span> <span class="o">+=</span> <span class="n">css_template_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">css_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="p">)</span>
+            <span class="n">EMBEDDED_CSS</span> <span class="o">+=</span> <span class="n">css_template_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">css_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),)</span>
 
     <span class="k">for</span> <span class="n">json_file</span> <span class="ow">in</span> <span class="n">json_file_list</span><span class="p">:</span>
         <span class="n">json_filepath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">root_path</span><span class="p">,</span> <span class="s1">&#39;static&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">json_file</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">json_filepath_list</span><span class="p">))</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
-            <span class="n">EMBEDDED_JAVASCRIPT</span> <span class="o">+=</span> <span class="n">json_template_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="p">)</span>
+            <span class="n">EMBEDDED_JAVASCRIPT</span> <span class="o">+=</span> <span class="n">json_template_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),)</span>
 
     <span class="n">species_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
     <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_nice</span><span class="p">(</span><span class="n">species_rowids</span><span class="p">)</span>
 
     <span class="n">combined_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_rowids</span><span class="p">))</span>
-    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">combined</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">combined</span> <span class="ow">in</span> <span class="n">combined_list</span> <span class="p">]</span>
-    <span class="n">species_rowids</span> <span class="o">=</span> <span class="p">[</span> <span class="n">combined</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">combined</span> <span class="ow">in</span> <span class="n">combined_list</span> <span class="p">]</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">combined</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">combined</span> <span class="ow">in</span> <span class="n">combined_list</span><span class="p">]</span>
+    <span class="n">species_rowids</span> <span class="o">=</span> <span class="p">[</span><span class="n">combined</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">combined</span> <span class="ow">in</span> <span class="n">combined_list</span><span class="p">]</span>
 
     <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowids</span><span class="p">)</span>
     <span class="n">species_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">))</span>
-    <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="s1">&#39;Unspecified&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)</span> <span class="p">]</span> <span class="o">+</span> <span class="n">species_list</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;Unspecified&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)]</span> <span class="o">+</span> <span class="n">species_list</span>
 
     <span class="c1"># Collect mapping of species to parts</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
@@ -334,9 +481,7 @@
     <span class="n">part_types_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">,</span> <span class="n">part_rowids_list</span><span class="p">)</span>
 
     <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">part_species_text_list</span><span class="p">,</span> <span class="n">part_types_list</span><span class="p">))</span>
-    <span class="n">species_part_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span> <span class="nb">set</span><span class="p">([])</span>
-    <span class="p">}</span>
+    <span class="n">species_part_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span> <span class="nb">set</span><span class="p">([])}</span>
     <span class="k">for</span> <span class="n">part_species_text</span><span class="p">,</span> <span class="n">part_type_list</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">part_species_text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_part_dict</span><span class="p">:</span>
             <span class="n">species_part_dict</span><span class="p">[</span><span class="n">part_species_text</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">])</span>
@@ -369,21 +514,24 @@
         <span class="k">for</span> <span class="p">(</span><span class="n">settings_key</span><span class="p">,</span> <span class="n">settings_default</span><span class="p">)</span> <span class="ow">in</span> <span class="n">settings_key_list</span>
     <span class="p">}</span>
 
-    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s1">&#39;turk&#39;</span><span class="p">,</span> <span class="s1">&#39;detection_insert&#39;</span><span class="p">,</span>
-                         <span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span>
-                         <span class="n">refer_aid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
-                         <span class="n">image_path</span><span class="o">=</span><span class="n">gpath</span><span class="p">,</span>
-                         <span class="n">image_src</span><span class="o">=</span><span class="n">image_src</span><span class="p">,</span>
-                         <span class="n">config</span><span class="o">=</span><span class="n">default_config</span><span class="p">,</span>
-                         <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span>
-                         <span class="n">annotation_list</span><span class="o">=</span><span class="n">annotation_list</span><span class="p">,</span>
-                         <span class="n">species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span>
-                         <span class="n">species_part_dict_json</span><span class="o">=</span><span class="n">species_part_dict_json</span><span class="p">,</span>
-                         <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
-                         <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
-                         <span class="n">EMBEDDED_CSS</span><span class="o">=</span><span class="n">EMBEDDED_CSS</span><span class="p">,</span>
-                         <span class="n">EMBEDDED_JAVASCRIPT</span><span class="o">=</span><span class="n">EMBEDDED_JAVASCRIPT</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
+        <span class="s1">&#39;turk&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;detection_insert&#39;</span><span class="p">,</span>
+        <span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span>
+        <span class="n">refer_aid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
+        <span class="n">image_path</span><span class="o">=</span><span class="n">gpath</span><span class="p">,</span>
+        <span class="n">image_src</span><span class="o">=</span><span class="n">image_src</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">default_config</span><span class="p">,</span>
+        <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span>
+        <span class="n">annotation_list</span><span class="o">=</span><span class="n">annotation_list</span><span class="p">,</span>
+        <span class="n">species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span>
+        <span class="n">species_part_dict_json</span><span class="o">=</span><span class="n">species_part_dict_json</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">EMBEDDED_CSS</span><span class="o">=</span><span class="n">EMBEDDED_CSS</span><span class="p">,</span>
+        <span class="n">EMBEDDED_JAVASCRIPT</span><span class="o">=</span><span class="n">EMBEDDED_JAVASCRIPT</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="process_detection_html"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.process_detection_html">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
@@ -405,45 +553,41 @@
     <span class="n">annotation_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;ia-detection-data&#39;</span><span class="p">])</span>
 
     <span class="n">viewpoint1_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint1&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint1&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
     <span class="p">]</span>
     <span class="n">viewpoint2_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint2&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint2&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
     <span class="p">]</span>
     <span class="n">viewpoint3_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint3&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint3&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
     <span class="p">]</span>
     <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">viewpoint1_list</span><span class="p">,</span> <span class="n">viewpoint2_list</span><span class="p">,</span> <span class="n">viewpoint3_list</span><span class="p">))</span>
-    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">appf</span><span class="o">.</span><span class="n">convert_tuple_to_viewpoint</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">zipped</span> <span class="p">]</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">appf</span><span class="o">.</span><span class="n">convert_tuple_to_viewpoint</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">]</span>
 
     <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">{</span>
-            <span class="s1">&#39;id&#39;</span>         <span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;xtl&#39;</span>        <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">width</span>  <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;left&#39;</span><span class="p">]</span>   <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
-            <span class="s1">&#39;ytl&#39;</span>        <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;top&#39;</span><span class="p">]</span>    <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
-            <span class="s1">&#39;left&#39;</span>       <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">width</span>  <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;left&#39;</span><span class="p">]</span>   <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
-            <span class="s1">&#39;top&#39;</span>        <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;top&#39;</span><span class="p">]</span>    <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
-            <span class="s1">&#39;width&#39;</span>      <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">width</span>  <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;width&#39;</span><span class="p">]</span>  <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
-            <span class="s1">&#39;height&#39;</span>     <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
-            <span class="s1">&#39;theta&#39;</span>      <span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;angles&#39;</span><span class="p">][</span><span class="s1">&#39;theta&#39;</span><span class="p">]),</span>
-            <span class="s1">&#39;confidence&#39;</span> <span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-            <span class="s1">&#39;class&#39;</span>      <span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;species&#39;</span>    <span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;viewpoint&#39;</span>  <span class="p">:</span> <span class="n">viewpoint</span><span class="p">,</span>
-            <span class="s1">&#39;quality&#39;</span>    <span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;quality&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;multiple&#39;</span>   <span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;multiple&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;interest&#39;</span>   <span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;highlighted&#39;</span><span class="p">],</span>
-
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;xtl&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;left&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;ytl&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;top&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;left&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;top&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;angles&#39;</span><span class="p">][</span><span class="s1">&#39;theta&#39;</span><span class="p">]),</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">viewpoint</span><span class="p">,</span>
+            <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;quality&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;multiple&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;interest&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;highlighted&#39;</span><span class="p">],</span>
         <span class="p">}</span>
         <span class="k">for</span> <span class="n">annot</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annotation_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">))</span>
     <span class="p">]</span>
     <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;image_uuid_list&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="n">image_uuid</span><span class="p">],</span>
-        <span class="s1">&#39;results_list&#39;</span>    <span class="p">:</span> <span class="p">[</span><span class="n">result_list</span><span class="p">],</span>
-        <span class="s1">&#39;score_list&#39;</span>      <span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+        <span class="s1">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">image_uuid</span><span class="p">],</span>
+        <span class="s1">&#39;results_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">result_list</span><span class="p">],</span>
+        <span class="s1">&#39;score_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">result_dict</span></div>
 
@@ -481,22 +625,22 @@
     <span class="n">results_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">[</span>
             <span class="p">{</span>
-                <span class="s1">&#39;id&#39;</span>         <span class="p">:</span> <span class="n">aid</span><span class="p">,</span>
-                <span class="s1">&#39;uuid&#39;</span>       <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
-                <span class="s1">&#39;xtl&#39;</span>        <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s1">&#39;ytl&#39;</span>        <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="s1">&#39;left&#39;</span>       <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s1">&#39;top&#39;</span>        <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="s1">&#39;width&#39;</span>      <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
-                <span class="s1">&#39;height&#39;</span>     <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">3</span><span class="p">],</span>
-                <span class="s1">&#39;theta&#39;</span>      <span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
-                <span class="s1">&#39;confidence&#39;</span> <span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_detect_confidence</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
-                <span class="s1">&#39;class&#39;</span>      <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
-                <span class="s1">&#39;species&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
-                <span class="s1">&#39;viewpoint&#39;</span>  <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
-                <span class="s1">&#39;quality&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
-                <span class="s1">&#39;multiple&#39;</span>   <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_multiple</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
-                <span class="s1">&#39;interest&#39;</span>   <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">aid</span><span class="p">,</span>
+                <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+                <span class="s1">&#39;xtl&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;ytl&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+                <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_detect_confidence</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+                <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+                <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+                <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+                <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_multiple</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+                <span class="s1">&#39;interest&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span>
         <span class="p">]</span>
@@ -505,9 +649,9 @@
     <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="c1"># Wrap up results with other information</span>
     <span class="n">results_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;image_uuid_list&#39;</span> <span class="p">:</span> <span class="n">image_uuid_list</span><span class="p">,</span>
-        <span class="s1">&#39;results_list&#39;</span>    <span class="p">:</span> <span class="n">results_list</span><span class="p">,</span>
-        <span class="s1">&#39;score_list&#39;</span>      <span class="p">:</span> <span class="n">score_list</span><span class="p">,</span>
+        <span class="s1">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="n">image_uuid_list</span><span class="p">,</span>
+        <span class="s1">&#39;results_list&#39;</span><span class="p">:</span> <span class="n">results_list</span><span class="p">,</span>
+        <span class="s1">&#39;score_list&#39;</span><span class="p">:</span> <span class="n">score_list</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">results_dict</span></div>
 
@@ -538,16 +682,16 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/yolo/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">detect_cnn_yolo_json_wrapper</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">detect_cnn_json_wrapper</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_yolo_json</span><span class="p">,</span>
-                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">detect_cnn_json_wrapper</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_yolo_json</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="detect_cnn_yolo_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_yolo_json">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">detect_cnn_yolo_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">detect_cnn_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_yolo</span><span class="p">,</span>
-                           <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">detect_cnn_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_yolo</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="detect_cnn_yolo"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_yolo">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -591,11 +735,11 @@
     <span class="c1"># TODO: Return confidence here as well</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
     <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;grid&#39;</span>        <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;algo&#39;</span>        <span class="p">:</span> <span class="s1">&#39;yolo&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;sensitivity&#39;</span> <span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
-        <span class="s1">&#39;nms&#39;</span>         <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;nms_thresh&#39;</span>  <span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+        <span class="s1">&#39;grid&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;yolo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;config_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
@@ -612,9 +756,9 @@
     <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
-        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span>
-                                                    <span class="n">note</span><span class="o">=</span><span class="s1">&#39;cnnyolodetect&#39;</span><span class="p">,</span>
-                                                    <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span>
+            <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;cnnyolodetect&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">aids_list</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">results_list</span></div>
@@ -626,7 +770,11 @@
 
 
 <div class="viewcode-block" id="models_cnn_lightnet"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.models_cnn_lightnet">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/models/cnn/lightnet/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/api/models/cnn/lightnet/&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span>
+    <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="k">def</span> <span class="nf">models_cnn_lightnet</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the models (and their labels) for the YOLO CNN detector</span>
@@ -635,16 +783,20 @@
 <span class="sd">        Method: PUT, GET</span>
 <span class="sd">        URL:    /api/labels/cnn/lightnet/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">identity</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">x</span>
 
     <span class="kn">from</span> <span class="nn">wbia.algo.detect.lightnet</span> <span class="k">import</span> <span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="n">_parse_class_list</span>
+
     <span class="n">model_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">models_cnn</span><span class="p">(</span><span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="n">identity</span><span class="p">,</span> <span class="n">_parse_class_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">model_dict</span></div>
 
 
 <div class="viewcode-block" id="models_cnn_yolo"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.models_cnn_yolo">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/models/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/api/models/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
 <span class="k">def</span> <span class="nf">models_cnn_yolo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the models (and their labels) for the YOLO CNN detector</span>
@@ -653,14 +805,28 @@
 <span class="sd">        Method: PUT, GET</span>
 <span class="sd">        URL:    /api/labels/cnn/yolo/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">pydarknet._pydarknet</span> <span class="k">import</span> <span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="n">_parse_classes_from_cfg</span><span class="p">,</span> <span class="n">_parse_class_list</span>
-    <span class="n">model_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">models_cnn</span><span class="p">(</span><span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="n">_parse_classes_from_cfg</span><span class="p">,</span> <span class="n">_parse_class_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">pydarknet._pydarknet</span> <span class="k">import</span> <span class="p">(</span>
+        <span class="n">CONFIG_URL_DICT</span><span class="p">,</span>
+        <span class="n">_parse_classes_from_cfg</span><span class="p">,</span>
+        <span class="n">_parse_class_list</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">model_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">models_cnn</span><span class="p">(</span>
+        <span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="n">_parse_classes_from_cfg</span><span class="p">,</span> <span class="n">_parse_class_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">model_dict</span></div>
 
 
 <div class="viewcode-block" id="models_cnn"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.models_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">models_cnn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">,</span> <span class="n">parse_classes_func</span><span class="p">,</span> <span class="n">parse_line_func</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">hidden_models</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">models_cnn</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">config_dict</span><span class="p">,</span>
+    <span class="n">parse_classes_func</span><span class="p">,</span>
+    <span class="n">parse_line_func</span><span class="p">,</span>
+    <span class="n">check_hash</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">hidden_models</span><span class="o">=</span><span class="p">[],</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="kn">import</span> <span class="nn">urllib</span>
 
     <span class="n">model_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -672,8 +838,9 @@
             <span class="n">config_url</span> <span class="o">=</span> <span class="n">config_dict</span><span class="p">[</span><span class="n">config_tag</span><span class="p">]</span>
             <span class="n">classes_url</span> <span class="o">=</span> <span class="n">parse_classes_func</span><span class="p">(</span><span class="n">config_url</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">classes_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">classes_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span>
-                                                    <span class="n">check_hash</span><span class="o">=</span><span class="n">check_hash</span><span class="p">)</span>
+                <span class="n">classes_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span>
+                    <span class="n">classes_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="n">check_hash</span>
+                <span class="p">)</span>
                 <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">,</span> <span class="ne">AssertionError</span><span class="p">):</span>
                 <span class="k">continue</span>
@@ -691,7 +858,9 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/labeler/cnn/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">labeler_cnn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="s1">&#39;pipeline&#39;</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="s1">&#39;candidacy&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">labeler_cnn</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="s1">&#39;pipeline&#39;</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="s1">&#39;candidacy&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
     <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -708,11 +877,9 @@
     <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
         <span class="n">score</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">probs</span> <span class="o">=</span> <span class="n">result</span>
-        <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-            <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span>
-            <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span>
-            <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">viewpoint</span><span class="p">,</span>
-        <span class="p">})</span>
+        <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">viewpoint</span><span class="p">,}</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">output_list</span></div>
 
@@ -736,10 +903,9 @@
     <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
         <span class="n">score</span><span class="p">,</span> <span class="n">class_</span> <span class="o">=</span> <span class="n">result</span>
-        <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-            <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span>
-            <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">class_</span><span class="p">,</span>
-        <span class="p">})</span>
+        <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span> <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">class_</span><span class="p">,}</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">output_list</span></div>
 
@@ -781,14 +947,16 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
     <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;algo&#39;</span>        <span class="p">:</span> <span class="s1">&#39;yolo&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;sensitivity&#39;</span> <span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
-        <span class="s1">&#39;nms&#39;</span>         <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;nms_thresh&#39;</span>  <span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+        <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;yolo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="n">score_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+        <span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span>
+    <span class="p">)</span>
     <span class="c1"># score_list = depc.get_property(&#39;detections&#39;, gid_list, &#39;score&#39;, ensure=False, config=config)</span>
-    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">score_list</span> <span class="p">]</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">score_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">flag_list</span></div>
 
 
@@ -796,23 +964,27 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/lightnet/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">detect_cnn_lightnet_json_wrapper</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">detect_cnn_json_wrapper</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_lightnet_json</span><span class="p">,</span>
-                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">detect_cnn_json_wrapper</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_lightnet_json</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="detect_cnn_lightnet_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_lightnet_json">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">detect_cnn_lightnet_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">detect_cnn_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_lightnet</span><span class="p">,</span>
-                           <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">detect_cnn_json</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_lightnet</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="detect_cnn_lightnet"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_lightnet">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/lightnet/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">detect_cnn_lightnet</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">detect_cnn_lightnet</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run animal detection in each image. Adds annotations to the database as they are found.</span>
 
@@ -849,11 +1021,11 @@
     <span class="c1"># TODO: Return confidence here as well</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
     <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;algo&#39;</span>        <span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;sensitivity&#39;</span> <span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-        <span class="s1">&#39;nms&#39;</span>         <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;nms_thresh&#39;</span>  <span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-        <span class="s1">&#39;nms_aware&#39;</span>   <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+        <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+        <span class="s1">&#39;nms_aware&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -871,25 +1043,33 @@
     <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
-        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span>
-                                                    <span class="n">note</span><span class="o">=</span><span class="s1">&#39;cnnlightnetdetect&#39;</span><span class="p">,</span>
-                                                    <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span>
+            <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;cnnlightnetdetect&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">aids_list</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">results_list</span></div>
 
 
 <div class="viewcode-block" id="commit_localization_results"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.commit_localization_results">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">commit_localization_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">labeler_algo</span><span class="o">=</span><span class="s1">&#39;pipeline&#39;</span><span class="p">,</span> <span class="n">labeler_model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">use_labeler_species</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                <span class="n">orienter_algo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">orienter_model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="n">global_gid_list</span>   <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">global_bbox_list</span>  <span class="o">=</span> <span class="p">[]</span>
+<span class="k">def</span> <span class="nf">commit_localization_results</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">gid_list</span><span class="p">,</span>
+    <span class="n">results_list</span><span class="p">,</span>
+    <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">labeler_algo</span><span class="o">=</span><span class="s1">&#39;pipeline&#39;</span><span class="p">,</span>
+    <span class="n">labeler_model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_labeler_species</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">orienter_algo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">orienter_model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">global_gid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">global_bbox_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">global_theta_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">global_class_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">global_conf_list</span>  <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">global_conf_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">global_notes_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">))</span>
@@ -900,11 +1080,11 @@
         <span class="n">gid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
         <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">note</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
 
-        <span class="n">global_gid_list</span>   <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
-        <span class="n">global_bbox_list</span>  <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+        <span class="n">global_gid_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+        <span class="n">global_bbox_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
         <span class="n">global_theta_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">theta_list</span><span class="p">)</span>
         <span class="n">global_class_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">class_list</span><span class="p">)</span>
-        <span class="n">global_conf_list</span>  <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">conf_list</span><span class="p">)</span>
+        <span class="n">global_conf_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">conf_list</span><span class="p">)</span>
         <span class="n">global_notes_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">notes_list</span><span class="p">)</span>
 
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_bbox_list</span><span class="p">)</span>
@@ -921,18 +1101,13 @@
         <span class="n">detect_confidence_list</span><span class="o">=</span><span class="n">global_conf_list</span><span class="p">,</span>
         <span class="n">notes_list</span><span class="o">=</span><span class="n">global_notes_list</span><span class="p">,</span>
         <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">global_aid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">global_aid_list</span><span class="p">)</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">[</span>
-            <span class="n">aid</span>
-            <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list_</span>
-            <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">global_aid_set</span>
-        <span class="p">]</span>
-        <span class="k">for</span> <span class="n">aid_list_</span> <span class="ow">in</span> <span class="n">aids_list</span>
+        <span class="p">[</span><span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list_</span> <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">global_aid_set</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid_list_</span> <span class="ow">in</span> <span class="n">aids_list</span>
     <span class="p">]</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
 
@@ -940,22 +1115,28 @@
         <span class="n">labeler_config</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">labeler_config</span><span class="p">[</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labeler_algo</span>
         <span class="n">labeler_config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labeler_model_tag</span>
-        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">labeler_config</span><span class="p">)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+            <span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">labeler_config</span>
+        <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">use_labeler_species</span><span class="p">:</span>
-            <span class="n">species_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">labeler_config</span><span class="p">)</span>
+            <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+                <span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">labeler_config</span>
+            <span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">orienter_algo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">orienter_config</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">orienter_config</span><span class="p">[</span><span class="s1">&#39;orienter_algo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orienter_algo</span>
         <span class="n">orienter_config</span><span class="p">[</span><span class="s1">&#39;orienter_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orienter_model_tag</span>
-        <span class="n">result_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;orienter&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">orienter_config</span><span class="p">)</span>
-        <span class="n">xtl_list</span>    <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))))</span>
-        <span class="n">ytl_list</span>    <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">))))</span>
-        <span class="n">w_list</span>      <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">))))</span>
-        <span class="n">h_list</span>      <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">3</span><span class="p">))))</span>
-        <span class="n">theta_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+            <span class="s1">&#39;orienter&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">orienter_config</span>
+        <span class="p">)</span>
+        <span class="n">xtl_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))))</span>
+        <span class="n">ytl_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">))))</span>
+        <span class="n">w_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">))))</span>
+        <span class="n">h_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">3</span><span class="p">))))</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
         <span class="n">bbox_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">w_list</span><span class="p">,</span> <span class="n">h_list</span><span class="p">))</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta_list</span><span class="p">)</span>
@@ -970,11 +1151,15 @@
 
 
 <div class="viewcode-block" id="commit_detection_results"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.commit_detection_results">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">commit_detection_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">commit_detection_results</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
     <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">))</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">)</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">:</span>
+    <span class="k">for</span> <span class="p">(</span>
+        <span class="n">gid</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">),</span>
+    <span class="p">)</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">:</span>
         <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
         <span class="n">notes_list</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">note</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
@@ -985,7 +1170,7 @@
             <span class="n">detect_confidence_list</span><span class="o">=</span><span class="n">conf_list</span><span class="p">,</span>
             <span class="n">notes_list</span><span class="o">=</span><span class="n">notes_list</span><span class="p">,</span>
             <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span>
+            <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
         <span class="c1"># TODO ibs.set_annot_viewpoint_code(aid_list, viewpoint_list)</span>
@@ -998,16 +1183,26 @@
 
 
 <div class="viewcode-block" id="commit_detection_results_filtered"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.commit_detection_results_filtered">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">commit_detection_results_filtered</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">filter_species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                      <span class="n">filter_viewpoint_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                      <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">commit_detection_results_filtered</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">gid_list</span><span class="p">,</span>
+    <span class="n">filter_species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">filter_viewpoint_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
     <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;detections&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">))</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">)</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">:</span>
+    <span class="k">for</span> <span class="p">(</span>
+        <span class="n">gid</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">),</span>
+    <span class="p">)</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">))</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">conf</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">filter_species_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">filter_species_list</span><span class="p">):</span>
                 <span class="k">continue</span>
@@ -1022,7 +1217,7 @@
                 <span class="n">detect_confidence_list</span><span class="o">=</span><span class="p">[</span><span class="n">conf</span><span class="p">],</span>
                 <span class="n">notes_list</span><span class="o">=</span><span class="n">note_</span><span class="p">,</span>
                 <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span>
+                <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">aid</span> <span class="o">=</span> <span class="n">temp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoints</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">viewpoint</span><span class="p">])</span>
@@ -1040,10 +1235,11 @@
 <span class="k">def</span> <span class="nf">log_detections</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">time</span>
     <span class="kn">import</span> <span class="nn">os</span>
+
     <span class="n">json_log_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_logdir_local</span><span class="p">()</span>
     <span class="n">json_log_filename</span> <span class="o">=</span> <span class="s1">&#39;detections.json&#39;</span>
     <span class="n">json_log_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">json_log_path</span><span class="p">,</span> <span class="n">json_log_filename</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Logging detections added to: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Logging detections added to: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,))</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># Log has never been made, create one</span>
@@ -1067,15 +1263,17 @@
         <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
-            <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;updates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                <span class="s1">&#39;time_unixtime&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
-                <span class="s1">&#39;db_name&#39;</span><span class="p">:</span> <span class="n">db_name</span><span class="p">,</span>
-                <span class="s1">&#39;db_init_uuid&#39;</span><span class="p">:</span> <span class="n">db_init_uuid</span><span class="p">,</span>
-                <span class="s1">&#39;image_rowid&#39;</span><span class="p">:</span> <span class="n">gid</span><span class="p">,</span>
-                <span class="s1">&#39;annot_rowid&#39;</span><span class="p">:</span> <span class="n">aid</span><span class="p">,</span>
-                <span class="s1">&#39;annot_bbox&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">,</span>
-                <span class="s1">&#39;annot_theta&#39;</span><span class="p">:</span> <span class="n">theta</span><span class="p">,</span>
-            <span class="p">})</span>
+            <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;updates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;time_unixtime&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
+                    <span class="s1">&#39;db_name&#39;</span><span class="p">:</span> <span class="n">db_name</span><span class="p">,</span>
+                    <span class="s1">&#39;db_init_uuid&#39;</span><span class="p">:</span> <span class="n">db_init_uuid</span><span class="p">,</span>
+                    <span class="s1">&#39;image_rowid&#39;</span><span class="p">:</span> <span class="n">gid</span><span class="p">,</span>
+                    <span class="s1">&#39;annot_rowid&#39;</span><span class="p">:</span> <span class="n">aid</span><span class="p">,</span>
+                    <span class="s1">&#39;annot_bbox&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">,</span>
+                    <span class="s1">&#39;annot_theta&#39;</span><span class="p">:</span> <span class="n">theta</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
         <span class="c1"># Write new log state</span>
         <span class="n">json_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_log_file</span><span class="p">:</span>
@@ -1162,8 +1360,10 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">labelShark</span>
+
     <span class="n">labels</span> <span class="o">=</span> <span class="n">labelShark</span><span class="o">.</span><span class="n">classifyShark</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">labels</span></div>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1173,18 +1373,37 @@
 <span class="sd">        python -m wbia.web.app --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1192,55 +1411,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

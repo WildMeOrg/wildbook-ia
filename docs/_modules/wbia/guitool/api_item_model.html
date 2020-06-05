@@ -1,39 +1,157 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.guitool.api_item_model &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.guitool.api_item_model &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../guitool.html">wbia.guitool</a> &raquo;</li>
+
+      <li>wbia.guitool.api_item_model</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.guitool.api_item_model</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO:</span>
 <span class="sd">    Fix slowness</span>
 <span class="sd">    Fix sorting so columns are initially sorted in ascending order</span>
@@ -46,20 +164,22 @@
 <span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">qtype</span>
 <span class="kn">from</span> <span class="nn">wbia.guitool.guitool_decorators</span> <span class="k">import</span> <span class="n">checks_qt_error</span><span class="p">,</span> <span class="n">signal_</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>  <span class="c1"># builtins  # NOQA</span>
-<span class="c1">#from utool._internal.meta_util_six import get_funcname</span>
+
+<span class="c1"># from utool._internal.meta_util_six import get_funcname</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="c1">#from .api_thumb_delegate import APIThumbDelegate</span>
+
+<span class="c1"># from .api_thumb_delegate import APIThumbDelegate</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">api_tree_node</span> <span class="k">as</span> <span class="n">_atn</span>
 <span class="kn">import</span> <span class="nn">cachetools</span>
 
 <span class="c1"># UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS</span>
 <span class="c1"># DO NOT INJECT THEM IN GUITOOL</span>
-<span class="c1">#print, rrr, profile = ut.inject2(__name__)</span>
+<span class="c1"># print, rrr, profile = ut.inject2(__name__)</span>
 <span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[APIItemModel]&#39;</span><span class="p">)</span>
 
-<span class="c1">#raise ImportError(&#39;refused to import wbia.guitool&#39;)</span>
+<span class="c1"># raise ImportError(&#39;refused to import wbia.guitool&#39;)</span>
 <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">profile</span>
 
 <span class="n">API_MODEL_BASE</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QAbstractItemModel</span>
@@ -73,9 +193,10 @@
 <span class="sd">    Context manager emitting layoutChanged before body,</span>
 <span class="sd">    not updating durring body, and then updating after body.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_scalar_input</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-        <span class="c1">#print(&#39;Changing: %r&#39; % (model_list,))</span>
+        <span class="c1"># print(&#39;Changing: %r&#39; % (model_list,))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -107,8 +228,8 @@
 
 <div class="viewcode-block" id="default_method_decorator"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.default_method_decorator">[docs]</a><span class="k">def</span> <span class="nf">default_method_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dummy decorator &quot;&quot;&quot;</span>
-    <span class="c1">#return profile(func)</span>
-    <span class="c1">#return checks_qt_error(profile(func))</span>
+    <span class="c1"># return profile(func)</span>
+    <span class="c1"># return checks_qt_error(profile(func))</span>
     <span class="k">return</span> <span class="n">func</span></div>
 
 
@@ -118,11 +239,12 @@
 <span class="sd">    the middle of a layout changed</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_method_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="c1">#@checks_qt_error</span>
+    <span class="c1"># @checks_qt_error</span>
     <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">upd_wrapper</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">ChangeLayoutContext</span><span class="p">([</span><span class="n">model</span><span class="p">]):</span>
             <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">upd_wrapper</span></div>
 
 
@@ -144,11 +266,12 @@
 <span class="sd">        col_sort_index (int) : index into col_name_list for sorting</span>
 <span class="sd">        col_sort_reverse (bool) : flag to reverse the sort ordering</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_rows_updated</span> <span class="o">=</span> <span class="n">signal_</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
     <span class="n">EditableItemColor</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">242</span><span class="p">,</span> <span class="mi">242</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
-    <span class="c1">#EditableItemColor = QtGui.QColor(200, 200, 255)</span>
-    <span class="n">TrueItemColor</span>     <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">230</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">230</span><span class="p">)</span>
-    <span class="n">FalseItemColor</span>    <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">230</span><span class="p">)</span>
+    <span class="c1"># EditableItemColor = QtGui.QColor(200, 200, 255)</span>
+    <span class="n">TrueItemColor</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">230</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">230</span><span class="p">)</span>
+    <span class="n">FalseItemColor</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">230</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_context_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_context_id</span> <span class="o">=</span> <span class="n">id_</span>
@@ -161,6 +284,7 @@
 
     <span class="k">def</span> <span class="nf">_get_changeblocked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_changeblocked</span>
+
     <span class="c1">#</span>
     <span class="c1"># Non-Qt Init Functions</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -170,24 +294,24 @@
         <span class="n">model</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="n">parent</span>
         <span class="n">API_MODEL_BASE</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
         <span class="c1"># Internal Flags</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">_abouttochange</span>   <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">_context_id</span>      <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">_haschanged</span>      <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">_changeblocked</span>   <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">_abouttochange</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">_context_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">_haschanged</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">_changeblocked</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="c1"># Model Data And Accessors</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">name</span>             <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">nice</span>             <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">iders</span>            <span class="o">=</span> <span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[]]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">nice</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">iders</span> <span class="o">=</span> <span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[]]</span>
         <span class="n">model</span><span class="o">.</span><span class="n">col_visible_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">col_name_list</span>    <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">col_type_list</span>    <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">col_nice_list</span>    <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">col_edit_list</span>    <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">col_setter_list</span>  <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">col_getter_list</span>  <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">col_level_list</span>   <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">col_type_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">col_nice_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">col_edit_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">col_setter_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">col_getter_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">col_level_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">model</span><span class="o">.</span><span class="n">col_bgrole_getter_list</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">col_sort_index</span>   <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">col_sort_index</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">model</span><span class="o">.</span><span class="n">col_sort_reverse</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">model</span><span class="o">.</span><span class="n">level_index_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">model</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># FIXME: This is not sustainable</span>
@@ -197,13 +321,13 @@
         <span class="n">model</span><span class="o">.</span><span class="n">scope_hack_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">model</span><span class="o">.</span><span class="n">root_node</span> <span class="o">=</span> <span class="n">_atn</span><span class="o">.</span><span class="n">TreeNode</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Initialize member variables</span>
-        <span class="c1">#model._about_to_change()</span>
+        <span class="c1"># model._about_to_change()</span>
         <span class="n">model</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span>  <span class="c1"># save the headers</span>
         <span class="n">model</span><span class="o">.</span><span class="n">ider_filters</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">model</span><span class="o">.</span><span class="n">num_rows_loaded</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">model</span><span class="o">.</span><span class="n">num_rows_total</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1">#len(model.level_index_list)</span>
-        <span class="c1">#model.lazy_updater = None</span>
+        <span class="c1"># len(model.level_index_list)</span>
+        <span class="c1"># model.lazy_updater = None</span>
         <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">model</span><span class="o">.</span><span class="n">_update_headers</span><span class="p">(</span><span class="o">**</span><span class="n">headers</span><span class="p">)</span>
 
@@ -212,27 +336,28 @@
         <span class="n">model</span><span class="o">.</span><span class="n">ider_filters</span> <span class="o">=</span> <span class="n">ider_filters</span></div>
 
 <div class="viewcode-block" id="APIItemModel.get_iders"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.get_iders">[docs]</a>    <span class="k">def</span> <span class="nf">get_iders</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-        <span class="c1">#def filtfun_test(x_list):</span>
+        <span class="c1"># def filtfun_test(x_list):</span>
         <span class="c1">#    return [x for x in x_list if x % 2 == 0]</span>
-        <span class="c1">#model.name == &#39;annotations&#39;</span>
-        <span class="c1">#if len(model.iders) == 1:</span>
+        <span class="c1"># model.name == &#39;annotations&#39;</span>
+        <span class="c1"># if len(model.iders) == 1:</span>
         <span class="c1">#    model.ider_filters = [filtfun_test]</span>
         <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">ider_filters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ider_list</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">iders</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ider_filters</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">iders</span><span class="p">),</span> <span class="s1">&#39;bad filters&#39;</span>
-            <span class="c1">#ider_list =  [lambda: filtfn(ider()) for filtfn, ider in zip(model.ider_filters, model.iders)]</span>
-            <span class="c1">#with ut.embed_on_exception_context:</span>
+            <span class="c1"># ider_list =  [lambda: filtfn(ider()) for filtfn, ider in zip(model.ider_filters, model.iders)]</span>
+            <span class="c1"># with ut.embed_on_exception_context:</span>
             <span class="k">def</span> <span class="nf">wrap_ider</span><span class="p">(</span><span class="n">ider</span><span class="p">,</span> <span class="n">filtfn</span><span class="p">):</span>
                 <span class="k">def</span> <span class="nf">wrapped_ider</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                     <span class="k">return</span> <span class="n">filtfn</span><span class="p">(</span><span class="n">ider</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
                 <span class="k">return</span> <span class="n">wrapped_ider</span>
-            <span class="n">ider_list</span> <span class="o">=</span>  <span class="p">[</span>
-                <span class="c1">#ider</span>
+
+            <span class="n">ider_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="c1"># ider</span>
                 <span class="n">wrap_ider</span><span class="p">(</span><span class="n">ider</span><span class="p">,</span> <span class="n">filtfn</span><span class="p">)</span>
-                <span class="c1">#lambda *args: filtfn(ider(*args))</span>
-                <span class="k">for</span> <span class="n">filtfn</span><span class="p">,</span> <span class="n">ider</span> <span class="ow">in</span>
-                <span class="nb">zip</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ider_filters</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">iders</span><span class="p">)</span>
+                <span class="c1"># lambda *args: filtfn(ider(*args))</span>
+                <span class="k">for</span> <span class="n">filtfn</span><span class="p">,</span> <span class="n">ider</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ider_filters</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">iders</span><span class="p">)</span>
             <span class="p">]</span>
         <span class="k">return</span> <span class="n">ider_list</span></div>
 
@@ -240,17 +365,17 @@
     <span class="k">def</span> <span class="nf">_update_headers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">headers</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[APIItemModel] _update_headers&#39;</span><span class="p">)</span>
-        <span class="n">iders</span>            <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iders&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">name</span>             <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">nice</span>             <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nice&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">col_name_list</span>    <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_name_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">col_type_list</span>    <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_type_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">col_nice_list</span>    <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_nice_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">col_edit_list</span>    <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_edit_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">col_setter_list</span>  <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_setter_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">col_getter_list</span>  <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_getter_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">col_level_list</span>   <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_level_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">col_sort_index</span>   <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_sort_index&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">iders</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iders&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">nice</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nice&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_name_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_type_list</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_type_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_nice_list</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_nice_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_edit_list</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_edit_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_setter_list</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_setter_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_getter_list</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_getter_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_level_list</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_level_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">col_sort_index</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_sort_index&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">col_sort_reverse</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_sort_reverse&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="c1"># New for dynamically getting non-data roles for each row</span>
         <span class="n">col_bgrole_getter_list</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_bgrole_getter_list&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -261,8 +386,10 @@
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_ASSERT</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_list</span><span class="p">(</span><span class="n">iders</span><span class="p">),</span> <span class="s1">&#39;bad type: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">iders</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">ider</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iders</span><span class="p">):</span>
-                <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">ider</span><span class="p">),</span> <span class="p">(</span>
-                    <span class="s1">&#39;bad type at index </span><span class="si">%r</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">ider</span><span class="p">)))</span>
+                <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">ider</span><span class="p">),</span> <span class="s1">&#39;bad type at index </span><span class="si">%r</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">index</span><span class="p">,</span>
+                    <span class="nb">type</span><span class="p">(</span><span class="n">ider</span><span class="p">),</span>
+                <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">col_name_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -284,26 +411,23 @@
             <span class="n">col_level_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="kc">True</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_ASSERT</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_type_list</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inconsistent colnametype&#39;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_nice_list</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inconsistent colnice&#39;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_edit_list</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inconsistent coledit&#39;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_setter_list</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inconsistent colsetter&#39;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_bgrole_getter_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inconsistent col_bgrole_getter_list&#39;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_getter_list</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inconsistent colgetter&#39;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_visible_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inconsistent col_visible_list&#39;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_level_list</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inconsistent collevel&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_type_list</span><span class="p">),</span> <span class="s1">&#39;inconsistent colnametype&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_nice_list</span><span class="p">),</span> <span class="s1">&#39;inconsistent colnice&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_edit_list</span><span class="p">),</span> <span class="s1">&#39;inconsistent coledit&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_setter_list</span><span class="p">),</span> <span class="s1">&#39;inconsistent colsetter&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_bgrole_getter_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">col_name_list</span>
+            <span class="p">),</span> <span class="s1">&#39;inconsistent col_bgrole_getter_list&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_getter_list</span><span class="p">),</span> <span class="s1">&#39;inconsistent colgetter&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_visible_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">col_name_list</span>
+            <span class="p">),</span> <span class="s1">&#39;inconsistent col_visible_list&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_level_list</span><span class="p">),</span> <span class="s1">&#39;inconsistent collevel&#39;</span>
             <span class="k">for</span> <span class="n">colname</span><span class="p">,</span> <span class="n">flag</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_edit_list</span><span class="p">,</span> <span class="n">col_setter_list</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">flag</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span>
-                        <span class="s1">&#39;column=</span><span class="si">%r</span><span class="s1"> is editable but func is None&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colname</span><span class="p">,))</span>
+                    <span class="k">assert</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;column=</span><span class="si">%r</span><span class="s1"> is editable but func is None&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">colname</span><span class="p">,</span>
+                    <span class="p">)</span>
 
         <span class="n">model</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
 
@@ -322,7 +446,7 @@
         <span class="n">model</span><span class="o">.</span><span class="n">col_display_role_func_dict</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;col_display_role_func_dict&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="n">model</span><span class="o">.</span><span class="n">num_rows_loaded</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c1">#model.num_cols_loaded = 0</span>
+        <span class="c1"># model.num_cols_loaded = 0</span>
         <span class="n">model</span><span class="o">.</span><span class="n">num_rows_total</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">model</span><span class="o">.</span><span class="n">lazy_rows</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -330,19 +454,22 @@
         <span class="n">model</span><span class="o">.</span><span class="n">_set_sort</span><span class="p">(</span><span class="n">col_sort_index</span><span class="p">,</span> <span class="n">col_sort_reverse</span><span class="p">,</span> <span class="n">rebuild_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="APIItemModel.clear_cache"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.clear_cache">[docs]</a>    <span class="k">def</span> <span class="nf">clear_cache</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">cachetools</span><span class="o">.</span><span class="n">TTLCache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">cache_size</span><span class="p">,</span>
-                                          <span class="n">ttl</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">cache_timeout_sec</span><span class="p">)</span></div>
+        <span class="n">model</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">cachetools</span><span class="o">.</span><span class="n">TTLCache</span><span class="p">(</span>
+            <span class="n">maxsize</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">cache_size</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">cache_timeout_sec</span>
+        <span class="p">)</span></div>
 
     <span class="nd">@updater</span>
     <span class="k">def</span> <span class="nf">_set_sort</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">col_sort_index</span><span class="p">,</span> <span class="n">col_sort_reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rebuild_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[APIItemModel] _set_sort, index=</span><span class="si">%r</span><span class="s1"> reverse=</span><span class="si">%r</span><span class="s1">, rebuild=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
-                  <span class="p">(</span><span class="n">col_sort_index</span><span class="p">,</span> <span class="n">col_sort_reverse</span><span class="p">,</span> <span class="n">rebuild_structure</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;[APIItemModel] _set_sort, index=</span><span class="si">%r</span><span class="s1"> reverse=</span><span class="si">%r</span><span class="s1">, rebuild=</span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">col_sort_index</span><span class="p">,</span> <span class="n">col_sort_reverse</span><span class="p">,</span> <span class="n">rebuild_structure</span><span class="p">,)</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_ASSERT</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">col_sort_index</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span>
-                        <span class="n">col_sort_index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">col_name_list</span><span class="p">)),</span> <span class="p">(</span>
-                            <span class="s1">&#39;sort index out of bounds by: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">col_sort_index</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">col_sort_index</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">col_sort_index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">model</span><span class="o">.</span><span class="n">col_name_list</span>
+                <span class="p">),</span> <span class="p">(</span><span class="s1">&#39;sort index out of bounds by: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">col_sort_index</span><span class="p">)</span>
             <span class="n">model</span><span class="o">.</span><span class="n">col_sort_index</span> <span class="o">=</span> <span class="n">col_sort_index</span>
             <span class="n">model</span><span class="o">.</span><span class="n">col_sort_reverse</span> <span class="o">=</span> <span class="n">col_sort_reverse</span>
             <span class="c1"># Update the row-id order</span>
@@ -354,17 +481,17 @@
 <span class="sd">        Uses the current ider and col_sort_index to create</span>
 <span class="sd">        row_indices</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#with ut.Timer(&#39;[gt] update_rows (%s)&#39; % (model.name,)):</span>
+        <span class="c1"># with ut.Timer(&#39;[gt] update_rows (%s)&#39; % (model.name,)):</span>
         <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
             <span class="c1"># flag = model.blockSignals(True)</span>
             <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[APIItemModel] +-----------&#39;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[APIItemModel] _update_rows&#39;</span><span class="p">)</span>
             <span class="c1"># this is not slow</span>
-            <span class="c1">#print(&#39;UPDATE ROWS!&#39;)</span>
+            <span class="c1"># print(&#39;UPDATE ROWS!&#39;)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">col_level_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span>
-            <span class="c1">#old_root = model.root_node  # NOQA</span>
+            <span class="c1"># old_root = model.root_node  # NOQA</span>
             <span class="k">if</span> <span class="n">rebuild_structure</span><span class="p">:</span>
                 <span class="c1"># print(&#39;Rebuilging api_item_model internal structure&#39;)</span>
                 <span class="n">model</span><span class="o">.</span><span class="n">beginResetModel</span><span class="p">()</span>  <span class="c1"># I think this is preventing a segfault</span>
@@ -374,14 +501,18 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[APIItemModel] lazy_update_rows&#39;</span><span class="p">)</span>
             <span class="n">model</span><span class="o">.</span><span class="n">level_index_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">sort_index</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">col_sort_index</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">model</span><span class="o">.</span><span class="n">col_sort_index</span>
-            <span class="n">children</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">root_node</span><span class="o">.</span><span class="n">get_children</span><span class="p">()</span>  <span class="c1"># THIS IS THE LINE THAT TAKES FOREVER</span>
+            <span class="n">children</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">root_node</span><span class="o">.</span><span class="n">get_children</span><span class="p">()</span>
+            <span class="p">)</span>  <span class="c1"># THIS IS THE LINE THAT TAKES FOREVER</span>
             <span class="n">id_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">child</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">]</span>
-            <span class="c1">#print(&#39;ids_ generated&#39;)</span>
+            <span class="c1"># print(&#39;ids_ generated&#39;)</span>
             <span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[APIItemModel] lazy_update_rows len(id_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
-                          <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)))</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s1">&#39;[APIItemModel] lazy_update_rows len(id_list) = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">))</span>
+                    <span class="p">)</span>
                 <span class="c1"># start sort</span>
                 <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">col_sort_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">type_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">col_type_list</span><span class="p">[</span><span class="n">sort_index</span><span class="p">]</span>
@@ -398,7 +529,7 @@
                 <span class="c1"># &lt;NUMPY MULTIARRAY SORT&gt;</span>
                 <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SORTING VALUES IS NONE. VERY WEIRD&quot;</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SORTING VALUES IS NONE. VERY WEIRD&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="nb">float</span><span class="p">:</span>
                         <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
                         <span class="c1"># Force nan to be the smallest number</span>
@@ -406,6 +537,7 @@
                     <span class="k">elif</span> <span class="n">type_</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
                         <span class="n">values</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
                     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
                     <span class="n">sortx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">argsort_records</span><span class="p">([</span><span class="n">values</span><span class="p">,</span> <span class="n">id_list</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)</span>
                     <span class="c1"># &lt;/NUMPY MULTIARRAY SORT&gt;</span>
                     <span class="n">nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">children</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
@@ -419,7 +551,7 @@
 
             <span class="c1"># Book keeping for lazy loading rows</span>
             <span class="n">model</span><span class="o">.</span><span class="n">num_rows_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">level_index_list</span><span class="p">)</span>
-            <span class="c1">#model.num_cols_total = len(model.col_name_list)</span>
+            <span class="c1"># model.num_cols_total = len(model.col_name_list)</span>
             <span class="n">model</span><span class="o">.</span><span class="n">num_cols_loaded</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">lazy_rows</span><span class="p">:</span>
@@ -433,9 +565,9 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[APIItemModel] finished _update_rows&#39;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[APIItemModel] L__________&#39;</span><span class="p">)</span>
 
-    <span class="c1">#------------------------------------</span>
+    <span class="c1"># ------------------------------------</span>
     <span class="c1"># --- Data maintainence functions ---</span>
-    <span class="c1">#------------------------------------</span>
+    <span class="c1"># ------------------------------------</span>
 
     <span class="nd">@default_method_decorator</span>
     <span class="k">def</span> <span class="nf">_about_to_change</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -483,9 +615,9 @@
         <span class="n">qtindex</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">row</span></div>
 
-    <span class="c1">#----------------------------------</span>
+    <span class="c1"># ----------------------------------</span>
     <span class="c1"># --- API Convineince Functions ---</span>
-    <span class="c1">#----------------------------------</span>
+    <span class="c1"># ----------------------------------</span>
 
 <div class="viewcode-block" id="APIItemModel.get_header_data"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.get_header_data">[docs]</a>    <span class="nd">@default_method_decorator</span>
     <span class="k">def</span> <span class="nf">get_header_data</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
@@ -513,12 +645,12 @@
         <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
         <span class="n">level</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_level</span><span class="p">()</span>
-        <span class="c1">#level = model.col_level_list[column]</span>
+        <span class="c1"># level = model.col_level_list[column]</span>
         <span class="k">return</span> <span class="n">level</span>
 
-    <span class="c1">#--------------------------------</span>
+    <span class="c1"># --------------------------------</span>
     <span class="c1"># --- API Interface Functions ---</span>
-    <span class="c1">#--------------------------------</span>
+    <span class="c1"># --------------------------------</span>
 
     <span class="nd">@default_method_decorator</span>
     <span class="k">def</span> <span class="nf">_get_col_align</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
@@ -535,11 +667,14 @@
             <span class="n">node</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">internalPointer</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_ASSERT</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">_atn</span><span class="o">.</span><span class="n">TreeNode</span><span class="p">),</span> <span class="p">(</span>
-                        <span class="s1">&#39;type(node)=</span><span class="si">%r</span><span class="s1">, node=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">),</span> <span class="n">node</span><span class="p">))</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">_atn</span><span class="o">.</span><span class="n">TreeNode</span><span class="p">),</span> <span class="s1">&#39;type(node)=</span><span class="si">%r</span><span class="s1">, node=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                        <span class="n">node</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;error in _get_row_id&#39;</span><span class="p">,</span>
-                               <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;qtindex&#39;</span><span class="p">,</span> <span class="s1">&#39;node&#39;</span><span class="p">])</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                        <span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;error in _get_row_id&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;qtindex&#39;</span><span class="p">,</span> <span class="s1">&#39;node&#39;</span><span class="p">]</span>
+                    <span class="p">)</span>
                     <span class="k">raise</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">id_</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
@@ -620,18 +755,24 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="c1"># Using this getter may not be thread safe</span>
                 <span class="c1"># Should this work around decorators?</span>
-                <span class="c1">#data = getter((row_id,), **kwargs)[0]</span>
+                <span class="c1"># data = getter((row_id,), **kwargs)[0]</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">getter</span><span class="p">(</span><span class="n">row_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">qtindex_rc</span> <span class="o">=</span> <span class="p">(</span><span class="n">qtindex</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>  <span class="c1"># NOQA</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
                     <span class="n">ex</span><span class="p">,</span>
                     <span class="s1">&#39;[api_item_model] problem getting in column </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,),</span>
-                    <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;model.name&#39;</span><span class="p">,</span> <span class="s1">&#39;getter&#39;</span><span class="p">,</span> <span class="s1">&#39;row_id&#39;</span><span class="p">,</span> <span class="s1">&#39;col&#39;</span><span class="p">,</span> <span class="s1">&#39;qtindex&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;qtindex_rc&#39;</span><span class="p">],</span>
-                    <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
+                        <span class="s1">&#39;model.name&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;getter&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;row_id&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;col&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;qtindex&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;qtindex_rc&#39;</span><span class="p">,</span>
+                    <span class="p">],</span>
+                    <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="c1">#getting from: %r&#39; % ut.util_str.get_callable_name(getter))</span>
+                <span class="c1"># getting from: %r&#39; % ut.util_str.get_callable_name(getter))</span>
                 <span class="k">raise</span>
             <span class="n">model</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">cachekey</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
         <span class="c1"># &lt;/MODEL_CACHE&gt;</span>
@@ -658,19 +799,20 @@
         <span class="c1"># &lt;/HACK: MODEL_CACHE&gt;</span>
         <span class="n">setter</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">col_setter_list</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[model] Setting data: row_id=</span><span class="si">%r</span><span class="s1">, setter=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
-                  <span class="p">(</span><span class="n">row_id</span><span class="p">,</span> <span class="n">setter</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[model] Setting data: row_id=</span><span class="si">%r</span><span class="s1">, setter=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row_id</span><span class="p">,</span> <span class="n">setter</span><span class="p">))</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">setter</span><span class="p">(</span><span class="n">row_id</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
-                <span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;ERROR: setting data: row_id=</span><span class="si">%r</span><span class="s1">, setter=</span><span class="si">%r</span><span class="s1">, col=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">row_id</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">col</span><span class="p">))</span>
+                <span class="n">ex</span><span class="p">,</span>
+                <span class="s1">&#39;ERROR: setting data: row_id=</span><span class="si">%r</span><span class="s1">, setter=</span><span class="si">%r</span><span class="s1">, col=</span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">row_id</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">col</span><span class="p">),</span>
+            <span class="p">)</span>
             <span class="k">raise</span>
 
-    <span class="c1">#------------------------</span>
+    <span class="c1"># ------------------------</span>
     <span class="c1"># --- QtGui Functions ---</span>
-    <span class="c1">#------------------------</span>
+    <span class="c1"># ------------------------</span>
 <div class="viewcode-block" id="APIItemModel.parent"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.parent">[docs]</a>    <span class="nd">@default_method_decorator</span>
     <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qindex</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -694,17 +836,19 @@
 <span class="sd">            no parent, an invalid QModelIndex is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c1">#model.lazy_checks()</span>
+        <span class="c1"># model.lazy_checks()</span>
         <span class="k">if</span> <span class="n">qindex</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">node</span> <span class="o">=</span> <span class="n">qindex</span><span class="o">.</span><span class="n">internalPointer</span><span class="p">()</span>
-                <span class="c1">#&lt;HACK&gt;</span>
+                <span class="c1"># &lt;HACK&gt;</span>
                 <span class="c1"># A segfault happens in isinstance when updating rows?</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">_atn</span><span class="o">.</span><span class="n">TreeNode</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: tried to access parent of </span><span class="si">%r</span><span class="s2"> type object&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s1">&#39;WARNING: tried to access parent of </span><span class="si">%r</span><span class="s1"> type object&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                    <span class="p">)</span>
                     <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span>
-                <span class="c1">#assert node.__dict__, &quot;node.__dict__=%r&quot; % node.__dict__</span>
-                <span class="c1">#&lt;/HACK&gt;</span>
+                <span class="c1"># assert node.__dict__, &quot;node.__dict__=%r&quot; % node.__dict__</span>
+                <span class="c1"># &lt;/HACK&gt;</span>
                 <span class="n">parent_node</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_parent</span><span class="p">()</span>
                 <span class="n">parent_id</span> <span class="o">=</span> <span class="n">parent_node</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">parent_id</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">parent_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -714,11 +858,17 @@
                 <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">createIndex</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">parent_node</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">utool</span>
+
                 <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
                     <span class="n">qindex_rc</span> <span class="o">=</span> <span class="p">(</span><span class="n">qindex</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span> <span class="n">qindex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>  <span class="c1"># NOQA</span>
-                    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;failed to do parenty things&#39;</span><span class="p">,</span>
-                               <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qindex_rc&#39;</span><span class="p">,</span> <span class="s1">&#39;model.name&#39;</span><span class="p">],</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                        <span class="n">ex</span><span class="p">,</span>
+                        <span class="s1">&#39;failed to do parenty things&#39;</span><span class="p">,</span>
+                        <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qindex_rc&#39;</span><span class="p">,</span> <span class="s1">&#39;model.name&#39;</span><span class="p">],</span>
+                        <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="kn">import</span> <span class="nn">utool</span>
+
                 <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
                 <span class="k">raise</span>
         <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span></div>
@@ -737,14 +887,14 @@
 <span class="sd">        NOTE:</span>
 <span class="sd">            Object must be specified to sort delegates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#model.lazy_checks()</span>
+        <span class="c1"># model.lazy_checks()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">parent</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
             <span class="c1"># This is a top level == 0 index</span>
-            <span class="c1">#print(&#39;[model.index] ROOT: row=%r, col=%r&#39; % (row, column))</span>
+            <span class="c1"># print(&#39;[model.index] ROOT: row=%r, col=%r&#39; % (row, column))</span>
             <span class="k">if</span> <span class="n">row</span> <span class="o">&gt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">root_node</span><span class="o">.</span><span class="n">get_num_children</span><span class="p">():</span>
                 <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span>
-                <span class="c1">#import traceback</span>
-                <span class="c1">#traceback.print_stack()</span>
+                <span class="c1"># import traceback</span>
+                <span class="c1"># traceback.print_stack()</span>
             <span class="n">node</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">root_node</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">col_level_list</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">!=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_level</span><span class="p">():</span>
                 <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span>
@@ -769,26 +919,26 @@
 <div class="viewcode-block" id="APIItemModel.rowCount"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.rowCount">[docs]</a>    <span class="nd">@default_method_decorator</span>
     <span class="k">def</span> <span class="nf">rowCount</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot; Qt Override &quot;&quot;&quot;</span>
-        <span class="c1">#model.lazy_checks()</span>
+        <span class="c1"># model.lazy_checks()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">parent</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
             <span class="c1"># Root row count</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">level_index_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="mi">0</span>
             <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">num_rows_loaded</span>
-            <span class="c1">#nRows = len(model.level_index_list)</span>
+            <span class="c1"># nRows = len(model.level_index_list)</span>
             <span class="c1">##print(&#39;* nRows=%r&#39; % nRows)</span>
-            <span class="c1">#return nRows</span>
+            <span class="c1"># return nRows</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">internalPointer</span><span class="p">()</span>
             <span class="n">nRows</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_num_children</span><span class="p">()</span>
-            <span class="c1">#print(&#39;+ nRows=%r&#39; % nRows)</span>
+            <span class="c1"># print(&#39;+ nRows=%r&#39; % nRows)</span>
             <span class="k">return</span> <span class="n">nRows</span></div>
 
 <div class="viewcode-block" id="APIItemModel.columnCount"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.columnCount">[docs]</a>    <span class="nd">@default_method_decorator</span>
     <span class="k">def</span> <span class="nf">columnCount</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot; Qt Override &quot;&quot;&quot;</span>
         <span class="c1"># FOR NOW THE COLUMN COUNT IS CONSTANT</span>
-        <span class="c1">#model.lazy_checks()</span>
+        <span class="c1"># model.lazy_checks()</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">col_name_list</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="APIItemModel.canFetchMore"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.canFetchMore">[docs]</a>    <span class="nd">@default_method_decorator</span>
@@ -815,8 +965,8 @@
                 <span class="k">return</span>
             <span class="c1"># if node.get_level() == len(model.col_level_list):</span>
             <span class="c1">#     return</span>
-        <span class="c1">#print(&#39;model.num_rows_total = %r&#39; % (model.num_rows_total,))</span>
-        <span class="c1">#print(&#39;model.num_rows_loaded = %r&#39; % (model.num_rows_loaded,))</span>
+        <span class="c1"># print(&#39;model.num_rows_total = %r&#39; % (model.num_rows_total,))</span>
+        <span class="c1"># print(&#39;model.num_rows_loaded = %r&#39; % (model.num_rows_loaded,))</span>
         <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">num_rows_total</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">num_rows_loaded</span> <span class="o">&lt;</span> <span class="n">model</span><span class="o">.</span><span class="n">num_rows_total</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
@@ -825,13 +975,13 @@
         <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;canFetchMore </span><span class="si">%s</span><span class="s1">? -- No&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">,))</span>
         <span class="k">return</span> <span class="kc">False</span></div>
-        <span class="c1">#if not parent.isValid():</span>
+        <span class="c1"># if not parent.isValid():</span>
         <span class="c1">#    return False</span>
-        <span class="c1">#flags = model.flags(qtindex)</span>
+        <span class="c1"># flags = model.flags(qtindex)</span>
         <span class="c1">##row = qtindex.row()</span>
-        <span class="c1">#col = qtindex.column()</span>
-        <span class="c1">#node = qtindex.internalPointer()</span>
-        <span class="c1">#return False</span>
+        <span class="c1"># col = qtindex.column()</span>
+        <span class="c1"># node = qtindex.internalPointer()</span>
+        <span class="c1"># return False</span>
 
 <div class="viewcode-block" id="APIItemModel.fetchMore"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.fetchMore">[docs]</a>    <span class="nd">@default_method_decorator</span>
     <span class="k">def</span> <span class="nf">fetchMore</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
@@ -862,12 +1012,12 @@
         <span class="c1"># model.beginInsertRows(QtCore.QModelIndex(), idx1, idx2)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">beginInsertRows</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">num_rows_loaded</span> <span class="o">+=</span> <span class="n">num_fetching</span>
-        <span class="c1">#print(&#39;model.num_rows_total = %r&#39; % (model.num_rows_total,))</span>
-        <span class="c1">#print(&#39;model.num_rows_loaded = %r&#39; % (model.num_rows_loaded,))</span>
+        <span class="c1"># print(&#39;model.num_rows_total = %r&#39; % (model.num_rows_total,))</span>
+        <span class="c1"># print(&#39;model.num_rows_loaded = %r&#39; % (model.num_rows_loaded,))</span>
         <span class="n">model</span><span class="o">.</span><span class="n">endInsertRows</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fetched </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> rows&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_rows_loaded</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">num_rows_total</span><span class="p">))</span></div>
-        <span class="c1">#model.numberPopulated.emit(num_loading)</span>
+        <span class="c1"># model.numberPopulated.emit(num_loading)</span>
 
 <div class="viewcode-block" id="APIItemModel.data"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.data">[docs]</a>    <span class="nd">@default_method_decorator</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -882,7 +1032,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="n">flags</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">flags</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
-        <span class="c1">#row = qtindex.row()</span>
+        <span class="c1"># row = qtindex.row()</span>
         <span class="n">col</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">()</span>
         <span class="n">node</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">internalPointer</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">col_level_list</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">!=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_level</span><span class="p">():</span>
@@ -939,23 +1089,25 @@
             <span class="c1"># qvariant. This includes PIXMAP, BUTTON, and COMBO</span>
             <span class="k">if</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">qtype</span><span class="o">.</span><span class="n">QT_DELEGATE_TYPES</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_data</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                <span class="c1">#print(data)</span>
+                <span class="c1"># print(data)</span>
                 <span class="k">return</span> <span class="n">data</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Display data with default delegate by casting to a qvariant</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_data</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">col_display_role_func_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">col_name</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">col_name_list</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
-                    <span class="n">display_role_func</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">col_display_role_func_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="n">display_role_func</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">col_display_role_func_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                        <span class="n">col_name</span><span class="p">,</span> <span class="kc">None</span>
+                    <span class="p">)</span>
                     <span class="k">if</span> <span class="n">display_role_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">value</span> <span class="o">=</span> <span class="n">display_role_func</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
                         <span class="k">return</span> <span class="n">value</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="n">qtype</span><span class="o">.</span><span class="n">cast_into_qt</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">value</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1">#import builtins</span>
-            <span class="c1">#role_name = qtype.ItemDataRoles[role]</span>
-            <span class="c1">#builtins.print(&#39;UNHANDLED ROLE=%r&#39; % role_name)</span>
+            <span class="c1"># import builtins</span>
+            <span class="c1"># role_name = qtype.ItemDataRoles[role]</span>
+            <span class="c1"># builtins.print(&#39;UNHANDLED ROLE=%r&#39; % role_name)</span>
             <span class="k">pass</span>
         <span class="c1"># else return None</span>
         <span class="k">return</span> <span class="n">QVariantHack</span><span class="p">()</span></div>
@@ -973,13 +1125,13 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="n">flags</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">flags</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
-            <span class="c1">#row = qtindex.row()</span>
+            <span class="c1"># row = qtindex.row()</span>
             <span class="n">col</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">()</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span> <span class="ow">or</span> <span class="n">flags</span> <span class="o">&amp;</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsUserCheckable</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">CheckStateRole</span><span class="p">:</span>
                 <span class="n">type_</span> <span class="o">=</span> <span class="s1">&#39;QtCheckState&#39;</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">value</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span>
             <span class="k">elif</span> <span class="n">role</span> <span class="o">!=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">else</span><span class="p">:</span>
@@ -996,9 +1148,15 @@
                 <span class="n">model</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="c1">#value = str(value.toString())  # NOQA</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;ignoring setData&#39;</span><span class="p">,</span> <span class="s1">&#39;[model]&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                          <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># value = str(value.toString())  # NOQA</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                <span class="n">ex</span><span class="p">,</span>
+                <span class="s1">&#39;ignoring setData&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;[model]&#39;</span><span class="p">,</span>
+                <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+                <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="APIItemModel.headerData"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.headerData">[docs]</a>    <span class="nd">@default_method_decorator</span>
@@ -1012,24 +1170,24 @@
 <span class="sd">            corresponds to the column number. Similarly, for vertical headers,</span>
 <span class="sd">            the section number corresponds to the row number.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#model.lazy_checks()</span>
+        <span class="c1"># model.lazy_checks()</span>
         <span class="k">if</span> <span class="n">orientation</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span> <span class="ow">and</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">:</span>
             <span class="n">column</span> <span class="o">=</span> <span class="n">section</span>
             <span class="k">if</span> <span class="n">column</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">col_nice_list</span><span class="p">):</span>
                 <span class="k">return</span> <span class="p">[]</span>
             <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">col_nice_list</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">orientation</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Vertical</span> <span class="ow">and</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">:</span>
-            <span class="c1">#row = section</span>
-            <span class="c1">#rowid = model._get_row_id(row)</span>
-            <span class="c1">#return rowid</span>
+            <span class="c1"># row = section</span>
+            <span class="c1"># rowid = model._get_row_id(row)</span>
+            <span class="c1"># return rowid</span>
             <span class="k">return</span> <span class="n">section</span>
         <span class="k">return</span> <span class="n">QVariantHack</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="APIItemModel.sort"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.sort">[docs]</a>    <span class="nd">@updater</span>
     <span class="k">def</span> <span class="nf">sort</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Qt Override &quot;&quot;&quot;</span>
-        <span class="c1">#model.lazy_checks()</span>
-        <span class="n">reverse</span> <span class="o">=</span> <span class="p">(</span><span class="n">order</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">DescendingOrder</span><span class="p">)</span>
+        <span class="c1"># model.lazy_checks()</span>
+        <span class="n">reverse</span> <span class="o">=</span> <span class="n">order</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">DescendingOrder</span>
         <span class="n">model</span><span class="o">.</span><span class="n">_set_sort</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">reverse</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="APIItemModel.flags"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_item_model.APIItemModel.flags">[docs]</a>    <span class="nd">@default_method_decorator</span>
@@ -1049,12 +1207,14 @@
 <span class="sd">                64: &#39;ItemIsTristate&#39;       # The item is checkable with three separate states.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Return flags based on column properties (like type, and editable)</span>
-        <span class="n">col</span>      <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">()</span>
-        <span class="n">type_</span>    <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_type</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
-        <span class="n">editable</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">col_edit_list</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="ow">and</span>
-                    <span class="n">model</span><span class="o">.</span><span class="n">_get_level</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">col_level_list</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">()</span>
+        <span class="n">type_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_type</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        <span class="n">editable</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">col_edit_list</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_level</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">col_level_list</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">qtype</span><span class="o">.</span><span class="n">QT_IMAGE_TYPES</span><span class="p">:</span>
-            <span class="c1">#return Qt.NoItemFlags</span>
+            <span class="c1"># return Qt.NoItemFlags</span>
             <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEnabled</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsSelectable</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">editable</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEnabled</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsSelectable</span>
@@ -1082,6 +1242,7 @@
 <span class="sd">        &gt;&gt;&gt; guitool.qtapp_loop(wgt, frequency=100, init_signals=True)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia.guitool</span>
+
     <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
     <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;image_name&#39;</span><span class="p">,</span> <span class="s1">&#39;thumb&#39;</span><span class="p">]</span>
     <span class="n">col_types_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -1090,14 +1251,14 @@
 
     <span class="k">def</span> <span class="nf">thumb_getter</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="mi">128</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Thumb getters must conform to thumbtup structure &quot;&quot;&quot;</span>
-        <span class="c1">#print(id_)</span>
+        <span class="c1"># print(id_)</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">(</span><span class="n">id_</span><span class="p">)</span>
-        <span class="c1">#return None</span>
+        <span class="c1"># return None</span>
 
     <span class="n">col_getter_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;rowid&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
         <span class="s1">&#39;image_name&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;lena.png&#39;</span><span class="p">,</span> <span class="s1">&#39;carl.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;patsy.jpg&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;thumb&#39;</span><span class="p">:</span> <span class="n">thumb_getter</span>
+        <span class="s1">&#39;thumb&#39;</span><span class="p">:</span> <span class="n">thumb_getter</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">col_ider_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;thumb&#39;</span><span class="p">:</span> <span class="s1">&#39;image_name&#39;</span><span class="p">,</span>
@@ -1105,20 +1266,31 @@
     <span class="n">col_setter_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">editable_colnames</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sortby</span> <span class="o">=</span> <span class="s1">&#39;rowid&#39;</span>
+
     <span class="k">def</span> <span class="nf">get_thumb_size</span><span class="p">():</span>
         <span class="k">return</span> <span class="mi">128</span>
+
     <span class="n">col_width_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">col_bgrole_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="n">api</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
-        <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getter_dict</span><span class="p">,</span>
-        <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
-        <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">get_thumb_size</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">col_width_dict</span><span class="p">)</span>
+        <span class="n">col_name_list</span><span class="p">,</span>
+        <span class="n">col_types_dict</span><span class="p">,</span>
+        <span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="n">col_bgrole_dict</span><span class="p">,</span>
+        <span class="n">col_ider_dict</span><span class="p">,</span>
+        <span class="n">col_setter_dict</span><span class="p">,</span>
+        <span class="n">editable_colnames</span><span class="p">,</span>
+        <span class="n">sortby</span><span class="p">,</span>
+        <span class="n">get_thumb_size</span><span class="p">,</span>
+        <span class="kc">True</span><span class="p">,</span>
+        <span class="n">col_width_dict</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">headers</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">make_headers</span><span class="p">(</span><span class="n">tblnice</span><span class="o">=</span><span class="s1">&#39;Simple Example&#39;</span><span class="p">)</span>
 
     <span class="n">wgt</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="p">()</span>
     <span class="n">wgt</span><span class="o">.</span><span class="n">change_headers</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
-    <span class="c1">#guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)</span>
+    <span class="c1"># guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)</span>
     <span class="k">return</span> <span class="n">wgt</span></div>
 
 
@@ -1130,18 +1302,37 @@
 <span class="sd">        python -m wbia.guitool.api_item_model --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1149,57 +1340,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../guitool.html">wbia.guitool</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

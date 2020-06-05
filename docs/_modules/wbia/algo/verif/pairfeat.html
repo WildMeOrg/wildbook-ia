@@ -1,36 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.verif.pairfeat &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.verif.pairfeat &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../verif.html">wbia.algo.verif</a> &raquo;</li>
+
+      <li>wbia.algo.verif.pairfeat</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.verif.pairfeat</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -44,6 +163,7 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
 <span class="kn">from</span> <span class="nn">wbia.core_annots</span> <span class="k">import</span> <span class="n">ChipConfig</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -54,24 +174,38 @@
 <span class="sd">    I.E. Config to distil unordered feature correspondences into a fixed length</span>
 <span class="sd">    vector.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="c1"># ut.ParamInfo(&#39;indices&#39;, slice(0, 5)),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;indices&#39;</span><span class="p">,</span> <span class="p">[]),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;summary_ops&#39;</span><span class="p">,</span> <span class="p">{</span>
-            <span class="c1"># &#39;invsum&#39;,</span>
-            <span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;len&#39;</span><span class="p">,</span> <span class="s1">&#39;med&#39;</span><span class="p">}),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+            <span class="s1">&#39;summary_ops&#39;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="c1"># &#39;invsum&#39;,</span>
+                <span class="s1">&#39;sum&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;std&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;mean&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;len&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;med&#39;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;local_keys&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;sorters&#39;</span><span class="p">,</span> <span class="p">[</span>
-            <span class="c1"># &#39;ratio&#39;, &#39;norm_dist&#39;, &#39;match_dist&#39;</span>
-            <span class="c1"># &#39;lnbnn&#39;, &#39;lnbnn_norm_dist&#39;,</span>
-        <span class="p">]),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+            <span class="s1">&#39;sorters&#39;</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="c1"># &#39;ratio&#39;, &#39;norm_dist&#39;, &#39;match_dist&#39;</span>
+                <span class="c1"># &#39;lnbnn&#39;, &#39;lnbnn_norm_dist&#39;,</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
         <span class="c1"># ut.ParamInfo(&#39;bin_key&#39;, None, valid_values=[None, &#39;ratio&#39;]),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;bin_key&#39;</span><span class="p">,</span> <span class="s1">&#39;ratio&#39;</span><span class="p">,</span> <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;ratio&#39;</span><span class="p">]),</span>
         <span class="c1"># ut.ParamInfo(&#39;bins&#39;, [.5, .6, .7, .8])</span>
         <span class="c1"># ut.ParamInfo(&#39;bins&#39;, None, type_=eval),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;bins&#39;</span><span class="p">,</span> <span class="p">(</span><span class="o">.</span><span class="mi">625</span><span class="p">,),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">eval</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;bins&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.625</span><span class="p">,),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">eval</span><span class="p">),</span>
         <span class="c1"># ut.ParamInfo(&#39;need_lnbnn&#39;, False),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;use_na&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>  <span class="c1"># change to True if sklearn has RFs with nan support</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+            <span class="s1">&#39;use_na&#39;</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="p">),</span>  <span class="c1"># change to True if sklearn has RFs with nan support</span>
     <span class="p">]</span></div>
 
 
@@ -81,14 +215,15 @@
 
 <div class="viewcode-block" id="VsOneFeatConfig"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.pairfeat.VsOneFeatConfig">[docs]</a><span class="k">class</span> <span class="nc">VsOneFeatConfig</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; keypoint params &quot;&quot;&quot;</span>
+
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">VSONE_FEAT_CONFIG</span></div>
 
 
 <div class="viewcode-block" id="MatchConfig"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.pairfeat.MatchConfig">[docs]</a><span class="k">class</span> <span class="nc">MatchConfig</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">VSONE_DEFAULT_CONFIG</span> <span class="o">+</span>
-        <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">VSONE_FEAT_CONFIG</span> <span class="o">+</span>
-        <span class="n">ChipConfig</span><span class="o">.</span><span class="n">_param_info_list</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">VSONE_DEFAULT_CONFIG</span>
+        <span class="o">+</span> <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">VSONE_FEAT_CONFIG</span>
+        <span class="o">+</span> <span class="n">ChipConfig</span><span class="o">.</span><span class="n">_param_info_list</span>
     <span class="p">)</span></div>
 
 
@@ -120,10 +255,19 @@
 <span class="sd">        &gt;&gt;&gt; print(featinfo.get_infostr())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">extr</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="c1"># Nested config props</span>
-                 <span class="n">match_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pairfeat_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">global_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">need_lnbnn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">feat_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="n">extr</span><span class="p">,</span>
+        <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="p">{},</span>
+        <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="c1"># Nested config props</span>
+        <span class="n">match_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">pairfeat_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">need_lnbnn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">feat_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
 
         <span class="n">extr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
         <span class="n">extr</span><span class="o">.</span><span class="n">use_cache</span> <span class="o">=</span> <span class="n">use_cache</span>
@@ -133,6 +277,7 @@
         <span class="c1"># can either store params in nested or flat form</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">vars_</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span>
+
         <span class="k">def</span> <span class="nf">_popconfig</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot; ensures param is either specified in func args xor config &quot;&quot;&quot;</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
@@ -207,33 +352,38 @@
         <span class="n">daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># The depcache does the pairwise matching procedure</span>
-        <span class="n">match_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pairwise_match&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">),</span> <span class="s1">&#39;match&#39;</span><span class="p">,</span>
-                                  <span class="n">config</span><span class="o">=</span><span class="n">match_config</span><span class="p">)</span>
+        <span class="n">match_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s1">&#39;pairwise_match&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">),</span> <span class="s1">&#39;match&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">match_config</span>
+        <span class="p">)</span>
 
         <span class="c1"># Hack: Postprocess matches to re-add wbia annotation info</span>
         <span class="c1"># in lazy-dict format</span>
         <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_annots</span>
+
         <span class="n">config</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashdict</span><span class="p">(</span><span class="n">match_config</span><span class="p">)</span>
         <span class="n">qannot_cfg</span> <span class="o">=</span> <span class="n">dannot_cfg</span> <span class="o">=</span> <span class="n">config</span>
         <span class="n">preload</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">configured_lazy_annots</span> <span class="o">=</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">make_configured_annots</span><span class="p">(</span>
-            <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qannot_cfg</span><span class="p">,</span> <span class="n">dannot_cfg</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="n">preload</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qannot_cfg</span><span class="p">,</span> <span class="n">dannot_cfg</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="n">preload</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">match</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">match_list</span><span class="p">):</span>
             <span class="n">match</span><span class="o">.</span><span class="n">annot1</span> <span class="o">=</span> <span class="n">configured_lazy_annots</span><span class="p">[</span><span class="n">config</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span>
             <span class="n">match</span><span class="o">.</span><span class="n">annot2</span> <span class="o">=</span> <span class="n">configured_lazy_annots</span><span class="p">[</span><span class="n">config</span><span class="p">][</span><span class="n">daid</span><span class="p">]</span>
             <span class="n">match</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
         <span class="k">return</span> <span class="n">match_list</span>
 
-    <span class="k">def</span> <span class="nf">_enrich_matches_lnbnn</span><span class="p">(</span><span class="n">extr</span><span class="p">,</span> <span class="n">matches</span><span class="p">,</span> <span class="n">other_aids</span><span class="p">,</span> <span class="n">other_nids</span><span class="p">,</span>
-                              <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_enrich_matches_lnbnn</span><span class="p">(</span><span class="n">extr</span><span class="p">,</span> <span class="n">matches</span><span class="p">,</span> <span class="n">other_aids</span><span class="p">,</span> <span class="n">other_nids</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a set of one-vs-one matches, searches for LNBNN normalizers in a</span>
 <span class="sd">        larger database to enrich the matches with database-level</span>
 <span class="sd">        distinctiveness.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">nn_weights</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;havent tested since the re-work. &#39;</span>
-                                  <span class="s1">&#39;Need to ensure that things work correctly.&#39;</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s1">&#39;havent tested since the re-work. &#39;</span>
+            <span class="s1">&#39;Need to ensure that things work correctly.&#39;</span>
+        <span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">extr</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;can_match_samename&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -241,13 +391,17 @@
             <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
             <span class="s1">&#39;Knorm&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
             <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span>
+            <span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">custom_nid_lookup</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">other_aids</span><span class="p">,</span> <span class="n">other_nids</span><span class="p">)</span>
         <span class="n">aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">annot2</span><span class="p">[</span><span class="s1">&#39;aid&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">]</span>
-        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">other_aids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span>
-                                      <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="n">custom_nid_lookup</span><span class="p">,</span>
-                                      <span class="n">verbose</span><span class="o">=</span><span class="n">extr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span>
+            <span class="n">aids</span><span class="p">,</span>
+            <span class="n">other_aids</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span>
+            <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="n">custom_nid_lookup</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">extr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">()</span>
         <span class="n">indexer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span>
@@ -257,19 +411,20 @@
             <span class="n">matches_</span> <span class="o">=</span> <span class="n">matches</span>
         <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
         <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
-        <span class="n">normalizer_rule</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normalizer_rule</span>
+        <span class="n">normalizer_rule</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normalizer_rule</span>
 
         <span class="n">extr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Stacking vecs for batch lnbnn matching&#39;</span><span class="p">)</span>
         <span class="n">offset_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">match_</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">match_</span> <span class="ow">in</span> <span class="n">matches_</span><span class="p">])</span>
-        <span class="n">stacked_vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span>
-            <span class="n">match_</span><span class="o">.</span><span class="n">matched_vecs2</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">match_</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">matches_</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;stack matched vecs&#39;</span><span class="p">)</span>
-        <span class="p">])</span>
+        <span class="n">stacked_vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">match_</span><span class="o">.</span><span class="n">matched_vecs2</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">match_</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">matches_</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;stack matched vecs&#39;</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
 
         <span class="n">vecs</span> <span class="o">=</span> <span class="n">stacked_vecs</span>
-        <span class="n">num</span> <span class="o">=</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">)</span>
-        <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span> <span class="o">=</span> <span class="n">indexer</span><span class="o">.</span><span class="n">batch_knn</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">8192</span><span class="p">,</span>
-                                        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lnbnn scoring&#39;</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span>
+        <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span> <span class="o">=</span> <span class="n">indexer</span><span class="o">.</span><span class="n">batch_knn</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">8192</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lnbnn scoring&#39;</span><span class="p">)</span>
 
         <span class="n">idx_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">idxs</span><span class="p">[</span><span class="n">l</span><span class="p">:</span><span class="n">r</span><span class="p">]</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">offset_list</span><span class="p">)]</span>
         <span class="n">dist_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dists</span><span class="p">[</span><span class="n">l</span><span class="p">:</span><span class="n">r</span><span class="p">]</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">offset_list</span><span class="p">)]</span>
@@ -277,8 +432,7 @@
         <span class="n">prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">iter_</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">matches_</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lnbnn scoring&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">match_</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">,</span> <span class="n">neighb_dist</span> <span class="ow">in</span> <span class="n">prog</span><span class="p">:</span>
             <span class="n">qaid</span> <span class="o">=</span> <span class="n">match_</span><span class="o">.</span><span class="n">annot2</span><span class="p">[</span><span class="s1">&#39;aid&#39;</span><span class="p">]</span>
-            <span class="n">norm_k</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">get_normk</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span>
-                                          <span class="n">normalizer_rule</span><span class="p">)</span>
+            <span class="n">norm_k</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">get_normk</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">normalizer_rule</span><span class="p">)</span>
             <span class="n">ndist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">take_col_per_row</span><span class="p">(</span><span class="n">neighb_dist</span><span class="p">,</span> <span class="n">norm_k</span><span class="p">)</span>
             <span class="n">vdist</span> <span class="o">=</span> <span class="n">match_</span><span class="o">.</span><span class="n">local_measures</span><span class="p">[</span><span class="s1">&#39;match_dist&#39;</span><span class="p">]</span>
             <span class="n">lnbnn_dist</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">lnbnn_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">)</span>
@@ -393,10 +547,12 @@
         <span class="n">pairfeat_cfg</span> <span class="o">=</span> <span class="n">extr</span><span class="o">.</span><span class="n">pairfeat_cfg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">use_na</span> <span class="o">=</span> <span class="n">pairfeat_cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;use_na&#39;</span><span class="p">)</span>
         <span class="n">pairfeat_cfg</span><span class="p">[</span><span class="s1">&#39;summary_ops&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pairfeat_cfg</span><span class="p">[</span><span class="s1">&#39;summary_ops&#39;</span><span class="p">])</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span>
-            <span class="n">m</span><span class="o">.</span><span class="n">make_feature_vector</span><span class="p">(</span><span class="o">**</span><span class="n">pairfeat_cfg</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;making pairwise feats&#39;</span><span class="p">)</span>
-        <span class="p">])</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">make_feature_vector</span><span class="p">(</span><span class="o">**</span><span class="n">pairfeat_cfg</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;making pairwise feats&#39;</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">multi_index</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="n">multi_index</span><span class="p">:</span>
             <span class="c1"># Index features by edges</span>
@@ -434,13 +590,15 @@
         <span class="n">_cfg_lbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">itemsep</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">kvsep</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
         <span class="n">match_configclass</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">configclass_dict</span><span class="p">[</span><span class="s1">&#39;pairwise_match&#39;</span><span class="p">]</span>
 
-        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-            <span class="n">edge_hashid</span><span class="p">,</span>
-            <span class="n">_cfg_lbl</span><span class="p">(</span><span class="n">extr</span><span class="o">.</span><span class="n">match_config</span><span class="p">),</span>
-            <span class="n">_cfg_lbl</span><span class="p">(</span><span class="n">extr</span><span class="o">.</span><span class="n">pairfeat_cfg</span><span class="p">),</span>
-            <span class="s1">&#39;global(&#39;</span> <span class="o">+</span> <span class="n">_cfg_lbl</span><span class="p">(</span><span class="n">extr</span><span class="o">.</span><span class="n">global_keys</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;pairwise_match_version=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">match_configclass</span><span class="p">()</span><span class="o">.</span><span class="n">version</span><span class="p">,)</span>
-        <span class="p">])</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">edge_hashid</span><span class="p">,</span>
+                <span class="n">_cfg_lbl</span><span class="p">(</span><span class="n">extr</span><span class="o">.</span><span class="n">match_config</span><span class="p">),</span>
+                <span class="n">_cfg_lbl</span><span class="p">(</span><span class="n">extr</span><span class="o">.</span><span class="n">pairfeat_cfg</span><span class="p">),</span>
+                <span class="s1">&#39;global(&#39;</span> <span class="o">+</span> <span class="n">_cfg_lbl</span><span class="p">(</span><span class="n">extr</span><span class="o">.</span><span class="n">global_keys</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;pairwise_match_version=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">match_configclass</span><span class="p">()</span><span class="o">.</span><span class="n">version</span><span class="p">,),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">cfgstr</span>
 
     <span class="k">def</span> <span class="nf">_postprocess_feats</span><span class="p">(</span><span class="n">extr</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
@@ -450,8 +608,8 @@
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">missing</span><span class="p">):</span>
                 <span class="c1"># print(&#39;We have: &#39; + ut.repr4(feats.columns))</span>
                 <span class="n">alt</span> <span class="o">=</span> <span class="n">feats</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">extr</span><span class="o">.</span><span class="n">feat_dims</span><span class="p">)</span>
-                <span class="n">mis_msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Missing feature dims: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">missing</span><span class="p">))</span>
-                <span class="n">alt_msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Did you mean? &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">alt</span><span class="p">))</span>
+                <span class="n">mis_msg</span> <span class="o">=</span> <span class="s1">&#39;Missing feature dims: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span>
+                <span class="n">alt_msg</span> <span class="o">=</span> <span class="s1">&#39;Did you mean? &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">alt</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">mis_msg</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">alt_msg</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">mis_msg</span><span class="p">)</span>
@@ -481,8 +639,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">extr</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pairfeat] Requesting </span><span class="si">{}</span><span class="s1"> cached pairwise features&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pairfeat] Requesting </span><span class="si">{}</span><span class="s1"> cached pairwise features&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)))</span>
 
         <span class="c1"># TODO: use object properties</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -495,8 +652,12 @@
             <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">extr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;infr_bulk_cache&#39;</span><span class="p">)</span>
             <span class="n">feat_cfgstr</span> <span class="o">=</span> <span class="n">extr</span><span class="o">.</span><span class="n">_make_cfgstr</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
             <span class="n">cacher</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">Cacher</span><span class="p">(</span>
-                <span class="s1">&#39;bulk_pairfeats_v3&#39;</span><span class="p">,</span> <span class="n">feat_cfgstr</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
-                <span class="n">dpath</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">extr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="s1">&#39;bulk_pairfeats_v3&#39;</span><span class="p">,</span>
+                <span class="n">feat_cfgstr</span><span class="p">,</span>
+                <span class="n">enabled</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                <span class="n">dpath</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">extr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
 
             <span class="c1"># if cacher.exists() and extr.verbose &gt; 3:</span>
             <span class="c1">#     fpath = cacher.get_fpath()</span>
@@ -525,18 +686,37 @@
 <span class="sd">        python -m wbia.algo.verif.pairfeat --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -544,59 +724,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../verif.html">wbia.algo.verif</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

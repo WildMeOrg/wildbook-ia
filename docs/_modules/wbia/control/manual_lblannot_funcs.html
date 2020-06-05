@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.manual_lblannot_funcs &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.control.manual_lblannot_funcs &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../control.html">wbia.control</a> &raquo;</li>
+
+      <li>wbia.control.manual_lblannot_funcs</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.control.manual_lblannot_funcs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -40,9 +157,17 @@
 <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">wbia.control.accessor_decors</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">adder</span><span class="p">,</span> <span class="n">deleter</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">getter_1toM</span><span class="p">,</span> <span class="n">default_decorator</span><span class="p">,</span> <span class="n">ider</span><span class="p">)</span>
+    <span class="n">adder</span><span class="p">,</span>
+    <span class="n">deleter</span><span class="p">,</span>
+    <span class="n">setter</span><span class="p">,</span>
+    <span class="n">getter_1to1</span><span class="p">,</span>
+    <span class="n">getter_1toM</span><span class="p">,</span>
+    <span class="n">default_decorator</span><span class="p">,</span>
+    <span class="n">ider</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -50,8 +175,8 @@
 <span class="n">LBLANNOT_VALUE</span> <span class="o">=</span> <span class="s1">&#39;lblannot_value&#39;</span>
 
 
-<span class="c1">#@ider</span>
-<span class="c1">#def _get_all_alr_rowids(ibs):</span>
+<span class="c1"># @ider</span>
+<span class="c1"># def _get_all_alr_rowids(ibs):</span>
 <span class="c1">#    all_alr_rowids = ibs.db.get_all_rowids(const.AL_RELATION_TABLE)</span>
 <span class="c1">#    return all_alr_rowids</span>
 
@@ -65,26 +190,36 @@
 
 <div class="viewcode-block" id="add_annot_relationship"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblannot_funcs.add_annot_relationship">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@adder</span>
-<span class="k">def</span> <span class="nf">add_annot_relationship</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">,</span>
-                           <span class="n">alr_confidence_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">add_annot_relationship</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">alr_confidence_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Adds a relationship between annots and lblannots</span>
 <span class="sd">        (annotations and labels of annotations)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">alr_confidence_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;alr_confidence&#39;</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;alr_confidence&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">alr_confidence_list</span><span class="p">))</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alrid_from_superkey</span>
     <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># TODO HAVE SQL GIVE YOU THESE NUMBERS</span>
-    <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
-                                    <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">)</span>
+    <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">get_rowid_from_superkey</span><span class="p">,</span>
+        <span class="n">superkey_paramx</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">alrid_list</span></div>
 
 
 <div class="viewcode-block" id="add_lblannots"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblannot_funcs.add_lblannots">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@adder</span>
-<span class="k">def</span> <span class="nf">add_lblannots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lblannot_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">add_lblannots</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lblannot_uuid_list</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Adds new lblannots (labels of annotations)</span>
 <span class="sd">    creates a new uuid for any new pair(type, value)</span>
 <span class="sd">    #TODO: reverse order of rowid_list value_list in input</span>
@@ -98,8 +233,13 @@
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lblannot_uuid_list</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">note_list</span><span class="p">))</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_lblannot_rowid_from_superkey</span>
     <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
-                                             <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">)</span>
+    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">get_rowid_from_superkey</span><span class="p">,</span>
+        <span class="n">superkey_paramx</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_rowid_list</span></div>
 
 
@@ -113,10 +253,14 @@
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">)</span>
     <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;lbltype_rowid=? AND lblannot_value=?&#39;</span>
-    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
+    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span>
+    <span class="p">)</span>
     <span class="c1"># BIG HACK FOR ENFORCING UNKNOWN LBLANNOTS HAVE ROWID 0</span>
-    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
-                           <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">)]</span>
+    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
+        <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">lblannot_rowid_list</span></div>
 
 
@@ -173,15 +317,20 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        aids_list (list): of lists annotation rowids</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#verbose = len(lblannot_rowid_list) &gt; 20</span>
+    <span class="c1"># verbose = len(lblannot_rowid_list) &gt; 20</span>
     <span class="c1"># TODO: Optimize IF POSSIBLE</span>
     <span class="c1"># FIXME: SLOW</span>
-    <span class="c1">#if verbose:</span>
+    <span class="c1"># if verbose:</span>
     <span class="c1">#    print(ut.get_caller_name(N=list(range(0, 20))))</span>
     <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;lblannot_rowid=?&#39;</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lblannot_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">lblannot_rowid</span> <span class="ow">in</span> <span class="n">lblannot_rowid_list</span><span class="p">]</span>
-    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span>
-                                 <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,),</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_clause</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">aids_list</span></div>
 
 
@@ -194,7 +343,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        alr_confidence_list (list of rowids): confidence in an annotation relationship</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;alr_confidence&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
+    <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;alr_confidence&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">alr_confidence_list</span></div>
 
 
@@ -207,7 +358,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        lblannot_rowids_list (list of rowids): label rowids (of annotations)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
+    <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_rowids_list</span></div>
 
 
@@ -224,7 +377,9 @@
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
     <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid=? AND lblannot_rowid=?&#39;</span>
-    <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
+    <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">alrid_list</span></div>
 
 
@@ -239,23 +394,30 @@
     <span class="n">lbltype_dict_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lblannot_rowids_oftype</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">_lbltype</span><span class="p">)</span>
     <span class="n">DEFAULT_VALUE</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">_lbltype</span><span class="p">]</span>
     <span class="c1"># FIXME: Use filters and unflat maps</span>
-    <span class="n">lblannot_value_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">lblannot_value_getter</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                           <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">DEFAULT_VALUE</span>
-                           <span class="k">for</span> <span class="n">lblannot_rowids</span> <span class="ow">in</span> <span class="n">lbltype_dict_list</span><span class="p">]</span>
+    <span class="n">lblannot_value_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">lblannot_value_getter</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="n">DEFAULT_VALUE</span>
+        <span class="k">for</span> <span class="n">lblannot_rowids</span> <span class="ow">in</span> <span class="n">lbltype_dict_list</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">lblannot_value_list</span></div>
 
 
 <div class="viewcode-block" id="get_lblannot_lbltypes_rowids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblannot_funcs.get_lblannot_lbltypes_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_lblannot_lbltypes_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">):</span>
-    <span class="n">lbltype_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
+    <span class="n">lbltype_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">lbltype_rowid_list</span></div>
 
 
 <div class="viewcode-block" id="get_lblannot_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblannot_funcs.get_lblannot_notes">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_lblannot_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">):</span>
-    <span class="n">lblannotnotes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_note&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
+    <span class="n">lblannotnotes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_note&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannotnotes_list</span></div>
 
 
@@ -268,18 +430,24 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        lblannot_rowid_list from the superkey (lbltype, value)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;CALL TO get_lblannot_rowid_from_uuid IS UNSAFE.  USE get_lblannot_rowid_from_superkey&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+        <span class="s1">&#39;CALL TO get_lblannot_rowid_from_uuid IS UNSAFE.  USE get_lblannot_rowid_from_superkey&#39;</span>
+    <span class="p">)</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="n">lblannot_uuid_list</span>
     <span class="n">id_colname</span> <span class="o">=</span> <span class="s1">&#39;lblannot_uuid&#39;</span>
-    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">id_colname</span><span class="p">)</span>
+    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">id_colname</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_rowid_list</span></div>
 
 
 <div class="viewcode-block" id="get_lblannot_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblannot_funcs.get_lblannot_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_lblannot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">):</span>
-    <span class="n">lblannotuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_uuid&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
+    <span class="n">lblannotuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_uuid&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannotuuid_list</span></div>
 
 
@@ -290,9 +458,11 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        text lblannots</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#TODO: Remove keyword argument</span>
-    <span class="c1">#ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])</span>
-    <span class="n">lblannot_value_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">LBLANNOT_VALUE</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
+    <span class="c1"># TODO: Remove keyword argument</span>
+    <span class="c1"># ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])</span>
+    <span class="n">lblannot_value_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">LBLANNOT_VALUE</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_value_list</span></div>
 
 
@@ -358,11 +528,13 @@
     <span class="n">DEFAULT_VALUE</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">_lbltype</span><span class="p">]</span>
     <span class="n">EMPTY_KEY</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">EMPTY_KEY</span>
     <span class="c1"># setting a name to DEFAULT_VALUE or EMPTY is equivalent to unnaming it</span>
-    <span class="n">value_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">DEFAULT_VALUE</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="n">EMPTY_KEY</span> <span class="k">else</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list</span><span class="p">]</span>
+    <span class="n">value_list_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">DEFAULT_VALUE</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="n">EMPTY_KEY</span> <span class="k">else</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list</span>
+    <span class="p">]</span>
     <span class="n">notdefault_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span> <span class="o">!=</span> <span class="n">DEFAULT_VALUE</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list_</span><span class="p">]</span>
     <span class="n">aid_list_to_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
     <span class="c1"># Set all the valid valids</span>
-    <span class="n">aids_to_set</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
+    <span class="n">aids_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
     <span class="n">values_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">value_list_</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_relations_oftype</span><span class="p">(</span><span class="n">aid_list_to_delete</span><span class="p">,</span> <span class="n">_lbltype</span><span class="p">)</span>
     <span class="c1"># remove the relationships that have now been unnamed</span>
@@ -407,8 +579,13 @@
 <span class="sd">    if lblannot lbltype is specified the relationship ids are filtered to</span>
 <span class="sd">    be only of a specific lbltype/category/type</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;alr_rowid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">,</span>
-                             <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;alr_rowid&#39;</span><span class="p">,),</span>
+        <span class="n">aid_list</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">alrids_list</span></div>
 
 
@@ -423,25 +600,32 @@
     <span class="c1"># Get lblannot_rowid of each relationship</span>
     <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_lblannot_rowids</span><span class="p">,</span> <span class="n">alrids_list</span><span class="p">)</span>
     <span class="c1"># Get the type of each lblannot</span>
-    <span class="n">lbltype_rowids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_lblannot_lbltypes_rowids</span><span class="p">,</span>
-                                              <span class="n">lblannot_rowids_list</span><span class="p">)</span>
+    <span class="n">lbltype_rowids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_lblannot_lbltypes_rowids</span><span class="p">,</span> <span class="n">lblannot_rowids_list</span>
+    <span class="p">)</span>
     <span class="c1"># only want the nids of individuals, not species, for example</span>
-    <span class="n">valids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">lbltype_rowid</span> <span class="k">for</span> <span class="n">typeid</span> <span class="ow">in</span> <span class="n">rowids</span><span class="p">]</span>
-                   <span class="k">for</span> <span class="n">rowids</span> <span class="ow">in</span> <span class="n">lbltype_rowids_list</span><span class="p">]</span>
-    <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span><span class="p">)</span>
-                   <span class="k">for</span> <span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">valids_list</span><span class="p">)]</span>
+    <span class="n">valids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">lbltype_rowid</span> <span class="k">for</span> <span class="n">typeid</span> <span class="ow">in</span> <span class="n">rowids</span><span class="p">]</span> <span class="k">for</span> <span class="n">rowids</span> <span class="ow">in</span> <span class="n">lbltype_rowids_list</span>
+    <span class="p">]</span>
+    <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span><span class="p">)</span> <span class="k">for</span> <span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">valids_list</span><span class="p">)</span>
+    <span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">resolution_func_first</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span> <span class="n">alrid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">alrid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
 
     <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">resolution_func_first</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span>
-        <span class="n">alrid_list</span>
+        <span class="n">resolution_func_first</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">alrid_list</span>
         <span class="k">for</span> <span class="n">alrid_list</span> <span class="ow">in</span> <span class="n">alrids_list</span>
     <span class="p">]</span>
-    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">alrid_list</span> <span class="ow">in</span> <span class="n">alrids_list</span><span class="p">]),</span>\
-        <span class="p">(</span><span class="s2">&quot;More than one type per lbltype.  ALRIDS: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">)</span> <span class="o">+</span>
-         <span class="s2">&quot;, ROW: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbltype_rowid</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, KEYS:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">alrid_list</span> <span class="ow">in</span> <span class="n">alrids_list</span><span class="p">]),</span> <span class="p">(</span>
+        <span class="s1">&#39;More than one type per lbltype.  ALRIDS: &#39;</span>
+        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s1">&#39;, ROW: &#39;</span>
+        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbltype_rowid</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s1">&#39;, KEYS:&#39;</span>
+        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">alrids_list</span></div>
 
 
@@ -480,18 +664,37 @@
 <span class="sd">        python -m wbia.control.manual_lblannot_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -499,57 +702,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../control.html">wbia.control</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

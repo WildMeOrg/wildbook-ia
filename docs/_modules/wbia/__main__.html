@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.__main__ &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.__main__ &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.__main__</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.__main__</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
@@ -43,6 +158,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">CMD</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">argflag</span><span class="p">(</span><span class="s1">&#39;--cmd&#39;</span><span class="p">)</span>
@@ -55,14 +171,17 @@
 <span class="sd">        http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>  <span class="c1"># Pyinstaller hacks  # NOQA</span>
+
     <span class="c1"># from PyQt4 import QtCore, QtGui  # NOQA</span>
-    <span class="c1">#from PyQt4 import QtCore, QtGui  # NOQA</span>
+    <span class="c1"># from PyQt4 import QtCore, QtGui  # NOQA</span>
     <span class="kn">from</span> <span class="nn">scipy.sparse.csgraph</span> <span class="k">import</span> <span class="n">_validation</span>  <span class="c1"># NOQA</span>
     <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="k">import</span> <span class="n">_ufuncs_cxx</span>  <span class="c1"># NOQA</span>
     <span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1</span> <span class="k">import</span> <span class="n">make_axes_locatable</span>  <span class="c1"># NOQA</span>
-    <span class="c1">#import lru  # NOQA</span>
+
+    <span class="c1"># import lru  # NOQA</span>
     <span class="c1"># Workaround for mpl_toolkits</span>
     <span class="kn">import</span> <span class="nn">importlib</span>
+
     <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s1">&#39;mpl_toolkits&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">__path__</span></div>
 
 
@@ -74,21 +193,23 @@
 <span class="sd">        python -m wbia get_annot_groundtruth:1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>  <span class="c1"># NOQA</span>
-    <span class="c1">#ut.set_process_title(&#39;IBEIS_main&#39;)</span>
-    <span class="c1">#main_locals = wbia.main()</span>
-    <span class="c1">#wbia.main_loop(main_locals)</span>
-    <span class="c1">#ut.set_process_title(&#39;IBEIS_main&#39;)</span>
+
+    <span class="c1"># ut.set_process_title(&#39;IBEIS_main&#39;)</span>
+    <span class="c1"># main_locals = wbia.main()</span>
+    <span class="c1"># wbia.main_loop(main_locals)</span>
+    <span class="c1"># ut.set_process_title(&#39;IBEIS_main&#39;)</span>
     <span class="n">cmdline_varags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cmdline_varargs</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmdline_varags</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">cmdline_varags</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;rsync&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">rsync_wbiadb</span>
+
         <span class="n">rsync_wbiadb</span><span class="o">.</span><span class="n">rsync_ibsdb_main</span><span class="p">()</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ub</span><span class="o">.</span><span class="n">argflag</span><span class="p">(</span><span class="s1">&#39;--devcmd&#39;</span><span class="p">):</span>
         <span class="c1"># Hack to let devs mess around when using an installer version</span>
         <span class="c1"># TODO: add more hacks</span>
-        <span class="c1">#import utool.tests.run_tests</span>
-        <span class="c1">#utool.tests.run_tests.run_tests()</span>
+        <span class="c1"># import utool.tests.run_tests</span>
+        <span class="c1"># utool.tests.run_tests.run_tests()</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
     <span class="c1"># Run the tests of other modules</span>
     <span class="k">elif</span> <span class="n">ub</span><span class="o">.</span><span class="n">argflag</span><span class="p">(</span><span class="s1">&#39;--run-utool-tests&#39;</span><span class="p">):</span>
@@ -104,6 +225,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Run dev script if -e given</span>
         <span class="kn">import</span> <span class="nn">wbia.dev</span>  <span class="c1"># NOQA</span>
+
         <span class="n">wbia</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">devmain</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... exiting&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -125,7 +247,7 @@
     <span class="c1">#     ut.main_function_tester(&#39;wbia&#39;, ignore_prefix, ignore_suffix,</span>
     <span class="c1">#                             func_to_module_dict=func_to_module_dict)</span>
 
-    <span class="c1">#if ub.argflag(&#39;-e&#39;):</span>
+    <span class="c1"># if ub.argflag(&#39;-e&#39;):</span>
     <span class="c1">#    import wbia</span>
     <span class="c1">#    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(wbia.run_experiment),</span>
     <span class="c1">#    prefix_list=[&#39;--&#39;, &#39;-&#39;])</span>
@@ -134,7 +256,10 @@
 
     <span class="n">doctest_modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
         <span class="p">(</span><span class="s1">&#39;--doctest-module&#39;</span><span class="p">,</span> <span class="s1">&#39;--tmod&#39;</span><span class="p">,</span> <span class="s1">&#39;-tm&#39;</span><span class="p">,</span> <span class="s1">&#39;--testmod&#39;</span><span class="p">),</span>
-        <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;specify a module to doctest&#39;</span><span class="p">)</span>
+        <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;specify a module to doctest&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="n">doctest_modname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Allow any doctest to be run the main wbia script</span>
@@ -149,25 +274,24 @@
 <span class="sd">        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[wbia] Testing module&#39;</span><span class="p">)</span>
-        <span class="n">mod_alias_list</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;exptdraw&#39;</span><span class="p">:</span> <span class="s1">&#39;wbia.expt.experiment_drawing&#39;</span>
-        <span class="p">}</span>
+        <span class="n">mod_alias_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;exptdraw&#39;</span><span class="p">:</span> <span class="s1">&#39;wbia.expt.experiment_drawing&#39;</span><span class="p">}</span>
         <span class="n">doctest_modname</span> <span class="o">=</span> <span class="n">mod_alias_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">doctest_modname</span><span class="p">,</span> <span class="n">doctest_modname</span><span class="p">)</span>
         <span class="n">module</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_modname</span><span class="p">(</span><span class="n">doctest_modname</span><span class="p">)</span>
         <span class="p">(</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">,</span> <span class="n">failed_list</span><span class="p">,</span> <span class="n">error_report_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="n">module</span><span class="p">)</span>
         <span class="n">retcode</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="c1">#print(module)</span>
+        <span class="c1"># print(module)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
 
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">main_locals</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
     <span class="n">execstr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">main_loop</span><span class="p">(</span><span class="n">main_locals</span><span class="p">)</span>
     <span class="c1"># &lt;DEBUG CODE&gt;</span>
     <span class="k">if</span> <span class="s1">&#39;back&#39;</span> <span class="ow">in</span> <span class="n">main_locals</span> <span class="ow">and</span> <span class="n">CMD</span><span class="p">:</span>
         <span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;back&#39;</span><span class="p">]</span>
         <span class="n">front</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># NOQA</span>
-        <span class="c1">#front = back.front</span>
-        <span class="c1">#ui = front.ui</span>
+        <span class="c1"># front = back.front</span>
+        <span class="c1"># ui = front.ui</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>  <span class="c1"># NOQA</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-- EXECSTR --&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">ub</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="n">execstr</span><span class="p">))</span>
@@ -181,13 +305,30 @@
     <span class="n">run_wbia</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -195,55 +336,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../contents.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  <li><a href="../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

@@ -1,40 +1,160 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.scripts._thesis_helpers &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.scripts._thesis_helpers &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.scripts._thesis_helpers</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.scripts._thesis_helpers</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">absolute_import</span><span class="p">,</span>
+    <span class="n">division</span><span class="p">,</span>
+    <span class="n">print_function</span><span class="p">,</span>
+    <span class="n">unicode_literals</span><span class="p">,</span>
+<span class="p">)</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">isdir</span><span class="p">,</span> <span class="n">islink</span><span class="p">,</span> <span class="n">abspath</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -43,6 +163,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span>  <span class="c1"># NOQA</span>
+
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">DPI</span> <span class="o">=</span> <span class="mi">300</span>
@@ -81,18 +202,18 @@
     <span class="k">if</span> <span class="s1">&#39;GZ&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
         <span class="n">species_nice</span> <span class="o">=</span> <span class="s2">&quot;Grévy&#39;s zebras&quot;</span>
     <span class="k">if</span> <span class="s1">&#39;PZ&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
-        <span class="n">species_nice</span> <span class="o">=</span> <span class="s2">&quot;plains zebras&quot;</span>
+        <span class="n">species_nice</span> <span class="o">=</span> <span class="s1">&#39;plains zebras&#39;</span>
     <span class="k">if</span> <span class="s1">&#39;GIRM&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
-        <span class="n">species_nice</span> <span class="o">=</span> <span class="s2">&quot;Masai giraffes&quot;</span>
+        <span class="n">species_nice</span> <span class="o">=</span> <span class="s1">&#39;Masai giraffes&#39;</span>
     <span class="k">if</span> <span class="s1">&#39;MantaMatcher&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
-        <span class="n">species_nice</span> <span class="o">=</span> <span class="s2">&quot;manta rays&quot;</span>
+        <span class="n">species_nice</span> <span class="o">=</span> <span class="s1">&#39;manta rays&#39;</span>
     <span class="k">if</span> <span class="s1">&#39;humpback&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
-        <span class="n">species_nice</span> <span class="o">=</span> <span class="s2">&quot;humpbacks&quot;</span>
+        <span class="n">species_nice</span> <span class="o">=</span> <span class="s1">&#39;humpbacks&#39;</span>
         <span class="c1"># species_nice = &quot;humpback whales&quot;</span>
     <span class="k">if</span> <span class="s1">&#39;LF_ALL&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
-        <span class="n">species_nice</span> <span class="o">=</span> <span class="s2">&quot;lionfish&quot;</span>
+        <span class="n">species_nice</span> <span class="o">=</span> <span class="s1">&#39;lionfish&#39;</span>
     <span class="k">if</span> <span class="s1">&#39;RotanTurtles&#39;</span> <span class="o">==</span> <span class="n">dbname</span><span class="p">:</span>
-        <span class="n">species_nice</span> <span class="o">=</span> <span class="s2">&quot;sea turtles&quot;</span>
+        <span class="n">species_nice</span> <span class="o">=</span> <span class="s1">&#39;sea turtles&#39;</span>
     <span class="k">return</span> <span class="n">species_nice</span></div>
 
 
@@ -129,6 +250,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Setup directory</span>
         <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">expanduser</span>
+
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">dname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
         <span class="n">computer_id</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--comp&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">())</span>
@@ -203,7 +325,9 @@
                 <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;Experiment results </span><span class="si">{}</span><span class="s1"> do not exist&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">expt_name</span><span class="p">),</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;First re-setup to check if it is a path issue&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">nocompute</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">expt_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; does not exist for &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbname</span><span class="p">))</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                        <span class="nb">str</span><span class="p">(</span><span class="n">expt_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; does not exist for &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
+                    <span class="p">)</span>
 
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_precollect</span><span class="p">()</span>
@@ -283,12 +407,17 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbnames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># parallelize drawing tasks</span>
             <span class="kn">from</span> <span class="nn">concurrent</span> <span class="k">import</span> <span class="n">futures</span>
+
             <span class="n">multi_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">smart_cast</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
             <span class="k">with</span> <span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-                <span class="nb">list</span><span class="p">(</span><span class="n">futures</span><span class="o">.</span><span class="n">as_completed</span><span class="p">([</span>
-                    <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">ChapX</span><span class="o">.</span><span class="n">draw_serial</span><span class="p">,</span> <span class="n">expt_name</span><span class="p">,</span> <span class="o">*</span><span class="n">fsargs</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">fsargs</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">dbnames</span><span class="p">,</span> <span class="o">*</span><span class="n">multi_args</span><span class="p">)</span>
-                <span class="p">]))</span>
+                <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">futures</span><span class="o">.</span><span class="n">as_completed</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">ChapX</span><span class="o">.</span><span class="n">draw_serial</span><span class="p">,</span> <span class="n">expt_name</span><span class="p">,</span> <span class="o">*</span><span class="n">fsargs</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">fsargs</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">dbnames</span><span class="p">,</span> <span class="o">*</span><span class="n">multi_args</span><span class="p">)</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1"> Completed multiple tasks&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ChapX</span><span class="o">.</span><span class="n">draw_serial</span><span class="p">(</span><span class="n">expt_name</span><span class="p">,</span> <span class="n">dbnames</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
@@ -348,6 +477,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">wbia</span>
         <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">main_helpers</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">dbdir</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">lookup_dbdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dbdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;PZ_PB_RF_TRAIN&#39;</span><span class="p">):</span>
@@ -358,8 +488,7 @@
             <span class="c1"># PZ_Master is too big to run in full.  Select a smaller sample.</span>
             <span class="c1"># Be sure to include photobomb and incomparable cases.</span>
             <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span>
-                <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">,</span>
+                <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">reset_feedback</span><span class="p">(</span><span class="s1">&#39;staging&#39;</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -370,18 +499,23 @@
             <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;left&#39;</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span><span class="o">.</span><span class="n">viewpoint_code</span><span class="p">]</span>
             <span class="n">left_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
 
-            <span class="n">majority_aids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span>
-                <span class="n">left_aids</span><span class="p">,</span> <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span>
-                <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">,</span> <span class="n">require_quality</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_pername</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">max_pername</span><span class="o">=</span><span class="mi">15</span>
-            <span class="p">))</span>
+            <span class="n">majority_aids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span>
+                    <span class="n">left_aids</span><span class="p">,</span>
+                    <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span>
+                    <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">,</span>
+                    <span class="n">require_quality</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">min_pername</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="n">max_pername</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="c1"># This produces 5720 annotations</span>
             <span class="n">aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">majority_aids</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">minority_aids</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                             <span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                             <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span>
-                                             <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">)</span>
+            <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span>
+                <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;MantaMatcher&#39;</span><span class="p">):</span>
             <span class="c1"># Remove some of the singletons for this db</span>
@@ -423,10 +557,7 @@
 
 <div class="viewcode-block" id="find_minority_class_ccs"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts._thesis_helpers.find_minority_class_ccs">[docs]</a><span class="k">def</span> <span class="nf">find_minority_class_ccs</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
     <span class="c1"># Finds ccs involved in photobombs and incomparble cases</span>
-    <span class="n">pb_edges</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_attrs</span><span class="p">(</span><span class="s1">&#39;tags&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;photobomb&#39;</span><span class="ow">in</span> <span class="n">tags</span>
-    <span class="p">]</span>
+    <span class="n">pb_edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">gen_edge_attrs</span><span class="p">(</span><span class="s1">&#39;tags&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;photobomb&#39;</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
     <span class="n">incomp_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">incomp_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
     <span class="n">minority_edges</span> <span class="o">=</span> <span class="n">pb_edges</span> <span class="o">+</span> <span class="n">incomp_edges</span>
     <span class="n">minority_nids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="o">*</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">minority_edges</span><span class="p">))))</span>
@@ -437,11 +568,11 @@
 <div class="viewcode-block" id="test_mcc"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts._thesis_helpers.test_mcc">[docs]</a><span class="k">def</span> <span class="nf">test_mcc</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
     <span class="kn">import</span> <span class="nn">sklearn.metrics</span>
+
     <span class="n">num</span> <span class="o">=</span> <span class="mi">100</span>
     <span class="n">xdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">ydata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="s1">&#39;--k&#39;</span><span class="p">,</span>
-                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="s1">&#39;--k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">)</span>
 
     <span class="n">y_true</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
     <span class="n">y_pred</span> <span class="o">=</span> <span class="n">y_true</span><span class="p">[:]</span>
@@ -465,25 +596,25 @@
 
 <div class="viewcode-block" id="ExpandingSample"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts._thesis_helpers.ExpandingSample">[docs]</a><span class="k">class</span> <span class="nc">ExpandingSample</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
 
-        <span class="c1">#         nid = enc.nids[0]</span>
-        <span class="c1">#         if len(nid_to_splits[nid]) == 0:</span>
-        <span class="c1">#             chosen = pyrng.sample(enc.aids, min(len(enc), 2))</span>
-        <span class="c1">#             nid_to_splits[nid].extend(chosen)</span>
+    <span class="c1">#         nid = enc.nids[0]</span>
+    <span class="c1">#         if len(nid_to_splits[nid]) == 0:</span>
+    <span class="c1">#             chosen = pyrng.sample(enc.aids, min(len(enc), 2))</span>
+    <span class="c1">#             nid_to_splits[nid].extend(chosen)</span>
 
-        <span class="c1">#     qaids = []</span>
-        <span class="c1">#     dname_encs = []</span>
-        <span class="c1">#     confusor_pool = []</span>
-        <span class="c1">#     for nid, aids_ in nid_to_splits.items():</span>
-        <span class="c1">#         if len(aids_) &lt; 2:</span>
-        <span class="c1">#             confusor_pool.extend(aids_)</span>
-        <span class="c1">#         else:</span>
-        <span class="c1">#             pyrng.shuffle(aids_)</span>
-        <span class="c1">#             qaids.append(aids_[0])</span>
-        <span class="c1">#             dname_encs.append([[aids_[1]]])</span>
-        <span class="c1">#     confusor_pool = ut.shuffle(confusor_pool, rng=0)</span>
-        <span class="c1">#     self = ExpandingSample(qaids, dname_encs, confusor_pool)</span>
-        <span class="c1">#     query_samples.append(self)</span>
-        <span class="c1"># return query_samples</span>
+    <span class="c1">#     qaids = []</span>
+    <span class="c1">#     dname_encs = []</span>
+    <span class="c1">#     confusor_pool = []</span>
+    <span class="c1">#     for nid, aids_ in nid_to_splits.items():</span>
+    <span class="c1">#         if len(aids_) &lt; 2:</span>
+    <span class="c1">#             confusor_pool.extend(aids_)</span>
+    <span class="c1">#         else:</span>
+    <span class="c1">#             pyrng.shuffle(aids_)</span>
+    <span class="c1">#             qaids.append(aids_[0])</span>
+    <span class="c1">#             dname_encs.append([[aids_[1]]])</span>
+    <span class="c1">#     confusor_pool = ut.shuffle(confusor_pool, rng=0)</span>
+    <span class="c1">#     self = ExpandingSample(qaids, dname_encs, confusor_pool)</span>
+    <span class="c1">#     query_samples.append(self)</span>
+    <span class="c1"># return query_samples</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">dname_encs</span><span class="p">,</span> <span class="n">confusor_pool</span><span class="p">):</span>
         <span class="n">sample</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
         <span class="n">sample</span><span class="o">.</span><span class="n">dname_encs</span> <span class="o">=</span> <span class="n">dname_encs</span>
@@ -506,15 +637,18 @@
             <span class="n">daids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">total_flatten</span><span class="p">(</span><span class="n">dname_encs_</span><span class="p">)</span>
             <span class="n">target_daids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daids_</span><span class="p">)</span>
             <span class="n">name_lens</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">dnames_</span><span class="p">)</span>
-            <span class="n">dpername</span> <span class="o">=</span> <span class="p">(</span><span class="n">name_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">name_lens</span><span class="p">)</span> <span class="k">else</span>
-                        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">name_lens</span><span class="p">))</span>
-            <span class="n">target_info_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-                <span class="p">(</span><span class="s1">&#39;qsize&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">qaids</span><span class="p">)),</span>
-                <span class="p">(</span><span class="s1">&#39;t_n_names&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dname_encs_</span><span class="p">)),</span>
-                <span class="p">(</span><span class="s1">&#39;t_dpername&#39;</span><span class="p">,</span> <span class="n">dpername</span><span class="p">),</span>
-                <span class="p">(</span><span class="s1">&#39;t_denc_pername&#39;</span><span class="p">,</span> <span class="n">num</span><span class="p">),</span>
-                <span class="p">(</span><span class="s1">&#39;t_dsize&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids_</span><span class="p">)),</span>
-            <span class="p">]))</span>
+            <span class="n">dpername</span> <span class="o">=</span> <span class="n">name_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">name_lens</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">name_lens</span><span class="p">)</span>
+            <span class="n">target_info_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="p">(</span><span class="s1">&#39;qsize&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">qaids</span><span class="p">)),</span>
+                        <span class="p">(</span><span class="s1">&#39;t_n_names&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dname_encs_</span><span class="p">)),</span>
+                        <span class="p">(</span><span class="s1">&#39;t_dpername&#39;</span><span class="p">,</span> <span class="n">dpername</span><span class="p">),</span>
+                        <span class="p">(</span><span class="s1">&#39;t_denc_pername&#39;</span><span class="p">,</span> <span class="n">num</span><span class="p">),</span>
+                        <span class="p">(</span><span class="s1">&#39;t_dsize&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids_</span><span class="p">)),</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="c1"># Append confusors to maintain a constant dbsize in each base sample</span>
         <span class="n">dbsize_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">target_daids_list</span><span class="p">)</span>
@@ -536,14 +670,14 @@
 
         <span class="c1"># Vary the dbsize by appending extra confusors</span>
         <span class="k">if</span> <span class="n">extra_dbsize_fracs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">extra_dbsize_fracs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]</span>
+            <span class="n">extra_dbsize_fracs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
         <span class="n">extra_fracs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">extra_dbsize_fracs</span><span class="p">)</span>
         <span class="n">n_extra_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">extra_fracs</span> <span class="o">*</span> <span class="n">n_extra_avail</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
         <span class="n">daids_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">info_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">n_extra_list</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">daids_</span><span class="p">,</span> <span class="n">info_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">padded_daids_list</span><span class="p">,</span> <span class="n">padded_info_list_</span><span class="p">):</span>
-                <span class="n">extra_aids</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">confusor_pool</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">confusor_pool</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span><span class="p">:]</span>
+                <span class="n">extra_aids</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">confusor_pool</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">confusor_pool</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="p">:]</span>
                 <span class="n">daids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">daids_</span> <span class="o">+</span> <span class="n">extra_aids</span><span class="p">)</span>
                 <span class="n">daids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
                 <span class="n">info</span> <span class="o">=</span> <span class="n">info_</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -552,6 +686,7 @@
                 <span class="n">info_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
         <span class="n">verbose</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">info_list</span><span class="p">))</span>
@@ -586,8 +721,9 @@
 
 <div class="viewcode-block" id="Tabular"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts._thesis_helpers.Tabular">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
 <span class="k">class</span> <span class="nc">Tabular</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colfmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-                 <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colfmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_cols</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_rows</span> <span class="o">=</span> <span class="kc">None</span>
@@ -644,7 +780,8 @@
         <span class="c1"># Put all numbers in math mode</span>
         <span class="n">pat</span> <span class="o">=</span> <span class="p">(</span>
             <span class="c1"># ut.negative_lookbehind(&#39;[A-Za-z]&#39;) +</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;num&#39;</span><span class="p">,</span> <span class="s1">&#39;[0-9.]+(</span><span class="se">\\\\</span><span class="s1">pm)?[0-9.]*&#39;</span><span class="p">)</span> <span class="o">+</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;num&#39;</span><span class="p">,</span> <span class="s1">&#39;[0-9.]+(</span><span class="se">\\\\</span><span class="s1">pm)?[0-9.]*&#39;</span><span class="p">)</span>
+            <span class="o">+</span>
             <span class="c1"># ut.negative_lookahead(&#39;[A-Za-z]&#39;) +</span>
             <span class="s1">&#39;&#39;</span>
         <span class="p">)</span>
@@ -664,8 +801,11 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
             <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
             <span class="n">text</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_latex</span><span class="p">(</span>
-                <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">escape</span><span class="p">,</span>
-                <span class="n">float_format</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;nan&#39;</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+                <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                <span class="n">escape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">escape</span><span class="p">,</span>
+                <span class="n">float_format</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;nan&#39;</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
                 <span class="c1"># (&#39;%.&#39; + str(self.precision) + &#39;f&#39;) % (x))</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
@@ -686,6 +826,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theadify</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">textwrap</span>
+
             <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theadify</span>
             <span class="n">wrapper</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">TextWrapper</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">break_long_words</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -695,8 +836,7 @@
                 <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">)]</span>
                 <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wrapper</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">h</span><span class="p">))</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">]</span>
-                <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">if</span> <span class="n">h</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">thead{&#39;</span> <span class="o">+</span> <span class="n">h</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
-                           <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">]</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">if</span> <span class="n">h</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">thead{&#39;</span> <span class="o">+</span> <span class="n">h</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">]</span>
                 <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39; &amp; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span>
                 <span class="n">new_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
             <span class="n">new_header</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_lines</span><span class="p">)</span>
@@ -725,10 +865,12 @@
         <span class="n">tabular</span> <span class="o">=</span> <span class="n">join_tabular</span><span class="p">(</span><span class="n">new_parts</span><span class="p">,</span> <span class="n">hline</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hline</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_align_multicolumn_hack</span><span class="p">:</span>
+
             <span class="k">def</span> <span class="nf">hack_repl_align</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
-                <span class="n">part</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">():</span><span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()]</span>
+                <span class="n">part</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="p">:</span> <span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()]</span>
                 <span class="n">spaces</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">part</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="n">spaces</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">multicolumn&#39;</span>
+
             <span class="n">tabular</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">multi( *&amp;)*column&#39;</span><span class="p">,</span> <span class="n">hack_repl_align</span><span class="p">,</span> <span class="n">tabular</span><span class="p">)</span>
             <span class="n">tabular</span> <span class="o">=</span> <span class="n">tabular</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">midrule&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">hline&#39;</span><span class="p">)</span>
 
@@ -739,17 +881,22 @@
             <span class="n">caption</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">caption</span>
         <span class="n">tabular</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_tabular</span><span class="p">()</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-            <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+            <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            \begin{{table}}[h]</span>
 <span class="sd">                \centering</span>
 <span class="sd">                \caption{{{caption}}}</span>
-<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">caption</span><span class="o">=</span><span class="n">caption</span><span class="p">)</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">caption</span><span class="o">=</span><span class="n">caption</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">tabular</span><span class="p">:</span>
             <span class="n">table</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">tabular</span><span class="p">)</span>
-        <span class="n">table</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-            <span class="sd">&#39;&#39;&#39;</span>
+        <span class="n">table</span> <span class="o">+=</span> <span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            \end{{table}}</span>
-<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">table</span></div></div>
 
 
@@ -805,18 +952,37 @@
 <span class="sd">        python -m wbia.scripts._thesis_helpers --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -824,55 +990,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

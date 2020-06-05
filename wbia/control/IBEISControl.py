@@ -100,10 +100,10 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'wbia.core_parts',
     'wbia.algo.smk.vocab_indexer',
     'wbia.algo.smk.smk_pipeline',
-    (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
-    (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
-    (('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
-    (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
+    # (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
+    # (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
+    # (('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
+    # (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
     # 'wbia_plugin_identification_example',
 ]
 
@@ -639,8 +639,7 @@ class IBEISController(BASE_CLASS):
                 )
             except IOError as ex:
                 ut.printex(
-                    ex,
-                    ('Failed making daily backup. ' 'Run with --nobackup to disable'),
+                    ex, ('Failed making daily backup. ' 'Run with --nobackup to disable'),
                 )
                 import utool
 
@@ -734,8 +733,7 @@ class IBEISController(BASE_CLASS):
                 )
             except IOError as ex:
                 ut.printex(
-                    ex,
-                    ('Failed making daily backup. ' 'Run with --nobackup to disable'),
+                    ex, ('Failed making daily backup. ' 'Run with --nobackup to disable'),
                 )
                 raise
         # IBEIS SQL State Database

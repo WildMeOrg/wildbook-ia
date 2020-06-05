@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.gui.guimenus &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.gui.guimenus &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.gui.guimenus</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.gui.guimenus</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -43,6 +158,7 @@
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+
 <span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[guimenus]&#39;</span><span class="p">)</span>
 
 
@@ -50,11 +166,13 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;using dummy back&#39;</span><span class="p">)</span>
         <span class="k">pass</span>
+
     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="c1">#print(name)</span>
+        <span class="c1"># print(name)</span>
         <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="kn">import</span> <span class="nn">mock</span>
+
         <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span></div>
 
@@ -70,19 +188,21 @@
 <span class="sd">        &gt;&gt;&gt; result = setup_dummy_menus()</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#import unittest</span>
+    <span class="c1"># import unittest</span>
     <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+
     <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>  <span class="c1"># must be ensured before any embeding</span>
     <span class="n">mainwin</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QMainWindow</span><span class="p">()</span>
     <span class="n">back</span> <span class="o">=</span> <span class="n">DummyBack</span><span class="p">()</span>
     <span class="kn">import</span> <span class="nn">mock</span>
+
     <span class="n">mainwin</span><span class="o">.</span><span class="n">expand_names_tree</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span>
     <span class="n">setup_menus</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
-    <span class="c1">#ut.embed()</span>
+    <span class="c1"># ut.embed()</span>
     <span class="n">gt</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span></div>
-    <span class="c1">#gt.qtapp_loop(mainwin, frequency=100, ipy=ut.inIPython())</span>
+    <span class="c1"># gt.qtapp_loop(mainwin, frequency=100, ipy=ut.inIPython())</span>
 
 
 <div class="viewcode-block" id="setup_menus"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_menus">[docs]</a><span class="k">def</span> <span class="nf">setup_menus</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -94,11 +214,11 @@
     <span class="n">setup_file_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
     <span class="n">setup_view_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
     <span class="n">setup_actions_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
-    <span class="c1">#setup_batch_menu(mainwin, back)</span>
-    <span class="c1">#setup_checks_menu(mainwin, back)</span>
+    <span class="c1"># setup_batch_menu(mainwin, back)</span>
+    <span class="c1"># setup_checks_menu(mainwin, back)</span>
     <span class="n">setup_option_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
     <span class="n">setup_refresh_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
-    <span class="c1">#setup_wildbook_menu(mainwin, back)</span>
+    <span class="c1"># setup_wildbook_menu(mainwin, back)</span>
     <span class="n">setup_web_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
     <span class="n">setup_help_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
     <span class="n">setup_developer_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
@@ -114,63 +234,70 @@
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;New Database&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s1">&#39;Create a new folder to use as a database.&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+N&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">new_database</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">new_database</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionOpen_Database&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Open Database&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s1">&#39;Opens a different database folder.&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+O&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionBackup_Database&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s1">&#39;Backup the current main database.&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Backup Database&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+B&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">backup_database</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">backup_database</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionExport_Database&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s1">&#39;Dumps and exports database as csv tables.&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Export As CSV&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">export_database_as_csv</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">export_database_as_csv</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDuplicate_Database&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s1">&#39;Creates a duplicate of the database&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Duplicate Database&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">make_database_duplicate</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">make_database_duplicate</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionImport_Img_file&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Import Images (select file(s))&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_file</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_file</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionImport_Img_dir&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Import Images (select directory)&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+I&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
-    <span class="c1">#menu.newAction(</span>
+    <span class="c1"># menu.newAction(</span>
     <span class="c1">#    name=&#39;actionImport_Img_file_with_smart&#39;,</span>
     <span class="c1">#    text=&#39;Import Images (select file(s)) with smart Patrol XML&#39;,</span>
     <span class="c1">#    triggered=back.import_images_from_file_with_smart)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionImport_Img_dir_with_smart&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Import Images (select directory) with smart Patrol XML&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir_with_smart</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir_with_smart</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionImport_Img_dir_from_encouters_1&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Import Images (select folder(s)) from Encounters (1 level)&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_encounters_1</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_encounters_1</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionImport_Img_dir_from_encouters_2&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Import Images (select folder(s)) from Encounters (2 levels)&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_encounters_2</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_encounters_2</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionQuit&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Quit&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span></div>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionQuit&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Quit&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="setup_view_menu"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_view_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_view_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
@@ -180,16 +307,19 @@
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionExpandNamesTree&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Expand Names Tree&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">mainwin</span><span class="o">.</span><span class="n">expand_names_tree</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">mainwin</span><span class="o">.</span><span class="n">expand_names_tree</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;toggleThumbnails&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Toggle Thumbnails&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">toggle_thumbnails</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">toggle_thumbnails</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;toggleOutput&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Toggle Output Log&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">toggle_output_widget</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">toggle_output_widget</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="c1"># menu.newAction(</span>
     <span class="c1">#     name=&#39;actionLayout_Figures&#39;,</span>
     <span class="c1">#     text=&#39;Layout Figures&#39;,</span>
@@ -206,29 +336,36 @@
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionCompute_Occurrences&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Group Occurrences&#39;</span><span class="p">,</span>
-        <span class="c1">#shortcut=&#39;Ctrl+2&#39;,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">do_group_occurrence_step</span><span class="p">)</span>
+        <span class="c1"># shortcut=&#39;Ctrl+2&#39;,</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">do_group_occurrence_step</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDetect&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Detection&#39;</span><span class="p">,</span>
-        <span class="c1">#shortcut=&#39;Ctrl+3&#39;,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_step</span><span class="p">)</span>
+        <span class="c1"># shortcut=&#39;Ctrl+3&#39;,</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_step</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionQuery&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query Single Annotation&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Q&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">use_visual_selection</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">use_visual_selection</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionBatchIntraOccurrenceQueries&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Intra Occurrence&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">),</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionBatchVsExemplarQueries&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: vs Exemplars&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">),</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
@@ -236,10 +373,11 @@
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Set Exemplars from Quality and Viewpoint&#39;</span><span class="p">,</span>
         <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">set_exemplars_from_quality_and_viewpoint_</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
-            <span class="sd">&#39;&#39;&#39;</span>
+            <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Uses the quality and viewpoint column to pick the best N exemplars</span>
 <span class="sd">            per viewpoint, per name.</span>
-<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
@@ -251,12 +389,13 @@
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionRunMergeChecks&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Merge Checks (Exemplars vs Exemplars)&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_merge_checks</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_merge_checks</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">mergeMenu</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Other Merge Checks&#39;</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">mergeMenu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionRunMergeChecks2&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Merge Checks (multitons)&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_merge_checks_multitons</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_merge_checks_multitons</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">const</span><span class="o">.</span><span class="n">SIMPLIFY_INTERFACE</span><span class="p">:</span>
@@ -265,45 +404,45 @@
             <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Consecutive Location+Species Rename&#39;</span><span class="p">,</span>
             <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">batch_rename_consecutive_via_species_</span><span class="p">,</span>
             <span class="n">tooltip</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
-                <span class="sd">&#39;&#39;&#39;</span>
+                <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Renames ALL the names in the database to</span>
 <span class="sd">                {other_cfg.location_for_names}_{species_code}_{num}</span>
-<span class="sd">                &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+            <span class="p">),</span>
         <span class="p">)</span>
 
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionShipProcessedOccurrences&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Ship Processed Occurrences&#39;</span><span class="p">,</span>
-        <span class="n">tooltip</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;This action will ship to WildBook any occurrences that have</span>
-<span class="s1">                    been marked as processed.  This can also be used to send</span>
-<span class="s1">                    processed imagesets that failed to ship correctly.&#39;&#39;&#39;</span><span class="p">,</span>
-        <span class="c1">#shortcut=&#39;Ctrl+5&#39;,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">send_unshipped_processed_imagesets</span><span class="p">)</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;This action will ship to WildBook any occurrences that have</span>
+<span class="s2">                    been marked as processed.  This can also be used to send</span>
+<span class="s2">                    processed imagesets that failed to ship correctly.&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="c1"># shortcut=&#39;Ctrl+5&#39;,</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">send_unshipped_processed_imagesets</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Override All Annotation Species&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">override_all_annotation_species</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Rename Species&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_species_nice_name</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Species&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_selected_species</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">override_all_annotation_species</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Rename Species&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_species_nice_name</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Species&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_selected_species</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDeleteAllImageSets&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete All ImageSets&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_all_imagesets</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_all_imagesets</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDelete_Image&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Image&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_image</span><span class="p">)</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDelete_Image&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Image&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_image</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDelete_ANNOTATION&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Annotation&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+Del&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span></div>
 
 
@@ -322,14 +461,16 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionToggleQueryMode&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Toggle Query Mode: ----&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s1">&#39;Changes behavior of Actions-&gt;Query&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">set_daids_mode</span><span class="p">,</span> <span class="s1">&#39;toggle&#39;</span><span class="p">))</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">set_daids_mode</span><span class="p">,</span> <span class="s1">&#39;toggle&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionPreferences&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Edit Preferences&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s1">&#39;Changes algorithm parameters and program behavior.&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+P&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">edit_preferences</span><span class="p">)</span></div>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">edit_preferences</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="setup_checks_menu"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_checks_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_checks_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
@@ -341,80 +482,60 @@
     <span class="sd">&quot;&quot;&quot; HELP MENU &quot;&quot;&quot;</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Help&#39;</span><span class="p">)</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span>
-    <span class="c1">#from wbia.control import DB_SCHEMA_CURRENT</span>
-    <span class="c1">#version = DB_SCHEMA_CURRENT.VERSION_CURRENT</span>
+    <span class="c1"># from wbia.control import DB_SCHEMA_CURRENT</span>
+    <span class="c1"># version = DB_SCHEMA_CURRENT.VERSION_CURRENT</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionAbout&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;About&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">show_about_message</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionAbout&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;About&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">show_about_message</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDBInfo&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Database Info&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">display_dbinfo</span><span class="p">),</span>
-    <span class="c1">#menu.newAction(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDBInfo&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Database Info&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">display_dbinfo</span>
+    <span class="p">),</span>
+    <span class="c1"># menu.newAction(</span>
     <span class="c1">#    name=&#39;actionView_Docs&#39;,</span>
     <span class="c1">#    text=&#39;View Documentation&#39;,</span>
     <span class="c1">#    triggered=back.view_docs)</span>
     <span class="c1"># ---</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="c1"># ---</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Global Logs&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_logs_global</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Global Logs&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_logs_global</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">viewDirectoryMenu</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;View Directories&#39;</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">viewDirectoryMenu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Local Log Directory&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_log_dir_local</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Local Log Directory&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_log_dir_local</span>
+    <span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">viewDirectoryMenu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Global Log Directory&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_log_dir_global</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Global Log Directory&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_log_dir_global</span>
+    <span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">viewDirectoryMenu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Database Directory&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_database_dir</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Database Directory&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_database_dir</span>
+    <span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">viewDirectoryMenu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Application Files Directory&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_app_files_dir</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;View Application Files Directory&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_app_files_dir</span>
+    <span class="p">)</span>
     <span class="c1"># ---</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="c1"># ---</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Integrity Checks&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_integrity_checks</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Integrity Checks&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_integrity_checks</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Fix/Clean Database Integrity&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">fix_and_clean_database</span><span class="p">)</span></div>
+        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Fix/Clean Database Integrity&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">fix_and_clean_database</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="setup_web_menu"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_web_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_web_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuWeb</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Web&#39;</span><span class="p">)</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuWeb</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Startup Web Interface&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">start_web_server_parallel</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Shutdown Web Interface&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">kill_web_server_parallel</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Startup Web Interface&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">start_web_server_parallel</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Shutdown Web Interface&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">kill_web_server_parallel</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Startup Wildbook&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">startup_wildbook</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Shutdown Wildbook&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">shutdown_wildbook</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Startup Wildbook&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">startup_wildbook</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Shutdown Wildbook&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">shutdown_wildbook</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Browse Wildbook&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">browse_wildbook</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Browse Wildbook&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">browse_wildbook</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Force Wildbook Name Change&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">force_wildbook_namechange</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Force Wildbook Name Change&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">force_wildbook_namechange</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Install Wildbook&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">install_wildbook</span><span class="p">)</span></div>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Install Wildbook&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">install_wildbook</span><span class="p">)</span></div>
 
 
-<span class="c1">#def setup_wildbook_menu(mainwin, back):</span>
+<span class="c1"># def setup_wildbook_menu(mainwin, back):</span>
 <span class="c1">#    mainwin.menuWildbook = mainwin.menubar.newMenu(&#39;Wildbook&#39;)</span>
 <span class="c1">#    menu = mainwin.menuWildbook</span>
 
@@ -423,91 +544,122 @@
     <span class="sd">&quot;&quot;&quot; DEV MENU &quot;&quot;&quot;</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Dev&#39;</span><span class="p">)</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Download Demo Data&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">ensure_demodata</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Download Demo Data&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">ensure_demodata</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionMakeIPythonNotebook&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Launch IPython Notebook&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">launch_ipy_notebook</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">launch_ipy_notebook</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDeveloper_mode&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Developer IPython&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+Shift+I&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_mode</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Graph Interface&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">make_qt_graph_interface</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Set Work Directory&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">set_workdir</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_mode</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Graph Interface&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">make_qt_graph_interface</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Set Work Directory&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">set_workdir</span><span class="p">)</span>
     <span class="c1"># --- TESTS --</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionLocalizeImages&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Localize Images&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">localize_images</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">localize_images</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;export_learning_data&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Export learning data&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_export_annotations</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_export_annotations</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionTrainWithImageSets&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Train RF with Open ImageSet&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">train_rf_with_imageset</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">train_rf_with_imageset</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
-    <span class="n">adv_ieq_menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuAdvancedIEQuery</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Advanced Intra Occurrence Queries&#39;</span><span class="p">)</span>
-    <span class="n">adv_exq_menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuAdvancedEXQuery</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Advanced Vs Exemplar Queries&#39;</span><span class="p">)</span>
+    <span class="n">adv_ieq_menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuAdvancedIEQuery</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span>
+        <span class="s1">&#39;Advanced Intra Occurrence Queries&#39;</span>
+    <span class="p">)</span>
+    <span class="n">adv_exq_menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuAdvancedEXQuery</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span>
+        <span class="s1">&#39;Advanced Vs Exemplar Queries&#39;</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">adv_ieq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionBatchUnknownIntraImageSetQueries&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Unknown Intra Occurrence&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">),</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">adv_exq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionBatchUnknownVsExemplarQueries&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Unknowns vs Exemplars&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">),</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">adv_exq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionNameVsExemplarsQuery&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Names vs Exemplar&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
-                                    <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                    <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
-                                    <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_k_padding</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
+            <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_k_padding</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">adv_exq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionNameVsExemplarsMode3&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Names vs Exemplar + Ori Hack + Scale + No Affine&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
-                                    <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                    <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
-                                    <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_k_padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                                 <span class="n">affine_invariance</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scale_max</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">query_rotation_heuristic</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
+            <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">use_k_padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">affine_invariance</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">scale_max</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+                <span class="n">query_rotation_heuristic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">adv_ieq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionQueryInEncMode1&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Names Intra Occurrence With OriAugment&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">,</span>
-                                    <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                    <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">query_rotation_heuristic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_k_padding</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
+            <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">,</span>
+            <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">query_rotation_heuristic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">use_k_padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">adv_exq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionQueryVsExempMode2&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Names VsExamplar With OriAugment&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
-                                    <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                    <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">query_rotation_heuristic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_k_padding</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
+            <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
+            <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">query_rotation_heuristic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">use_k_padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;takeScreenshot&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Take Screenshot&#39;</span><span class="p">,</span>
-        <span class="c1">#shortcut=&#39;Ctrl+]&#39;,</span>
+        <span class="c1"># shortcut=&#39;Ctrl+]&#39;,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+K&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">take_screenshot</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">take_screenshot</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">setup_depricated_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span></div>
 
 
@@ -519,50 +671,58 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDeveloper_CLS&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Refresh Tables&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+Shift+C&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_cls</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_cls</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionUpdateSpecialImageSets&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Refresh Special ImageSets&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_special_imagesets_</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_special_imagesets_</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionReconnectController&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Reconnect Controller&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">reconnect_controller</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">reconnect_controller</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
     <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionRedownload_Detection_Models&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Redownload Detection Models&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">redownload_detection_models</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">redownload_detection_models</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="c1"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDelete_Precomputed_Results&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Cached Query Results&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_queryresults_dir</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_queryresults_dir</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDelete_Cache_Directory&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Database Cache&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDelete_global_preferences&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Global Preferences&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_global_prefs</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_global_prefs</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionDeleteThumbnails&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Delete Thumbnails&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_thumbnails</span><span class="p">)</span></div>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_thumbnails</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="setup_depricated_menu"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_depricated_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_depricated_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
-    <span class="c1">#mainwin.menuDepr = mainwin.menubar.newMenu(&#39;Depricated&#39;)</span>
+    <span class="c1"># mainwin.menuDepr = mainwin.menubar.newMenu(&#39;Depricated&#39;)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDepr</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Depricated&#39;</span><span class="p">)</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDepr</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
-    <span class="c1">#menu.newAction(</span>
+    <span class="c1"># menu.newAction(</span>
     <span class="c1">#    name=&#39;actionCompute_Queries&#39;,</span>
     <span class="c1">#    text=&#39;Query: Old Style&#39;,</span>
     <span class="c1">#    tooltip=&#39;&#39;&#39;This might take anywhere from a coffee break to an</span>
@@ -578,30 +738,20 @@
     <span class="c1"># )</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Import Cropped Images As Annotations (select file(s))&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_as_annots_from_file</span><span class="p">)</span>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_as_annots_from_file</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Developer Reload&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+Shift+R&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_reload</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Developer Reload&#39;</span><span class="p">,</span> <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+Shift+R&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_reload</span>
+    <span class="p">)</span>
 
     <span class="c1"># TESTS</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Tests&#39;</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run IBEIS Tests&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_tests</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Utool Tests&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_utool_tests</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Vtool Tests&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_vtool_tests</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Assert Modules&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">assert_modules</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Update Source Install&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_source_install</span><span class="p">)</span></div>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run IBEIS Tests&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_tests</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Utool Tests&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_utool_tests</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Vtool Tests&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_vtool_tests</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Assert Modules&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">assert_modules</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Update Source Install&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_source_install</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="setup_zebra_menu"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_zebra_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_zebra_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
@@ -610,7 +760,8 @@
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;processImagesetAsCameraTrapImages&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Process ImageSet as Camera Trap Images&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">filter_imageset_as_camera_trap</span><span class="p">)</span></div>
+        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">filter_imageset_as_camera_trap</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
@@ -622,18 +773,37 @@
 <span class="sd">        python -m wbia.gui.guimenus --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -641,55 +811,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

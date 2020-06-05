@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.scripts.name_recitifer &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.scripts.name_recitifer &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.scripts.name_recitifer</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.scripts.name_recitifer</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -80,27 +195,28 @@
     <span class="n">grouped_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nid2_aids</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
     <span class="c1"># Get grouped images</span>
-    <span class="n">grouped_imgnames</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_names</span><span class="p">,</span>
-                                      <span class="n">grouped_aids</span><span class="p">)</span>
+    <span class="n">grouped_imgnames</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_names</span><span class="p">,</span> <span class="n">grouped_aids</span><span class="p">)</span>
 
     <span class="c1"># Assume a mapping from old image names to old names is given.</span>
     <span class="c1"># Or just hack it in the Lewa case.</span>
     <span class="k">if</span> <span class="n">old_img2_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
         <span class="k">def</span> <span class="nf">get_name_from_gname</span><span class="p">(</span><span class="n">gname</span><span class="p">):</span>
             <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">splitext</span>
+
             <span class="n">gname_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">gname</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">gname_</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">common_prefix</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;prefix assumption is invalidated&#39;</span><span class="p">)</span>
-            <span class="n">gname_</span> <span class="o">=</span> <span class="n">gname_</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">common_prefix</span><span class="p">):]</span>
+            <span class="k">assert</span> <span class="n">gname_</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">common_prefix</span><span class="p">),</span> <span class="s1">&#39;prefix assumption is invalidated&#39;</span>
+            <span class="n">gname_</span> <span class="o">=</span> <span class="n">gname_</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">common_prefix</span><span class="p">)</span> <span class="p">:]</span>
             <span class="k">return</span> <span class="n">gname_</span>
+
         <span class="c1"># Create mapping from image name to the desired &quot;name&quot; for the image.</span>
-        <span class="n">old_img2_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">gname</span><span class="p">:</span> <span class="n">get_name_from_gname</span><span class="p">(</span><span class="n">gname</span><span class="p">)</span>
-                          <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">grouped_imgnames</span><span class="p">)}</span>
+        <span class="n">old_img2_names</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">gname</span><span class="p">:</span> <span class="n">get_name_from_gname</span><span class="p">(</span><span class="n">gname</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">grouped_imgnames</span><span class="p">)</span>
+        <span class="p">}</span>
 
     <span class="c1"># Make the name of the individual associated with that annotation be the</span>
     <span class="c1"># file name prefix</span>
-    <span class="n">grouped_oldnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">old_img2_names</span><span class="p">,</span> <span class="n">gnames</span><span class="p">)</span>
-                        <span class="k">for</span> <span class="n">gnames</span> <span class="ow">in</span> <span class="n">grouped_imgnames</span><span class="p">]</span>
+    <span class="n">grouped_oldnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">old_img2_names</span><span class="p">,</span> <span class="n">gnames</span><span class="p">)</span> <span class="k">for</span> <span class="n">gnames</span> <span class="ow">in</span> <span class="n">grouped_imgnames</span><span class="p">]</span>
 
     <span class="c1"># The task is now to map each name in unique_nids to one of these names</span>
     <span class="c1"># subject to the contraint that each name can only be used once.  This is</span>
@@ -149,6 +265,7 @@
 <span class="sd">        &gt;&gt;&gt; changed_pairs = reasign_names2(gname_name_pairs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span>
+
     <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">annot_gnames</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -182,9 +299,16 @@
     <span class="k">return</span> <span class="n">changed_pairs</span></div>
 
 
-<div class="viewcode-block" id="testdata_oldnames"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.name_recitifer.testdata_oldnames">[docs]</a><span class="k">def</span> <span class="nf">testdata_oldnames</span><span class="p">(</span><span class="n">n_incon_groups</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_con_groups</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_per_con</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-                      <span class="n">n_per_incon</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">con_sep</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_empty_groups</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="testdata_oldnames"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.name_recitifer.testdata_oldnames">[docs]</a><span class="k">def</span> <span class="nf">testdata_oldnames</span><span class="p">(</span>
+    <span class="n">n_incon_groups</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">n_con_groups</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">n_per_con</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">n_per_incon</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">con_sep</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">n_empty_groups</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 
     <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">con_sep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
@@ -193,11 +317,11 @@
     <span class="n">incon_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_incon_labels</span><span class="p">))</span>
 
     <span class="c1"># Build up inconsistent groups that may share labels with other groups</span>
-    <span class="n">n_per_incon_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_per_incon</span><span class="p">),</span> <span class="n">n_per_incon</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_incon_groups</span><span class="p">)]</span>
+    <span class="n">n_per_incon_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_per_incon</span><span class="p">),</span> <span class="n">n_per_incon</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_incon_groups</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="n">incon_groups</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">incon_labels</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">n_per_incon_list</span>
+        <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">incon_labels</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">n_per_incon_list</span>
     <span class="p">]</span>
 
     <span class="c1"># Build up consistent groups that may have multiple lables, but does not</span>
@@ -278,6 +402,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
     <span class="kn">import</span> <span class="nn">scipy.optimize</span>
+
     <span class="n">unique_old_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">part_oldnames</span><span class="p">))</span>
     <span class="n">num_new_names</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_oldnames</span><span class="p">)</span>
     <span class="n">num_old_names</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_old_names</span><span class="p">)</span>
@@ -319,6 +444,7 @@
 
     <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
         <span class="n">columns</span> <span class="o">=</span> <span class="n">unique_old_names</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;_</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pad</span><span class="p">)]</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Profit Matrix&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">profit_matrix</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">))</span>
@@ -326,13 +452,11 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cost Matrix&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">))</span>
 
-    <span class="n">assignment_</span> <span class="o">=</span> <span class="p">[</span><span class="n">cx2_name</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rx2_cx</span><span class="p">[</span><span class="n">rx</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
-                   <span class="k">for</span> <span class="n">rx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_new_names</span><span class="p">)]</span>
+    <span class="n">assignment_</span> <span class="o">=</span> <span class="p">[</span><span class="n">cx2_name</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rx2_cx</span><span class="p">[</span><span class="n">rx</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">rx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_new_names</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">assignment_</span></div>
 
 
-<div class="viewcode-block" id="find_consistent_labeling"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.name_recitifer.find_consistent_labeling">[docs]</a><span class="k">def</span> <span class="nf">find_consistent_labeling</span><span class="p">(</span><span class="n">grouped_oldnames</span><span class="p">,</span> <span class="n">extra_prefix</span><span class="o">=</span><span class="s1">&#39;_extra_name&#39;</span><span class="p">,</span>
-                             <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="find_consistent_labeling"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.name_recitifer.find_consistent_labeling">[docs]</a><span class="k">def</span> <span class="nf">find_consistent_labeling</span><span class="p">(</span><span class="n">grouped_oldnames</span><span class="p">,</span> <span class="n">extra_prefix</span><span class="o">=</span><span class="s1">&#39;_extra_name&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Solves a a maximum bipirtite matching problem to find a consistent</span>
 <span class="sd">    name assignment that minimizes the number of annotations with different</span>
@@ -510,26 +634,29 @@
     <span class="c1"># Partition nontrivial_oldnames into smaller disjoint sets</span>
     <span class="n">nontrivial_oldnames_sets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="n">nontrivial_oldnames</span><span class="p">))</span>
     <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+
     <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
     <span class="n">g</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nontrivial_oldnames_sets</span><span class="p">)))</span>
     <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">group1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nontrivial_oldnames_sets</span><span class="p">):</span>
-        <span class="n">rest</span> <span class="o">=</span> <span class="n">nontrivial_oldnames_sets</span><span class="p">[</span><span class="n">u</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+        <span class="n">rest</span> <span class="o">=</span> <span class="n">nontrivial_oldnames_sets</span><span class="p">[</span><span class="n">u</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
         <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">group2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">u</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">group1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">group2</span><span class="p">):</span>
                 <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
     <span class="n">nontrivial_partition</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  * partitioned non-trivial into </span><span class="si">%d</span><span class="s1"> subgroups&#39;</span> <span class="o">%</span>
-              <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nontrivial_partition</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;  * partitioned non-trivial into </span><span class="si">%d</span><span class="s1"> subgroups&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nontrivial_partition</span><span class="p">))</span>
+        <span class="p">)</span>
         <span class="n">part_size_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">nontrivial_partition</span><span class="p">))</span>
         <span class="n">stats_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">part_size_stats</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strkeys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  * partition size stats = </span><span class="si">%s</span><span class="s1">&#39;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">stats_str</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  * partition size stats = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stats_str</span><span class="p">,))</span>
 
     <span class="c1"># Rectify nontrivial cases</span>
-    <span class="k">for</span> <span class="n">part_idxs</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">nontrivial_partition</span><span class="p">,</span>
-                                 <span class="n">labels</span><span class="o">=</span><span class="s1">&#39;rectify parts&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">verbose</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">part_idxs</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span>
+        <span class="n">nontrivial_partition</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="s1">&#39;rectify parts&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">verbose</span>
+    <span class="p">):</span>
         <span class="n">part_oldnames</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">nontrivial_oldnames</span><span class="p">,</span> <span class="n">part_idxs</span><span class="p">)</span>
-        <span class="n">part_newidxs</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">nontrivial_new_idxs</span><span class="p">,</span> <span class="n">part_idxs</span><span class="p">)</span>
+        <span class="n">part_newidxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">nontrivial_new_idxs</span><span class="p">,</span> <span class="n">part_idxs</span><span class="p">)</span>
         <span class="c1"># Rectify this part</span>
         <span class="n">assignment_</span> <span class="o">=</span> <span class="n">simple_munkres</span><span class="p">(</span><span class="n">part_oldnames</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">part_newidxs</span><span class="p">,</span> <span class="n">assignment_</span><span class="p">):</span>
@@ -545,8 +672,9 @@
     <span class="k">return</span> <span class="n">assignment</span></div>
 
 
-<div class="viewcode-block" id="find_consistent_labeling_old"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.name_recitifer.find_consistent_labeling_old">[docs]</a><span class="k">def</span> <span class="nf">find_consistent_labeling_old</span><span class="p">(</span><span class="n">grouped_oldnames</span><span class="p">,</span> <span class="n">extra_prefix</span><span class="o">=</span><span class="s1">&#39;_extra_name&#39;</span><span class="p">,</span>
-                                 <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="find_consistent_labeling_old"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.name_recitifer.find_consistent_labeling_old">[docs]</a><span class="k">def</span> <span class="nf">find_consistent_labeling_old</span><span class="p">(</span>
+    <span class="n">grouped_oldnames</span><span class="p">,</span> <span class="n">extra_prefix</span><span class="o">=</span><span class="s1">&#39;_extra_name&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
     <span class="kn">import</span> <span class="nn">scipy.optimize</span>
 
@@ -597,8 +725,9 @@
         <span class="c1"># impossible to uniquely map to the old db</span>
         <span class="n">num_extra</span> <span class="o">=</span> <span class="n">num_new_names</span> <span class="o">-</span> <span class="n">num_old_names</span>
         <span class="k">if</span> <span class="n">num_extra</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">extra_oldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">extra_prefix</span><span class="p">,</span> <span class="n">count</span><span class="p">,)</span> <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span>
-                              <span class="nb">range</span><span class="p">(</span><span class="n">num_extra</span><span class="p">)]</span>
+            <span class="n">extra_oldnames</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;</span><span class="si">%s%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">extra_prefix</span><span class="p">,</span> <span class="n">count</span><span class="p">,)</span> <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_extra</span><span class="p">)</span>
+            <span class="p">]</span>
         <span class="k">elif</span> <span class="n">num_extra</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
@@ -637,8 +766,7 @@
 
         <span class="c1"># Map output to be aligned with input</span>
         <span class="n">rx2_cx</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span>
-        <span class="n">assignment_</span> <span class="o">=</span> <span class="p">[</span><span class="n">assignable_names</span><span class="p">[</span><span class="n">rx2_cx</span><span class="p">[</span><span class="n">rx</span><span class="p">]]</span>
-                       <span class="k">for</span> <span class="n">rx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_new_names</span><span class="p">)]</span>
+        <span class="n">assignment_</span> <span class="o">=</span> <span class="p">[</span><span class="n">assignable_names</span><span class="p">[</span><span class="n">rx2_cx</span><span class="p">[</span><span class="n">rx</span><span class="p">]]</span> <span class="k">for</span> <span class="n">rx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_new_names</span><span class="p">)]</span>
 
         <span class="c1"># Reintegrate trivial values</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">orig_idxs</span><span class="p">,</span> <span class="n">assignment_</span><span class="p">):</span>
@@ -658,18 +786,37 @@
 <span class="sd">        python -m wbia.scripts.name_recitifer --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -677,55 +824,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

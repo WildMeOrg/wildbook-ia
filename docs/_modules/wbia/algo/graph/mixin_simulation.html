@@ -1,39 +1,159 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.mixin_simulation &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.graph.mixin_simulation &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+
+      <li>wbia.algo.graph.mixin_simulation</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.graph.mixin_simulation</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Mixin functionality for experiments, tests, and simulations.</span>
 <span class="sd">This includes recordings measures used to generate plots in JC&#39;s thesis.</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -45,15 +165,23 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span><span class="p">,</span> <span class="n">NULL</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span><span class="p">,</span> <span class="n">NULL</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="SimulationHelpers"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.SimulationHelpers">[docs]</a><span class="k">class</span> <span class="nc">SimulationHelpers</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<div class="viewcode-block" id="SimulationHelpers.init_simulation"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.SimulationHelpers.init_simulation">[docs]</a>    <span class="k">def</span> <span class="nf">init_simulation</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">oracle_accuracy</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">k_redun</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                        <span class="n">enable_autoreview</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">enable_inference</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">classifiers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_state_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">max_outer_loops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SimulationHelpers.init_simulation"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.SimulationHelpers.init_simulation">[docs]</a>    <span class="k">def</span> <span class="nf">init_simulation</span><span class="p">(</span>
+        <span class="n">infr</span><span class="p">,</span>
+        <span class="n">oracle_accuracy</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">k_redun</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">enable_autoreview</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">enable_inference</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">classifiers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">match_state_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_outer_loops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;INIT SIMULATION&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
 
         <span class="n">infr</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
@@ -83,18 +211,19 @@
         <span class="n">pb_state_thresh</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">pb_state_thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pb_state_thresh</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;pb&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span>
-                <span class="s1">&#39;notpb&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span>
+                <span class="s1">&#39;pb&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s1">&#39;notpb&#39;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
             <span class="p">}</span>
 
         <span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;photobomb_state&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pb_state_thresh</span><span class="p">),</span>
-            <span class="s1">&#39;match_state&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">match_state_thresh</span><span class="p">)</span>
+            <span class="s1">&#39;match_state&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">match_state_thresh</span><span class="p">),</span>
         <span class="p">}</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;algo.max_outer_loops&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_outer_loops</span></div>
 
 <div class="viewcode-block" id="SimulationHelpers.init_test_mode"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.SimulationHelpers.init_test_mode">[docs]</a>    <span class="k">def</span> <span class="nf">init_test_mode</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_dynamic_graph</span>
+
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;init_test_mode&#39;</span><span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">test_mode</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="c1"># infr.edge_truth = {}</span>
@@ -119,10 +248,10 @@
 
         <span class="n">infr</span><span class="o">.</span><span class="n">metrics_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">nid_to_gt_cc</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">orig_name_labels</span><span class="p">)</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">real_n_pcc_mst_edges</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-            <span class="nb">len</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">nid_to_gt_cc</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;real_n_pcc_mst_edges = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">real_n_pcc_mst_edges</span><span class="p">,),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span></div>
+        <span class="n">infr</span><span class="o">.</span><span class="n">real_n_pcc_mst_edges</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">nid_to_gt_cc</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+            <span class="s1">&#39;real_n_pcc_mst_edges = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">real_n_pcc_mst_edges</span><span class="p">,),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="SimulationHelpers.measure_error_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.SimulationHelpers.measure_error_edges">[docs]</a>    <span class="k">def</span> <span class="nf">measure_error_edges</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -130,8 +259,7 @@
             <span class="n">pred_state</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">pred_state</span> <span class="o">!=</span> <span class="n">UNREV</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">true_state</span> <span class="o">!=</span> <span class="n">pred_state</span><span class="p">:</span>
-                    <span class="n">error</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="s1">&#39;real&#39;</span><span class="p">,</span> <span class="n">true_state</span><span class="p">),</span>
-                                      <span class="p">(</span><span class="s1">&#39;pred&#39;</span><span class="p">,</span> <span class="n">pred_state</span><span class="p">)])</span>
+                    <span class="n">error</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="s1">&#39;real&#39;</span><span class="p">,</span> <span class="n">true_state</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;pred&#39;</span><span class="p">,</span> <span class="n">pred_state</span><span class="p">)])</span>
                     <span class="k">yield</span> <span class="n">edge</span><span class="p">,</span> <span class="n">error</span></div>
 
 <div class="viewcode-block" id="SimulationHelpers.measure_metrics"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.SimulationHelpers.measure_metrics">[docs]</a>    <span class="nd">@profile</span>
@@ -151,14 +279,16 @@
         <span class="n">n_fn</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">confusion</span><span class="p">[</span><span class="n">POSTV</span><span class="p">],</span> <span class="n">non_postv</span><span class="p">))</span>
         <span class="n">n_fp</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">confusion</span><span class="p">[</span><span class="n">NEGTV</span><span class="p">],</span> <span class="n">non_negtv</span><span class="p">))</span>
 
-        <span class="n">n_error_edges</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">confusion</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">+</span> <span class="n">confusion</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">r</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span>
-                            <span class="n">ut</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">reviewd_cols</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">n_error_edges</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">confusion</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">+</span> <span class="n">confusion</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">r</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">reviewd_cols</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="c1"># assert n_fn + n_fp == n_error_edges</span>
 
         <span class="n">pred_n_pcc_mst_edges</span> <span class="o">=</span> <span class="n">n_true_merges</span>
 
         <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
+
             <span class="k">for</span> <span class="n">timer</span> <span class="ow">in</span> <span class="n">ub</span><span class="o">.</span><span class="n">Timerit</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
                 <span class="k">with</span> <span class="n">timer</span><span class="p">:</span>
                     <span class="c1"># Find undetectable errors</span>
@@ -209,6 +339,7 @@
             <span class="c1"># )</span>
         <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+
             <span class="c1"># set(infr.test_gt_pos_graph.edges()) == set(real_pos_edges)</span>
             <span class="n">pred_n_pcc_mst_edges</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="n">real_pos_edges</span><span class="p">)):</span>
@@ -219,8 +350,9 @@
         <span class="k">assert</span> <span class="n">n_error_edges</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">mistake_edges</span><span class="p">)</span>
         <span class="n">direct_mistake_aids</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">mistake_edges</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">edge</span><span class="p">}</span>
         <span class="n">mistake_nids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="o">*</span><span class="n">direct_mistake_aids</span><span class="p">))</span>
-        <span class="n">mistake_aids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">component</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
-                                       <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">mistake_nids</span><span class="p">]))</span>
+        <span class="n">mistake_aids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">component</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">mistake_nids</span><span class="p">])</span>
+        <span class="p">)</span>
 
         <span class="n">pos_acc</span> <span class="o">=</span> <span class="n">pred_n_pcc_mst_edges</span> <span class="o">/</span> <span class="n">infr</span><span class="o">.</span><span class="n">real_n_pcc_mst_edges</span>
         <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
@@ -250,8 +382,10 @@
             <span class="s1">&#39;pred_decision&#39;</span><span class="p">:</span> <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;pred_decision&#39;</span><span class="p">],</span>
             <span class="s1">&#39;true_decision&#39;</span><span class="p">:</span> <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;true_decision&#39;</span><span class="p">],</span>
             <span class="s1">&#39;n_neg_redun&#39;</span><span class="p">:</span> <span class="n">infr</span><span class="o">.</span><span class="n">neg_redun_metagraph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">(),</span>
-            <span class="s1">&#39;n_neg_redun1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">neg_metagraph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span> <span class="o">-</span>
-                             <span class="n">infr</span><span class="o">.</span><span class="n">neg_metagraph</span><span class="o">.</span><span class="n">number_of_selfloops</span><span class="p">()),</span>
+            <span class="s1">&#39;n_neg_redun1&#39;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">infr</span><span class="o">.</span><span class="n">neg_metagraph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+                <span class="o">-</span> <span class="n">infr</span><span class="o">.</span><span class="n">neg_metagraph</span><span class="o">.</span><span class="n">number_of_selfloops</span><span class="p">()</span>
+            <span class="p">),</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">metrics</span></div>
@@ -259,32 +393,43 @@
     <span class="k">def</span> <span class="nf">_print_previous_loop_statistics</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
         <span class="c1"># Print stats about what happend in the this loop</span>
         <span class="n">history</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">metrics_list</span><span class="p">[</span><span class="o">-</span><span class="n">count</span><span class="p">:]</span>
-        <span class="n">recover_blocks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">([</span>
-            <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">g</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;recovering&#39;</span><span class="p">))</span>
-        <span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">((</span>
-            <span class="s1">&#39;Recovery mode entered </span><span class="si">{}</span><span class="s1"> times, &#39;</span>
-            <span class="s1">&#39;made </span><span class="si">{}</span><span class="s1"> recovery decisions.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="nb">len</span><span class="p">(</span><span class="n">recover_blocks</span><span class="p">),</span> <span class="nb">sum</span><span class="p">(</span><span class="n">recover_blocks</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">)</span>
+        <span class="n">recover_blocks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">g</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;recovering&#39;</span><span class="p">))</span>
+            <span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+            <span class="p">(</span><span class="s1">&#39;Recovery mode entered </span><span class="si">{}</span><span class="s1"> times, &#39;</span> <span class="s1">&#39;made </span><span class="si">{}</span><span class="s1"> recovery decisions.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">recover_blocks</span><span class="p">),</span> <span class="nb">sum</span><span class="p">(</span><span class="n">recover_blocks</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">testaction_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;test_action&#39;</span><span class="p">))</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
-            <span class="s1">&#39;Test Action Histogram: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">testaction_hist</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+            <span class="s1">&#39;Test Action Histogram: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">testaction_hist</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.enabled&#39;</span><span class="p">]:</span>
             <span class="n">action_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">emap</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">)))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">emap</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">))</span>
+            <span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
-                <span class="s1">&#39;Inference Action Histogram: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">ub</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">action_hist</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+                <span class="s1">&#39;Inference Action Histogram: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ub</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">action_hist</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+                <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
-            <span class="s1">&#39;Decision Histogram: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;pred_decision&#39;</span><span class="p">)</span>
-            <span class="p">),</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+            <span class="s1">&#39;Decision Histogram: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;pred_decision&#39;</span><span class="p">)),</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
-            <span class="s1">&#39;User Histogram: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">)</span>
-            <span class="p">),</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+            <span class="s1">&#39;User Histogram: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">)),</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">_dynamic_test_callback</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">prev_decision</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
@@ -307,8 +452,10 @@
         <span class="c1"># print(&#39;true_decision = {!r}&#39;.format(true_decision))</span>
 
         <span class="n">test_print</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">test_print</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;[ACTION] &#39;</span> <span class="o">+</span> <span class="n">x</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
         <span class="c1"># test_print = lambda *a, **kw: None  # NOQA</span>
 
         <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
@@ -329,13 +476,13 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">was_gt_pos</span><span class="p">:</span>
                     <span class="n">infr</span><span class="o">.</span><span class="n">test_gt_pos_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">was_gt_pos</span><span class="p">:</span>
-            <span class="n">test_print</span><span class="p">(</span><span class="s2">&quot;UNDID GOOD POSITIVE EDGE&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
+            <span class="n">test_print</span><span class="p">(</span><span class="s1">&#39;UNDID GOOD POSITIVE EDGE&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">test_gt_pos_graph</span><span class="o">.</span><span class="n">remove_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
             <span class="n">is_within_gt</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">test_gt_pos_graph</span><span class="o">.</span><span class="n">are_nodes_connected</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
 
         <span class="n">split_gt</span> <span class="o">=</span> <span class="n">is_within_gt</span> <span class="o">!=</span> <span class="n">was_within_gt</span>
         <span class="k">if</span> <span class="n">split_gt</span><span class="p">:</span>
-            <span class="n">test_print</span><span class="p">(</span><span class="s2">&quot;SPLIT A GOOD MERGE&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
+            <span class="n">test_print</span><span class="p">(</span><span class="s1">&#39;SPLIT A GOOD MERGE&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;n_true_merges&#39;</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
 
         <span class="n">confusion</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;confusion&#39;</span><span class="p">]</span>
@@ -413,8 +560,9 @@
         <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;pred_decision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decision</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;true_decision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">true_decision</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_id</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;recovering&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">recover_graph</span><span class="o">.</span><span class="n">has_node</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span>
-                                         <span class="n">infr</span><span class="o">.</span><span class="n">recover_graph</span><span class="o">.</span><span class="n">has_node</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;recovering&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">recover_graph</span><span class="o">.</span><span class="n">has_node</span><span class="p">(</span>
+            <span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">)</span> <span class="ow">or</span> <span class="n">infr</span><span class="o">.</span><span class="n">recover_graph</span><span class="o">.</span><span class="n">has_node</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
         <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;n_decision&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">user_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;algo&#39;</span><span class="p">):</span>
@@ -477,18 +625,23 @@
             <span class="n">observed</span> <span class="o">=</span> <span class="n">truth</span>
         <span class="k">if</span> <span class="n">accuracy</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="n">feedback</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;pretty_sure&#39;</span>
-        <span class="k">if</span> <span class="n">accuracy</span> <span class="o">&lt;</span> <span class="o">.</span><span class="mi">5</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">accuracy</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
             <span class="n">feedback</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;guessing&#39;</span>
         <span class="n">feedback</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">observed</span>
         <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
                 <span class="s1">&#39;ORACLE ERROR real=</span><span class="si">{}</span><span class="s1"> pred=</span><span class="si">{}</span><span class="s1"> acc=</span><span class="si">{:.2f}</span><span class="s1"> hard=</span><span class="si">{:.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">truth</span><span class="p">,</span> <span class="n">observed</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">,</span> <span class="n">hardness</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+                    <span class="n">truth</span><span class="p">,</span> <span class="n">observed</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">,</span> <span class="n">hardness</span>
+                <span class="p">),</span>
+                <span class="mi">2</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
 
             <span class="c1"># infr.print(</span>
             <span class="c1">#     &#39;ORACLE ERROR edge={}, truth={}, pred={}, rec={}, hardness={:.3f}&#39;.format(edge, truth, observed, is_recovering, hardness),</span>
             <span class="c1">#     2, color=&#39;red&#39;)</span>
         <span class="k">return</span> <span class="n">feedback</span></div></div>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -497,18 +650,37 @@
 <span class="sd">        python -m wbia.algo.graph.mixin_simulation --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -516,59 +688,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../graph.html">wbia.algo.graph</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

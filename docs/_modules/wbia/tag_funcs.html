@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.tag_funcs &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.tag_funcs &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.tag_funcs</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.tag_funcs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -41,12 +156,14 @@
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="c1"># Create dectorator to inject functions in this module into the IBEISController</span>
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
-    <span class="vm">__name__</span><span class="p">)</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
 
 
 <span class="c1"># TODO : make a annot_tags file</span>
@@ -64,28 +181,21 @@
     <span class="s1">&#39;Photobomb&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Hard&#39;</span><span class="p">,</span>
     <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
-
     <span class="s1">&#39;Occlusion&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Viewpoint&#39;</span><span class="p">,</span>
     <span class="s1">&#39;MildViewpoint&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Pose&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Lighting&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Quality&#39;</span><span class="p">,</span>  <span class="c1"># quality causes failure</span>
-
     <span class="s1">&#39;Orientation&#39;</span><span class="p">,</span>  <span class="c1"># orientation caused failure</span>
-
     <span class="s1">&#39;EdgeMatch&#39;</span><span class="p">,</span>  <span class="c1"># descriptors on the edge of the naimal produce strong matches</span>
-    <span class="s1">&#39;Interesting&#39;</span><span class="p">,</span>   <span class="c1"># flag a case as interesting</span>
-
+    <span class="s1">&#39;Interesting&#39;</span><span class="p">,</span>  <span class="c1"># flag a case as interesting</span>
     <span class="s1">&#39;JoinCase&#39;</span><span class="p">,</span>  <span class="c1"># case should actually be marked as correct</span>
     <span class="s1">&#39;SplitCase&#39;</span><span class="p">,</span>  <span class="c1"># case should actually be marked as correct</span>
-
     <span class="s1">&#39;random&#39;</span><span class="p">,</span>  <span class="c1"># gf case has random matches, the gt is to blame</span>
-
     <span class="s1">&#39;BadShoulder&#39;</span><span class="p">,</span>  <span class="c1"># gf is a bad shoulder match</span>
     <span class="s1">&#39;BadTail&#39;</span><span class="p">,</span>  <span class="c1"># gf is a bad tail match</span>
     <span class="s1">&#39;TimeDeltaError&#39;</span><span class="p">,</span>
-
     <span class="c1"># These annots have almost the same information</span>
     <span class="s1">&#39;NearDuplicate&#39;</span><span class="p">,</span>
     <span class="s1">&#39;CorrectPhotobomb&#39;</span><span class="p">,</span>  <span class="c1"># FIXME: this is a terrible name</span>
@@ -106,21 +216,17 @@
 
 <span class="c1"># Changes to prop names</span>
 <span class="n">PROP_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;ViewpointCanDo&#39;</span> <span class="p">:</span> <span class="s1">&#39;Correctable&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;ViewpointOMG&#39;</span>   <span class="p">:</span> <span class="s1">&#39;Uncorrectable&#39;</span><span class="p">,</span>
-
-    <span class="s1">&#39;Shadowing&#39;</span>      <span class="p">:</span> <span class="s1">&#39;Lighting&#39;</span><span class="p">,</span>
-
+    <span class="s1">&#39;ViewpointCanDo&#39;</span><span class="p">:</span> <span class="s1">&#39;Correctable&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ViewpointOMG&#39;</span><span class="p">:</span> <span class="s1">&#39;Uncorrectable&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Shadowing&#39;</span><span class="p">:</span> <span class="s1">&#39;Lighting&#39;</span><span class="p">,</span>
     <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s1">&#39;GoodCoverage&#39;</span><span class="p">:</span>  <span class="kc">None</span><span class="p">,</span>
-
+    <span class="s1">&#39;GoodCoverage&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="c1">#&#39;Hard&#39;           : &#39;NeedsWork&#39;,</span>
-    <span class="s1">&#39;shouldhavemore&#39;</span> <span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;BadCoverage&#39;</span>    <span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;ScoringIssue&#39;</span>   <span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
-
-    <span class="s1">&#39;TooSmallMatches&#39;</span> <span class="p">:</span> <span class="s1">&#39;FeatureScale&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;TooLargeMatches&#39;</span> <span class="p">:</span> <span class="s1">&#39;FeatureScale&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;shouldhavemore&#39;</span><span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BadCoverage&#39;</span><span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ScoringIssue&#39;</span><span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TooSmallMatches&#39;</span><span class="p">:</span> <span class="s1">&#39;FeatureScale&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TooLargeMatches&#39;</span><span class="p">:</span> <span class="s1">&#39;FeatureScale&#39;</span><span class="p">,</span>
     <span class="c1">#&#39;BadShoulder&#39; : &#39;BadShoulder&#39;,</span>
     <span class="c1">#&#39;GoodCoverage&#39;: None,</span>
 <span class="p">}</span>
@@ -133,11 +239,11 @@
 
 <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OTHER</span><span class="p">])</span>
 <span class="n">ANNOTMATCH_PROPS_OLD_SET</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">OLD_ANNOTMATCH_PROPS</span><span class="p">])</span>
-<span class="c1">#ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])</span>
+<span class="c1"># ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])</span>
 
 
 <div class="viewcode-block" id="consolodate_annotmatch_tags"><a class="viewcode-back" href="../../wbia.html#wbia.tag_funcs.consolodate_annotmatch_tags">[docs]</a><span class="k">def</span> <span class="nf">consolodate_annotmatch_tags</span><span class="p">(</span><span class="n">old_tags</span><span class="p">):</span>
-    <span class="c1">#return case_tags</span>
+    <span class="c1"># return case_tags</span>
     <span class="n">remove_tags</span> <span class="o">=</span> <span class="p">[</span>
         <span class="s1">&#39;hard&#39;</span><span class="p">,</span>
         <span class="s1">&#39;needswork&#39;</span><span class="p">,</span>
@@ -188,7 +294,7 @@
 
     <span class="n">filtered_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">filter_tags</span><span class="p">,</span> <span class="n">old_tags</span><span class="p">))</span>
     <span class="n">mapped_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">map_tags</span><span class="p">,</span> <span class="n">filtered_tags</span><span class="p">))</span>
-    <span class="n">unique_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span>  <span class="n">mapped_tags</span><span class="p">))</span>
+    <span class="n">unique_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span> <span class="n">mapped_tags</span><span class="p">))</span>
     <span class="n">new_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">cap_tags</span><span class="p">,</span> <span class="n">unique_tags</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">new_tags</span></div>
@@ -211,13 +317,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">tags_list_</span> <span class="o">=</span> <span class="n">get_annotmatch_case_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">fix_tags</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">}</span>
+
     <span class="n">tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">fix_tags</span><span class="p">,</span> <span class="n">tags_list_</span><span class="p">))</span>
 
     <span class="n">prop_mapping</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span> <span class="n">val</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">PROP_MAPPING</span><span class="p">)</span>
+        <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">PROP_MAPPING</span><span class="p">)</span>
     <span class="p">}</span>
 
     <span class="n">bad_tags</span> <span class="o">=</span> <span class="n">fix_tags</span><span class="p">(</span><span class="n">prop_mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -235,7 +342,7 @@
 <div class="viewcode-block" id="get_cate_categories"><a class="viewcode-back" href="../../wbia.html#wbia.tag_funcs.get_cate_categories">[docs]</a><span class="k">def</span> <span class="nf">get_cate_categories</span><span class="p">():</span>
     <span class="n">standard</span> <span class="o">=</span> <span class="n">ANNOTMATCH_PROPS_STANDARD</span>
     <span class="n">other</span> <span class="o">=</span> <span class="n">ANNOTMATCH_PROPS_OTHER</span>
-    <span class="c1">#case_list = standard + other</span>
+    <span class="c1"># case_list = standard + other</span>
     <span class="k">return</span> <span class="n">standard</span><span class="p">,</span> <span class="n">other</span></div>
 
 
@@ -264,8 +371,9 @@
 <span class="sd">        &gt;&gt;&gt; export_tagged_chips(ibs, aid_list, dpath)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">visual_uuid_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;exported_chips2_&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span>
-                            <span class="n">visual_uuid_hashid</span> <span class="o">+</span> <span class="s1">&#39;.zip&#39;</span><span class="p">)</span>
+    <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span>
+        <span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;exported_chips2_&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="n">visual_uuid_hashid</span> <span class="o">+</span> <span class="s1">&#39;.zip&#39;</span>
+    <span class="p">)</span>
     <span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">chip_fpath</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
@@ -357,36 +465,50 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
     <span class="k">if</span> <span class="n">directed</span><span class="p">:</span>
-        <span class="n">annotmatch_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span><span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">annotmatch_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span>
+            <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_case_tags</span><span class="p">(</span><span class="n">annotmatch_rowid</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">annotmatch_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">annotmatch_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span>
+            <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_case_tags</span><span class="p">(</span><span class="n">annotmatch_rowid</span><span class="p">)</span>
         <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
             <span class="n">expanded_aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
             <span class="n">expanded_annotmatch_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span>
-                <span class="n">expanded_aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">expanded_aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">expanded_aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">expanded_aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span>
             <span class="n">expanded_edgeids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_undirected_edge_ids</span><span class="p">(</span><span class="n">expanded_aid_pairs</span><span class="p">)</span>
             <span class="n">unique_edgeids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">expanded_edgeids</span><span class="p">)</span>
             <span class="n">expanded_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_case_tags</span><span class="p">(</span><span class="n">expanded_annotmatch_rowid</span><span class="p">)</span>
-            <span class="n">grouped_tags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">expanded_tags_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">),</span> <span class="n">groupxs</span><span class="p">)</span>
+            <span class="n">grouped_tags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">expanded_tags_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">),</span> <span class="n">groupxs</span>
+            <span class="p">)</span>
             <span class="n">undirected_tags</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tags</span><span class="p">)))</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">grouped_tags</span><span class="p">]</span>
             <span class="n">edgeid2_tags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_edgeids</span><span class="p">,</span> <span class="n">undirected_tags</span><span class="p">))</span>
-            <span class="n">input_edgeids</span> <span class="o">=</span> <span class="n">expanded_edgeids</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)]</span>
+            <span class="n">input_edgeids</span> <span class="o">=</span> <span class="n">expanded_edgeids</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)]</span>
             <span class="n">tags_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">edgeid2_tags</span><span class="p">,</span> <span class="n">input_edgeids</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tags_list</span></div>
 
 
 <div class="viewcode-block" id="filter_aidpairs_by_tags"><a class="viewcode-back" href="../../wbia.html#wbia.tag_funcs.filter_aidpairs_by_tags">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">filter_aidpairs_by_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">has_any</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">has_all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">am_rowids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">filter_aidpairs_by_tags</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">has_any</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">has_all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">am_rowids</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    list(zip(aid_pairs, undirected_tags))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)</span>
+    <span class="c1"># annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)</span>
 
     <span class="n">filtered_annotmatch_rowids</span> <span class="o">=</span> <span class="n">filter_annotmatch_by_tags</span><span class="p">(</span>
-        <span class="n">ibs</span><span class="p">,</span> <span class="n">am_rowids</span><span class="p">,</span> <span class="n">has_any</span><span class="o">=</span><span class="n">has_any</span><span class="p">,</span> <span class="n">has_all</span><span class="o">=</span><span class="n">has_all</span><span class="p">,</span> <span class="n">min_num</span><span class="o">=</span><span class="n">min_num</span><span class="p">,</span>
-        <span class="n">max_num</span><span class="o">=</span><span class="n">max_num</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">am_rowids</span><span class="p">,</span>
+        <span class="n">has_any</span><span class="o">=</span><span class="n">has_any</span><span class="p">,</span>
+        <span class="n">has_all</span><span class="o">=</span><span class="n">has_all</span><span class="p">,</span>
+        <span class="n">min_num</span><span class="o">=</span><span class="n">min_num</span><span class="p">,</span>
+        <span class="n">max_num</span><span class="o">=</span><span class="n">max_num</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">aid1_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid1</span><span class="p">(</span><span class="n">filtered_annotmatch_rowids</span><span class="p">))</span>
     <span class="n">aid2_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid2</span><span class="p">(</span><span class="n">filtered_annotmatch_rowids</span><span class="p">))</span>
     <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
@@ -397,8 +519,8 @@
     <span class="n">aid2_list</span> <span class="o">=</span> <span class="n">aid2_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
     <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
     <span class="k">return</span> <span class="n">aid_pairs</span></div>
-    <span class="c1">#directed_tags = get_aidpair_tags(ibs, aid_pairs.T[0], aid_pairs.T[1], directed=True)</span>
-    <span class="c1">#valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)</span>
+    <span class="c1"># directed_tags = get_aidpair_tags(ibs, aid_pairs.T[0], aid_pairs.T[1], directed=True)</span>
+    <span class="c1"># valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)</span>
 
 
 <div class="viewcode-block" id="filter_annotmatch_by_tags"><a class="viewcode-back" href="../../wbia.html#wbia.tag_funcs.filter_annotmatch_by_tags">[docs]</a><span class="k">def</span> <span class="nf">filter_annotmatch_by_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -469,17 +591,19 @@
 <span class="c1"># TODO: ut.filterflags_general_tags</span>
 
 
-<div class="viewcode-block" id="filterflags_general_tags"><a class="viewcode-back" href="../../wbia.html#wbia.tag_funcs.filterflags_general_tags">[docs]</a><span class="k">def</span> <span class="nf">filterflags_general_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span>
-                             <span class="n">has_any</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">has_all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">has_none</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">min_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">max_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">any_startswith</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">any_endswith</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">any_match</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">none_match</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">logic</span><span class="o">=</span><span class="s1">&#39;and&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="filterflags_general_tags"><a class="viewcode-back" href="../../wbia.html#wbia.tag_funcs.filterflags_general_tags">[docs]</a><span class="k">def</span> <span class="nf">filterflags_general_tags</span><span class="p">(</span>
+    <span class="n">tags_list</span><span class="p">,</span>
+    <span class="n">has_any</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">has_all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">has_none</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">any_startswith</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">any_endswith</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">any_match</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">none_match</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">logic</span><span class="o">=</span><span class="s1">&#39;and&#39;</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    maybe integrate into utool? Seems pretty general</span>
 
@@ -549,15 +673,9 @@
     <span class="k">if</span> <span class="n">logic</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logic</span> <span class="o">=</span> <span class="s1">&#39;and&#39;</span>
 
-    <span class="n">logic_func</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span>
-        <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,</span>
-    <span class="p">}[</span><span class="n">logic</span><span class="p">]</span>
+    <span class="n">logic_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span> <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,}[</span><span class="n">logic</span><span class="p">]</span>
 
-    <span class="n">default_func</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">,</span>
-        <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">,</span>
-    <span class="p">}[</span><span class="n">logic</span><span class="p">]</span>
+    <span class="n">default_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">,</span> <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">,}[</span><span class="n">logic</span><span class="p">]</span>
 
     <span class="n">tags_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">fix_tags</span><span class="p">(</span><span class="n">tags_</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags_</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
     <span class="n">flags</span> <span class="o">=</span> <span class="n">default_func</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tags_list_</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
@@ -582,7 +700,9 @@
 
     <span class="k">if</span> <span class="n">has_all</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">has_all</span> <span class="o">=</span> <span class="n">fix_tags</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">has_all</span><span class="p">)))</span>
-        <span class="n">flags_</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">has_all</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">tags_</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">has_all</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags_</span> <span class="ow">in</span> <span class="n">tags_list_</span><span class="p">]</span>
+        <span class="n">flags_</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">has_all</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">tags_</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">has_all</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags_</span> <span class="ow">in</span> <span class="n">tags_list_</span>
+        <span class="p">]</span>
         <span class="n">logic_func</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span> <span class="n">flags_</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">check_item</span><span class="p">(</span><span class="n">tags_</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">compare</span><span class="p">):</span>
@@ -603,20 +723,20 @@
         <span class="k">return</span> <span class="n">flags</span>
 
     <span class="n">flags</span> <span class="o">=</span> <span class="n">execute_filter</span><span class="p">(</span>
-        <span class="n">flags</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">,</span> <span class="n">any_startswith</span><span class="p">,</span>
-        <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">)</span>
+        <span class="n">flags</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">,</span> <span class="n">any_startswith</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="o">.</span><span class="n">startswith</span>
+    <span class="p">)</span>
 
     <span class="n">flags</span> <span class="o">=</span> <span class="n">execute_filter</span><span class="p">(</span>
-        <span class="n">flags</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">,</span> <span class="n">any_endswith</span><span class="p">,</span>
-        <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="o">.</span><span class="n">endswith</span><span class="p">)</span>
+        <span class="n">flags</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">,</span> <span class="n">any_endswith</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="o">.</span><span class="n">endswith</span>
+    <span class="p">)</span>
 
     <span class="n">flags</span> <span class="o">=</span> <span class="n">execute_filter</span><span class="p">(</span>
-        <span class="n">flags</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">,</span> <span class="n">any_match</span><span class="p">,</span>
-        <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+        <span class="n">flags</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">,</span> <span class="n">any_match</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="n">flags</span> <span class="o">=</span> <span class="n">execute_filter</span><span class="p">(</span>
-        <span class="n">flags</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">,</span> <span class="n">none_match</span><span class="p">,</span>
-        <span class="n">operator</span><span class="o">.</span><span class="n">eq</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+        <span class="n">flags</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">,</span> <span class="n">none_match</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">eq</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">flags</span></div>
 
 
@@ -647,9 +767,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">standard</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="n">get_cate_categories</span><span class="p">()</span>
     <span class="n">annotmatch_tag_texts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_tag_text</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
-    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_parse_tags</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">annotmatch_tag_texts_list</span><span class="p">]</span>
-    <span class="c1">#NEW = False</span>
-    <span class="c1">#if NEW:</span>
+    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_parse_tags</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">annotmatch_tag_texts_list</span>
+    <span class="p">]</span>
+    <span class="c1"># NEW = False</span>
+    <span class="c1"># if NEW:</span>
     <span class="c1">#    # hack for faster tag parsing</span>
     <span class="c1">#    from wbia.control import _autogen_annotmatch_funcs as _aaf</span>
     <span class="c1">#    import itertools</span>
@@ -664,13 +786,13 @@
     <span class="c1">#    standardtags = [x[len(&#39;annotmatch_is_&#39;):] for x in colnames]</span>
     <span class="c1">#    standard_tags_list = ut.list_zipcompress(itertools.repeat(standardtags), annotmatch_is_col)</span>
     <span class="c1">#    tags_list = [tags1 + tags2 for tags1, tags2 in zip(tags_list, standard_tags_list)]</span>
-    <span class="c1">#else:</span>
+    <span class="c1"># else:</span>
     <span class="c1">#    for case in standard:</span>
     <span class="c1">#        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)</span>
     <span class="c1">#        for tags in ut.compress(tags_list, flag_list):</span>
     <span class="c1">#            tags.append(case)</span>
     <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
-    <span class="c1">#if ut.get_argval(&#39;--consol&#39;) or True:</span>
+    <span class="c1"># if ut.get_argval(&#39;--consol&#39;) or True:</span>
     <span class="c1">#    tags_list = consolodate_annotmatch_tags(tags_list)</span>
     <span class="k">return</span> <span class="n">tags_list</span></div>
 
@@ -730,7 +852,7 @@
 <span class="sd">        &gt;&gt;&gt; flag_list2 = get_annotmatch_prop(ibs, prop, annotmatch_rowids)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;flag_list2 = %r&#39; % (flag_list2,))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:</span>
+    <span class="c1"># if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:</span>
     <span class="c1">#    return ibs.get_annotmatch_standard_prop(prop, annotmatch_rowids)</span>
     <span class="k">for</span> <span class="n">prop_</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">prop</span><span class="p">):</span>
         <span class="n">flag1</span> <span class="o">=</span> <span class="n">prop_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span>
@@ -745,14 +867,21 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    hacky setter for dynamic properties of annotmatches using notes table</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] set_annotmatch_prop prop=</span><span class="si">%s</span><span class="s1"> for </span><span class="si">%d</span><span class="s1"> pairs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)))</span>
-    <span class="c1">#if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs] set_annotmatch_prop prop=</span><span class="si">%s</span><span class="s1"> for </span><span class="si">%d</span><span class="s1"> pairs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="c1"># if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:</span>
     <span class="c1">#    setter = getattr(ibs, &#39;set_annotmatch_is_&#39; + prop.lower())</span>
     <span class="c1">#    return setter(annotmatch_rowids, flags)</span>
-    <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span> <span class="ow">or</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OLD_SET</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span>
+        <span class="ow">or</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OLD_SET</span>
+    <span class="p">):</span>
         <span class="k">return</span> <span class="n">set_annotmatch_other_prop</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Unknown prop=</span><span class="si">%r</span><span class="s1"> not in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span><span class="p">))</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s1">&#39;Unknown prop=</span><span class="si">%r</span><span class="s1"> not in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span><span class="p">)</span>
+        <span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">_parse_tags</span><span class="p">(</span><span class="n">note</span><span class="p">):</span>
@@ -788,20 +917,17 @@
 <div class="viewcode-block" id="get_textformat_tag_flags"><a class="viewcode-back" href="../../wbia.html#wbia.tag_funcs.get_textformat_tag_flags">[docs]</a><span class="nd">@profile</span>
 <span class="k">def</span> <span class="nf">get_textformat_tag_flags</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">text_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; general text tag getter hack &quot;&quot;&quot;</span>
-    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_parse_tags</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
-                 <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">]</span>
+    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_parse_tags</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">prop</span><span class="p">):</span>
         <span class="n">props_</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prop</span><span class="p">]</span>
         <span class="n">flags_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">prop_</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">)</span>
-             <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
+            <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">prop_</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">prop_</span> <span class="ow">in</span> <span class="n">props_</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">flags_list</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">prop</span> <span class="o">=</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">prop</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">)</span>
-                     <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">prop</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">flag_list</span></div>
 
 
@@ -829,21 +955,16 @@
     <span class="s1">&#39;interesting&#39;</span><span class="p">,</span>
     <span class="s1">&#39;error:viewpoint&#39;</span><span class="p">,</span>
     <span class="s1">&#39;error:quality&#39;</span><span class="p">,</span>
-
     <span class="s1">&#39;occlusion:large&#39;</span><span class="p">,</span>
     <span class="s1">&#39;occlusion:medium&#39;</span><span class="p">,</span>
     <span class="s1">&#39;occlusion:small&#39;</span><span class="p">,</span>
-
     <span class="s1">&#39;lighting:shadowed&#39;</span><span class="p">,</span>
     <span class="s1">&#39;lighting:overexposed&#39;</span><span class="p">,</span>
     <span class="s1">&#39;lighting:underexposed&#39;</span><span class="p">,</span>
-
     <span class="s1">&#39;quality:washedout&#39;</span><span class="p">,</span>
     <span class="s1">&#39;quality:blury&#39;</span><span class="p">,</span>
-
     <span class="s1">&#39;pose:novel&#39;</span><span class="p">,</span>
     <span class="s1">&#39;pose:common&#39;</span><span class="p">,</span>
-
     <span class="s1">&#39;error:bbox&#39;</span><span class="p">,</span>
     <span class="s1">&#39;error:mask&#39;</span><span class="p">,</span>
     <span class="s1">&#39;error:other&#39;</span><span class="p">,</span>
@@ -884,7 +1005,7 @@
 <span class="sd">    TODO: remove</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Ensure each item is a list</span>
-    <span class="c1">#tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]</span>
+    <span class="c1"># tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag_list</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="c1"># Apply single tag to everybody</span>
         <span class="n">tag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_list</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -926,8 +1047,8 @@
 <span class="sd">    BE VERY CAREFUL WITH THIS FUNCTION</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tag_list</span><span class="p">])</span>
-    <span class="c1">#text_list = ibs.get_annot_tag_text(aid_list)</span>
-    <span class="c1">#orig_tags_list = [[] if note is None else _parse_tags(note) for note in text_list]</span>
+    <span class="c1"># text_list = ibs.get_annot_tag_text(aid_list)</span>
+    <span class="c1"># orig_tags_list = [[] if note is None else _parse_tags(note) for note in text_list]</span>
     <span class="n">new_tags_list</span> <span class="o">=</span> <span class="n">tag_list</span>
     <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">new_tags_list</span><span class="p">]</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_text_list</span><span class="p">)</span></div>
@@ -1054,8 +1175,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">unflat_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_case_tags</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">)</span>
-    <span class="n">annotmatch_tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">_unflat_tags</span><span class="p">)))</span> <span class="k">for</span>
-                            <span class="n">_unflat_tags</span> <span class="ow">in</span> <span class="n">unflat_tags_list</span><span class="p">]</span>
+    <span class="n">annotmatch_tags_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">_unflat_tags</span><span class="p">)))</span> <span class="k">for</span> <span class="n">_unflat_tags</span> <span class="ow">in</span> <span class="n">unflat_tags_list</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">annotmatch_tags_list</span></div>
 
 
@@ -1081,9 +1203,12 @@
 
     <span class="n">annotmatch_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_annotmatch_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_case_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">both_tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span>
-                                                         <span class="nb">zip</span><span class="p">(</span><span class="n">annot_tags_list</span><span class="p">,</span>
-                                                             <span class="n">annotmatch_tags_list</span><span class="p">))))</span>
+    <span class="n">both_tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span>
+            <span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annot_tags_list</span><span class="p">,</span> <span class="n">annotmatch_tags_list</span><span class="p">)),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">both_tags_list</span></div>
 
 
@@ -1095,18 +1220,37 @@
 <span class="sd">        python -m wbia.tag_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1114,55 +1258,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../contents.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  <li><a href="../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>
