@@ -1,39 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.futures_utils.process_actor &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.web.futures_utils.process_actor &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.web.futures_utils.process_actor</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.web.futures_utils.process_actor</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot; Implements ProcessActor &quot;&quot;&quot;</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; Implements ProcessActor &quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="k">import</span> <span class="n">_base</span>
 <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="k">import</span> <span class="n">process</span>
@@ -57,8 +173,7 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Jon Crall (erotemic@gmail.com)&#39;</span>
 
 
-<span class="k">def</span> <span class="nf">_process_actor_eventloop</span><span class="p">(</span><span class="n">_call_queue</span><span class="p">,</span> <span class="n">_result_queue</span><span class="p">,</span> <span class="n">_ActorClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span>
-                             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_process_actor_eventloop</span><span class="p">(</span><span class="n">_call_queue</span><span class="p">,</span> <span class="n">_result_queue</span><span class="p">,</span> <span class="n">_ActorClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    actor event loop run in a separate process.</span>
 
@@ -78,11 +193,9 @@
             <span class="n">r</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">call_item</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">exc</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">_ExceptionWithTraceback</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">__traceback__</span><span class="p">)</span>
-            <span class="n">_result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">_ResultItem</span><span class="p">(</span>
-                <span class="n">call_item</span><span class="o">.</span><span class="n">work_id</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">exc</span><span class="p">))</span>
+            <span class="n">_result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">_ResultItem</span><span class="p">(</span><span class="n">call_item</span><span class="o">.</span><span class="n">work_id</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">exc</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">_ResultItem</span><span class="p">(</span>
-                <span class="n">call_item</span><span class="o">.</span><span class="n">work_id</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">r</span><span class="p">))</span>
+            <span class="n">_result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">_ResultItem</span><span class="p">(</span><span class="n">call_item</span><span class="o">.</span><span class="n">work_id</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">r</span><span class="p">))</span>
 
 
 <span class="k">class</span> <span class="nc">_WorkItem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -97,9 +210,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
 
 
-<span class="k">def</span> <span class="nf">_add_call_item_to_queue</span><span class="p">(</span><span class="n">pending_work_items</span><span class="p">,</span>
-                            <span class="n">work_ids</span><span class="p">,</span>
-                            <span class="n">call_queue</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_add_call_item_to_queue</span><span class="p">(</span><span class="n">pending_work_items</span><span class="p">,</span> <span class="n">work_ids</span><span class="p">,</span> <span class="n">call_queue</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Fills call_queue with _WorkItems from pending_work_items.</span>
 
 <span class="sd">    This function never blocks.</span>
@@ -125,20 +236,20 @@
             <span class="n">work_item</span> <span class="o">=</span> <span class="n">pending_work_items</span><span class="p">[</span><span class="n">work_id</span><span class="p">]</span>
 
             <span class="k">if</span> <span class="n">work_item</span><span class="o">.</span><span class="n">future</span><span class="o">.</span><span class="n">set_running_or_notify_cancel</span><span class="p">():</span>
-                <span class="n">call_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">_CallItem</span><span class="p">(</span><span class="n">work_id</span><span class="p">,</span>
-                                         <span class="n">work_item</span><span class="o">.</span><span class="n">message</span><span class="p">),</span>
-                               <span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">call_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">_CallItem</span><span class="p">(</span><span class="n">work_id</span><span class="p">,</span> <span class="n">work_item</span><span class="o">.</span><span class="n">message</span><span class="p">),</span> <span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">del</span> <span class="n">pending_work_items</span><span class="p">[</span><span class="n">work_id</span><span class="p">]</span>
                 <span class="k">continue</span>
 
 
-<span class="k">def</span> <span class="nf">_queue_management_worker</span><span class="p">(</span><span class="n">executor_reference</span><span class="p">,</span>
-                             <span class="n">_manager</span><span class="p">,</span>
-                             <span class="n">pending_work_items</span><span class="p">,</span>
-                             <span class="n">work_ids_queue</span><span class="p">,</span>
-                             <span class="n">_call_queue</span><span class="p">,</span>
-                             <span class="n">_result_queue</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_queue_management_worker</span><span class="p">(</span>
+    <span class="n">executor_reference</span><span class="p">,</span>
+    <span class="n">_manager</span><span class="p">,</span>
+    <span class="n">pending_work_items</span><span class="p">,</span>
+    <span class="n">work_ids_queue</span><span class="p">,</span>
+    <span class="n">_call_queue</span><span class="p">,</span>
+    <span class="n">_result_queue</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manages the communication between this process and the worker processes.&quot;&quot;&quot;</span>
     <span class="n">executor</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -158,9 +269,7 @@
     <span class="n">reader</span> <span class="o">=</span> <span class="n">_result_queue</span><span class="o">.</span><span class="n">_reader</span>
 
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">_add_call_item_to_queue</span><span class="p">(</span><span class="n">pending_work_items</span><span class="p">,</span>
-                                <span class="n">work_ids_queue</span><span class="p">,</span>
-                                <span class="n">_call_queue</span><span class="p">)</span>
+        <span class="n">_add_call_item_to_queue</span><span class="p">(</span><span class="n">pending_work_items</span><span class="p">,</span> <span class="n">work_ids_queue</span><span class="p">,</span> <span class="n">_call_queue</span><span class="p">)</span>
 
         <span class="n">sentinel</span> <span class="o">=</span> <span class="n">_manager</span><span class="o">.</span><span class="n">sentinel</span>
         <span class="k">assert</span> <span class="n">sentinel</span>
@@ -178,10 +287,11 @@
             <span class="k">for</span> <span class="n">work_id</span><span class="p">,</span> <span class="n">work_item</span> <span class="ow">in</span> <span class="n">pending_work_items</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">work_item</span><span class="o">.</span><span class="n">future</span><span class="o">.</span><span class="n">set_exception</span><span class="p">(</span>
                     <span class="n">process</span><span class="o">.</span><span class="n">BrokenProcessPool</span><span class="p">(</span>
-                        <span class="s2">&quot;A process in the process pool was &quot;</span>
-                        <span class="s2">&quot;terminated abruptly while the future was &quot;</span>
-                        <span class="s2">&quot;running or pending.&quot;</span>
-                    <span class="p">))</span>
+                        <span class="s1">&#39;A process in the process pool was &#39;</span>
+                        <span class="s1">&#39;terminated abruptly while the future was &#39;</span>
+                        <span class="s1">&#39;running or pending.&#39;</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="c1"># Delete references to object. See issue16284</span>
                 <span class="k">del</span> <span class="n">work_item</span>
             <span class="n">pending_work_items</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
@@ -229,7 +339,6 @@
 
 
 <div class="viewcode-block" id="ProcessActorExecutor"><a class="viewcode-back" href="../../../../wbia.web.futures_utils.html#wbia.web.futures_utils.process_actor.ProcessActorExecutor">[docs]</a><span class="k">class</span> <span class="nc">ProcessActorExecutor</span><span class="p">(</span><span class="n">_base_actor</span><span class="o">.</span><span class="n">ActorExecutor</span><span class="p">):</span>
-
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_ActorClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">process</span><span class="o">.</span><span class="n">_check_system_limits</span><span class="p">()</span>
 
@@ -266,7 +375,8 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_broken</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">process</span><span class="o">.</span><span class="n">BrokenProcessPool</span><span class="p">(</span>
                     <span class="s1">&#39;A child process terminated &#39;</span>
-                    <span class="s1">&#39;abruptly, the process pool is not usable anymore&#39;</span><span class="p">)</span>
+                    <span class="s1">&#39;abruptly, the process pool is not usable anymore&#39;</span>
+                <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shutdown_thread</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;cannot schedule new futures after shutdown&#39;</span><span class="p">)</span>
 
@@ -281,6 +391,7 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_start_queue_management_thread</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">f</span></div>
+
     <span class="n">post</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">_base_actor</span><span class="o">.</span><span class="n">ActorExecutor</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="vm">__doc__</span>
 
     <span class="k">def</span> <span class="nf">_start_queue_management_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -295,12 +406,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_actor</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_queue_management_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span>
                 <span class="n">target</span><span class="o">=</span><span class="n">_queue_management_worker</span><span class="p">,</span>
-                <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weakref_cb</span><span class="p">),</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="p">,</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">_pending_work_items</span><span class="p">,</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">_work_ids</span><span class="p">,</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">_call_queue</span><span class="p">,</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">_result_queue</span><span class="p">))</span>
+                <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weakref_cb</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pending_work_items</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_work_ids</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_call_queue</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_result_queue</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_queue_management_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_queue_management_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="c1"># use structures already in futures as much as possible</span>
@@ -313,9 +427,9 @@
             <span class="c1"># We only maintain one thread process for an actor</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span>
                 <span class="n">target</span><span class="o">=</span><span class="n">_process_actor_eventloop</span><span class="p">,</span>
-                <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_call_queue</span><span class="p">,</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">_result_queue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ActorClass</span><span class="p">)</span> <span class="o">+</span> <span class="n">args</span><span class="p">,</span>
-                <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_call_queue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result_queue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ActorClass</span><span class="p">)</span> <span class="o">+</span> <span class="n">args</span><span class="p">,</span>
+                <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
 <div class="viewcode-block" id="ProcessActorExecutor.shutdown"><a class="viewcode-back" href="../../../../wbia.web.futures_utils.html#wbia.web.futures_utils.process_actor.ProcessActorExecutor.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -332,26 +446,45 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_call_queue</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_result_queue</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span> <span class="o">=</span> <span class="kc">None</span></div>
+
     <span class="n">shutdown</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">_base</span><span class="o">.</span><span class="n">Executor</span><span class="o">.</span><span class="n">shutdown</span><span class="o">.</span><span class="vm">__doc__</span></div>
 
 
 <div class="viewcode-block" id="ProcessActor"><a class="viewcode-back" href="../../../../wbia.web.futures_utils.html#wbia.web.futures_utils.process_actor.ProcessActor">[docs]</a><span class="k">class</span> <span class="nc">ProcessActor</span><span class="p">(</span><span class="n">_base_actor</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
-
 <div class="viewcode-block" id="ProcessActor.executor"><a class="viewcode-back" href="../../../../wbia.web.futures_utils.html#wbia.web.futures_utils.process_actor.ProcessActor.executor">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">executor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">ProcessActorExecutor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
     <span class="c1"># executor.__doc__ = _base_actor.Actor.executor.__doc___</span>
+
 
 <span class="c1"># ProcessActor.__doc__ = _base_actor.Actor.__doc___</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -359,55 +492,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

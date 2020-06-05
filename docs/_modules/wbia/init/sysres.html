@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.init.sysres &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.init.sysres &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.init.sysres</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.init.sysres</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -47,9 +162,10 @@
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">input</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">params</span>
+
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="n">WORKDIR_CACHEID</span>   <span class="o">=</span> <span class="s1">&#39;work_directory_cache_id&#39;</span>
+<span class="n">WORKDIR_CACHEID</span> <span class="o">=</span> <span class="s1">&#39;work_directory_cache_id&#39;</span>
 <span class="n">DEFAULTDB_CAHCEID</span> <span class="o">=</span> <span class="s1">&#39;cached_dbdir&#39;</span>
 <span class="n">LOGDIR_CACHEID</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">logdir_cacheid</span>
 <span class="n">__APPNAME__</span> <span class="o">=</span> <span class="s1">&#39;wbia&#39;</span>
@@ -79,6 +195,7 @@
 
 
 <span class="c1"># Specific cache getters / setters</span>
+
 
 <div class="viewcode-block" id="set_default_dbdir"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.sysres.set_default_dbdir">[docs]</a><span class="k">def</span> <span class="nf">set_default_dbdir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
@@ -163,6 +280,7 @@
 
 <div class="viewcode-block" id="set_logdir"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.sysres.set_logdir">[docs]</a><span class="k">def</span> <span class="nf">set_logdir</span><span class="p">(</span><span class="n">log_dir</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">realpath</span><span class="p">,</span> <span class="n">expanduser</span>
+
     <span class="n">log_dir</span> <span class="o">=</span> <span class="n">realpath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">log_dir</span><span class="p">))</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">stop_logging</span><span class="p">()</span>
@@ -184,6 +302,7 @@
 <div class="viewcode-block" id="guiselect_workdir"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.sysres.guiselect_workdir">[docs]</a><span class="k">def</span> <span class="nf">guiselect_workdir</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot; Prompts the user to specify a work directory &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia.guitool</span>
+
     <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
     <span class="c1"># Gui selection</span>
     <span class="n">work_dir</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">select_directory</span><span class="p">(</span><span class="s1">&#39;Select a work directory&#39;</span><span class="p">)</span>
@@ -195,7 +314,8 @@
             <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;Directory </span><span class="si">%r</span><span class="s1"> does not exist.&#39;</span> <span class="o">%</span> <span class="n">work_dir</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s1">&#39;get work dir failed&#39;</span><span class="p">,</span>
             <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Try Again&#39;</span><span class="p">],</span>
-            <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">try_again</span> <span class="o">==</span> <span class="s1">&#39;Try Again&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">guiselect_workdir</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">work_dir</span></div>
@@ -206,35 +326,32 @@
     <span class="n">dbalias_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
         <span class="c1"># For jon&#39;s convinience</span>
-        <span class="n">dbalias_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-            <span class="s1">&#39;NAUTS&#39;</span><span class="p">:</span>            <span class="s1">&#39;NAUT_Dan&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;WD&#39;</span><span class="p">:</span>               <span class="s1">&#39;WD_Siva&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;LF&#39;</span><span class="p">:</span>               <span class="s1">&#39;LF_all&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;GZ&#39;</span><span class="p">:</span>               <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;MOTHERS&#39;</span><span class="p">:</span>          <span class="s1">&#39;PZ_MOTHERS&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;FROGS&#39;</span><span class="p">:</span>            <span class="s1">&#39;Frogs&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;TOADS&#39;</span><span class="p">:</span>            <span class="s1">&#39;WY_Toads&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;SEALS_SPOTTED&#39;</span><span class="p">:</span>    <span class="s1">&#39;Seals&#39;</span><span class="p">,</span>
-
-            <span class="s1">&#39;OXFORD&#39;</span><span class="p">:</span>           <span class="s1">&#39;Oxford_Buildings&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;PARIS&#39;</span><span class="p">:</span>            <span class="s1">&#39;Paris_Buildings&#39;</span><span class="p">,</span>
-
-            <span class="s1">&#39;JAG_KELLY&#39;</span><span class="p">:</span>        <span class="s1">&#39;JAG_Kelly&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;JAG_KIERYN&#39;</span><span class="p">:</span>       <span class="s1">&#39;JAG_Kieryn&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;WILDEBEAST&#39;</span><span class="p">:</span>       <span class="s1">&#39;Wildebeast&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;WDOGS&#39;</span><span class="p">:</span>            <span class="s1">&#39;WD_Siva&#39;</span><span class="p">,</span>
-
-            <span class="s1">&#39;PZ&#39;</span><span class="p">:</span>               <span class="s1">&#39;PZ_FlankHack&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;PZ2&#39;</span><span class="p">:</span>              <span class="s1">&#39;PZ-Sweatwater&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;PZ_MARIANNE&#39;</span><span class="p">:</span>      <span class="s1">&#39;PZ_Marianne&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;PZ_DANEXT_TEST&#39;</span><span class="p">:</span>   <span class="s1">&#39;PZ_DanExt_Test&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;PZ_DANEXT_ALL&#39;</span><span class="p">:</span>    <span class="s1">&#39;PZ_DanExt_All&#39;</span><span class="p">,</span>
-
-            <span class="s1">&#39;LF_ALL&#39;</span><span class="p">:</span>           <span class="s1">&#39;LF_all&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;WS_HARD&#39;</span><span class="p">:</span>          <span class="s1">&#39;WS_hard&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;SONOGRAMS&#39;</span><span class="p">:</span>        <span class="s1">&#39;sonograms&#39;</span><span class="p">,</span>
-
-        <span class="p">})</span>
+        <span class="n">dbalias_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;NAUTS&#39;</span><span class="p">:</span> <span class="s1">&#39;NAUT_Dan&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;WD&#39;</span><span class="p">:</span> <span class="s1">&#39;WD_Siva&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;LF&#39;</span><span class="p">:</span> <span class="s1">&#39;LF_all&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;GZ&#39;</span><span class="p">:</span> <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;MOTHERS&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ_MOTHERS&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;FROGS&#39;</span><span class="p">:</span> <span class="s1">&#39;Frogs&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;TOADS&#39;</span><span class="p">:</span> <span class="s1">&#39;WY_Toads&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;SEALS_SPOTTED&#39;</span><span class="p">:</span> <span class="s1">&#39;Seals&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;OXFORD&#39;</span><span class="p">:</span> <span class="s1">&#39;Oxford_Buildings&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PARIS&#39;</span><span class="p">:</span> <span class="s1">&#39;Paris_Buildings&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;JAG_KELLY&#39;</span><span class="p">:</span> <span class="s1">&#39;JAG_Kelly&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;JAG_KIERYN&#39;</span><span class="p">:</span> <span class="s1">&#39;JAG_Kieryn&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;WILDEBEAST&#39;</span><span class="p">:</span> <span class="s1">&#39;Wildebeast&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;WDOGS&#39;</span><span class="p">:</span> <span class="s1">&#39;WD_Siva&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PZ&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ_FlankHack&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PZ2&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ-Sweatwater&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PZ_MARIANNE&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ_Marianne&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PZ_DANEXT_TEST&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ_DanExt_Test&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PZ_DANEXT_ALL&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ_DanExt_All&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;LF_ALL&#39;</span><span class="p">:</span> <span class="s1">&#39;LF_all&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;WS_HARD&#39;</span><span class="p">:</span> <span class="s1">&#39;WS_hard&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;SONOGRAMS&#39;</span><span class="p">:</span> <span class="s1">&#39;sonograms&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
         <span class="n">dbalias_dict</span><span class="p">[</span><span class="s1">&#39;JAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dbalias_dict</span><span class="p">[</span><span class="s1">&#39;JAG_KELLY&#39;</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">dbalias_dict</span></div>
 
@@ -268,15 +385,14 @@
             <span class="k">break</span>
 
     <span class="c1"># Create the database if newdbs are allowed in the workdir</span>
-    <span class="c1">#print(&#39;allow_newdir=%r&#39; % allow_newdir)</span>
+    <span class="c1"># print(&#39;allow_newdir=%r&#39; % allow_newdir)</span>
     <span class="k">if</span> <span class="n">allow_newdir</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Complain if the implicit dbdir does not exist</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;!!!&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[sysres] WARNING: db=</span><span class="si">%r</span><span class="s1"> not found in work_dir=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
-              <span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[sysres] WARNING: db=</span><span class="si">%r</span><span class="s1"> not found in work_dir=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">))</span>
         <span class="n">fname_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
         <span class="n">lower_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fname</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fname_list</span><span class="p">]</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">lower_list</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
@@ -292,8 +408,10 @@
             <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;[sysres!] ERROR: Database does not exist and allow_newdir=False&#39;</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&lt;!!!&gt;&#39;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[sysres!] Here is a list of valid dbs: &#39;</span> <span class="o">+</span>
-                  <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">fname_list</span><span class="p">),</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  * &#39;</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;[sysres!] Here is a list of valid dbs: &#39;</span>
+                <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">fname_list</span><span class="p">),</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  * &#39;</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[sysres!] dbdir=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dbdir</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[sysres!] db=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">db</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[sysres!] work_dir=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">work_dir</span><span class="p">)</span>
@@ -362,8 +480,8 @@
     <span class="n">dbdir_arg</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dbdir</span>
     <span class="n">db_arg</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">db</span>
     <span class="c1"># TODO: use these instead of params</span>
-    <span class="c1">#ut.get_argval(&#39;--dbdir&#39;, return_was_specified=True))</span>
-    <span class="c1">#ut.get_argval(&#39;--db&#39;, return_was_specified=True)</span>
+    <span class="c1"># ut.get_argval(&#39;--dbdir&#39;, return_was_specified=True))</span>
+    <span class="c1"># ut.get_argval(&#39;--db&#39;, return_was_specified=True)</span>
     <span class="c1"># Check command line passed args</span>
     <span class="n">dbdir2</span> <span class="o">=</span> <span class="n">_db_arg_priorty</span><span class="p">(</span><span class="n">dbdir_arg</span><span class="p">,</span> <span class="n">db_arg</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">dbdir2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -408,12 +526,13 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
     <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">workdir</span> <span class="o">=</span> <span class="n">get_workdir</span><span class="p">()</span>
     <span class="n">dbname_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
     <span class="n">dbpath_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">dbname_list</span><span class="p">])</span>
     <span class="n">is_ibs_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">is_wbiadb</span><span class="p">,</span> <span class="n">dbpath_list</span><span class="p">)))</span>
-    <span class="n">ibsdb_list</span>  <span class="o">=</span> <span class="n">dbpath_list</span><span class="p">[</span><span class="n">is_ibs_list</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">ibsdb_list</span> <span class="o">=</span> <span class="n">dbpath_list</span><span class="p">[</span><span class="n">is_ibs_list</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">ibsdb_list</span></div>
 
 
@@ -445,12 +564,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ensure_pz_mtest&#39;</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">sysres</span>
+
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
     <span class="n">mtest_zipped_url</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">ZIPPED_URLS</span><span class="o">.</span><span class="n">PZ_MTEST</span>
     <span class="n">mtest_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span><span class="n">mtest_zipped_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;have mtest_dir=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mtest_dir</span><span class="p">,))</span>
     <span class="c1"># update the the newest database version</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cleaning up old database and ensureing everything is properly computed&#39;</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">vacuum</span><span class="p">()</span>
@@ -471,9 +592,44 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_exemplars_from_quality_and_viewpoint</span><span class="p">()</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_all_image_special_imageset</span><span class="p">()</span>
 
-    <span class="n">occurrence_gids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">29</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">33</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">46</span><span class="p">,</span> <span class="mi">47</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span>
-                       <span class="mi">57</span><span class="p">,</span> <span class="mi">61</span><span class="p">,</span> <span class="mi">66</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">71</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">74</span><span class="p">,</span> <span class="mi">76</span><span class="p">,</span> <span class="mi">77</span><span class="p">,</span> <span class="mi">78</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">87</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span>
-                       <span class="mi">96</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">106</span><span class="p">,</span> <span class="mi">108</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="mi">113</span><span class="p">]</span>
+    <span class="n">occurrence_gids</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">2</span><span class="p">,</span>
+        <span class="mi">9</span><span class="p">,</span>
+        <span class="mi">12</span><span class="p">,</span>
+        <span class="mi">16</span><span class="p">,</span>
+        <span class="mi">25</span><span class="p">,</span>
+        <span class="mi">26</span><span class="p">,</span>
+        <span class="mi">29</span><span class="p">,</span>
+        <span class="mi">30</span><span class="p">,</span>
+        <span class="mi">32</span><span class="p">,</span>
+        <span class="mi">33</span><span class="p">,</span>
+        <span class="mi">35</span><span class="p">,</span>
+        <span class="mi">46</span><span class="p">,</span>
+        <span class="mi">47</span><span class="p">,</span>
+        <span class="mi">52</span><span class="p">,</span>
+        <span class="mi">57</span><span class="p">,</span>
+        <span class="mi">61</span><span class="p">,</span>
+        <span class="mi">66</span><span class="p">,</span>
+        <span class="mi">70</span><span class="p">,</span>
+        <span class="mi">71</span><span class="p">,</span>
+        <span class="mi">73</span><span class="p">,</span>
+        <span class="mi">74</span><span class="p">,</span>
+        <span class="mi">76</span><span class="p">,</span>
+        <span class="mi">77</span><span class="p">,</span>
+        <span class="mi">78</span><span class="p">,</span>
+        <span class="mi">79</span><span class="p">,</span>
+        <span class="mi">87</span><span class="p">,</span>
+        <span class="mi">88</span><span class="p">,</span>
+        <span class="mi">90</span><span class="p">,</span>
+        <span class="mi">96</span><span class="p">,</span>
+        <span class="mi">97</span><span class="p">,</span>
+        <span class="mi">103</span><span class="p">,</span>
+        <span class="mi">106</span><span class="p">,</span>
+        <span class="mi">108</span><span class="p">,</span>
+        <span class="mi">110</span><span class="p">,</span>
+        <span class="mi">112</span><span class="p">,</span>
+        <span class="mi">113</span><span class="p">,</span>
+    <span class="p">]</span>
 
     <span class="n">other_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(),</span> <span class="n">occurrence_gids</span><span class="p">)</span>
     <span class="n">other_gids1</span> <span class="o">=</span> <span class="n">other_gids</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
@@ -484,8 +640,32 @@
 
     <span class="c1"># hack in some tags</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Hacking in some tags&#39;</span><span class="p">)</span>
-    <span class="n">foal_aids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">38</span><span class="p">,</span> <span class="mi">41</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">66</span><span class="p">,</span> <span class="mi">69</span><span class="p">,</span> <span class="mi">74</span><span class="p">,</span>
-                 <span class="mi">80</span><span class="p">,</span> <span class="mi">83</span><span class="p">,</span> <span class="mi">91</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">109</span><span class="p">,</span> <span class="mi">119</span><span class="p">]</span>
+    <span class="n">foal_aids</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">4</span><span class="p">,</span>
+        <span class="mi">8</span><span class="p">,</span>
+        <span class="mi">15</span><span class="p">,</span>
+        <span class="mi">21</span><span class="p">,</span>
+        <span class="mi">28</span><span class="p">,</span>
+        <span class="mi">34</span><span class="p">,</span>
+        <span class="mi">38</span><span class="p">,</span>
+        <span class="mi">41</span><span class="p">,</span>
+        <span class="mi">45</span><span class="p">,</span>
+        <span class="mi">49</span><span class="p">,</span>
+        <span class="mi">51</span><span class="p">,</span>
+        <span class="mi">56</span><span class="p">,</span>
+        <span class="mi">60</span><span class="p">,</span>
+        <span class="mi">66</span><span class="p">,</span>
+        <span class="mi">69</span><span class="p">,</span>
+        <span class="mi">74</span><span class="p">,</span>
+        <span class="mi">80</span><span class="p">,</span>
+        <span class="mi">83</span><span class="p">,</span>
+        <span class="mi">91</span><span class="p">,</span>
+        <span class="mi">97</span><span class="p">,</span>
+        <span class="mi">103</span><span class="p">,</span>
+        <span class="mi">107</span><span class="p">,</span>
+        <span class="mi">109</span><span class="p">,</span>
+        <span class="mi">119</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="n">mother_aids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">57</span><span class="p">,</span> <span class="mi">61</span><span class="p">,</span> <span class="mi">67</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">98</span><span class="p">,</span> <span class="mi">104</span><span class="p">,</span> <span class="mi">108</span><span class="p">,</span> <span class="mi">114</span><span class="p">]</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span><span class="n">foal_aids</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;foal&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">foal_aids</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span><span class="n">mother_aids</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mother&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">mother_aids</span><span class="p">))</span>
@@ -510,6 +690,7 @@
     <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
         <span class="c1"># Delete the graph databases to and set them up for tests</span>
         <span class="kn">import</span> <span class="nn">wbia</span>
+
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
         <span class="n">annotmatch</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">]</span>
         <span class="n">staging</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="p">[</span><span class="s1">&#39;reviews&#39;</span><span class="p">]</span>
@@ -548,6 +729,7 @@
 
     <span class="c1"># Make some small PCCs k-positive-redundant</span>
     <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+
     <span class="n">cand</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">find_pos_redun_candidate_edges</span><span class="p">())</span>
     <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">cand</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]:</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">evidence_decision</span><span class="o">=</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s1">&#39;user:setup4&#39;</span><span class="p">)</span>
@@ -576,24 +758,36 @@
     <span class="c1"># TODO: rectify with rsync, script, and merge script.</span>
     <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">normpath</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
-    <span class="n">exclude_dirs_</span> <span class="o">=</span> <span class="p">(</span><span class="n">wbia</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EXCLUDE_COPY_REL_DIRS</span> <span class="o">+</span>
-                     <span class="p">[</span><span class="s1">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s1">&#39;.hs_internals&#39;</span><span class="p">])</span>
-    <span class="n">exclude_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_unixslash</span><span class="p">(</span><span class="n">normpath</span><span class="p">(</span><span class="n">rel</span><span class="p">))</span>
-                    <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">exclude_dirs_</span><span class="p">]</span>
 
-    <span class="n">rel_tocopy</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">source_dbdir</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="o">=</span><span class="n">exclude_dirs</span><span class="p">,</span>
-                         <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_files</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_dirs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                         <span class="n">fullpath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">rel_tocopy_dirs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">source_dbdir</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="o">=</span><span class="n">exclude_dirs</span><span class="p">,</span>
-                              <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_files</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_dirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                              <span class="n">fullpath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">exclude_dirs_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EXCLUDE_COPY_REL_DIRS</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s1">&#39;.hs_internals&#39;</span><span class="p">]</span>
+    <span class="n">exclude_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_unixslash</span><span class="p">(</span><span class="n">normpath</span><span class="p">(</span><span class="n">rel</span><span class="p">))</span> <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">exclude_dirs_</span><span class="p">]</span>
+
+    <span class="n">rel_tocopy</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+        <span class="n">source_dbdir</span><span class="p">,</span>
+        <span class="s1">&#39;*&#39;</span><span class="p">,</span>
+        <span class="n">exclude_dirs</span><span class="o">=</span><span class="n">exclude_dirs</span><span class="p">,</span>
+        <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_files</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_dirs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">fullpath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">rel_tocopy_dirs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+        <span class="n">source_dbdir</span><span class="p">,</span>
+        <span class="s1">&#39;*&#39;</span><span class="p">,</span>
+        <span class="n">exclude_dirs</span><span class="o">=</span><span class="n">exclude_dirs</span><span class="p">,</span>
+        <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_files</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">with_dirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">fullpath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">src_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">source_dbdir</span><span class="p">,</span> <span class="n">relpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">relpath</span> <span class="ow">in</span> <span class="n">rel_tocopy</span><span class="p">]</span>
     <span class="n">dst_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">dest_dbdir</span><span class="p">,</span> <span class="n">relpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">relpath</span> <span class="ow">in</span> <span class="n">rel_tocopy</span><span class="p">]</span>
 
     <span class="c1"># ensure directories exist</span>
-    <span class="n">rel_tocopy_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dest_dbdir</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">dest_dbdir</span><span class="p">,</span> <span class="n">dpath_</span><span class="p">)</span>
-                                      <span class="k">for</span> <span class="n">dpath_</span> <span class="ow">in</span> <span class="n">rel_tocopy_dirs</span><span class="p">]</span>
+    <span class="n">rel_tocopy_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dest_dbdir</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="n">join</span><span class="p">(</span><span class="n">dest_dbdir</span><span class="p">,</span> <span class="n">dpath_</span><span class="p">)</span> <span class="k">for</span> <span class="n">dpath_</span> <span class="ow">in</span> <span class="n">rel_tocopy_dirs</span>
+    <span class="p">]</span>
     <span class="k">for</span> <span class="n">dpath</span> <span class="ow">in</span> <span class="n">rel_tocopy_dirs</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
     <span class="c1"># copy files</span>
@@ -613,6 +807,7 @@
 <span class="sd">        &gt;&gt;&gt; ensure_pz_mtest_batchworkflow_test()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">wbia</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
     <span class="n">mtest_dbpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
@@ -650,7 +845,7 @@
     <span class="n">imageset_idx</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">for</span> <span class="n">hourdiffs</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">hourdiffs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">):</span>
-        <span class="c1">#import scipy.spatial.distance as spdist</span>
+        <span class="c1"># import scipy.spatial.distance as spdist</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">imageset_aids_list</span><span class="p">[</span><span class="n">imageset_idx</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
             <span class="n">imageset_idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">imageset_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">imageset_aids_list</span><span class="p">)</span>
@@ -659,27 +854,27 @@
                 <span class="n">imageset_aids_list</span><span class="p">[</span><span class="n">imageset_idx</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
                 <span class="n">imageset_idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">imageset_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">imageset_aids_list</span><span class="p">)</span>
 
-            <span class="c1">#import vtool as vt</span>
-            <span class="c1">#import networkx as netx</span>
-            <span class="c1">#nodes = list(range(len(aids)))</span>
-            <span class="c1">#edges_pairs = vt.pdist_argsort(hourdiffs)</span>
-            <span class="c1">#edge_weights = -hourdiffs[hourdiffs.argsort()]</span>
-            <span class="c1">#netx_graph = make_netx_graph(edges_pairs, nodes, edge_weights)</span>
-            <span class="c1">#cut_edges = netx.minimum_edge_cut(netx_graph)</span>
-            <span class="c1">#netx_graph.remove_edges_from(cut_edges)</span>
-            <span class="c1">#components = list(netx.connected_components(netx_graph))</span>
-            <span class="c1">#components = ut.sortedby(components, list(map(len, components)), reverse=True)</span>
-            <span class="c1">#print(components)</span>
-            <span class="c1">#imageset_aids_list[0].extend(components[0])</span>
-            <span class="c1">#for component in components:</span>
+            <span class="c1"># import vtool as vt</span>
+            <span class="c1"># import networkx as netx</span>
+            <span class="c1"># nodes = list(range(len(aids)))</span>
+            <span class="c1"># edges_pairs = vt.pdist_argsort(hourdiffs)</span>
+            <span class="c1"># edge_weights = -hourdiffs[hourdiffs.argsort()]</span>
+            <span class="c1"># netx_graph = make_netx_graph(edges_pairs, nodes, edge_weights)</span>
+            <span class="c1"># cut_edges = netx.minimum_edge_cut(netx_graph)</span>
+            <span class="c1"># netx_graph.remove_edges_from(cut_edges)</span>
+            <span class="c1"># components = list(netx.connected_components(netx_graph))</span>
+            <span class="c1"># components = ut.sortedby(components, list(map(len, components)), reverse=True)</span>
+            <span class="c1"># print(components)</span>
+            <span class="c1"># imageset_aids_list[0].extend(components[0])</span>
+            <span class="c1"># for component in components:</span>
 
             <span class="c1"># TODO do max-nway cut</span>
-        <span class="c1">#day_diffs = spdist.squareform(hourdiffs) / 24.0</span>
-        <span class="c1">#print(ut.repr2(day_diffs, precision=2, suppress_small=True))</span>
-        <span class="c1">#import itertools</span>
-        <span class="c1">#compare_idxs = [(r, c) for r, c in itertools.product(range(len(aids)), range(len(aids))) if (c &gt; r)]</span>
-        <span class="c1">#print(len(aids))</span>
-    <span class="c1">#def make_netx_graph(edges_pairs, nodes=None, edge_weights=None):</span>
+        <span class="c1"># day_diffs = spdist.squareform(hourdiffs) / 24.0</span>
+        <span class="c1"># print(ut.repr2(day_diffs, precision=2, suppress_small=True))</span>
+        <span class="c1"># import itertools</span>
+        <span class="c1"># compare_idxs = [(r, c) for r, c in itertools.product(range(len(aids)), range(len(aids))) if (c &gt; r)]</span>
+        <span class="c1"># print(len(aids))</span>
+    <span class="c1"># def make_netx_graph(edges_pairs, nodes=None, edge_weights=None):</span>
     <span class="c1">#    import networkx as netx</span>
     <span class="c1">#    node_lbls = [(&#39;id_&#39;, &#39;int&#39;)]</span>
 
@@ -719,6 +914,7 @@
 <span class="sd">        &gt;&gt;&gt; ensure_pz_mtest_mergesplit_test()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">wbia</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
     <span class="n">mtest_dbpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
@@ -753,30 +949,32 @@
 
     <span class="n">total_names</span> <span class="o">=</span> <span class="n">num_merge_names</span> <span class="o">+</span> <span class="n">num_split_names</span> <span class="o">+</span> <span class="n">num_combo_names</span>
 
-    <span class="n">modify_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ub</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">num_aids</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="n">total_names</span><span class="p">]))</span>
+    <span class="n">modify_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">ub</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">num_aids</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="n">total_names</span><span class="p">])</span>
+    <span class="p">)</span>
 
     <span class="n">merge_nids1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_merge</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s1">&#39;XMERGE&#39;</span><span class="p">)</span>
     <span class="n">merge_nids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_merge</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s1">&#39;XMERGE&#39;</span><span class="p">)</span>
-    <span class="n">split_nid</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_split</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s1">&#39;XSPLIT&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">split_nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_split</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s1">&#39;XSPLIT&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">combo_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_combo</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s1">&#39;XCOMBO&#39;</span><span class="p">)</span>
 
     <span class="c1"># the first 3 become merge cases</span>
-    <span class="c1">#left = 0</span>
-    <span class="c1">#right = left + num_merge</span>
+    <span class="c1"># left = 0</span>
+    <span class="c1"># right = left + num_merge</span>
     <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">modify_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">merge_nids1</span><span class="p">,</span> <span class="n">merge_nids2</span><span class="p">):</span>
-        <span class="c1">#ibs.get_annot_nids(aids)</span>
+        <span class="c1"># ibs.get_annot_nids(aids)</span>
         <span class="n">aids_</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids_</span><span class="p">,</span> <span class="p">[</span><span class="n">nid1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_</span><span class="p">))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids_</span><span class="p">,</span> <span class="p">[</span><span class="n">nid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_</span><span class="p">))</span>
 
     <span class="c1"># the next 2 become split cases</span>
-    <span class="c1">#left = right</span>
-    <span class="c1">#right = left + num_split_names</span>
+    <span class="c1"># left = right</span>
+    <span class="c1"># right = left + num_split_names</span>
     <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">modify_aids</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="p">[</span><span class="n">split_nid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
 
-    <span class="c1">#left = right</span>
-    <span class="c1">#right = left + num_combo_names</span>
+    <span class="c1"># left = right</span>
+    <span class="c1"># right = left + num_combo_names</span>
     <span class="c1"># The final 3 are a combination case</span>
     <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">modify_aids</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">8</span><span class="p">]:</span>
         <span class="n">aids_even</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
@@ -822,8 +1020,11 @@
 <div class="viewcode-block" id="ensure_db_from_url"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.sysres.ensure_db_from_url">[docs]</a><span class="k">def</span> <span class="nf">ensure_db_from_url</span><span class="p">(</span><span class="n">zipped_db_url</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; SeeAlso wbia.init.sysres &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">sysres</span>
+
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
-    <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="o">=</span><span class="n">zipped_db_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+    <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span>
+        <span class="n">zipped_url</span><span class="o">=</span><span class="n">zipped_db_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">workdir</span>
+    <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;have </span><span class="si">%s</span><span class="s1">=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">zipped_db_url</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">dbdir</span></div>
 
@@ -843,16 +1044,34 @@
 <span class="sd">        xdoctest -m wbia.init.sysres</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">xdoctest</span>
+
     <span class="n">xdoctest</span><span class="o">.</span><span class="n">doctest_module</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -860,55 +1079,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

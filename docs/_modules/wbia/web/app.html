@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.app &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.web.app &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.web.app</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.web.app</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -58,6 +173,7 @@
         <span class="kn">from</span> <span class="nn">werkzeug.middleware.dispatcher</span> <span class="k">import</span> <span class="n">DispatcherMiddleware</span>
     <span class="kn">import</span> <span class="nn">prometheus_client</span>
     <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">prometheus</span>  <span class="c1"># NOQA</span>
+
     <span class="n">PROMETHEUS</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">PROMETHEUS</span> <span class="o">=</span> <span class="kc">False</span>
@@ -80,7 +196,6 @@
 
 
 <div class="viewcode-block" id="TimedWSGIContainer"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.app.TimedWSGIContainer">[docs]</a><span class="k">class</span> <span class="nc">TimedWSGIContainer</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">WSGIContainer</span><span class="p">):</span>
-
     <span class="k">def</span> <span class="nf">_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">:</span>
             <span class="n">log_method</span> <span class="o">=</span> <span class="n">access_log</span><span class="o">.</span><span class="n">info</span>
@@ -102,14 +217,19 @@
             <span class="k">return</span>
 
         <span class="n">log_method</span><span class="p">(</span>
-            <span class="s2">&quot;WALL=</span><span class="si">%s</span><span class="s2"> STATUS=</span><span class="si">%s</span><span class="s2"> METHOD=</span><span class="si">%s</span><span class="s2"> URL=</span><span class="si">%s</span><span class="s2"> IP=</span><span class="si">%s</span><span class="s2"> TIME=</span><span class="si">%.2f</span><span class="s2">ms&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;WALL=</span><span class="si">%s</span><span class="s1"> STATUS=</span><span class="si">%s</span><span class="s1"> METHOD=</span><span class="si">%s</span><span class="s1"> URL=</span><span class="si">%s</span><span class="s1"> IP=</span><span class="si">%s</span><span class="s1"> TIME=</span><span class="si">%.2f</span><span class="s1">ms&#39;</span><span class="p">,</span>
             <span class="n">timestamp</span><span class="p">,</span>
-            <span class="n">status_code</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
-            <span class="n">request</span><span class="o">.</span><span class="n">uri</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span> <span class="n">request_time</span><span class="p">)</span></div>
+            <span class="n">status_code</span><span class="p">,</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">uri</span><span class="p">,</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span>
+            <span class="n">request_time</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="start_tornado"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.app.start_tornado">[docs]</a><span class="k">def</span> <span class="nf">start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">url_suffix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                  <span class="n">start_web_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="start_tornado"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.app.start_tornado">[docs]</a><span class="k">def</span> <span class="nf">start_tornado</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">url_suffix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_web_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initialize the web server&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">browser</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">browser</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--browser&#39;</span><span class="p">)</span>
@@ -139,15 +259,16 @@
         <span class="k">if</span> <span class="n">browser</span><span class="p">:</span>
             <span class="n">url</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">server_url</span> <span class="o">+</span> <span class="n">url_suffix</span>
             <span class="kn">import</span> <span class="nn">webbrowser</span>
+
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] opening browser with url = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
             <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">PROMETHEUS</span><span class="p">:</span>
             <span class="c1"># Add prometheus wsgi middleware to route /metrics requests</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;LOADING PROMETHEUS&#39;</span><span class="p">)</span>
-            <span class="n">app_</span> <span class="o">=</span> <span class="n">DispatcherMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="p">{</span>
-                <span class="s1">&#39;/metrics&#39;</span><span class="p">:</span> <span class="n">prometheus_client</span><span class="o">.</span><span class="n">make_wsgi_app</span><span class="p">(),</span>
-            <span class="p">})</span>
+            <span class="n">app_</span> <span class="o">=</span> <span class="n">DispatcherMiddleware</span><span class="p">(</span>
+                <span class="n">app</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;/metrics&#39;</span><span class="p">:</span> <span class="n">prometheus_client</span><span class="o">.</span><span class="n">make_wsgi_app</span><span class="p">(),}</span>
+            <span class="p">)</span>
             <span class="c1"># Migrate the most essential settings</span>
             <span class="n">app_</span><span class="o">.</span><span class="n">server_port</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">server_port</span>
             <span class="n">app_</span><span class="o">.</span><span class="n">server_url</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">server_url</span>
@@ -175,14 +296,25 @@
         <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
             <span class="n">fallback_port</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_open_port</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Port </span><span class="si">%s</span><span class="s1"> is unavailable, using fallback_port = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">fallback_port</span><span class="p">,</span> <span class="p">))</span>
-                <span class="n">start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">fallback_port</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="n">browser</span><span class="p">,</span>
-                              <span class="n">url_suffix</span><span class="o">=</span><span class="n">url_suffix</span><span class="p">,</span> <span class="n">start_web_loop</span><span class="o">=</span><span class="n">start_web_loop</span><span class="p">,</span>
-                              <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s1">&#39;Port </span><span class="si">%s</span><span class="s1"> is unavailable, using fallback_port = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">fallback_port</span><span class="p">,)</span>
+                <span class="p">)</span>
+                <span class="n">start_tornado</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="p">,</span>
+                    <span class="n">port</span><span class="o">=</span><span class="n">fallback_port</span><span class="p">,</span>
+                    <span class="n">browser</span><span class="o">=</span><span class="n">browser</span><span class="p">,</span>
+                    <span class="n">url_suffix</span><span class="o">=</span><span class="n">url_suffix</span><span class="p">,</span>
+                    <span class="n">start_web_loop</span><span class="o">=</span><span class="n">start_web_loop</span><span class="p">,</span>
+                    <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="p">((</span><span class="s1">&#39;The specified IBEIS web port </span><span class="si">%d</span><span class="s1"> is not available, &#39;</span>
-                      <span class="s1">&#39;but </span><span class="si">%d</span><span class="s1"> is&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">,</span> <span class="n">fallback_port</span><span class="p">)))</span>
+                    <span class="p">(</span>
+                        <span class="p">(</span><span class="s1">&#39;The specified IBEIS web port </span><span class="si">%d</span><span class="s1"> is not available, &#39;</span> <span class="s1">&#39;but </span><span class="si">%d</span><span class="s1"> is&#39;</span><span class="p">)</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">,</span> <span class="n">fallback_port</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
 
         <span class="c1"># Add more verbose logging</span>
         <span class="n">utool_logfile_handler</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_logging</span><span class="o">.</span><span class="n">__CURRENT_LOGFILE_HANDLER__</span>
@@ -229,9 +361,15 @@
     <span class="n">_start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="start_from_wbia"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.app.start_from_wbia">[docs]</a><span class="k">def</span> <span class="nf">start_from_wbia</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">url_suffix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">start_web_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="start_from_wbia"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.app.start_from_wbia">[docs]</a><span class="k">def</span> <span class="nf">start_from_wbia</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">port</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">browser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">precache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">url_suffix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">start_web_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse command line options and start the server.</span>
 
@@ -264,11 +402,11 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] opening job manager&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">load_plugin_module</span><span class="p">(</span><span class="n">job_engine</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">load_plugin_module</span><span class="p">(</span><span class="n">apis_engine</span><span class="p">)</span>
-        <span class="c1">#import time</span>
-        <span class="c1">#time.sleep(1)</span>
+        <span class="c1"># import time</span>
+        <span class="c1"># time.sleep(1)</span>
         <span class="c1"># No need to sleep, this call should block until engine is live.</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">initialize_job_manager</span><span class="p">()</span>
-        <span class="c1">#time.sleep(10)</span>
+        <span class="c1"># time.sleep(10)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] starting tornado&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -310,6 +448,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia.web</span>
+
     <span class="n">aid_strs</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)))</span>
     <span class="n">url_suffix</span> <span class="o">=</span> <span class="s1">&#39;/group_review/?aid_list=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_strs</span><span class="p">)</span>
     <span class="n">wbia</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">start_from_wbia</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">url_suffix</span><span class="o">=</span><span class="n">url_suffix</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
@@ -323,18 +462,37 @@
 <span class="sd">        python -m wbia.web.app --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -342,55 +500,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

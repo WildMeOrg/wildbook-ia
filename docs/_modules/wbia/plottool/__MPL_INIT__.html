@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.plottool.__MPL_INIT__ &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.plottool.__MPL_INIT__ &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+
+      <li>wbia.plottool.__MPL_INIT__</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.plottool.__MPL_INIT__</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -75,11 +192,13 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">builtins</span>
+
 <span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[plottool.__MPL_INIT__]&#39;</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="n">profile</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">builtins</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+
 <div class="viewcode-block" id="profile"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.__MPL_INIT__.profile">[docs]</a>    <span class="k">def</span> <span class="nf">profile</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func</span></div>
 
@@ -89,18 +208,43 @@
 
 
 <span class="n">VERBOSE_MPLINIT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verb-mpl&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbose&#39;</span><span class="p">))</span>
-<span class="n">TARGET_BACKEND</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--mpl-backend&#39;</span><span class="p">,</span> <span class="s1">&#39;--mplbe&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MPL_BACKEND&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-<span class="n">FALLBACK_BACKEND</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--mpl-fallback-backend&#39;</span><span class="p">,</span> <span class="s1">&#39;--mplfbbe&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
+<span class="n">TARGET_BACKEND</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+    <span class="p">(</span><span class="s1">&#39;--mpl-backend&#39;</span><span class="p">,</span> <span class="s1">&#39;--mplbe&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MPL_BACKEND&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">FALLBACK_BACKEND</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+    <span class="p">(</span><span class="s1">&#39;--mpl-fallback-backend&#39;</span><span class="p">,</span> <span class="s1">&#39;--mplfbbe&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;agg&#39;</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="print_all_backends"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.__MPL_INIT__.print_all_backends">[docs]</a><span class="k">def</span> <span class="nf">print_all_backends</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">matplotlib.rcsetup</span> <span class="k">as</span> <span class="nn">rcsetup</span>
+
     <span class="nb">print</span><span class="p">(</span><span class="n">rcsetup</span><span class="o">.</span><span class="n">all_backends</span><span class="p">)</span>
-    <span class="n">valid_backends</span> <span class="o">=</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;GTK&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;GTKAgg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;GTKCairo&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;MacOSX&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;Qt4Agg&#39;</span><span class="p">,</span>
-                      <span class="sa">u</span><span class="s1">&#39;Qt5Agg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;TkAgg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;WX&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;WXAgg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;CocoaAgg&#39;</span><span class="p">,</span>
-                      <span class="sa">u</span><span class="s1">&#39;GTK3Cairo&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;GTK3Agg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;WebAgg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;nbAgg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;agg&#39;</span><span class="p">,</span>
-                      <span class="sa">u</span><span class="s1">&#39;cairo&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;emf&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;gdk&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;pdf&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;pgf&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;ps&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;svg&#39;</span><span class="p">,</span>
-                      <span class="sa">u</span><span class="s1">&#39;template&#39;</span><span class="p">]</span>
+    <span class="n">valid_backends</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;GTK&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GTKAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GTKCairo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;MacOSX&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Qt4Agg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Qt5Agg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;TkAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;WX&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;WXAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;CocoaAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GTK3Cairo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GTK3Agg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;WebAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nbAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;agg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cairo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;emf&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;gdk&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pdf&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pgf&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ps&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;svg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;template&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="k">del</span> <span class="n">valid_backends</span></div>
 
 
@@ -109,13 +253,16 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">have_guitool</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">__PYQT__</span> <span class="k">as</span> <span class="n">PyQt</span>
+
             <span class="n">pyqt_version</span> <span class="o">=</span> <span class="n">PyQt</span><span class="o">.</span><span class="n">_internal</span><span class="o">.</span><span class="n">GUITOOL_PYQT_VERSION</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">PyQt5</span> <span class="k">as</span> <span class="nn">PyQt</span>
+
                 <span class="n">pyqt_version</span> <span class="o">=</span> <span class="mi">5</span>
             <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">PyQt4</span> <span class="k">as</span> <span class="nn">PyQt</span>
+
                 <span class="n">pyqt_version</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">PyQt</span> <span class="o">=</span> <span class="kc">None</span>
@@ -124,9 +271,11 @@
 
 
 <div class="viewcode-block" id="get_target_backend"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.__MPL_INIT__.get_target_backend">[docs]</a><span class="k">def</span> <span class="nf">get_target_backend</span><span class="p">():</span>
-    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;win32&#39;</span><span class="p">)</span> <span class="ow">and</span>
-        <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;darwin&#39;</span><span class="p">)</span> <span class="ow">and</span>
-         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DISPLAY&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;win32&#39;</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;darwin&#39;</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DISPLAY&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">):</span>
         <span class="c1"># Write to files if we cannot display</span>
         <span class="c1"># target_backend = &#39;PDF&#39;</span>
         <span class="n">target_backend</span> <span class="o">=</span> <span class="n">FALLBACK_BACKEND</span>
@@ -135,7 +284,7 @@
         <span class="k">if</span> <span class="n">target_backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">PyQt</span><span class="p">,</span> <span class="n">pyqt_version</span> <span class="o">=</span> <span class="n">get_pyqt</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">pyqt_version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!plotttool] WARNING backend fallback to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">FALLBACK_BACKEND</span><span class="p">,</span> <span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!plotttool] WARNING backend fallback to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">FALLBACK_BACKEND</span><span class="p">,))</span>
                 <span class="n">target_backend</span> <span class="o">=</span> <span class="n">FALLBACK_BACKEND</span>
             <span class="k">elif</span> <span class="n">pyqt_version</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
                 <span class="n">target_backend</span> <span class="o">=</span> <span class="s1">&#39;Qt4Agg&#39;</span>
@@ -149,30 +298,33 @@
 <span class="k">def</span> <span class="nf">_init_mpl_rcparams</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
     <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">style</span>
-    <span class="c1">#http://matplotlib.org/users/style_sheets.html</span>
+
+    <span class="c1"># http://matplotlib.org/users/style_sheets.html</span>
     <span class="n">nogg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nogg&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">nogg</span><span class="p">:</span>
         <span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;ggplot&#39;</span><span class="p">)</span>
-    <span class="c1">#style.use([&#39;ggplot&#39;])</span>
-    <span class="c1">#print(&#39;style.available = %r&#39; % (style.available,))</span>
-    <span class="c1">#style.use([&#39;bmh&#39;])</span>
-    <span class="c1">#style.use([&#39;classic&#39;])</span>
-    <span class="c1">#import utool</span>
-    <span class="c1">#utool.embed()</span>
-    <span class="c1">#style.use([&#39;ggplot&#39;, &#39;dark_background&#39;])</span>
+    <span class="c1"># style.use([&#39;ggplot&#39;])</span>
+    <span class="c1"># print(&#39;style.available = %r&#39; % (style.available,))</span>
+    <span class="c1"># style.use([&#39;bmh&#39;])</span>
+    <span class="c1"># style.use([&#39;classic&#39;])</span>
+    <span class="c1"># import utool</span>
+    <span class="c1"># utool.embed()</span>
+    <span class="c1"># style.use([&#39;ggplot&#39;, &#39;dark_background&#39;])</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--notoolbar&#39;</span><span class="p">):</span>
         <span class="n">toolbar</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">toolbar</span> <span class="o">=</span> <span class="s1">&#39;toolbar2&#39;</span>
     <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;toolbar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">toolbar</span>
-    <span class="c1">#mpl.rc(&#39;text&#39;, usetex=False)</span>
+    <span class="c1"># mpl.rc(&#39;text&#39;, usetex=False)</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--usetex&#39;</span><span class="p">):</span>
-        <span class="c1">#mpl.rc(&#39;text&#39;, usetex=True)</span>
+        <span class="c1"># mpl.rc(&#39;text&#39;, usetex=True)</span>
         <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;text.usetex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="c1">#matplotlib.rcParams[&#39;text.latex.preamble&#39;]=[r&quot;\usepackage{amsmath}&quot;]</span>
+        <span class="c1"># matplotlib.rcParams[&#39;text.latex.preamble&#39;]=[r&quot;\usepackage{amsmath}&quot;]</span>
         <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;text.latex.unicode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">mpl_keypress_shortcuts</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;keymap&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">mpl_keypress_shortcuts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;keymap&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="p">]</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">mpl_keypress_shortcuts</span><span class="p">:</span>
         <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
@@ -204,11 +356,18 @@
             <span class="s1">&#39;xtick.direction&#39;</span><span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>
             <span class="s1">&#39;ytick.color&#39;</span><span class="p">:</span> <span class="s1">&#39;#555555&#39;</span><span class="p">,</span>
             <span class="s1">&#39;ytick.direction&#39;</span><span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">:</span> <span class="n">mpl</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span>
-                                          <span class="p">[</span><span class="s1">&#39;#E24A33&#39;</span><span class="p">,</span> <span class="s1">&#39;#348ABD&#39;</span><span class="p">,</span> <span class="s1">&#39;#988ED5&#39;</span><span class="p">,</span>
-                                           <span class="s1">&#39;#777777&#39;</span><span class="p">,</span> <span class="s1">&#39;#FBC15E&#39;</span><span class="p">,</span> <span class="s1">&#39;#8EBA42&#39;</span><span class="p">,</span>
-                                           <span class="s1">&#39;#FFB5B8&#39;</span><span class="p">]),</span>
-
+            <span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">:</span> <span class="n">mpl</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span>
+                <span class="s1">&#39;color&#39;</span><span class="p">,</span>
+                <span class="p">[</span>
+                    <span class="s1">&#39;#E24A33&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#348ABD&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#988ED5&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#777777&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#FBC15E&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#8EBA42&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#FFB5B8&#39;</span><span class="p">,</span>
+                <span class="p">],</span>
+            <span class="p">),</span>
         <span class="p">}</span>
         <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">custom_gg</span><span class="p">)</span>
 
@@ -227,12 +386,12 @@
             <span class="s1">&#39;savefig.facecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>
             <span class="s1">&#39;text.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
             <span class="s1">&#39;xtick.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;ytick.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span>
+            <span class="s1">&#39;ytick.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dark_style</span><span class="p">)</span>
-    <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.subplot.top&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span>
-    <span class="c1">#mpl.rcParams[&#39;text&#39;].usetex = False</span>
-    <span class="c1">#for key in mpl_keypress_shortcuts:</span>
+    <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.subplot.top&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.8</span>
+    <span class="c1"># mpl.rcParams[&#39;text&#39;].usetex = False</span>
+    <span class="c1"># for key in mpl_keypress_shortcuts:</span>
     <span class="c1">#    print(&#39;%s = %s&#39; % (key, mpl.rcParams[key]))</span>
     <span class="c1"># Disable mpl shortcuts</span>
     <span class="c1">#    mpl.rcParams[&#39;toolbar&#39;] = &#39;None&#39;</span>
@@ -244,13 +403,14 @@
 
 <span class="k">def</span> <span class="nf">_mpl_set_backend</span><span class="p">(</span><span class="n">target_backend</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--leave-mpl-backend-alone&#39;</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] LEAVE THE BACKEND ALONE !!! was specified&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] not changing mpl backend&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1">#mpl.use(target_backend, warn=True, force=True)</span>
+        <span class="c1"># mpl.use(target_backend, warn=True, force=True)</span>
         <span class="n">mpl</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">target_backend</span><span class="p">,</span> <span class="n">warn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="c1">#mpl.use(target_backend, warn=False, force=False)</span>
+        <span class="c1"># mpl.use(target_backend, warn=False, force=False)</span>
         <span class="n">current_backend</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] current backend is: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">current_backend</span><span class="p">)</span>
@@ -260,14 +420,21 @@
     <span class="k">global</span> <span class="n">__IS_INITIALIZED__</span>
     <span class="k">global</span> <span class="n">__WHO_INITIALIZED__</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
-    <span class="c1">#mpl.interactive(True)</span>
+
+    <span class="c1"># mpl.interactive(True)</span>
     <span class="n">current_backend</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
     <span class="n">target_backend</span> <span class="o">=</span> <span class="n">get_target_backend</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">__IS_INITIALIZED__</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!plottool] matplotlib has already been initialized.  backend=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">current_backend</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;[!plottool] matplotlib has already been initialized.  backend=</span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="n">current_backend</span>
+            <span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!plottool] Initially initialized by </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">__WHO_INITIALIZED__</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!plottool] Trying to be init by </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">))))</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;[!plottool] Trying to be init by </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)))</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="n">__IS_INITIALIZED__</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -290,13 +457,30 @@
         <span class="k">return</span> <span class="n">_init_mpl_mainprocess</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -304,57 +488,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../plottool.html">wbia.plottool</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

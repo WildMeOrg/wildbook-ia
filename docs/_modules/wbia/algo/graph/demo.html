@@ -1,36 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.demo &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.graph.demo &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+
+      <li>wbia.algo.graph.demo</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.graph.demo</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -43,21 +162,22 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">SAME</span><span class="p">,</span> <span class="n">DIFF</span><span class="p">,</span> <span class="n">NULL</span>  <span class="c1"># NOQA</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="make_dummy_infr"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.demo.make_dummy_infr">[docs]</a><span class="k">def</span> <span class="nf">make_dummy_infr</span><span class="p">(</span><span class="n">annots_per_name</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
-    <span class="n">nids</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">annots_per_name</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+
+    <span class="n">nids</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">annots_per_name</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
     <span class="n">aids</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nids</span><span class="p">))</span>
-    <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">,</span> <span class="n">autoinit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">,</span> <span class="n">autoinit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">infr</span></div>
 
 
 <div class="viewcode-block" id="demodata_mtest_infr"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.demo.demodata_mtest_infr">[docs]</a><span class="k">def</span> <span class="nf">demodata_mtest_infr</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s1">&#39;empty&#39;</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
     <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">()</span>
     <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
@@ -71,19 +191,19 @@
 <div class="viewcode-block" id="demodata_infr2"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.demo.demodata_infr2">[docs]</a><span class="k">def</span> <span class="nf">demodata_infr2</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">):</span>
     <span class="n">defaultdb</span> <span class="o">=</span> <span class="s1">&#39;PZ_MTEST&#39;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
     <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">()</span>
     <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">dummy_phi</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
         <span class="n">phi</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">phi</span> <span class="o">=</span> <span class="n">phi</span> <span class="o">/</span> <span class="n">phi</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">phi</span>
-    <span class="n">phis</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">c</span><span class="p">:</span> <span class="n">dummy_phi</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-    <span class="p">}</span>
+
+    <span class="n">phis</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">dummy_phi</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)}</span>
     <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
     <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">autoinit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">infr</span><span class="o">.</span><span class="n">init_termination_criteria</span><span class="p">(</span><span class="n">phis</span><span class="p">)</span>
@@ -116,6 +236,7 @@
 
     <span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="k">import</span> <span class="n">TMP_RC</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
     <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">TMP_RC</span><span class="p">)</span>
 
     <span class="c1"># ---- Synthetic data params</span>
@@ -126,7 +247,7 @@
     <span class="c1"># oracle_accuracy = .98</span>
     <span class="c1"># oracle_accuracy = .90</span>
     <span class="c1"># oracle_accuracy = (.8, 1.0)</span>
-    <span class="n">oracle_accuracy</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">85</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">oracle_accuracy</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.85</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
     <span class="c1"># oracle_accuracy = 1.0</span>
 
     <span class="c1"># --- draw params</span>
@@ -221,13 +342,12 @@
                 <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">8</span>
 
         <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">adjust_subplots</span><span class="p">(</span><span class="n">top</span><span class="o">=.</span><span class="mi">95</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=.</span><span class="mi">45</span><span class="p">,</span>
-                               <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">adjust_subplots</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">latest</span><span class="p">)</span>
             <span class="n">xlabel</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span>
             <span class="n">xlabel</span><span class="o">.</span><span class="n">set_horizontalalignment</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
             <span class="c1"># xlabel.set_x(.025)</span>
-            <span class="n">xlabel</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="o">-.</span><span class="mi">6</span><span class="p">)</span>
+            <span class="n">xlabel</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">)</span>
             <span class="c1"># xlabel.set_fontname(&#39;CMU Typewriter Text&#39;)</span>
             <span class="n">xlabel</span><span class="o">.</span><span class="n">set_fontname</span><span class="p">(</span><span class="s1">&#39;Inconsolata&#39;</span><span class="p">)</span>
             <span class="n">xlabel</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="n">fontsize</span><span class="p">)</span>
@@ -238,9 +358,12 @@
         <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
 
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;demo_</span><span class="si">{:04d}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">fig_counter</span><span class="p">)))</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
-                    <span class="c1"># transparent=True,</span>
-                    <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="n">fpath</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="c1"># transparent=True,</span>
+            <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># pt.save_figure(dpath=dpath, dpi=300)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">latest_logs</span><span class="p">()</span>
@@ -279,7 +402,7 @@
     <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
     <span class="n">infr</span><span class="o">.</span><span class="n">refresh_candidate_edges</span><span class="p">()</span>
 
-    <span class="n">VIZ_ALL</span> <span class="o">=</span> <span class="p">(</span><span class="n">VISUALIZE</span> <span class="ow">and</span> <span class="n">TARGET_REVIEW</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">START</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">VIZ_ALL</span> <span class="o">=</span> <span class="n">VISUALIZE</span> <span class="ow">and</span> <span class="n">TARGET_REVIEW</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">START</span> <span class="ow">is</span> <span class="kc">None</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;VIZ_ALL = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">VIZ_ALL</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">VIZ_ALL</span> <span class="ow">or</span> <span class="n">TARGET_REVIEW</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -320,7 +443,9 @@
         <span class="k">if</span> <span class="n">SHOW_CANDIATE_POP</span> <span class="ow">and</span> <span class="p">(</span><span class="n">VIZ_ALL</span> <span class="ow">or</span> <span class="n">AT_TARGET</span><span class="p">):</span>
             <span class="c1"># import utool</span>
             <span class="c1"># utool.embed()</span>
-            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">task_probs</span><span class="p">[</span><span class="s1">&#39;match_state&#39;</span><span class="p">][</span><span class="n">edge</span><span class="p">],</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">task_probs</span><span class="p">[</span><span class="s1">&#39;match_state&#39;</span><span class="p">][</span><span class="n">edge</span><span class="p">],</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;len(queue) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">queue</span><span class="p">)))</span>
             <span class="c1"># Show edge selection</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Oracle will predict: &#39;</span> <span class="o">+</span> <span class="n">feedback</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">])</span>
@@ -371,7 +496,7 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;EMBEDME&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;hyrule&#39;</span><span class="p">,</span> <span class="s1">&#39;ooo&#39;</span><span class="p">]:</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">all_figures_tile</span><span class="p">(</span><span class="n">monitor_num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">percent_w</span><span class="o">=.</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">all_figures_tile</span><span class="p">(</span><span class="n">monitor_num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">percent_w</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">all_figures_tile</span><span class="p">()</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span></div>
@@ -404,10 +529,11 @@
 
 
 <div class="viewcode-block" id="apply_dummy_viewpoints"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.demo.apply_dummy_viewpoints">[docs]</a><span class="k">def</span> <span class="nf">apply_dummy_viewpoints</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
-    <span class="n">transition_rate</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+    <span class="n">transition_rate</span> <span class="o">=</span> <span class="mf">0.5</span>
     <span class="n">transition_rate</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">valid_views</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">]</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+
     <span class="k">class</span> <span class="nc">MarkovView</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dir_</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span>
@@ -424,9 +550,11 @@
             <span class="k">if</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">transition_rate</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir_</span>
             <span class="k">return</span> <span class="n">valid_views</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">]</span>
+
     <span class="n">mkv</span> <span class="o">=</span> <span class="n">MarkovView</span><span class="p">()</span>
-    <span class="n">nid_to_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_pairs</span><span class="p">([</span>
-        <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;name_label&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
+    <span class="n">nid_to_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_pairs</span><span class="p">(</span>
+        <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;name_label&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
+    <span class="p">)</span>
     <span class="n">grouped_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nid_to_aids</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="n">node_to_view</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">mkv</span><span class="p">()</span> <span class="k">for</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="n">grouped_nodes</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">}</span>
     <span class="n">infr</span><span class="o">.</span><span class="n">set_node_attrs</span><span class="p">(</span><span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">node_to_view</span><span class="p">)</span></div>
@@ -534,8 +662,9 @@
     <span class="n">counter</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="k">if</span> <span class="n">pcc_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">pcc_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">randn</span><span class="p">(</span><span class="n">size_mean</span><span class="p">,</span> <span class="n">size_std</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-                     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pccs</span><span class="p">)]</span>
+        <span class="n">pcc_sizes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">randn</span><span class="p">(</span><span class="n">size_mean</span><span class="p">,</span> <span class="n">size_std</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pccs</span><span class="p">)</span>
+        <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">num_pccs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pcc_sizes</span><span class="p">)</span>
 
@@ -548,16 +677,16 @@
 
     <span class="n">new_ccs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">pcc_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">pcc_sizes</span><span class="p">))</span>
-    <span class="n">pcc_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">pcc_iter</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">num_pccs</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="p">,</span>
-                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;make pos-demo&#39;</span><span class="p">)</span>
+    <span class="n">pcc_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">pcc_iter</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">num_pccs</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;make pos-demo&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">pcc_iter</span><span class="p">:</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="mf">0.1</span>
         <span class="n">want_connectivity</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">pos_redun</span><span class="p">)</span>
         <span class="n">want_connectivity</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">want_connectivity</span><span class="p">)</span>
 
         <span class="c1"># Create basic graph of positive edges with desired connectivity</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">nx_utils</span><span class="o">.</span><span class="n">random_k_edge_connected_graph</span><span class="p">(</span>
-            <span class="n">size</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">want_connectivity</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+            <span class="n">size</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">want_connectivity</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span>
+        <span class="p">)</span>
         <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">POSTV</span><span class="p">)</span>
         <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;truth&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">POSTV</span><span class="p">)</span>
         <span class="c1"># nx.set_node_attributes(g, name=&#39;orig_name_label&#39;, values=i)</span>
@@ -568,20 +697,18 @@
             <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ccs&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Make sure nodes do not conflict with others</span>
-            <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span>
-                <span class="nb">enumerate</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">counter</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">+</span> <span class="n">counter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))))</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">counter</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">+</span> <span class="n">counter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))))</span>
             <span class="n">counter</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
 
         <span class="c1"># The probability any edge is inconsistent is `p_incon`</span>
         <span class="c1"># This is 1 - P(all edges consistent)</span>
         <span class="c1"># which means p(edge is consistent) = (1 - p_incon) / N</span>
-        <span class="n">complement_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">estarmap</span><span class="p">(</span><span class="n">nx_utils</span><span class="o">.</span><span class="n">e_</span><span class="p">,</span>
-                                       <span class="n">nx_utils</span><span class="o">.</span><span class="n">complement_edges</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>
+        <span class="n">complement_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">estarmap</span><span class="p">(</span><span class="n">nx_utils</span><span class="o">.</span><span class="n">e_</span><span class="p">,</span> <span class="n">nx_utils</span><span class="o">.</span><span class="n">complement_edges</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">complement_edges</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># compute probability that any particular edge is inconsistent</span>
             <span class="c1"># to achieve probability the PCC is inconsistent</span>
             <span class="n">p_edge_inconn</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_pcc_incon</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">complement_edges</span><span class="p">))</span>
-            <span class="n">p_edge_unrev</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span>
+            <span class="n">p_edge_unrev</span> <span class="o">=</span> <span class="mf">0.1</span>
             <span class="n">p_edge_notcomp</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_pcc_incomp</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">complement_edges</span><span class="p">))</span>
             <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p_edge_inconn</span><span class="p">,</span> <span class="n">p_edge_unrev</span><span class="p">,</span> <span class="n">p_edge_notcomp</span><span class="p">])</span>
             <span class="c1"># if the total probability is greater than 1 the parameters</span>
@@ -641,22 +768,21 @@
         <span class="p">}</span>
 
         <span class="c1"># These are the probabilities that one edge has this state</span>
-        <span class="n">p_pair_neg</span> <span class="o">=</span> <span class="n">kwalias</span><span class="p">(</span><span class="s1">&#39;p_pair_neg&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">)</span>
-        <span class="n">p_pair_incmp</span> <span class="o">=</span> <span class="n">kwalias</span><span class="p">(</span><span class="s1">&#39;p_pair_incmp&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">p_pair_neg</span> <span class="o">=</span> <span class="n">kwalias</span><span class="p">(</span><span class="s1">&#39;p_pair_neg&#39;</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
+        <span class="n">p_pair_incmp</span> <span class="o">=</span> <span class="n">kwalias</span><span class="p">(</span><span class="s1">&#39;p_pair_incmp&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
         <span class="n">p_pair_unrev</span> <span class="o">=</span> <span class="n">kwalias</span><span class="p">(</span><span class="s1">&#39;p_pair_unrev&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="c1"># p_pair_neg = 1</span>
-        <span class="n">cc_combos</span> <span class="o">=</span> <span class="p">((</span><span class="nb">list</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">nodes</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
-                     <span class="k">for</span> <span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">new_ccs</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-        <span class="n">valid_cc_combos</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span> <span class="ow">in</span> <span class="n">cc_combos</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cc1</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cc2</span><span class="p">)</span>
-        <span class="p">]</span>
+        <span class="n">cc_combos</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">nodes</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">new_ccs</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">valid_cc_combos</span> <span class="o">=</span> <span class="p">[(</span><span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span><span class="p">)</span> <span class="k">for</span> <span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span> <span class="ow">in</span> <span class="n">cc_combos</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cc1</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cc2</span><span class="p">)]</span>
         <span class="k">for</span> <span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">valid_cc_combos</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;make neg-demo&#39;</span><span class="p">):</span>
             <span class="n">possible_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">estarmap</span><span class="p">(</span><span class="n">nx_utils</span><span class="o">.</span><span class="n">e_</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">cc1</span><span class="p">,</span> <span class="n">cc2</span><span class="p">))</span>
             <span class="c1"># probability that any edge between these PCCs is negative</span>
             <span class="n">n_edges</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_edges</span><span class="p">)</span>
-            <span class="n">p_edge_neg</span>   <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_pair_neg</span><span class="p">)</span>   <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">n_edges</span><span class="p">)</span>
+            <span class="n">p_edge_neg</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_pair_neg</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">n_edges</span><span class="p">)</span>
             <span class="n">p_edge_incmp</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_pair_incmp</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">n_edges</span><span class="p">)</span>
             <span class="n">p_edge_unrev</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_pair_unrev</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">n_edges</span><span class="p">)</span>
 
@@ -683,6 +809,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ignoring pairs&#39;</span><span class="p">)</span>
 
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">G</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="o">.</span><span class="n">_graph_cls</span><span class="p">()</span>
     <span class="n">G</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">pos_g</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
     <span class="n">G</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">pos_g</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
@@ -746,12 +873,13 @@
 <span class="sd">        &gt;&gt;&gt; infr.dummy_verif.predict_edges([(1, 21)])</span>
 <span class="sd">        &gt;&gt;&gt; assert len(infr.dummy_verif.infr.task_probs[&#39;match_state&#39;]) == 2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">verif</span><span class="p">,</span> <span class="n">infr</span><span class="p">):</span>
         <span class="n">verif</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">4033913</span><span class="p">)</span>
         <span class="n">verif</span><span class="o">.</span><span class="n">dummy_params</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">NEGTV</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">25</span><span class="p">},</span>
-            <span class="n">POSTV</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">85</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">2</span><span class="p">},</span>
-            <span class="n">INCMP</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">15</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">},</span>
+            <span class="n">NEGTV</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">},</span>
+            <span class="n">POSTV</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">},</span>
+            <span class="n">INCMP</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span>
         <span class="p">}</span>
         <span class="n">verif</span><span class="o">.</span><span class="n">score_dist</span> <span class="o">=</span> <span class="n">randn</span>
 
@@ -776,13 +904,15 @@
 <span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
         <span class="n">dist</span> <span class="o">=</span> <span class="n">verif</span><span class="o">.</span><span class="n">score_dist</span>
         <span class="n">n</span> <span class="o">=</span> <span class="mi">100000</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">verif</span><span class="o">.</span><span class="n">dummy_params</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">probs</span> <span class="o">=</span> <span class="n">dist</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">rng</span><span class="o">=</span><span class="n">verif</span><span class="o">.</span><span class="n">rng</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                          <span class="o">**</span><span class="n">verif</span><span class="o">.</span><span class="n">dummy_params</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">dist</span><span class="p">(</span>
+                <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">rng</span><span class="o">=</span><span class="n">verif</span><span class="o">.</span><span class="n">rng</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">verif</span><span class="o">.</span><span class="n">dummy_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="p">)</span>
             <span class="n">color</span> <span class="o">=</span> <span class="n">verif</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">_get_truth_colors</span><span class="p">()[</span><span class="n">key</span><span class="p">]</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DummyVerif.dummy_ranker"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.demo.DummyVerif.dummy_ranker">[docs]</a>    <span class="k">def</span> <span class="nf">dummy_ranker</span><span class="p">(</span><span class="n">verif</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
@@ -881,14 +1011,18 @@
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_miss</span><span class="p">):</span>
             <span class="n">miss_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">is_miss</span><span class="p">)</span>
             <span class="n">miss_truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">verif</span><span class="o">.</span><span class="n">_get_truth</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">miss_edges</span><span class="p">]</span>
-            <span class="n">grouped_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">miss_edges</span><span class="p">,</span> <span class="n">miss_truths</span><span class="p">,</span>
-                                           <span class="n">sorted_</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">grouped_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">miss_edges</span><span class="p">,</span> <span class="n">miss_truths</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="c1"># Need to make this determenistic too</span>
             <span class="n">states</span> <span class="o">=</span> <span class="p">[</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">grouped_edges</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
                 <span class="n">group</span> <span class="o">=</span> <span class="n">grouped_edges</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                <span class="n">probs0</span> <span class="o">=</span> <span class="n">randn</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)],</span> <span class="n">rng</span><span class="o">=</span><span class="n">verif</span><span class="o">.</span><span class="n">rng</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                               <span class="o">**</span><span class="n">verif</span><span class="o">.</span><span class="n">dummy_params</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="n">probs0</span> <span class="o">=</span> <span class="n">randn</span><span class="p">(</span>
+                    <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)],</span>
+                    <span class="n">rng</span><span class="o">=</span><span class="n">verif</span><span class="o">.</span><span class="n">rng</span><span class="p">,</span>
+                    <span class="n">a_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">a_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">verif</span><span class="o">.</span><span class="n">dummy_params</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
+                <span class="p">)</span>
                 <span class="c1"># Just randomly assign other probs</span>
                 <span class="n">probs1</span> <span class="o">=</span> <span class="n">verif</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">probs0</span><span class="p">)</span>
                 <span class="n">probs2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">probs0</span> <span class="o">+</span> <span class="n">probs1</span><span class="p">)</span>
@@ -897,15 +1031,17 @@
 
         <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
         <span class="n">probs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">prob_cache</span><span class="p">,</span> <span class="n">edges</span><span class="p">),</span>
-            <span class="n">index</span><span class="o">=</span><span class="n">nxu</span><span class="o">.</span><span class="n">ensure_multi_index</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">))</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">nxu</span><span class="o">.</span><span class="n">ensure_multi_index</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">)),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">probs</span></div>
 
 <div class="viewcode-block" id="DummyVerif.predict_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.demo.DummyVerif.predict_edges">[docs]</a>    <span class="k">def</span> <span class="nf">predict_edges</span><span class="p">(</span><span class="n">verif</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
         <span class="n">pos_scores</span> <span class="o">=</span> <span class="n">verif</span><span class="o">.</span><span class="n">predict_proba_df</span><span class="p">(</span><span class="n">edges</span><span class="p">)[</span><span class="n">POSTV</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">pos_scores</span></div></div>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -917,18 +1053,37 @@
 <span class="sd">        python -m wbia.algo.graph.demo --allexamples --show</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -936,59 +1091,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../graph.html">wbia.algo.graph</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

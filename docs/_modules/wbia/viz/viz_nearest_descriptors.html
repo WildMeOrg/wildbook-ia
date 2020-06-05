@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.viz.viz_nearest_descriptors &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.viz.viz_nearest_descriptors &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../viz.html">wbia.viz</a> &raquo;</li>
+
+      <li>wbia.viz.viz_nearest_descriptors</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.viz.viz_nearest_descriptors</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -42,25 +159,26 @@
 <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
+
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_annotfeat_nn_index"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_nearest_descriptors.get_annotfeat_nn_index">[docs]</a><span class="k">def</span> <span class="nf">get_annotfeat_nn_index</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="c1">#raise NotImplementedError(&#39;this doesnt work anymore. Need to submit mc4 query with metadata on and then reextract the required params&#39;)</span>
-    <span class="c1">#from . import match_chips3 as mc3</span>
-    <span class="c1">#ibs._init_query_requestor()</span>
+    <span class="c1"># raise NotImplementedError(&#39;this doesnt work anymore. Need to submit mc4 query with metadata on and then reextract the required params&#39;)</span>
+    <span class="c1"># from . import match_chips3 as mc3</span>
+    <span class="c1"># ibs._init_query_requestor()</span>
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">()</span>  <span class="c1"># TODO: ensure lazy</span>
 
-    <span class="c1">#if isinstance(qfx, six.string_types):</span>
-    <span class="n">special</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx</span> <span class="o">==</span> <span class="s1">&#39;special&#39;</span><span class="p">)</span>
+    <span class="c1"># if isinstance(qfx, six.string_types):</span>
+    <span class="n">special</span> <span class="o">=</span> <span class="n">qfx</span> <span class="o">==</span> <span class="s1">&#39;special&#39;</span>
     <span class="k">if</span> <span class="n">special</span><span class="p">:</span>
         <span class="n">qfx2_vecs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">qfx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">qfx</span><span class="p">)</span>
-        <span class="n">qfx2_vecs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">)[</span><span class="n">qfx</span><span class="p">:(</span><span class="n">qfx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">qfx2_vecs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">)[</span><span class="n">qfx</span> <span class="p">:</span> <span class="p">(</span><span class="n">qfx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
     <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
@@ -69,12 +187,13 @@
 
     <span class="k">if</span> <span class="n">special</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
         <span class="c1"># Find a query feature with &quot;good&quot; results</span>
         <span class="n">qfx2_daid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
         <span class="n">qfx2_dnid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qfx2_daid</span><span class="p">)</span>
         <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
 
-        <span class="c1">#slice_ = slice(None)</span>
+        <span class="c1"># slice_ = slice(None)</span>
         <span class="n">slice_</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">)</span>
         <span class="n">flags</span> <span class="o">=</span> <span class="n">qfx2_dnid</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">slice_</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">==</span> <span class="n">nid</span>
         <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span> <span class="n">qfx2_daid</span><span class="p">[:,</span> <span class="n">slice_</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qaid</span><span class="p">)</span>
@@ -97,11 +216,11 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;top_candxs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">top_candxs</span><span class="p">,))</span>
 
         <span class="n">cand_idx</span> <span class="o">=</span> <span class="n">top_candxs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="c1">#cand_idx = ut.take_percentile(top_candxs, .1)[-1]</span>
+        <span class="c1"># cand_idx = ut.take_percentile(top_candxs, .1)[-1]</span>
         <span class="n">qfx</span> <span class="o">=</span> <span class="n">candidate_qfxs</span><span class="p">[</span><span class="n">cand_idx</span><span class="p">]</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;qfx = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qfx</span><span class="p">,))</span>
-        <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="n">qfx</span><span class="p">:(</span><span class="n">qfx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
-        <span class="n">qfx2_idx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="p">[</span><span class="n">qfx</span><span class="p">:(</span><span class="n">qfx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="n">qfx</span> <span class="p">:</span> <span class="p">(</span><span class="n">qfx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">qfx2_idx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="p">[</span><span class="n">qfx</span> <span class="p">:</span> <span class="p">(</span><span class="n">qfx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
 
     <span class="n">qfx2_daid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
     <span class="n">qfx2_dfx</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
@@ -142,11 +261,13 @@
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
     <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+
     <span class="c1"># Stack chipmatches</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">infos</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">get_flat_fm_info</span><span class="p">()</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
-    <span class="n">flat_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-                          <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_stack2</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+    <span class="n">flat_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_stack2</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="p">)</span>
     <span class="n">fsv_flat</span> <span class="o">=</span> <span class="n">flat_metadata</span><span class="p">[</span><span class="s1">&#39;fsv&#39;</span><span class="p">]</span>
     <span class="n">flat_metadata</span><span class="p">[</span><span class="s1">&#39;fs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fsv_flat</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">aids1</span> <span class="o">=</span> <span class="n">flat_metadata</span><span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">][:,</span> <span class="kc">None</span><span class="p">]</span>
@@ -163,10 +284,11 @@
 
     <span class="n">annots</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">aid1s</span><span class="p">,</span> <span class="n">aid2s</span><span class="p">)))</span>
-    <span class="n">annots</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lazy_dict</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">)</span>
-              <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aids</span><span class="p">}</span>
+    <span class="n">annots</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lazy_dict</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aids</span><span class="p">}</span>
 
-    <span class="n">label_lists</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_match_truths</span><span class="p">(</span><span class="n">aid1s</span><span class="p">,</span> <span class="n">aid2s</span><span class="p">)</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">POSITIVE</span>
+    <span class="n">label_lists</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_match_truths</span><span class="p">(</span><span class="n">aid1s</span><span class="p">,</span> <span class="n">aid2s</span><span class="p">)</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">POSITIVE</span>
+    <span class="p">)</span>
     <span class="n">patch_size</span> <span class="o">=</span> <span class="mi">64</span>
 
     <span class="k">def</span> <span class="nf">extract_patches</span><span class="p">(</span><span class="n">annots</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fxs</span><span class="p">):</span>
@@ -175,24 +297,33 @@
         <span class="n">kpts</span> <span class="o">=</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;kpts&#39;</span><span class="p">]</span>
         <span class="n">rchip</span> <span class="o">=</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;rchip&#39;</span><span class="p">]</span>
         <span class="n">kpts_m</span> <span class="o">=</span> <span class="n">kpts</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">warped_patches</span><span class="p">,</span> <span class="n">warped_subkpts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_warped_patches</span><span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">kpts_m</span><span class="p">,</span>
-                                                               <span class="n">patch_size</span><span class="o">=</span><span class="n">patch_size</span><span class="p">)</span>
+        <span class="n">warped_patches</span><span class="p">,</span> <span class="n">warped_subkpts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_warped_patches</span><span class="p">(</span>
+            <span class="n">rchip</span><span class="p">,</span> <span class="n">kpts_m</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="n">patch_size</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">warped_patches</span>
 
     <span class="n">data_lists</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">multigroup_lookup</span><span class="p">(</span><span class="n">annots</span><span class="p">,</span> <span class="p">[</span><span class="n">aid1s</span><span class="p">,</span> <span class="n">aid2s</span><span class="p">],</span> <span class="n">fms</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">extract_patches</span><span class="p">)</span>
 
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>  <span class="c1"># NOQA</span>
+
     <span class="n">pt</span><span class="o">.</span><span class="n">ensureqt</span><span class="p">()</span>
     <span class="kn">import</span> <span class="nn">ibeis_cnn</span>
+
     <span class="n">inter</span> <span class="o">=</span> <span class="n">ibeis_cnn</span><span class="o">.</span><span class="n">draw_results</span><span class="o">.</span><span class="n">interact_patches</span><span class="p">(</span>
-        <span class="n">label_lists</span><span class="p">,</span> <span class="n">data_lists</span><span class="p">,</span> <span class="n">flat_metadata_top</span><span class="p">,</span> <span class="n">chunck_sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-        <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">hack_one_per_aid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sortby</span><span class="o">=</span><span class="s1">&#39;fs&#39;</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">label_lists</span><span class="p">,</span>
+        <span class="n">data_lists</span><span class="p">,</span>
+        <span class="n">flat_metadata_top</span><span class="p">,</span>
+        <span class="n">chunck_sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span>
+        <span class="n">hack_one_per_aid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">sortby</span><span class="o">=</span><span class="s1">&#39;fs&#39;</span><span class="p">,</span>
+        <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">inter</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
-<span class="c1">#@ut.indent_func(&#39;[show_neardesc]&#39;)</span>
-<div class="viewcode-block" id="show_nearest_descriptors"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_nearest_descriptors.show_nearest_descriptors">[docs]</a><span class="k">def</span> <span class="nf">show_nearest_descriptors</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-                             <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="c1"># @ut.indent_func(&#39;[show_neardesc]&#39;)</span>
+<div class="viewcode-block" id="show_nearest_descriptors"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_nearest_descriptors.show_nearest_descriptors">[docs]</a><span class="k">def</span> <span class="nf">show_nearest_descriptors</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (wbia.IBEISController): image analysis api</span>
@@ -242,24 +373,27 @@
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>  <span class="c1"># NOQA</span>
+
     <span class="n">consecutive_distance_compare</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">draw_chip</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_chip&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-    <span class="n">draw_desc</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_desc&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-    <span class="n">draw_warped</span>   <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_warped&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">draw_chip</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_chip&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">draw_desc</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_desc&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">draw_warped</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_warped&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
     <span class="n">draw_unwarped</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;draw_unwarped&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-    <span class="c1">#skip = kwargs.get(&#39;skip&#39;, True)</span>
+    <span class="c1"># skip = kwargs.get(&#39;skip&#39;, True)</span>
     <span class="c1"># Plots the nearest neighbors of a given feature (qaid, qfx)</span>
     <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># Flann NN query</span>
-        <span class="p">(</span><span class="n">qfx</span><span class="p">,</span> <span class="n">qfx2_daid</span><span class="p">,</span> <span class="n">qfx2_dfx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_annotfeat_nn_index</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">qfx</span><span class="p">,</span> <span class="n">qfx2_daid</span><span class="p">,</span> <span class="n">qfx2_dfx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_annotfeat_nn_index</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span>
+        <span class="p">)</span>
 
         <span class="c1"># Adds metadata to a feature match</span>
         <span class="k">def</span> <span class="nf">get_extract_tuple</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">k</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">rchip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-            <span class="n">kp</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
-            <span class="n">sift</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
+            <span class="n">kp</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
+            <span class="n">sift</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--texknormplot&#39;</span><span class="p">):</span>
                 <span class="n">aidstr</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
                 <span class="n">nidstr</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_nidstrs</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">))</span>
@@ -281,24 +415,29 @@
                 <span class="n">type_</span> <span class="o">=</span> <span class="s1">&#39;Query&#39;</span>
             <span class="k">elif</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">K</span><span class="p">:</span>
                 <span class="n">type_</span> <span class="o">=</span> <span class="s1">&#39;Match&#39;</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--texknormplot&#39;</span><span class="p">)</span> <span class="ow">and</span>  <span class="n">pt</span><span class="o">.</span><span class="n">is_texmode</span><span class="p">():</span>
-                    <span class="c1">#info = &#39;Match:\n$k=%r$, $\\frac{||\\mathbf{d}_i - \\mathbf{d}_j||}{Z}=%.3f$&#39; % (k, qfx2_dist[0, k])</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--texknormplot&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pt</span><span class="o">.</span><span class="n">is_texmode</span><span class="p">():</span>
+                    <span class="c1"># info = &#39;Match:\n$k=%r$, $\\frac{||\\mathbf{d}_i - \\mathbf{d}_j||}{Z}=%.3f$&#39; % (k, qfx2_dist[0, k])</span>
                     <span class="n">info</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">vspace</span><span class="si">{1cm}</span><span class="s1">&#39;</span>
-                    <span class="n">info</span> <span class="o">+=</span> <span class="s1">&#39;Match: $</span><span class="se">\\</span><span class="s1">mathbf</span><span class="si">{d}</span><span class="s1">_{j_</span><span class="si">%r</span><span class="s1">}$</span><span class="se">\n</span><span class="s1">$</span><span class="se">\\</span><span class="s1">textrm</span><span class="si">{dist}</span><span class="s1">=</span><span class="si">%.3f</span><span class="s1">$&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
+                    <span class="n">info</span> <span class="o">+=</span> <span class="s1">&#39;Match: $</span><span class="se">\\</span><span class="s1">mathbf</span><span class="si">{d}</span><span class="s1">_{j_</span><span class="si">%r</span><span class="s1">}$</span><span class="se">\n</span><span class="s1">$</span><span class="se">\\</span><span class="s1">textrm</span><span class="si">{dist}</span><span class="s1">=</span><span class="si">%.3f</span><span class="s1">$&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">k</span><span class="p">,</span>
+                        <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span>
+                    <span class="p">)</span>
                     <span class="c1"># info += &#39;\n$s_{\\tt{LNBNN}}=%.3f$&#39; % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])</span>
                     <span class="n">info</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">$s=</span><span class="si">%.3f</span><span class="s1">$&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">info</span> <span class="o">=</span> <span class="s1">&#39;Match:</span><span class="si">%s</span><span class="se">\n</span><span class="s1">k=</span><span class="si">%r</span><span class="s1">, dist=</span><span class="si">%.3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">id_str</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
-                    <span class="n">info</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">LNBNN=</span><span class="si">%.3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
+                    <span class="n">info</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">LNBNN=</span><span class="si">%.3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
+                    <span class="p">)</span>
             <span class="k">elif</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">Knorm</span> <span class="o">+</span> <span class="n">K</span><span class="p">:</span>
                 <span class="n">type_</span> <span class="o">=</span> <span class="s1">&#39;Norm&#39;</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--texknormplot&#39;</span><span class="p">)</span> <span class="ow">and</span>  <span class="n">pt</span><span class="o">.</span><span class="n">is_texmode</span><span class="p">():</span>
-                    <span class="c1">#info = &#39;Norm: $j_%r$\ndist=%.3f&#39; % (id_str, k, qfx2_dist[0, k])</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--texknormplot&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pt</span><span class="o">.</span><span class="n">is_texmode</span><span class="p">():</span>
+                    <span class="c1"># info = &#39;Norm: $j_%r$\ndist=%.3f&#39; % (id_str, k, qfx2_dist[0, k])</span>
                     <span class="n">info</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">vspace</span><span class="si">{1cm}</span><span class="s1">&#39;</span>
                     <span class="n">info</span> <span class="o">+=</span> <span class="s1">&#39;Norm: $j_</span><span class="si">%r</span><span class="s1">$</span><span class="se">\n</span><span class="s1">$</span><span class="se">\\</span><span class="s1">textrm</span><span class="si">{dist}</span><span class="s1">=</span><span class="si">%.3f</span><span class="s1">$&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
                     <span class="n">info</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\\</span><span class="s1">_&#39;</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">info</span> <span class="o">=</span> <span class="s1">&#39;Norm: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">$k=</span><span class="si">%r</span><span class="s1">$, dist=$</span><span class="si">%.3f</span><span class="s1">$&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">id_str</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
+                    <span class="n">info</span> <span class="o">=</span> <span class="s1">&#39;Norm: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">$k=</span><span class="si">%r</span><span class="s1">$, dist=$</span><span class="si">%.3f</span><span class="s1">$&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">id_str</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">],)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;[viz] problem k=</span><span class="si">%r</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
@@ -309,7 +448,7 @@
         <span class="n">origsift</span> <span class="o">=</span> <span class="n">extracted_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">skipped</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">):</span>
-            <span class="c1">#if qfx2_daid[0, k] == qaid and qfx2_dfx[0, k] == qfx:</span>
+            <span class="c1"># if qfx2_daid[0, k] == qaid and qfx2_dfx[0, k] == qfx:</span>
             <span class="k">if</span> <span class="n">qfx2_daid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="n">qaid</span><span class="p">:</span>
                 <span class="n">skipped</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
@@ -325,13 +464,15 @@
         <span class="n">px_shift</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># plot stride shift</span>
         <span class="n">nExtracted</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">extracted_list</span><span class="p">)</span>
         <span class="n">featrow_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">draw_chip</span><span class="o">=</span><span class="n">draw_chip</span><span class="p">,</span> <span class="n">draw_desc</span><span class="o">=</span><span class="n">draw_desc</span><span class="p">,</span> <span class="n">draw_warped</span><span class="o">=</span><span class="n">draw_warped</span><span class="p">,</span>
+            <span class="n">draw_chip</span><span class="o">=</span><span class="n">draw_chip</span><span class="p">,</span>
+            <span class="n">draw_desc</span><span class="o">=</span><span class="n">draw_desc</span><span class="p">,</span>
+            <span class="n">draw_warped</span><span class="o">=</span><span class="n">draw_warped</span><span class="p">,</span>
             <span class="n">draw_unwarped</span><span class="o">=</span><span class="n">draw_unwarped</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--texknormplot&#39;</span><span class="p">):</span>
             <span class="n">featrow_kw</span><span class="p">[</span><span class="s1">&#39;ell_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span>
             <span class="n">featrow_kw</span><span class="p">[</span><span class="s1">&#39;ell_linewidth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">featrow_kw</span><span class="p">[</span><span class="s1">&#39;arm1_lw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+            <span class="n">featrow_kw</span><span class="p">[</span><span class="s1">&#39;arm1_lw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
             <span class="n">featrow_kw</span><span class="p">[</span><span class="s1">&#39;stroke&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">pass</span>
         <span class="k">for</span> <span class="n">listx</span><span class="p">,</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">extracted_list</span><span class="p">):</span>
@@ -344,9 +485,21 @@
                 <span class="n">px_shift</span> <span class="o">=</span> <span class="n">px</span>
                 <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">_fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">px_</span> <span class="o">=</span> <span class="n">px</span> <span class="o">-</span> <span class="n">px_shift</span>
-            <span class="n">px</span> <span class="o">=</span> <span class="n">draw_feat_row</span><span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="n">_fnum</span><span class="p">,</span> <span class="n">_nRows</span><span class="p">,</span> <span class="n">px</span><span class="o">=</span><span class="n">px_</span><span class="p">,</span>
-                               <span class="n">prevsift</span><span class="o">=</span><span class="n">prevsift</span><span class="p">,</span> <span class="n">origsift</span><span class="o">=</span><span class="n">origsift</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span>
-                               <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="n">type_</span><span class="p">,</span> <span class="o">**</span><span class="n">featrow_kw</span><span class="p">)</span>
+            <span class="n">px</span> <span class="o">=</span> <span class="n">draw_feat_row</span><span class="p">(</span>
+                <span class="n">rchip</span><span class="p">,</span>
+                <span class="n">fx</span><span class="p">,</span>
+                <span class="n">kp</span><span class="p">,</span>
+                <span class="n">sift</span><span class="p">,</span>
+                <span class="n">_fnum</span><span class="p">,</span>
+                <span class="n">_nRows</span><span class="p">,</span>
+                <span class="n">px</span><span class="o">=</span><span class="n">px_</span><span class="p">,</span>
+                <span class="n">prevsift</span><span class="o">=</span><span class="n">prevsift</span><span class="p">,</span>
+                <span class="n">origsift</span><span class="o">=</span><span class="n">origsift</span><span class="p">,</span>
+                <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span>
+                <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                <span class="n">type_</span><span class="o">=</span><span class="n">type_</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">featrow_kw</span><span class="p">,</span>
+            <span class="p">)</span>
 
             <span class="n">px</span> <span class="o">+=</span> <span class="n">px_shift</span>
             <span class="k">if</span> <span class="n">prevsift</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">consecutive_distance_compare</span><span class="p">:</span>
@@ -368,18 +521,37 @@
 <span class="sd">        python -m wbia.viz.viz_nearest_descriptors --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -387,57 +559,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../viz.html">wbia.viz</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

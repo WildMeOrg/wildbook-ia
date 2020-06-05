@@ -1,39 +1,157 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.guitool.stripe_proxy_model &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.guitool.stripe_proxy_model &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../guitool.html">wbia.guitool</a> &raquo;</li>
+
+      <li>wbia.guitool.stripe_proxy_model</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.guitool.stripe_proxy_model</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtWidgets</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="k">import</span> <span class="n">Qt</span>
@@ -41,10 +159,11 @@
 <span class="kn">import</span> <span class="nn">utool</span>
 
 <span class="kn">import</span> <span class="nn">six</span>
+
 <span class="n">utool</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[StripProxyModel]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="c1">#STRIPE_PROXY_BASE = QtGui.QAbstractProxyModel</span>
-<span class="c1">#STRIPE_PROXY_BASE = QtGui.QSortFilterProxyModel</span>
+<span class="c1"># STRIPE_PROXY_BASE = QtGui.QAbstractProxyModel</span>
+<span class="c1"># STRIPE_PROXY_BASE = QtGui.QSortFilterProxyModel</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">STRIPE_PROXY_BASE</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QIdentityProxyModel</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -52,22 +171,27 @@
 
 <span class="n">STRIP_PROXY_META_CLASS</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">makeForwardingMetaclass</span><span class="p">(</span>
     <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourceModel</span><span class="p">(),</span>
-    <span class="p">[</span><span class="s1">&#39;_set_context_id&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;_get_context_id&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;_set_changeblocked&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;_get_changeblocked&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;_about_to_change&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;_change&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;_update&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;_rows_updated&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;name&#39;</span><span class="p">],</span>
-    <span class="n">base_class</span><span class="o">=</span><span class="n">STRIPE_PROXY_BASE</span><span class="p">)</span>
+    <span class="p">[</span>
+        <span class="s1">&#39;_set_context_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_get_context_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_set_changeblocked&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_get_changeblocked&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_about_to_change&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_change&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_update&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_rows_updated&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">base_class</span><span class="o">=</span><span class="n">STRIPE_PROXY_BASE</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">STRIP_PROXY_SIX_BASE</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">STRIP_PROXY_META_CLASS</span><span class="p">,</span> <span class="n">STRIPE_PROXY_BASE</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="StripeProxyModel"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.stripe_proxy_model.StripeProxyModel">[docs]</a><span class="k">class</span> <span class="nc">StripeProxyModel</span><span class="p">(</span><span class="n">STRIP_PROXY_SIX_BASE</span><span class="p">):</span>  <span class="c1"># (STRIPE_PROXY_BASE, metaclass=STRIP_PROXY_META_CLASS):</span>
-    <span class="c1">#__metaclass__ = STRIP_PROXY_META_CLASS</span>
+<div class="viewcode-block" id="StripeProxyModel"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.stripe_proxy_model.StripeProxyModel">[docs]</a><span class="k">class</span> <span class="nc">StripeProxyModel</span><span class="p">(</span>
+    <span class="n">STRIP_PROXY_SIX_BASE</span>
+<span class="p">):</span>  <span class="c1"># (STRIPE_PROXY_BASE, metaclass=STRIP_PROXY_META_CLASS):</span>
+    <span class="c1"># __metaclass__ = STRIP_PROXY_META_CLASS</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">numduplicates</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">STRIPE_PROXY_BASE</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
@@ -77,13 +201,13 @@
         <span class="n">sourceParent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapToSource</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
         <span class="n">source_rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourceModel</span><span class="p">()</span><span class="o">.</span><span class="n">rowCount</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">sourceParent</span><span class="p">)</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">source_rows</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nd</span><span class="p">)</span>
-        <span class="c1">#print(&#39;StripeProxyModel.rowCount(): %r %r&#39; % (source_rows, rows))</span>
+        <span class="c1"># print(&#39;StripeProxyModel.rowCount(): %r %r&#39; % (source_rows, rows))</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StripeProxyModel.columnCount"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.stripe_proxy_model.StripeProxyModel.columnCount">[docs]</a>    <span class="k">def</span> <span class="nf">columnCount</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
         <span class="n">source_cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourceModel</span><span class="p">()</span><span class="o">.</span><span class="n">columnCount</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nd</span> <span class="o">*</span> <span class="n">source_cols</span>
-        <span class="c1">#print(&#39;StripeProxyModel.columnCount(): %r %r&#39; % (source_cols, cols))</span>
+        <span class="c1"># print(&#39;StripeProxyModel.columnCount(): %r %r&#39; % (source_cols, cols))</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StripeProxyModel.proxy_to_source"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.stripe_proxy_model.StripeProxyModel.proxy_to_source">[docs]</a>    <span class="k">def</span> <span class="nf">proxy_to_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()):</span>
@@ -110,8 +234,10 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">proxyIndex</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
             <span class="n">r2</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy_to_source</span><span class="p">(</span><span class="n">proxyIndex</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span> <span class="n">proxyIndex</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>
-            <span class="c1">#print(&#39;StripeProxyModel.mapToSource(): %r %r %r; %r %r %r&#39; % (r, c, p, r2, c2, p2))</span>
-            <span class="n">sourceIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourceModel</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">p2</span><span class="p">)</span>  <span class="c1"># self.sourceModel().root_node[r2]</span>
+            <span class="c1"># print(&#39;StripeProxyModel.mapToSource(): %r %r %r; %r %r %r&#39; % (r, c, p, r2, c2, p2))</span>
+            <span class="n">sourceIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourceModel</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span>
+                <span class="n">r2</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">p2</span>
+            <span class="p">)</span>  <span class="c1"># self.sourceModel().root_node[r2]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sourceIndex</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">sourceIndex</span></div>
@@ -121,7 +247,9 @@
         <span class="k">if</span> <span class="n">sourceIndex</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">sourceIndex</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
-            <span class="n">r2</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_to_proxy</span><span class="p">(</span><span class="n">sourceIndex</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span> <span class="n">sourceIndex</span><span class="o">.</span><span class="n">column</span><span class="p">(),</span> <span class="n">sourceIndex</span><span class="o">.</span><span class="n">parent</span><span class="p">())</span>
+            <span class="n">r2</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_to_proxy</span><span class="p">(</span>
+                <span class="n">sourceIndex</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span> <span class="n">sourceIndex</span><span class="o">.</span><span class="n">column</span><span class="p">(),</span> <span class="n">sourceIndex</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+            <span class="p">)</span>
             <span class="n">proxyIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">proxyIndex</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">()</span>
@@ -151,19 +279,19 @@
 <div class="viewcode-block" id="StripeProxyModel.parent"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.stripe_proxy_model.StripeProxyModel.parent">[docs]</a>    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourceModel</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapToSource</span><span class="p">(</span><span class="n">index</span><span class="p">))</span></div>
 
-<span class="c1">#    def mapSelectionToSource(self, sel):</span>
+    <span class="c1">#    def mapSelectionToSource(self, sel):</span>
 
-<span class="c1">#    def flags(self, *args, **kwargs):</span>
-<span class="c1">#        return self.sourceModel().flags(*args, **kwargs)</span>
+    <span class="c1">#    def flags(self, *args, **kwargs):</span>
+    <span class="c1">#        return self.sourceModel().flags(*args, **kwargs)</span>
 
-<span class="c1">#    def headerData(self, *args, **kwargs):</span>
-<span class="c1">#        return self.sourceModel().headerData(*args, **kwargs)</span>
-<span class="c1">#</span>
-<span class="c1">#    def hasChildren(self, *args, **kwargs):</span>
-<span class="c1">#        return self.sourceModel().hasChildren(*args, **kwargs)</span>
-<span class="c1">#</span>
-<span class="c1">#    def itemData(self, *args, **kwargs):</span>
-<span class="c1">#        return self.sourceModel().itemData(*args, **kwargs)</span>
+    <span class="c1">#    def headerData(self, *args, **kwargs):</span>
+    <span class="c1">#        return self.sourceModel().headerData(*args, **kwargs)</span>
+    <span class="c1">#</span>
+    <span class="c1">#    def hasChildren(self, *args, **kwargs):</span>
+    <span class="c1">#        return self.sourceModel().hasChildren(*args, **kwargs)</span>
+    <span class="c1">#</span>
+    <span class="c1">#    def itemData(self, *args, **kwargs):</span>
+    <span class="c1">#        return self.sourceModel().itemData(*args, **kwargs)</span>
 
     <span class="k">def</span> <span class="nf">_update_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourceModel</span><span class="p">()</span><span class="o">.</span><span class="n">_update_rows</span><span class="p">()</span>
@@ -181,13 +309,30 @@
         <span class="k">return</span> <span class="n">next_proxyindex</span></div>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -195,57 +340,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../guitool.html">wbia.guitool</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

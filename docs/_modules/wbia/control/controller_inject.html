@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.controller_inject &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.control.controller_inject &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../control.html">wbia.control</a> &raquo;</li>
+
+      <li>wbia.control.controller_inject</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.control.controller_inject</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -53,14 +170,16 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span>
+
 <span class="c1"># import simplejson as json</span>
-<span class="c1">#import json</span>
-<span class="c1">#import pickle</span>
-<span class="c1">#from six.moves import cPickle as pickle</span>
+<span class="c1"># import json</span>
+<span class="c1"># import pickle</span>
+<span class="c1"># from six.moves import cPickle as pickle</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">sha1</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="c1">#import numpy as np</span>
+
+<span class="c1"># import numpy as np</span>
 <span class="kn">import</span> <span class="nn">hmac</span>
 <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">string</span>
@@ -72,18 +191,19 @@
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">flask</span>
     <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">session</span><span class="p">,</span> <span class="n">request</span>
+
     <span class="n">HAS_FLASK</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
     <span class="n">HAS_FLASK</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Missing flask and/or Flask-session.</span><span class="se">\n</span><span class="s1">&#39;</span>
-           <span class="s1">&#39;pip install Flask&#39;</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Missing flask and/or Flask-session.</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="s1">&#39;pip install Flask&#39;</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">STRICT</span><span class="p">:</span>
         <span class="k">raise</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="c1">#from flask.ext.cors import CORS</span>
+    <span class="c1"># from flask.ext.cors import CORS</span>
     <span class="kn">from</span> <span class="nn">flask_cors</span> <span class="k">import</span> <span class="n">CORS</span>
+
     <span class="n">HAS_FLASK_CORS</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
     <span class="n">HAS_FLASK_CORS</span> <span class="o">=</span> <span class="kc">False</span>
@@ -94,15 +214,18 @@
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">flask_cas</span> <span class="k">import</span> <span class="n">CAS</span>  <span class="c1"># NOQA</span>
     <span class="kn">from</span> <span class="nn">flask_cas</span> <span class="k">import</span> <span class="n">login_required</span> <span class="k">as</span> <span class="n">login_required_cas</span>
-    <span class="c1">#from flask.ext.cas import CAS</span>
-    <span class="c1">#from flask.ext.cas import login_required</span>
+
+    <span class="c1"># from flask.ext.cas import CAS</span>
+    <span class="c1"># from flask.ext.cas import login_required</span>
     <span class="c1"># HAS_FLASK_CAS = True</span>
     <span class="n">HAS_FLASK_CAS</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
     <span class="n">HAS_FLASK_CAS</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">login_required_cas</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">identity</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Missing flask.ext.cas.</span><span class="se">\n</span><span class="s1">&#39;</span>
-           <span class="s1">&#39;To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git&#39;</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;Missing flask.ext.cas.</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git&#39;</span>
+    <span class="p">)</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
     <span class="c1"># sudo</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -114,12 +237,14 @@
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="c1">#INJECTED_MODULES = []</span>
+<span class="c1"># INJECTED_MODULES = []</span>
 <span class="n">UTOOL_AUTOGEN_SPHINX_RUNNING</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;UTOOL_AUTOGEN_SPHINX_RUNNING&#39;</span><span class="p">,</span> <span class="s1">&#39;OFF&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;OFF&#39;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;UTOOL_AUTOGEN_SPHINX_RUNNING&#39;</span><span class="p">,</span> <span class="s1">&#39;OFF&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;OFF&#39;</span>
+<span class="p">)</span>
 
-<span class="n">GLOBAL_APP_ENABLED</span> <span class="o">=</span> <span class="p">(</span><span class="ow">not</span> <span class="n">UTOOL_AUTOGEN_SPHINX_RUNNING</span> <span class="ow">and</span>
-                      <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-flask&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">HAS_FLASK</span><span class="p">)</span>
+<span class="n">GLOBAL_APP_ENABLED</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="ow">not</span> <span class="n">UTOOL_AUTOGEN_SPHINX_RUNNING</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-flask&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">HAS_FLASK</span>
+<span class="p">)</span>
 <span class="n">GLOBAL_APP_NAME</span> <span class="o">=</span> <span class="s1">&#39;IBEIS&#39;</span>
 <span class="n">GLOBAL_APP_SECRET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>
 
@@ -134,15 +259,19 @@
 
 <span class="n">CONTROLLER_CLASSNAME</span> <span class="o">=</span> <span class="s1">&#39;IBEISController&#39;</span>
 
-<span class="n">MICROSOFT_API_ENABLED</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--web&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--microsoft&#39;</span><span class="p">)</span>  <span class="c1"># True == Microsoft Deployment (i.e., only allow MICROSOFT_API_PREFIX prefix below)</span>
-<span class="n">MICROSOFT_API_PREFIX</span>  <span class="o">=</span> <span class="s1">&#39;/v0.1/wildbook/&#39;</span>
-<span class="n">MICROSOFT_API_DEBUG</span>   <span class="o">=</span> <span class="kc">True</span>
+<span class="n">MICROSOFT_API_ENABLED</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--web&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span>
+    <span class="s1">&#39;--microsoft&#39;</span>
+<span class="p">)</span>  <span class="c1"># True == Microsoft Deployment (i.e., only allow MICROSOFT_API_PREFIX prefix below)</span>
+<span class="n">MICROSOFT_API_PREFIX</span> <span class="o">=</span> <span class="s1">&#39;/v0.1/wildbook/&#39;</span>
+<span class="n">MICROSOFT_API_DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
 
 <span class="k">if</span> <span class="n">MICROSOFT_API_ENABLED</span><span class="p">:</span>
     <span class="n">WEB_DEBUG_INCLUDE_TRACE</span> <span class="o">=</span> <span class="n">MICROSOFT_API_DEBUG</span>
 
 
-<span class="n">STRICT_VERSION_API</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># True == Microsoft Deployment (i.e., only allow /wildme/v0.1/ prefixes)</span>
+<span class="n">STRICT_VERSION_API</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="kc">False</span>  <span class="c1"># True == Microsoft Deployment (i.e., only allow /wildme/v0.1/ prefixes)</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_flask_app"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.get_flask_app">[docs]</a><span class="k">def</span> <span class="nf">get_flask_app</span><span class="p">(</span><span class="n">templates_auto_reload</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -167,12 +296,12 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[get_flask_app] tempalte_dpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tempalte_dpath</span><span class="p">,))</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[get_flask_app] static_dpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">static_dpath</span><span class="p">,))</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[get_flask_app] GLOBAL_APP_NAME = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,))</span>
-        <span class="n">GLOBAL_APP</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span>
-                                 <span class="n">template_folder</span><span class="o">=</span><span class="n">tempalte_dpath</span><span class="p">,</span>
-                                 <span class="n">static_folder</span><span class="o">=</span><span class="n">static_dpath</span><span class="p">)</span>
+        <span class="n">GLOBAL_APP</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span>
+            <span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">template_folder</span><span class="o">=</span><span class="n">tempalte_dpath</span><span class="p">,</span> <span class="n">static_folder</span><span class="o">=</span><span class="n">static_dpath</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[get_flask_app] USING FLASK SECRET KEY: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span> <span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[get_flask_app] USING FLASK SECRET KEY: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,))</span>
         <span class="n">GLOBAL_APP</span><span class="o">.</span><span class="n">secret_key</span> <span class="o">=</span> <span class="n">GLOBAL_APP_SECRET</span>
 
         <span class="k">if</span> <span class="n">templates_auto_reload</span><span class="p">:</span>
@@ -183,7 +312,9 @@
         <span class="n">GLOBAL_APP</span><span class="o">.</span><span class="n">GRAPH_CLIENT_DICT</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">HAS_FLASK_CORS</span><span class="p">:</span>
-            <span class="n">GLOBAL_CORS</span> <span class="o">=</span> <span class="n">CORS</span><span class="p">(</span><span class="n">GLOBAL_APP</span><span class="p">,</span> <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="sa">r</span><span class="s2">&quot;/api/*&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;origins&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span><span class="p">}})</span>  <span class="c1"># NOQA</span>
+            <span class="n">GLOBAL_CORS</span> <span class="o">=</span> <span class="n">CORS</span><span class="p">(</span>
+                <span class="n">GLOBAL_APP</span><span class="p">,</span> <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="sa">r</span><span class="s1">&#39;/api/*&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;origins&#39;</span><span class="p">:</span> <span class="s1">&#39;*&#39;</span><span class="p">}}</span>
+            <span class="p">)</span>  <span class="c1"># NOQA</span>
 
         <span class="c1"># if HAS_FLASK_CAS:</span>
         <span class="c1">#     GLOBAL_CAS = CAS(GLOBAL_APP, &#39;/cas&#39;)</span>
@@ -192,6 +323,7 @@
         <span class="c1">#     GLOBAL_APP.config[&#39;CAS_SERVER&#39;]      = &#39;https://cas-auth.rpi.edu&#39;</span>
         <span class="c1">#     GLOBAL_APP.config[&#39;CAS_AFTER_LOGIN&#39;] = &#39;root&#39;</span>
     <span class="k">return</span> <span class="n">GLOBAL_APP</span></div>
+
 
 <span class="c1"># try and load flask</span>
 <span class="k">try</span><span class="p">:</span>
@@ -213,9 +345,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rawreturn</span> <span class="o">=</span> <span class="n">rawreturn</span>
 
         <span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="k">import</span> <span class="n">PROMETHEUS</span>
+
         <span class="k">if</span> <span class="n">PROMETHEUS</span><span class="p">:</span>
             <span class="n">ibs</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
-            <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">prometheus_increment_exception</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
 
 <div class="viewcode-block" id="WebException.get_rawreturn"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebException.get_rawreturn">[docs]</a>    <span class="k">def</span> <span class="nf">get_rawreturn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug_stack_trace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -233,11 +366,14 @@
 
 <div class="viewcode-block" id="WebMissingUUIDException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebMissingUUIDException">[docs]</a><span class="k">class</span> <span class="nc">WebMissingUUIDException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_image_uuid_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">missing_annot_uuid_list</span><span class="o">=</span><span class="p">[]):</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">missing_image_uuid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_annot_uuid_list</span><span class="p">),</span> <span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">missing_image_uuid_list</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">missing_annot_uuid_list</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Missing image and/or annotation UUIDs (</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">args</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;missing_image_uuid_list&#39;</span> <span class="p">:</span> <span class="n">missing_image_uuid_list</span><span class="p">,</span>
-            <span class="s1">&#39;missing_annot_uuid_list&#39;</span> <span class="p">:</span> <span class="n">missing_annot_uuid_list</span><span class="p">,</span>
+            <span class="s1">&#39;missing_image_uuid_list&#39;</span><span class="p">:</span> <span class="n">missing_image_uuid_list</span><span class="p">,</span>
+            <span class="s1">&#39;missing_annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">missing_annot_uuid_list</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">600</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebMissingUUIDException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -245,16 +381,16 @@
 
 <div class="viewcode-block" id="WebDuplicateUUIDException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebDuplicateUUIDException">[docs]</a><span class="k">class</span> <span class="nc">WebDuplicateUUIDException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qdup_pos_map</span><span class="o">=</span><span class="p">{},</span> <span class="n">ddup_pos_map</span><span class="o">=</span><span class="p">{}):</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Some UUIDs are specified more than once at positions:</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="s1">&#39;duplicate_database_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="s1">&#39;duplicate_query_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
-                       <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">qdup_pos_map</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-                       <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ddup_pos_map</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;Some UUIDs are specified more than once at positions:</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="s1">&#39;duplicate_database_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="s1">&#39;duplicate_query_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">qdup_pos_map</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ddup_pos_map</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
         <span class="n">qdup_pos_map_</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">qdup_pos_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="n">ddup_pos_map_</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ddup_pos_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;qdup_pos_map&#39;</span> <span class="p">:</span> <span class="n">qdup_pos_map_</span><span class="p">,</span>
-            <span class="s1">&#39;ddup_pos_map&#39;</span> <span class="p">:</span> <span class="n">ddup_pos_map_</span><span class="p">,</span>
+            <span class="s1">&#39;qdup_pos_map&#39;</span><span class="p">:</span> <span class="n">qdup_pos_map_</span><span class="p">,</span>
+            <span class="s1">&#39;ddup_pos_map&#39;</span><span class="p">:</span> <span class="n">ddup_pos_map_</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">601</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebDuplicateUUIDException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -263,11 +399,14 @@
 <div class="viewcode-block" id="WebUnknownUUIDException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebUnknownUUIDException">[docs]</a><span class="k">class</span> <span class="nc">WebUnknownUUIDException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unknown_uuid_type_list</span><span class="p">,</span> <span class="n">unknown_uuid_list</span><span class="p">):</span>
         <span class="n">uuid_type_str</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">unknown_uuid_type_list</span><span class="p">)))</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">uuid_type_str</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unknown_uuid_list</span><span class="p">),</span> <span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">uuid_type_str</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">unknown_uuid_list</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Unknown </span><span class="si">%s</span><span class="s1"> UUIDs (</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">args</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;unknown_uuid_type_list&#39;</span> <span class="p">:</span> <span class="n">unknown_uuid_type_list</span><span class="p">,</span>
-            <span class="s1">&#39;unknown_uuid_list&#39;</span> <span class="p">:</span> <span class="n">unknown_uuid_list</span><span class="p">,</span>
+            <span class="s1">&#39;unknown_uuid_type_list&#39;</span><span class="p">:</span> <span class="n">unknown_uuid_type_list</span><span class="p">,</span>
+            <span class="s1">&#39;unknown_uuid_list&#39;</span><span class="p">:</span> <span class="n">unknown_uuid_list</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">602</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebUnknownUUIDException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -275,10 +414,10 @@
 
 <div class="viewcode-block" id="WebReviewNotReadyException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebReviewNotReadyException">[docs]</a><span class="k">class</span> <span class="nc">WebReviewNotReadyException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_uuid</span><span class="p">):</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_uuid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_uuid</span><span class="p">,)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;The query_uuid </span><span class="si">%r</span><span class="s1"> is not yet ready for review&#39;</span> <span class="o">%</span> <span class="n">args</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;query_uuid&#39;</span> <span class="p">:</span> <span class="n">query_uuid</span><span class="p">,</span>
+            <span class="s1">&#39;query_uuid&#39;</span><span class="p">:</span> <span class="n">query_uuid</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">603</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebReviewNotReadyException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -287,11 +426,14 @@
 <div class="viewcode-block" id="WebUnavailableUUIDException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebUnavailableUUIDException">[docs]</a><span class="k">class</span> <span class="nc">WebUnavailableUUIDException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unavailable_annot_uuid_list</span><span class="p">,</span> <span class="n">query_uuid</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">query_uuid</span> <span class="o">=</span> <span class="n">query_uuid</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_uuid</span><span class="p">,</span> <span class="p">)</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;A running query </span><span class="si">%s</span><span class="s1"> is using (at least one of) the requested annotations.  Filter out these annotations from the new query or stop the previous query.&#39;</span> <span class="o">%</span> <span class="n">args</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_uuid</span><span class="p">,)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;A running query </span><span class="si">%s</span><span class="s1"> is using (at least one of) the requested annotations.  Filter out these annotations from the new query or stop the previous query.&#39;</span>
+            <span class="o">%</span> <span class="n">args</span>
+        <span class="p">)</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;unavailable_annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">unavailable_annot_uuid_list</span><span class="p">,</span>
-            <span class="s1">&#39;query_uuid&#39;</span> <span class="p">:</span> <span class="n">query_uuid</span><span class="p">,</span>
+            <span class="s1">&#39;query_uuid&#39;</span><span class="p">:</span> <span class="n">query_uuid</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">604</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebUnavailableUUIDException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -299,10 +441,10 @@
 
 <div class="viewcode-block" id="WebReviewFinishedException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebReviewFinishedException">[docs]</a><span class="k">class</span> <span class="nc">WebReviewFinishedException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_uuid</span><span class="p">):</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_uuid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_uuid</span><span class="p">,)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;The query_uuid </span><span class="si">%r</span><span class="s1"> has nothing more to review&#39;</span> <span class="o">%</span> <span class="n">args</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;query_uuid&#39;</span> <span class="p">:</span> <span class="n">query_uuid</span><span class="p">,</span>
+            <span class="s1">&#39;query_uuid&#39;</span><span class="p">:</span> <span class="n">query_uuid</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">605</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebReviewFinishedException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -310,11 +452,13 @@
 
 <div class="viewcode-block" id="WebMultipleNamedDuplicateException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebMultipleNamedDuplicateException">[docs]</a><span class="k">class</span> <span class="nc">WebMultipleNamedDuplicateException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bad_dict</span><span class="p">):</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Duplcate UUIDs are specified with more than one name:</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="s1">&#39;bad_database_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">bad_dict</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">),)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;Duplcate UUIDs are specified with more than one name:</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="s1">&#39;bad_database_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">bad_dict</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">),)</span>
         <span class="n">bad_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">bad_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;bad_dict&#39;</span> <span class="p">:</span> <span class="n">bad_dict</span><span class="p">,</span>
+            <span class="s1">&#39;bad_dict&#39;</span><span class="p">:</span> <span class="n">bad_dict</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">606</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebMultipleNamedDuplicateException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -334,11 +478,14 @@
 
 <div class="viewcode-block" id="WebInvalidUUIDException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebInvalidUUIDException">[docs]</a><span class="k">class</span> <span class="nc">WebInvalidUUIDException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">invalid_image_uuid_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">invalid_annot_uuid_list</span><span class="o">=</span><span class="p">[]):</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_image_uuid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_annot_uuid_list</span><span class="p">),</span> <span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">invalid_image_uuid_list</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">invalid_annot_uuid_list</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Invalid image and/or annotation UUIDs (</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">args</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;invalid_image_uuid_list&#39;</span> <span class="p">:</span> <span class="n">invalid_image_uuid_list</span><span class="p">,</span>
-            <span class="s1">&#39;invalid_annot_uuid_list&#39;</span> <span class="p">:</span> <span class="n">invalid_annot_uuid_list</span><span class="p">,</span>
+            <span class="s1">&#39;invalid_image_uuid_list&#39;</span><span class="p">:</span> <span class="n">invalid_image_uuid_list</span><span class="p">,</span>
+            <span class="s1">&#39;invalid_annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">invalid_annot_uuid_list</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">608</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebInvalidUUIDException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -348,8 +495,8 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
         <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;The ID request is invalid because the daid_list is empty (after filtering out the qaid_list)&#39;</span>
         <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;qaid_list&#39;</span> <span class="p">:</span> <span class="n">qaid_list</span><span class="p">,</span>
-            <span class="s1">&#39;daid_list&#39;</span> <span class="p">:</span> <span class="n">daid_list</span><span class="p">,</span>
+            <span class="s1">&#39;qaid_list&#39;</span><span class="p">:</span> <span class="n">qaid_list</span><span class="p">,</span>
+            <span class="s1">&#39;daid_list&#39;</span><span class="p">:</span> <span class="n">daid_list</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">609</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebInvalidMatchException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
@@ -381,18 +528,25 @@
 
 <div class="viewcode-block" id="WebRuntimeException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebRuntimeException">[docs]</a><span class="k">class</span> <span class="nc">WebRuntimeException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-        <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span>
-        <span class="p">}</span>
+        <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">500</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebRuntimeException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="translate_wbia_webreturn"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.translate_wbia_webreturn">[docs]</a><span class="k">def</span> <span class="nf">translate_wbia_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                              <span class="n">jQuery_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">__skip_microsoft_validation__</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="translate_wbia_webreturn"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.translate_wbia_webreturn">[docs]</a><span class="k">def</span> <span class="nf">translate_wbia_webreturn</span><span class="p">(</span>
+    <span class="n">rawreturn</span><span class="p">,</span>
+    <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">jQuery_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">__skip_microsoft_validation__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="k">if</span> <span class="n">MICROSOFT_API_ENABLED</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">__skip_microsoft_validation__</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">rawreturn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s1">&#39;Microsoft APIs must return a Python dictionary&#39;</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">rawreturn</span><span class="p">,</span> <span class="nb">dict</span>
+            <span class="p">),</span> <span class="s1">&#39;Microsoft APIs must return a Python dictionary&#39;</span>
         <span class="n">template</span> <span class="o">=</span> <span class="n">rawreturn</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -404,17 +558,17 @@
         <span class="n">template</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="n">success</span><span class="p">,</span>
-                <span class="s1">&#39;code&#39;</span><span class="p">:</span>    <span class="n">code</span><span class="p">,</span>
+                <span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span>
                 <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
-                <span class="s1">&#39;cache&#39;</span><span class="p">:</span>   <span class="n">cache</span><span class="p">,</span>
+                <span class="s1">&#39;cache&#39;</span><span class="p">:</span> <span class="n">cache</span><span class="p">,</span>
                 <span class="c1">#&#39;debug&#39;: {}  # TODO</span>
             <span class="p">},</span>
-            <span class="s1">&#39;response&#39;</span> <span class="p">:</span> <span class="n">rawreturn</span>
+            <span class="s1">&#39;response&#39;</span><span class="p">:</span> <span class="n">rawreturn</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">jQuery_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">jQuery_callback</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] Including jQuery callback function: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jQuery_callback</span><span class="p">,</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] Including jQuery callback function: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jQuery_callback</span><span class="p">,))</span>
         <span class="n">response</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jQuery_callback</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">response</span></div>
 
@@ -424,15 +578,22 @@
         <span class="k">return</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">multidict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">werkzeug.datastructures</span> <span class="k">import</span> <span class="n">ImmutableMultiDict</span>
+
         <span class="n">multidict</span> <span class="o">=</span> <span class="n">ImmutableMultiDict</span><span class="p">([</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">multidict</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
     <span class="n">kwargs2</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">multidict</span><span class="o">.</span><span class="n">lists</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">WebException</span><span class="p">(</span><span class="s1">&#39;Cannot specify a parameter more than once: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">))</span>
+            <span class="k">raise</span> <span class="n">WebException</span><span class="p">(</span><span class="s1">&#39;Cannot specify a parameter more than once: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">arg</span><span class="p">,))</span>
         <span class="c1"># value = str(value[0])</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s1">&#39;[&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s1">&#39;]&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s1">&#39;{&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s1">&#39;}&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="s1">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">value</span>
+            <span class="ow">and</span> <span class="s1">&#39;[&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span>
+            <span class="ow">and</span> <span class="s1">&#39;]&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span>
+            <span class="ow">and</span> <span class="s1">&#39;{&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span>
+            <span class="ow">and</span> <span class="s1">&#39;}&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span>
+        <span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">]:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
@@ -440,10 +601,10 @@
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="c1"># try making string and try again...</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">value_</span> <span class="o">=</span> <span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">)</span>
+                <span class="n">value_</span> <span class="o">=</span> <span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span>
                 <span class="n">converted</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">value_</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FAILED TO JSON CONVERT: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FAILED TO JSON CONVERT: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,))</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
                 <span class="n">converted</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_list&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">converted</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
@@ -452,13 +613,14 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">converted</span> <span class="o">=</span> <span class="p">[</span><span class="n">converted</span><span class="p">]</span>
         <span class="c1"># Allow JSON formatted strings to be placed into note fields</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;note_list&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;notes_list&#39;</span><span class="p">))</span> <span class="ow">and</span>
-           <span class="nb">isinstance</span><span class="p">(</span><span class="n">converted</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;note_list&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;notes_list&#39;</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">converted</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
+        <span class="p">):</span>
             <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">converted</span><span class="p">)</span>
             <span class="n">temp_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">converted</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_</span><span class="p">,))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
             <span class="n">converted</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="n">temp_list</span><span class="p">)</span>
@@ -542,9 +704,14 @@
                             <span class="n">length2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">values</span><span class="p">)))</span>
                         <span class="n">length3</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">length1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
                         <span class="n">mod</span> <span class="o">=</span> <span class="s1">&#39;...&#39;</span> <span class="k">if</span> <span class="n">length1</span> <span class="o">!=</span> <span class="n">length3</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-                        <span class="n">message_</span> <span class="o">=</span> <span class="s1">&#39;length </span><span class="si">%d</span><span class="s1"> with unique </span><span class="si">%d</span><span class="s1"> of </span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">length1</span><span class="p">,</span> <span class="n">length2</span><span class="p">,</span> <span class="n">values</span><span class="p">[:</span><span class="n">length3</span><span class="p">],</span> <span class="n">mod</span><span class="p">,</span> <span class="p">)</span>
+                        <span class="n">message_</span> <span class="o">=</span> <span class="s1">&#39;length </span><span class="si">%d</span><span class="s1"> with unique </span><span class="si">%d</span><span class="s1"> of </span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">length1</span><span class="p">,</span>
+                            <span class="n">length2</span><span class="p">,</span>
+                            <span class="n">values</span><span class="p">[:</span><span class="n">length3</span><span class="p">],</span>
+                            <span class="n">mod</span><span class="p">,</span>
+                        <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">message_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">message_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">values</span><span class="p">,)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="n">type_</span> <span class="o">=</span> <span class="s1">&#39;UNKNOWN&#39;</span>
                 <span class="n">message_</span> <span class="o">=</span> <span class="s1">&#39;ERROR IN PARSING&#39;</span>
@@ -562,7 +729,7 @@
                 <span class="n">key_</span> <span class="o">=</span> <span class="n">key_</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="n">length1</span><span class="p">)</span>
                 <span class="n">type_</span> <span class="o">=</span> <span class="n">type_</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">length2</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">message_</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">message_</span><span class="p">,))</span>
                 <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : UNICODE ERROR&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -579,12 +746,14 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>  <span class="c1"># NOQA</span>
             <span class="k">if</span> <span class="n">MICROSOFT_API_ENABLED</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;required positional&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex2</span><span class="p">):</span>
-                    <span class="n">parameter</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">parameter</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
                     <span class="k">raise</span> <span class="n">WebMissingInput</span><span class="p">(</span><span class="s1">&#39;Missing required parameter&#39;</span><span class="p">,</span> <span class="n">parameter</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="n">WebException</span><span class="p">):</span>
                     <span class="k">raise</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">WebRuntimeException</span><span class="p">(</span><span class="s1">&#39;An unknown error has occurred, please contact the API administrator at dev@wildme.org.&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">WebRuntimeException</span><span class="p">(</span>
+                        <span class="s1">&#39;An unknown error has occurred, please contact the API administrator at dev@wildme.org.&#39;</span>
+                    <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">msg_list</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="c1"># msg_list.append(&#39;Error in translate_wbia_webcall&#39;)</span>
@@ -593,13 +762,13 @@
                 <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Received Function Parameters:&#39;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                    <span class="n">value_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">value_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span>
                     <span class="n">value_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="n">value_str</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
-                    <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_str</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_str</span><span class="p">,))</span>
                 <span class="c1"># msg_list.append(&#39;\targs = %r&#39; % (args,))</span>
                 <span class="c1"># msg_list.append(&#39;flask.request.args = %r&#39; % (flask.request.args,))</span>
                 <span class="c1"># msg_list.append(&#39;flask.request.form = %r&#39; % (flask.request.form,))</span>
-                <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">ex2</span><span class="p">,</span> <span class="p">))</span>
+                <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">ex2</span><span class="p">,))</span>
                 <span class="k">if</span> <span class="n">WEB_DEBUG_INCLUDE_TRACE</span><span class="p">:</span>
                     <span class="n">trace</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                     <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
@@ -610,7 +779,7 @@
             <span class="c1"># error_msg = ut.strip_ansi(error_msg)</span>
             <span class="c1"># raise Exception(error_msg)</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="c1">#raise</span>
+            <span class="c1"># raise</span>
     <span class="n">resp_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">resp_tup</span></div>
 
@@ -622,7 +791,9 @@
     <span class="n">code</span> <span class="o">=</span> <span class="mi">401</span>
     <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Could not verify your authentication, login with proper credentials.&#39;</span>
     <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_wbia_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span><span class="p">)</span>
+    <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_wbia_webreturn</span><span class="p">(</span>
+        <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span>
+    <span class="p">)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="n">webreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
     <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;WWW-Authenticate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Basic realm=&quot;Login Required&quot;&#39;</span>
     <span class="k">return</span> <span class="n">response</span></div>
@@ -647,14 +818,16 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">authentication_user_validate</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">authentication_challenge</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="c1">#wrp_authenticate_user = ut.preserve_sig(wrp_authenticate_user, func)</span>
+
+    <span class="c1"># wrp_authenticate_user = ut.preserve_sig(wrp_authenticate_user, func)</span>
     <span class="k">return</span> <span class="n">wrp_authenticate_user</span></div>
 
 
 <div class="viewcode-block" id="create_key"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.create_key">[docs]</a><span class="k">def</span> <span class="nf">create_key</span><span class="p">():</span>
     <span class="n">hyphen_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">23</span><span class="p">]</span>
-    <span class="n">key_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-&#39;</span> <span class="k">if</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">hyphen_list</span> <span class="k">else</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">hexdigits</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">36</span><span class="p">)</span> <span class="p">]</span>
+    <span class="n">key_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;-&#39;</span> <span class="k">if</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">hyphen_list</span> <span class="k">else</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">hexdigits</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">36</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">key_list</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span></div>
 
 
@@ -682,7 +855,7 @@
 
 <div class="viewcode-block" id="get_url_authorization"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.get_url_authorization">[docs]</a><span class="k">def</span> <span class="nf">get_url_authorization</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
     <span class="n">hash_</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
-    <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">hash_</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">hash_</span><span class="p">,)</span>
     <span class="k">return</span> <span class="n">hash_challenge</span></div>
 
 
@@ -691,11 +864,12 @@
 <span class="sd">    This function is called to check if a username /</span>
 <span class="sd">    password combination is valid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">last_occurence_delete</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">character</span><span class="p">):</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="n">character</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">string</span>
-        <span class="k">return</span> <span class="n">string</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span> <span class="o">+</span> <span class="n">string</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">string</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span> <span class="o">+</span> <span class="n">string</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
 
     <span class="n">hash_response</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Authorization&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hash_response</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -722,22 +896,30 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">authentication_hash_validate</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">authentication_challenge</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">wrp_authentication_hash</span></div>
 
 
 <div class="viewcode-block" id="authentication_either"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.authentication_either">[docs]</a><span class="k">def</span> <span class="nf">authentication_either</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; authenticated by either hash or user &quot;&quot;&quot;</span>
+
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_authentication_either</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">authentication_hash_validate</span><span class="p">()</span> <span class="ow">or</span> <span class="n">authentication_user_validate</span><span class="p">()):</span>
             <span class="k">return</span> <span class="n">authentication_challenge</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">wrp_authentication_either</span></div>
 
 
-<div class="viewcode-block" id="crossdomain"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.crossdomain">[docs]</a><span class="k">def</span> <span class="nf">crossdomain</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">max_age</span><span class="o">=</span><span class="mi">21600</span><span class="p">,</span> <span class="n">attach_to_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">automatic_options</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="crossdomain"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.crossdomain">[docs]</a><span class="k">def</span> <span class="nf">crossdomain</span><span class="p">(</span>
+    <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_age</span><span class="o">=</span><span class="mi">21600</span><span class="p">,</span>
+    <span class="n">attach_to_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">automatic_options</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="k">if</span> <span class="n">methods</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">methods</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">headers</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
@@ -779,6 +961,7 @@
 
         <span class="n">f</span><span class="o">.</span><span class="n">provide_automatic_options</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">update_wrapper</span><span class="p">(</span><span class="n">wrapped_function</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">decorator</span></div>
 
 
@@ -794,6 +977,7 @@
             <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs_</span><span class="p">)</span>
             <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ibs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">api_remote_wbia</span><span class="p">(</span><span class="n">REMOTE_PROXY_URL</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">REMOTE_PROXY_PORT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="n">remote_api_call</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">remote_api_call</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">remote_api_call</span></div>
 
@@ -806,16 +990,18 @@
     <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
     <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">register_api</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span>
-                         <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="n">__api_microsoft_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">register_api</span><span class="p">(</span>
+            <span class="n">rule</span><span class="p">,</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">__api_microsoft_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span>
+        <span class="p">):</span>
             <span class="k">global</span> <span class="n">API_SEEN_SET</span>
             <span class="k">assert</span> <span class="n">rule</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">),</span> <span class="s1">&#39;An API should always end in a forward-slash&#39;</span>
-            <span class="k">assert</span> <span class="s1">&#39;methods&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">,</span> <span class="s1">&#39;An api should always have a specified methods list&#39;</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="s1">&#39;methods&#39;</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="p">),</span> <span class="s1">&#39;An api should always have a specified methods list&#39;</span>
             <span class="n">rule_</span> <span class="o">=</span> <span class="n">rule</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;methods&#39;</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">rule_</span> <span class="ow">in</span> <span class="n">API_SEEN_SET</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;An API rule (</span><span class="si">%s</span><span class="s1">) has been duplicated&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule_</span><span class="p">,</span> <span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;An API rule (</span><span class="si">%s</span><span class="s1">) has been duplicated&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule_</span><span class="p">,)</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span> <span class="o">+</span> <span class="s1">&#39;. Ignoring duplicate (may break web)&#39;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">identity</span>
                 <span class="c1"># raise AssertionError(msg)</span>
@@ -827,12 +1013,16 @@
                     <span class="c1"># warnings.warn(msg)</span>
                     <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">identity</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Registering API rule=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule_</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Registering API rule=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule_</span><span class="p">,))</span>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">MICROSOFT_API_ENABLED</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="s1">&#39;annotation&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">,</span> <span class="s1">&#39;An API rule should use &quot;annot&quot; instead of annotation(s)&quot;&#39;</span>
-                <span class="k">assert</span> <span class="s1">&#39;imgset&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">,</span> <span class="s1">&#39;An API should use &quot;imageset&quot; instead of imgset(s)&quot;&#39;</span>
+                    <span class="k">assert</span> <span class="p">(</span>
+                        <span class="s1">&#39;annotation&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule</span>
+                    <span class="p">),</span> <span class="s1">&#39;An API rule should use &quot;annot&quot; instead of annotation(s)&quot;&#39;</span>
+                <span class="k">assert</span> <span class="p">(</span>
+                    <span class="s1">&#39;imgset&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule</span>
+                <span class="p">),</span> <span class="s1">&#39;An API should use &quot;imageset&quot; instead of imgset(s)&quot;&#39;</span>
                 <span class="k">assert</span> <span class="s1">&#39;_&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">,</span> <span class="s1">&#39;An API should never contain an underscore&#39;</span>
                 <span class="k">assert</span> <span class="s1">&#39;-&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">,</span> <span class="s1">&#39;An API should never contain a hyphen&#39;</span>
                 <span class="k">if</span> <span class="n">__api_plural_check__</span><span class="p">:</span>
@@ -847,11 +1037,14 @@
                     <span class="s1">&#39;metadata&#39;</span><span class="p">,</span>
                 <span class="p">]</span>
                 <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">check_list</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="s1">&#39;/api/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">,</span> <span class="s1">&#39;failed check=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">check</span><span class="p">,)</span>
+                    <span class="k">assert</span> <span class="s1">&#39;/api/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">check</span><span class="p">,)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">,</span> <span class="s1">&#39;failed check=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">check</span><span class="p">,)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="n">iswarning</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="s1">&#39;CONSIDER RENAMING API RULE: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">),</span>
-                           <span class="n">iswarning</span><span class="o">=</span><span class="n">iswarning</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                    <span class="s1">&#39;CONSIDER RENAMING API RULE: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule</span><span class="p">,),</span>
+                    <span class="n">iswarning</span><span class="o">=</span><span class="n">iswarning</span><span class="p">,</span>
+                    <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">iswarning</span><span class="p">:</span>
                     <span class="k">raise</span>
 
@@ -860,22 +1053,28 @@
                 <span class="c1"># make translation function in closure scope</span>
                 <span class="c1"># and register it with flask.</span>
                 <span class="n">app</span> <span class="o">=</span> <span class="n">get_flask_app</span><span class="p">()</span>
+
                 <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
                 <span class="c1"># @crossdomain(origin=&#39;*&#39;)</span>
                 <span class="c1"># @authentication_either</span>
                 <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-                <span class="c1">#def translated_call(*args, **kwargs):</span>
+                <span class="c1"># def translated_call(*args, **kwargs):</span>
                 <span class="k">def</span> <span class="nf">translated_call</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                     <span class="k">def</span> <span class="nf">html_newlines</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
                         <span class="n">r</span> <span class="o">=</span> <span class="s1">&#39;&lt;br /&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
                         <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;nbsp;&#39;</span><span class="p">)</span>
-                        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                        <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                        <span class="p">)</span>
                         <span class="k">return</span> <span class="n">text</span>
 
                     <span class="fm">__format__</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Default __format__ value</span>
                     <span class="n">ignore_cookie_set</span> <span class="o">=</span> <span class="kc">False</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="c1">#print(&#39;Processing: %r with args: %r and kwargs: %r&#39; % (func, args, kwargs, ))</span>
+                        <span class="c1"># print(&#39;Processing: %r with args: %r and kwargs: %r&#39; % (func, args, kwargs, ))</span>
                         <span class="c1"># Pipe web input into Python web call</span>
                         <span class="n">kwargs2</span> <span class="o">=</span> <span class="n">_process_input</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
                         <span class="n">kwargs3</span> <span class="o">=</span> <span class="n">_process_input</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
@@ -896,8 +1095,8 @@
                             <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;callback&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
                             <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-                        <span class="c1">#print(&#39;KWARGS:  %s&#39; % (kwargs, ))</span>
-                        <span class="c1">#print(&#39;COOKIES: %s&#39; % (request.cookies, ))</span>
+                        <span class="c1"># print(&#39;KWARGS:  %s&#39; % (kwargs, ))</span>
+                        <span class="c1"># print(&#39;COOKIES: %s&#39; % (request.cookies, ))</span>
                         <span class="fm">__format__</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__format__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                         <span class="fm">__format__</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;__format__&#39;</span><span class="p">,</span> <span class="fm">__format__</span><span class="p">)</span>
                         <span class="k">if</span> <span class="fm">__format__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -906,6 +1105,7 @@
                             <span class="fm">__format__</span> <span class="o">=</span> <span class="fm">__format__</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;enable&#39;</span><span class="p">]</span>
 
                         <span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="k">import</span> <span class="n">PROMETHEUS</span>
+
                         <span class="k">if</span> <span class="n">PROMETHEUS</span><span class="p">:</span>
                             <span class="n">exclude_tag_list</span> <span class="o">=</span> <span class="p">[</span>
                                 <span class="s1">&#39;/api/test/heartbeat/&#39;</span><span class="p">,</span>
@@ -921,14 +1121,16 @@
                         <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">resp_tup</span>
                     <span class="k">except</span> <span class="n">WebException</span> <span class="k">as</span> <span class="n">webex</span><span class="p">:</span>
                         <span class="c1"># ut.printex(webex)</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CAUGHT2: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">webex</span><span class="p">,</span> <span class="p">))</span>
-                        <span class="n">rawreturn</span> <span class="o">=</span> <span class="n">webex</span><span class="o">.</span><span class="n">get_rawreturn</span><span class="p">(</span><span class="n">DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CAUGHT2: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">webex</span><span class="p">,))</span>
+                        <span class="n">rawreturn</span> <span class="o">=</span> <span class="n">webex</span><span class="o">.</span><span class="n">get_rawreturn</span><span class="p">(</span>
+                            <span class="n">DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE</span>
+                        <span class="p">)</span>
                         <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
                         <span class="n">code</span> <span class="o">=</span> <span class="n">webex</span><span class="o">.</span><span class="n">code</span>
                         <span class="n">message</span> <span class="o">=</span> <span class="n">webex</span><span class="o">.</span><span class="n">message</span>
                         <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CAUGHT2: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CAUGHT2: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,))</span>
                         <span class="c1"># ut.printex(ex)</span>
                         <span class="n">rawreturn</span> <span class="o">=</span> <span class="kc">None</span>
                         <span class="k">if</span> <span class="n">DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE</span><span class="p">:</span>
@@ -939,40 +1141,59 @@
                         <span class="c1"># errmsg = str(ex)</span>
                         <span class="c1"># message = &#39;API error, Python Exception thrown: %s&#39; % (errmsg)</span>
                         <span class="k">if</span> <span class="s2">&quot;&#39;int&#39; object is not iterable&quot;</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
-                            <span class="n">rawreturn</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">                            HINT: the input for this call is most likely expected to be a list.</span>
-<span class="s1">                            Try adding a comma at the end of the input (to cast the conversion into a list) or encapsulate the input with [].</span>
-<span class="s1">                            &#39;&#39;&#39;</span>
+                            <span class="n">rawreturn</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                            HINT: the input for this call is most likely expected to be a list.</span>
+<span class="s2">                            Try adding a comma at the end of the input (to cast the conversion into a list) or encapsulate the input with [].</span>
+<span class="s2">                            &quot;&quot;&quot;</span>
                         <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="kc">None</span>
 
-                    <span class="c1">#print(&#39;RECEIVED FORMAT: %r&#39; % (__format__, ))</span>
+                    <span class="c1"># print(&#39;RECEIVED FORMAT: %r&#39; % (__format__, ))</span>
 
                     <span class="k">if</span> <span class="fm">__format__</span><span class="p">:</span>
                         <span class="c1"># Hack for readable error messages</span>
                         <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_wbia_webreturn</span><span class="p">(</span>
-                            <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span><span class="p">)</span>
+                            <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span>
+                        <span class="p">)</span>
                         <span class="n">webreturn</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">webreturn</span><span class="p">),</span> <span class="n">strvals</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
                         <span class="k">try</span><span class="p">:</span>
                             <span class="kn">from</span> <span class="nn">ansi2html</span> <span class="k">import</span> <span class="n">Ansi2HTMLConverter</span>
+
                             <span class="n">conv</span> <span class="o">=</span> <span class="n">Ansi2HTMLConverter</span><span class="p">()</span>
                             <span class="n">webreturn</span> <span class="o">=</span> <span class="n">conv</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span>
                         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;pip install ansi2html&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                             <span class="n">webreturn</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strip_ansi</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span>
-                            <span class="n">webreturn</span> <span class="o">=</span> <span class="s1">&#39;&lt;p&gt;&lt;samp&gt;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">html_newlines</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&lt;/samp&gt;&lt;/p&gt;&#39;</span>
-                            <span class="n">webreturn</span> <span class="o">=</span> <span class="s1">&#39;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html;charset=ISO-8859-8&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">webreturn</span>
+                            <span class="n">webreturn</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="s1">&#39;&lt;p&gt;&lt;samp&gt;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">html_newlines</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&lt;/samp&gt;&lt;/p&gt;&#39;</span>
+                            <span class="p">)</span>
+                            <span class="n">webreturn</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="s1">&#39;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html;charset=ISO-8859-8&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                <span class="o">+</span> <span class="n">webreturn</span>
+                            <span class="p">)</span>
 
                         <span class="k">def</span> <span class="nf">get_func_href</span><span class="p">(</span><span class="n">funcname</span><span class="p">):</span>
-                            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HTTP_HOST&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">flask</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">funcname</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;?__format__=True&#39;</span>
+                            <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="s1">&#39;http://&#39;</span>
+                                <span class="o">+</span> <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HTTP_HOST&#39;</span><span class="p">]</span>
+                                <span class="o">+</span> <span class="n">flask</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">funcname</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="s1">&#39;?__format__=True&#39;</span>
+                            <span class="p">)</span>
                             <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">{url}</span><span class="s1">&quot;&gt;</span><span class="si">{url}</span><span class="s1">&lt;/a&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
 
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
-                            <span class="n">webreturn</span> <span class="o">+=</span> <span class="s1">&#39;&lt;pre&gt;See logs for details: </span><span class="si">%s</span><span class="s1">&lt;/pre&gt;&#39;</span> <span class="o">%</span> <span class="n">get_func_href</span><span class="p">(</span><span class="s1">&#39;get_current_log_text&#39;</span><span class="p">)</span>
-                            <span class="n">webreturn</span> <span class="o">+=</span> <span class="s1">&#39;&lt;pre&gt;Might also look into db_info: </span><span class="si">%s</span><span class="s1">&lt;/pre&gt;&#39;</span> <span class="o">%</span> <span class="n">get_func_href</span><span class="p">(</span><span class="s1">&#39;get_dbinfo&#39;</span><span class="p">)</span>
+                            <span class="n">webreturn</span> <span class="o">+=</span> <span class="p">(</span>
+                                <span class="s1">&#39;&lt;pre&gt;See logs for details: </span><span class="si">%s</span><span class="s1">&lt;/pre&gt;&#39;</span>
+                                <span class="o">%</span> <span class="n">get_func_href</span><span class="p">(</span><span class="s1">&#39;get_current_log_text&#39;</span><span class="p">)</span>
+                            <span class="p">)</span>
+                            <span class="n">webreturn</span> <span class="o">+=</span> <span class="p">(</span>
+                                <span class="s1">&#39;&lt;pre&gt;Might also look into db_info: </span><span class="si">%s</span><span class="s1">&lt;/pre&gt;&#39;</span>
+                                <span class="o">%</span> <span class="n">get_func_href</span><span class="p">(</span><span class="s1">&#39;get_dbinfo&#39;</span><span class="p">)</span>
+                            <span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_wbia_webreturn</span><span class="p">(</span>
-                            <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span><span class="p">)</span>
+                            <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span>
+                        <span class="p">)</span>
                         <span class="n">webreturn</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strip_ansi</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span>
 
                     <span class="n">resp</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="n">webreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
@@ -980,7 +1201,7 @@
 
                     <span class="k">if</span> <span class="ow">not</span> <span class="fm">__format__</span><span class="p">:</span>
                         <span class="n">resp</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;application/json; charset=utf-8&#39;</span>
-                        <span class="n">resp</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;mimetype&#39;</span><span class="p">]</span>     <span class="o">=</span> <span class="s1">&#39;application/json&#39;</span>
+                        <span class="n">resp</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;mimetype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;application/json&#39;</span>
 
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_cookie_set</span><span class="p">:</span>
                         <span class="k">if</span> <span class="fm">__format__</span><span class="p">:</span>
@@ -989,12 +1210,15 @@
                             <span class="n">resp</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="s1">&#39;__format__&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">expires</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
                     <span class="k">return</span> <span class="n">resp</span>
+
                 <span class="c1"># return the original unmodified function</span>
                 <span class="k">if</span> <span class="n">REMOTE_PROXY_URL</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">func</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">remote_api_wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
             <span class="k">return</span> <span class="n">regsiter_closure</span>
+
         <span class="k">return</span> <span class="n">register_api</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span></div>
@@ -1027,9 +1251,9 @@
             <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">),</span> <span class="s1">&#39;user must be a string&#39;</span>
             <span class="n">username</span> <span class="o">=</span> <span class="n">username</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
             <span class="n">session</span><span class="p">[</span><span class="n">USER_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;username&#39;</span>     <span class="p">:</span> <span class="n">username</span><span class="p">,</span>
-                <span class="s1">&#39;name&#39;</span>         <span class="p">:</span> <span class="n">name</span><span class="p">,</span>
-                <span class="s1">&#39;organization&#39;</span> <span class="p">:</span> <span class="n">organization</span><span class="p">,</span>
+                <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                <span class="s1">&#39;organization&#39;</span><span class="p">:</span> <span class="n">organization</span><span class="p">,</span>
             <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">session</span><span class="p">[</span><span class="n">USER_KEY</span><span class="p">]</span></div>
@@ -1040,11 +1264,13 @@
     <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">authenticated</span><span class="p">():</span>
             <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+
             <span class="n">refer</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
             <span class="n">refer</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">encode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">flask</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">,</span> <span class="n">refer</span><span class="o">=</span><span class="n">refer</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">wrap</span></div>
 
 
@@ -1053,12 +1279,15 @@
     <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
     <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">register_route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span>
-                           <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                           <span class="n">__route_postfix_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                           <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                           <span class="n">__route_microsoft_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                           <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">register_route</span><span class="p">(</span>
+            <span class="n">rule</span><span class="p">,</span>
+            <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">__route_postfix_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">__route_microsoft_check__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+        <span class="p">):</span>
 
             <span class="c1"># GLOBALLY DISABLE LOGINS</span>
             <span class="n">__route_authenticate__</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1070,15 +1299,19 @@
                     <span class="c1"># warnings.warn(msg)</span>
                     <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">identity</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Registering Route rule=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Registering Route rule=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule</span><span class="p">,))</span>
 
             <span class="k">if</span> <span class="n">__route_prefix_check__</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="ow">not</span> <span class="n">rule</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/api/&#39;</span><span class="p">),</span> <span class="s1">&#39;Cannot start a route rule (</span><span class="si">%r</span><span class="s1">) with the prefix &quot;/api/&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">)</span>
+                <span class="k">assert</span> <span class="ow">not</span> <span class="n">rule</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+                    <span class="s1">&#39;/api/&#39;</span>
+                <span class="p">),</span> <span class="s1">&#39;Cannot start a route rule (</span><span class="si">%r</span><span class="s1">) with the prefix &quot;/api/&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule</span><span class="p">,)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">__route_authenticate__</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="n">__route_postfix_check__</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="n">rule</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">),</span> <span class="s1">&#39;A route should always end in a forward-slash&#39;</span>
-            <span class="k">assert</span> <span class="s1">&#39;methods&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">,</span> <span class="s1">&#39;A route should always have a specified methods list&#39;</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="s1">&#39;methods&#39;</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="p">),</span> <span class="s1">&#39;A route should always have a specified methods list&#39;</span>
 
             <span class="c1"># if &#39;_&#39; in rule:</span>
             <span class="c1">#     print(&#39;CONSIDER RENAMING RULE: %r&#39; % (rule, ))</span>
@@ -1100,7 +1333,7 @@
                 <span class="nd">@login_required</span>
                 <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
                 <span class="k">def</span> <span class="nf">translated_call</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-                    <span class="c1">#debug = {&#39;kwargs&#39;: kwargs}</span>
+                    <span class="c1"># debug = {&#39;kwargs&#39;: kwargs}</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="c1"># Pipe web input into Python web call</span>
                         <span class="n">kwargs2</span> <span class="o">=</span> <span class="n">_process_input</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
@@ -1119,9 +1352,13 @@
                             <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
                         <span class="n">args</span> <span class="o">=</span> <span class="p">()</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing: </span><span class="si">%r</span><span class="s1"> with args: </span><span class="si">%r</span><span class="s1"> and kwargs: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="s1">&#39;Processing: </span><span class="si">%r</span><span class="s1"> with args: </span><span class="si">%r</span><span class="s1"> and kwargs: </span><span class="si">%r</span><span class="s1">&#39;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,)</span>
+                        <span class="p">)</span>
 
                         <span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="k">import</span> <span class="n">PROMETHEUS</span>
+
                         <span class="k">if</span> <span class="n">PROMETHEUS</span><span class="p">:</span>
                             <span class="n">ibs</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
                             <span class="n">tag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">url_rule</span><span class="o">.</span><span class="n">rule</span>
@@ -1132,27 +1369,32 @@
                         <span class="n">rawreturn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                         <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
                         <span class="n">code</span> <span class="o">=</span> <span class="mi">400</span>
-                        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="s1">&#39;Route error, Python Exception thrown: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
-                            <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="p">))</span>
+                        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Route error, Python Exception thrown: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),)</span>
                         <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="kc">None</span>
-                        <span class="n">result</span> <span class="o">=</span> <span class="n">translate_wbia_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span>
-                                                           <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span>
-                                                           <span class="n">jQuery_callback</span><span class="p">,</span>
-                                                           <span class="n">__skip_microsoft_validation__</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">translate_wbia_webreturn</span><span class="p">(</span>
+                            <span class="n">rawreturn</span><span class="p">,</span>
+                            <span class="n">success</span><span class="p">,</span>
+                            <span class="n">code</span><span class="p">,</span>
+                            <span class="n">message</span><span class="p">,</span>
+                            <span class="n">jQuery_callback</span><span class="p">,</span>
+                            <span class="n">__skip_microsoft_validation__</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="k">return</span> <span class="n">result</span>
-                <span class="c1">#wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)</span>
+
+                <span class="c1"># wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)</span>
                 <span class="c1"># return the original unmodified function</span>
                 <span class="k">return</span> <span class="n">func</span>
+
             <span class="k">return</span> <span class="n">regsiter_closure</span>
+
         <span class="k">return</span> <span class="n">register_route</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span></div>
 
 
-<div class="viewcode-block" id="api_remote_wbia"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.api_remote_wbia">[docs]</a><span class="k">def</span> <span class="nf">api_remote_wbia</span><span class="p">(</span><span class="n">remote_wbia_url</span><span class="p">,</span> <span class="n">remote_api_func</span><span class="p">,</span> <span class="n">remote_wbia_port</span><span class="o">=</span><span class="mi">5001</span><span class="p">,</span>
-                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="api_remote_wbia"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.api_remote_wbia">[docs]</a><span class="k">def</span> <span class="nf">api_remote_wbia</span><span class="p">(</span><span class="n">remote_wbia_url</span><span class="p">,</span> <span class="n">remote_api_func</span><span class="p">,</span> <span class="n">remote_wbia_port</span><span class="o">=</span><span class="mi">5001</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">requests</span>
+
     <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span> <span class="ow">and</span> <span class="n">GLOBAL_APP</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Flask has not been initialized&#39;</span><span class="p">)</span>
     <span class="n">api_name</span> <span class="o">=</span> <span class="n">remote_api_func</span><span class="o">.</span><span class="vm">__name__</span>
@@ -1168,9 +1410,7 @@
 
     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">remote_wbia_url</span><span class="p">,</span> <span class="n">remote_wbia_port</span><span class="p">,</span> <span class="n">api_route</span><span class="p">)</span>
     <span class="n">remote_api_url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
-    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="n">get_url_authorization</span><span class="p">(</span><span class="n">remote_api_url</span><span class="p">)</span>
-    <span class="p">}</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="n">get_url_authorization</span><span class="p">(</span><span class="n">remote_api_url</span><span class="p">)}</span>
 
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -1178,32 +1418,32 @@
             <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">,</span> <span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] Calling remote IBEIS API: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remote_api_url</span><span class="p">,</span> <span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] </span><span class="se">\t</span><span class="s1">Method:  </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remote_api_method</span><span class="p">,</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">,))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] Calling remote IBEIS API: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remote_api_url</span><span class="p">,))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] </span><span class="se">\t</span><span class="s1">Method:  </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remote_api_method</span><span class="p">,))</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] </span><span class="se">\t</span><span class="s1">Headers: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">headers</span><span class="p">),</span> <span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] </span><span class="se">\t</span><span class="s1">KWArgs:  </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] </span><span class="se">\t</span><span class="s1">Headers: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">headers</span><span class="p">),))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[REMOTE] </span><span class="se">\t</span><span class="s1">KWArgs:  </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),))</span>
 
     <span class="c1"># Make request to server</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">remote_api_method</span> <span class="o">==</span> <span class="s1">&#39;GET&#39;</span><span class="p">:</span>
-            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">remote_api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
-                               <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">remote_api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">remote_api_method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
-            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">remote_api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
-                                <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                <span class="n">remote_api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">remote_api_method</span> <span class="o">==</span> <span class="s1">&#39;PUT&#39;</span><span class="p">:</span>
-            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">remote_api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
-                               <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">remote_api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">remote_api_method</span> <span class="o">==</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">:</span>
-            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">remote_api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
-                                  <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+                <span class="n">remote_api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;_api_result got unsupported method=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remote_api_method</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;_api_result got unsupported method=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remote_api_method</span><span class="p">,)</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;_api_result could not connect to server </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;_api_result could not connect to server </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,)</span>
         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span>
     <span class="n">converted</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -1216,6 +1456,7 @@
 
 <span class="c1">##########################################################################################</span>
 
+
 <div class="viewcode-block" id="dev_autogen_explicit_imports"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.dev_autogen_explicit_imports">[docs]</a><span class="k">def</span> <span class="nf">dev_autogen_explicit_imports</span><span class="p">():</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -1227,6 +1468,7 @@
 <span class="sd">        &gt;&gt;&gt; dev_autogen_explicit_imports()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>  <span class="c1"># NOQA</span>
+
     <span class="n">classname</span> <span class="o">=</span> <span class="n">CONTROLLER_CLASSNAME</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">autogen_import_list</span><span class="p">(</span><span class="n">classname</span><span class="p">))</span></div>
 
@@ -1243,15 +1485,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>  <span class="c1"># NOQA</span>
     <span class="kn">import</span> <span class="nn">wbia.control.IBEISControl</span>
+
     <span class="n">classname</span> <span class="o">=</span> <span class="n">CONTROLLER_CLASSNAME</span>
-    <span class="n">regen_command</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s1">&#39;python -m wbia dev_autogen_explicit_injects&#39;</span><span class="p">)</span>
+    <span class="n">regen_command</span> <span class="o">=</span> <span class="s1">&#39;python -m wbia dev_autogen_explicit_injects&#39;</span>
     <span class="n">conditional_imports</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">modname</span> <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">wbia</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">AUTOLOAD_PLUGIN_MODNAMES</span>
+        <span class="n">modname</span>
+        <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">wbia</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">AUTOLOAD_PLUGIN_MODNAMES</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="n">source_block</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">autogen_explicit_injectable_metaclass</span><span class="p">(</span>
-        <span class="n">classname</span><span class="p">,</span> <span class="n">regen_command</span><span class="p">,</span> <span class="n">conditional_imports</span><span class="p">)</span>
+        <span class="n">classname</span><span class="p">,</span> <span class="n">regen_command</span><span class="p">,</span> <span class="n">conditional_imports</span>
+    <span class="p">)</span>
     <span class="n">dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">wbia</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">IBEISControl</span><span class="p">)</span>
     <span class="n">fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;_autogen_explicit_controller.py&#39;</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">source_block</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
@@ -1264,33 +1508,36 @@
     <span class="n">CLASS_INJECT_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">CONTROLLER_CLASSNAME</span><span class="p">,</span> <span class="n">modname</span><span class="p">)</span>
     <span class="c1"># Create dectorator to inject these functions into the IBEISController</span>
     <span class="n">register_ibs_unaliased_method</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">(</span>
-        <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">modname</span><span class="p">)</span>
+        <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">modname</span>
+    <span class="p">)</span>
 
     <span class="c1"># TODO Replace IBEISContoller INEJECTED MODULES with this one</span>
-    <span class="c1">#INJECTED_MODULES.append(sys.modules[modname])</span>
+    <span class="c1"># INJECTED_MODULES.append(sys.modules[modname])</span>
 
     <span class="k">def</span> <span class="nf">register_ibs_method</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; registers autogenerated functions with the utool class method injector &quot;&quot;&quot;</span>
-        <span class="c1">#func  = profile(func)</span>
+        <span class="c1"># func  = profile(func)</span>
         <span class="n">register_ibs_unaliased_method</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-        <span class="c1">#aliastup = (func, &#39;_injected_&#39; + ut.get_funcname(func))</span>
-        <span class="c1">#register_ibs_aliased_method(aliastup)</span>
+        <span class="c1"># aliastup = (func, &#39;_injected_&#39; + ut.get_funcname(func))</span>
+        <span class="c1"># register_ibs_aliased_method(aliastup)</span>
         <span class="k">return</span> <span class="n">func</span>
+
     <span class="k">return</span> <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span></div>
+
 
 <span class="n">_decors_image</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">make_depcache_decors</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">)</span>
 <span class="n">_decors_annot</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">make_depcache_decors</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
-<span class="n">_decors_part</span>  <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">make_depcache_decors</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">)</span>
+<span class="n">_decors_part</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">make_depcache_decors</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">)</span>
 
 <span class="n">register_preprocs</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;image&#39;</span> <span class="p">:</span> <span class="n">_decors_image</span><span class="p">[</span><span class="s1">&#39;preproc&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;annot&#39;</span> <span class="p">:</span> <span class="n">_decors_annot</span><span class="p">[</span><span class="s1">&#39;preproc&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;part&#39;</span>  <span class="p">:</span> <span class="n">_decors_part</span><span class="p">[</span><span class="s1">&#39;preproc&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">_decors_image</span><span class="p">[</span><span class="s1">&#39;preproc&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;annot&#39;</span><span class="p">:</span> <span class="n">_decors_annot</span><span class="p">[</span><span class="s1">&#39;preproc&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;part&#39;</span><span class="p">:</span> <span class="n">_decors_part</span><span class="p">[</span><span class="s1">&#39;preproc&#39;</span><span class="p">],</span>
 <span class="p">}</span>
 <span class="n">register_subprops</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;image&#39;</span> <span class="p">:</span> <span class="n">_decors_image</span><span class="p">[</span><span class="s1">&#39;subprop&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;annot&#39;</span> <span class="p">:</span> <span class="n">_decors_annot</span><span class="p">[</span><span class="s1">&#39;subprop&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;part&#39;</span>  <span class="p">:</span> <span class="n">_decors_part</span><span class="p">[</span><span class="s1">&#39;subprop&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">_decors_image</span><span class="p">[</span><span class="s1">&#39;subprop&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;annot&#39;</span><span class="p">:</span> <span class="n">_decors_annot</span><span class="p">[</span><span class="s1">&#39;subprop&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;part&#39;</span><span class="p">:</span> <span class="n">_decors_part</span><span class="p">[</span><span class="s1">&#39;subprop&#39;</span><span class="p">],</span>
 <span class="p">}</span>
 
 
@@ -1302,18 +1549,37 @@
 <span class="sd">        python -m wbia.control.controller_inject --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1321,57 +1587,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../control.html">wbia.control</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

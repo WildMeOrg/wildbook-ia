@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.manual_wildbook_funcs &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.control.manual_wildbook_funcs &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../control.html">wbia.control</a> &raquo;</li>
+
+      <li>wbia.control.manual_wildbook_funcs</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.control.manual_wildbook_funcs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -81,6 +198,7 @@
 <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
 <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">wildbook_manager</span> <span class="k">as</span> <span class="n">wb_man</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -90,11 +208,11 @@
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="c1">#PREFERED_BROWSER = &#39;chrome&#39;</span>
-<span class="c1">#webbrowser._tryorder</span>
+<span class="c1"># PREFERED_BROWSER = &#39;chrome&#39;</span>
+<span class="c1"># webbrowser._tryorder</span>
 <span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;hyrule&#39;</span><span class="p">:</span>
     <span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="s1">&#39;firefox&#39;</span>
@@ -117,13 +235,13 @@
         <span class="n">wb_hostname</span> <span class="o">=</span> <span class="s1">&#39;127.0.0.1&#39;</span>
 
     <span class="n">wb_hostname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_hostname</span><span class="p">)</span>
-    <span class="n">wb_port</span>     <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_port</span><span class="p">)</span>
-    <span class="n">wb_target</span>   <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="n">wb_port</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_port</span><span class="p">)</span>
+    <span class="n">wb_target</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
 
-    <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wb_hostname</span><span class="p">,</span> <span class="n">wb_port</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wb_hostname</span><span class="p">,</span> <span class="n">wb_port</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,)</span>
     <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="n">wildbook_base_url</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;USING WB BASEURL: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wildbook_base_url</span><span class="p">,</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;USING WB BASEURL: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wildbook_base_url</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">wildbook_base_url</span></div>
 
 
@@ -173,6 +291,7 @@
 <span class="sd">        &gt;&gt;&gt; print(&#39;ia_url = %r&#39; % (ia_url,))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">requests</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="n">wb_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_base_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
@@ -185,14 +304,13 @@
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Could not get IA status from wildbook&#39;</span><span class="p">)</span>
     <span class="n">json_response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
     <span class="n">ia_url</span> <span class="o">=</span> <span class="n">json_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iaURL&#39;</span><span class="p">)</span>
-    <span class="c1">#print(&#39;response = %r&#39; % (response,))</span>
+    <span class="c1"># print(&#39;response = %r&#39; % (response,))</span>
     <span class="k">return</span> <span class="n">ia_url</span></div>
 
 
 <div class="viewcode-block" id="wildbook_signal_annot_name_changes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.wildbook_signal_annot_name_changes">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/signal/annot/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">wildbook_signal_annot_name_changes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                       <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">wildbook_signal_annot_name_changes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        aid_list (int):  list of annotation ids(default = None)</span>
@@ -257,7 +375,9 @@
 <span class="sd">        &gt;&gt;&gt; # Signal what currently exists (should put them back to normal)</span>
 <span class="sd">        &gt;&gt;&gt; result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook&#39;</span>
+    <span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">wb_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_base_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
@@ -276,10 +396,14 @@
     <span class="n">grouped_uuids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_name_text_list</span><span class="p">)</span>
     <span class="n">url</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/ia&#39;</span>
     <span class="n">payloads</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">{</span><span class="s1">&#39;resolver&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;assignNameToAnnotations&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">new_name</span><span class="p">,</span>
-            <span class="s1">&#39;annotationIds&#39;</span> <span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">annot_uuids</span><span class="p">),</span>
-        <span class="p">}}}</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;resolver&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;assignNameToAnnotations&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">new_name</span><span class="p">,</span>
+                    <span class="s1">&#39;annotationIds&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">annot_uuids</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
         <span class="k">for</span> <span class="n">new_name</span><span class="p">,</span> <span class="n">annot_uuids</span> <span class="ow">in</span> <span class="n">grouped_uuids</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
     <span class="p">]</span>
     <span class="n">status_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -299,8 +423,9 @@
 
 <div class="viewcode-block" id="wildbook_signal_name_changes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.wildbook_signal_name_changes">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/signal/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">wildbook_signal_name_changes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">new_name_list</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                 <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">wildbook_signal_name_changes</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">new_name_list</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        nid_list (int):  list of name ids</span>
@@ -388,10 +513,14 @@
 
 <div class="viewcode-block" id="wildbook_signal_imgsetid_list"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.wildbook_signal_imgsetid_list">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/signal/imageset/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">wildbook_signal_imgsetid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                  <span class="n">set_shipped_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                  <span class="n">open_url_on_complete</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                  <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">wildbook_signal_imgsetid_list</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">imgsetid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">set_shipped_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">open_url_on_complete</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exports specified imagesets to wildbook. This is a synchronous call.</span>
 
@@ -492,37 +621,40 @@
     <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">:</span>
         <span class="c1"># First, check if imageset can be pushed</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1"> cannot be shipped with0 annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,))</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">),</span> <span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1"> cannot be shipped with0 annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,)</span>
         <span class="n">unknown_flags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">unnamed_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">unknown_flags</span><span class="p">)</span>
-        <span class="n">unnamed_ok_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span>
-            <span class="n">unnamed_aid_list</span><span class="p">,</span>
-            <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;ok&#39;</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="n">unnamed_ok_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">unnamed_aid_list</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;ok&#39;</span><span class="p">,)</span>
         <span class="n">nUnnamedOk</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">unnamed_ok_aid_list</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">nUnnamedOk</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-            <span class="p">(</span><span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1">1 cannot be shipped becuase &#39;</span>
-             <span class="s1">&#39;annotation(s) </span><span class="si">%r</span><span class="s1"> with an identifiable quality have &#39;</span>
-             <span class="s1">&#39;not been named&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">unnamed_ok_aid_list</span><span class="p">,</span> <span class="p">))</span>
+            <span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1">1 cannot be shipped becuase &#39;</span>
+            <span class="s1">&#39;annotation(s) </span><span class="si">%r</span><span class="s1"> with an identifiable quality have &#39;</span>
+            <span class="s1">&#39;not been named&#39;</span>
+        <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">unnamed_ok_aid_list</span><span class="p">,)</span>
 
     <span class="c1"># Call Wildbook url to signal update</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = </span><span class="si">%r</span><span class="s1"> to wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span>
-        <span class="n">imgsetid_list</span><span class="p">,</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = </span><span class="si">%r</span><span class="s1"> to wildbook&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,)</span>
+    <span class="p">)</span>
     <span class="n">imageset_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = </span><span class="si">%r</span><span class="s1"> to wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span>
-        <span class="n">imageset_uuid_list</span><span class="p">,</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = </span><span class="si">%r</span><span class="s1"> to wildbook&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">imageset_uuid_list</span><span class="p">,)</span>
+    <span class="p">)</span>
 
     <span class="n">url</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/ia&#39;</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()</span>
-    <span class="n">occur_url_fmt</span> <span class="o">=</span> <span class="p">(</span><span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/occurrence.jsp?number=</span><span class="si">{uuid}</span><span class="s1">&amp;dbname=</span><span class="si">{dbname}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="c1">#enc_url_fmt = (wb_url + &#39;/encounters/encounter.jsp?number={uuid}&#39;)</span>
+    <span class="n">occur_url_fmt</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/occurrence.jsp?number=</span><span class="si">{uuid}</span><span class="s1">&amp;dbname=</span><span class="si">{dbname}</span><span class="s1">&#39;</span>
+    <span class="c1"># enc_url_fmt = (wb_url + &#39;/encounters/encounter.jsp?number={uuid}&#39;)</span>
 
     <span class="c1"># Check and push &#39;done&#39; imagesets</span>
     <span class="n">status_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">imageset_uuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">imageset_uuid_list</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[_send] URL=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
-        <span class="n">json_payload</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;resolver&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fromIAImageSet&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">imageset_uuid</span><span class="p">)</span> <span class="p">}}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[_send] URL=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
+        <span class="n">json_payload</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;resolver&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fromIAImageSet&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">imageset_uuid</span><span class="p">)}}</span>
         <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
             <span class="n">status</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
@@ -532,7 +664,9 @@
             <span class="k">if</span> <span class="n">set_shipped_flag</span><span class="p">:</span>
                 <span class="n">ibs</span><span class="o">.</span><span class="n">set_imageset_shipped_flags</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">],</span> <span class="p">[</span><span class="n">status</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="n">open_url_on_complete</span><span class="p">:</span>
-                    <span class="n">view_occur_url</span> <span class="o">=</span> <span class="n">occur_url_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">uuid</span><span class="o">=</span><span class="n">imageset_uuid</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
+                    <span class="n">view_occur_url</span> <span class="o">=</span> <span class="n">occur_url_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">uuid</span><span class="o">=</span><span class="n">imageset_uuid</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span>
+                    <span class="p">)</span>
                     <span class="n">_browser</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_prefered_browser</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span>
                     <span class="n">_browser</span><span class="o">.</span><span class="n">open_new_tab</span><span class="p">(</span><span class="n">view_occur_url</span><span class="p">)</span>
         <span class="n">status_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
@@ -558,13 +692,13 @@
 
     <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">PST</span><span class="p">)</span>
     <span class="n">timestamp</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-00-00&#39;</span><span class="p">)</span>
-    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;flukebook.image.admid.</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;flukebook.image.admid.</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,)</span>
     <span class="n">filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
         <span class="n">file_content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">file_json</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded </span><span class="si">%d</span><span class="s1"> Image ACM string UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_json</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded </span><span class="si">%d</span><span class="s1"> Image ACM string UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_json</span><span class="p">),))</span>
 
     <span class="n">uuid_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">uuid_str</span> <span class="ow">in</span> <span class="n">file_json</span><span class="p">:</span>
@@ -574,9 +708,9 @@
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="k">continue</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> Image UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> Image UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),))</span>
     <span class="n">flukebook_image_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> de-duplicated Image UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> de-duplicated Image UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),))</span>
 
     <span class="k">return</span> <span class="n">flukebook_image_uuid_list</span></div>
 
@@ -589,10 +723,18 @@
     <span class="n">local_image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
 
     <span class="n">unknown_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">flukebook_image_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">local_image_uuid_list</span><span class="p">))</span>
-    <span class="n">candidate_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">local_image_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">flukebook_image_uuid_list</span><span class="p">))</span>
+    <span class="n">candidate_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">set</span><span class="p">(</span><span class="n">local_image_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">flukebook_image_uuid_list</span><span class="p">)</span>
+    <span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Image UUIDs in Flukebook that are not here&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unknown_uuid_list</span><span class="p">),</span> <span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Image UUIDs in here that are not in Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Image UUIDs in Flukebook that are not here&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unknown_uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Image UUIDs in here that are not in Flukebook&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">auto_delete</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">candidate_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">)</span>
@@ -614,13 +756,13 @@
 
     <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">PST</span><span class="p">)</span>
     <span class="n">timestamp</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-00-00&#39;</span><span class="p">)</span>
-    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;flukebook.annot.admid.</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;flukebook.annot.admid.</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,)</span>
     <span class="n">filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
         <span class="n">file_content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">file_json</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded </span><span class="si">%d</span><span class="s1"> Annot ACM string UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_json</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded </span><span class="si">%d</span><span class="s1"> Annot ACM string UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_json</span><span class="p">),))</span>
 
     <span class="n">uuid_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">species_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -663,7 +805,7 @@
 
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> Annotation UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> Annotation UUIDs from Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),))</span>
 
     <span class="n">flukebook_annot_uuid_list</span> <span class="o">=</span> <span class="n">uuid_list</span>
     <span class="n">flukebook_annot_species_list</span> <span class="o">=</span> <span class="n">species_list</span>
@@ -674,16 +816,28 @@
 <div class="viewcode-block" id="delete_flukebook_orphaned_annot_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.delete_flukebook_orphaned_annot_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">delete_flukebook_orphaned_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">auto_delete</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-    <span class="n">flukebook_annot_uuid_list</span><span class="p">,</span> <span class="n">flukebook_annot_species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_flukebook_annot_uuids</span><span class="p">()</span>
+
+    <span class="p">(</span>
+        <span class="n">flukebook_annot_uuid_list</span><span class="p">,</span>
+        <span class="n">flukebook_annot_species_list</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_flukebook_annot_uuids</span><span class="p">()</span>
 
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">local_annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
     <span class="n">unknown_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">flukebook_annot_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">local_annot_uuid_list</span><span class="p">))</span>
-    <span class="n">candidate_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">local_annot_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">flukebook_annot_uuid_list</span><span class="p">))</span>
+    <span class="n">candidate_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">set</span><span class="p">(</span><span class="n">local_annot_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">flukebook_annot_uuid_list</span><span class="p">)</span>
+    <span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Annot UUIDs in Flukebook that are not here&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unknown_uuid_list</span><span class="p">),</span> <span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Annot UUIDs in here that are not in Flukebook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Annot UUIDs in Flukebook that are not here&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unknown_uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Annot UUIDs in here that are not in Flukebook&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">auto_delete</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">candidate_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">)</span>
@@ -698,25 +852,31 @@
     <span class="n">known_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">known_uuid_list</span><span class="p">)</span>
     <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_aid_list</span>
 
-    <span class="n">flukebook_species_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">flukebook_annot_uuid_list</span><span class="p">,</span> <span class="n">flukebook_annot_species_list</span><span class="p">))</span>
+    <span class="n">flukebook_species_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">flukebook_annot_uuid_list</span><span class="p">,</span> <span class="n">flukebook_annot_species_list</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">known_species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">known_aid_list</span><span class="p">)</span>
 
     <span class="n">flukebook_species_mapping</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;humpback_whale&#39;</span> <span class="p">:</span> <span class="s1">&#39;megaptera_novaeangliae&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;tursiops_sp.&#39;</span>   <span class="p">:</span> <span class="s1">&#39;tursiops_sp&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;humpback_whale&#39;</span><span class="p">:</span> <span class="s1">&#39;megaptera_novaeangliae&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;tursiops_sp.&#39;</span><span class="p">:</span> <span class="s1">&#39;tursiops_sp&#39;</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="n">update_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">update_aid_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">update_species_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">known_aid</span><span class="p">,</span> <span class="n">known_uuid</span><span class="p">,</span> <span class="n">known_species</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">known_aid_list</span><span class="p">,</span> <span class="n">known_uuid_list</span><span class="p">,</span> <span class="n">known_species_list</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">known_aid</span><span class="p">,</span> <span class="n">known_uuid</span><span class="p">,</span> <span class="n">known_species</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">known_aid_list</span><span class="p">,</span> <span class="n">known_uuid_list</span><span class="p">,</span> <span class="n">known_species_list</span>
+    <span class="p">):</span>
         <span class="n">flukebook_species</span> <span class="o">=</span> <span class="n">flukebook_species_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">known_uuid</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">flukebook_species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">flukebook_species</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
         <span class="k">assert</span> <span class="n">flukebook_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="n">flukebook_species</span> <span class="o">=</span> <span class="n">flukebook_species</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">flukebook_species</span> <span class="o">=</span> <span class="n">flukebook_species</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="n">flukebook_species</span> <span class="o">=</span> <span class="n">flukebook_species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flukebook_species</span><span class="p">,</span> <span class="n">flukebook_species</span><span class="p">)</span>
+        <span class="n">flukebook_species</span> <span class="o">=</span> <span class="n">flukebook_species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">flukebook_species</span><span class="p">,</span> <span class="n">flukebook_species</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">known_species</span> <span class="o">!=</span> <span class="n">flukebook_species</span><span class="p">:</span>
 
@@ -747,9 +907,9 @@
     <span class="n">candidate_annot_uuid_list</span><span class="p">,</span> <span class="n">update_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">delete_flukebook_orphaned_annot_uuids</span><span class="p">()</span>
 
     <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;deleted_images&#39;</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_image_uuid_list</span><span class="p">),</span>
-        <span class="s1">&#39;deleted_annots&#39;</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_annot_uuid_list</span><span class="p">),</span>
-        <span class="s1">&#39;species_update&#39;</span> <span class="p">:</span> <span class="n">update_dict</span><span class="p">,</span>
+        <span class="s1">&#39;deleted_images&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_image_uuid_list</span><span class="p">),</span>
+        <span class="s1">&#39;deleted_annots&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_annot_uuid_list</span><span class="p">),</span>
+        <span class="s1">&#39;species_update&#39;</span><span class="p">:</span> <span class="n">update_dict</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">result_dict</span></div>
 
@@ -762,18 +922,37 @@
 <span class="sd">        python -m wbia.control.manual_wildbook_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -781,57 +960,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../control.html">wbia.control</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

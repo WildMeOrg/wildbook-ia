@@ -1,36 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.mixin_wbia &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.graph.mixin_wbia &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+
+      <li>wbia.algo.graph.mixin_wbia</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.graph.mixin_wbia</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -43,6 +162,7 @@
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -64,9 +184,7 @@
 
         <span class="n">edge_delta_info</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">wbia_edge_delta_info</span><span class="p">(</span><span class="n">edge_delta_df</span><span class="p">)</span>
 
-        <span class="n">info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-            <span class="p">(</span><span class="s1">&#39;num_annots_with_names_changed&#39;</span> <span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_delta_df</span><span class="p">)),</span>
-        <span class="p">])</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="s1">&#39;num_annots_with_names_changed&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_delta_df</span><span class="p">)),])</span>
         <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">edge_delta_info</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">name_stats_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
             <span class="n">info</span><span class="p">[</span><span class="s1">&#39;num_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">])</span>
@@ -80,23 +198,28 @@
 
         <span class="c1"># Look at what changed</span>
         <span class="n">tag_flags</span> <span class="o">=</span> <span class="n">edge_delta_df</span><span class="p">[</span><span class="s1">&#39;old_tags&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">edge_delta_df</span><span class="p">[</span><span class="s1">&#39;new_tags&#39;</span><span class="p">]</span>
-        <span class="n">state_flags</span> <span class="o">=</span> <span class="n">edge_delta_df</span><span class="p">[</span><span class="s1">&#39;old_evidence_decision&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">edge_delta_df</span><span class="p">[</span><span class="s1">&#39;new_evidence_decision&#39;</span><span class="p">]</span>
+        <span class="n">state_flags</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">edge_delta_df</span><span class="p">[</span><span class="s1">&#39;old_evidence_decision&#39;</span><span class="p">]</span>
+            <span class="o">!=</span> <span class="n">edge_delta_df</span><span class="p">[</span><span class="s1">&#39;new_evidence_decision&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">is_added_to_am</span> <span class="o">=</span> <span class="n">edge_delta_df</span><span class="p">[</span><span class="s1">&#39;am_rowid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span>
         <span class="n">is_new</span> <span class="o">=</span> <span class="n">edge_delta_df</span><span class="p">[</span><span class="s1">&#39;is_new&#39;</span><span class="p">]</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-            <span class="c1"># Technically num_edges_added only cares if the edge exists in the</span>
-            <span class="c1"># annotmatch table.</span>
-            <span class="p">(</span><span class="s1">&#39;num_edges_added_to_am&#39;</span> <span class="p">,</span> <span class="n">is_added_to_am</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
-            <span class="p">(</span><span class="s1">&#39;num_edges_added&#39;</span> <span class="p">,</span> <span class="n">is_new</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
-            <span class="p">(</span><span class="s1">&#39;num_edges_modified&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="o">~</span><span class="n">is_new</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
-            <span class="p">(</span><span class="s1">&#39;num_changed_decision_and_tags&#39;</span> <span class="p">,</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">tag_flags</span> <span class="o">&amp;</span> <span class="n">state_flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">is_new</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())),</span>
-            <span class="p">(</span><span class="s1">&#39;num_changed_tags&#39;</span>              <span class="p">,</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">tag_flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">state_flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">is_new</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())),</span>
-            <span class="p">(</span><span class="s1">&#39;num_changed_decision&#39;</span>          <span class="p">,</span> <span class="p">(</span>
-                <span class="p">(</span><span class="o">~</span><span class="n">tag_flags</span> <span class="o">&amp;</span> <span class="n">state_flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">is_new</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())),</span>
-            <span class="c1"># &#39;num_non_pos_redundant&#39;: num_non_pos_redundant,</span>
-        <span class="p">])</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="c1"># Technically num_edges_added only cares if the edge exists in the</span>
+                <span class="c1"># annotmatch table.</span>
+                <span class="p">(</span><span class="s1">&#39;num_edges_added_to_am&#39;</span><span class="p">,</span> <span class="n">is_added_to_am</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+                <span class="p">(</span><span class="s1">&#39;num_edges_added&#39;</span><span class="p">,</span> <span class="n">is_new</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+                <span class="p">(</span><span class="s1">&#39;num_edges_modified&#39;</span><span class="p">,</span> <span class="p">(</span><span class="o">~</span><span class="n">is_new</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;num_changed_decision_and_tags&#39;</span><span class="p">,</span>
+                    <span class="p">((</span><span class="n">tag_flags</span> <span class="o">&amp;</span> <span class="n">state_flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">is_new</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+                <span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;num_changed_tags&#39;</span><span class="p">,</span> <span class="p">((</span><span class="n">tag_flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">state_flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">is_new</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())),</span>
+                <span class="p">(</span><span class="s1">&#39;num_changed_decision&#39;</span><span class="p">,</span> <span class="p">((</span><span class="o">~</span><span class="n">tag_flags</span> <span class="o">&amp;</span> <span class="n">state_flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">is_new</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())),</span>
+                <span class="c1"># &#39;num_non_pos_redundant&#39;: num_non_pos_redundant,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">info</span></div>
 
 <div class="viewcode-block" id="IBEISIO.name_label_group_delta_info"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_wbia.IBEISIO.name_label_group_delta_info">[docs]</a>    <span class="k">def</span> <span class="nf">name_label_group_delta_info</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
@@ -109,7 +232,7 @@
         <span class="n">name_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_node_values</span><span class="p">(</span><span class="s1">&#39;name_label&#39;</span><span class="p">,</span> <span class="n">aids</span><span class="p">))</span>
         <span class="n">old_ccs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">name_labels</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="n">new_ccs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">())</span>
-        <span class="n">df</span> <span class="o">=</span>  <span class="n">infr</span><span class="o">.</span><span class="n">name_group_delta_stats</span><span class="p">(</span><span class="n">old_ccs</span><span class="p">,</span> <span class="n">new_ccs</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">name_group_delta_stats</span><span class="p">(</span><span class="n">old_ccs</span><span class="p">,</span> <span class="n">new_ccs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">df</span></div>
 
 <div class="viewcode-block" id="IBEISIO.wbia_name_group_delta_info"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_wbia.IBEISIO.wbia_name_group_delta_info">[docs]</a>    <span class="k">def</span> <span class="nf">wbia_name_group_delta_info</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -120,8 +243,7 @@
         <span class="n">new_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_node_values</span><span class="p">(</span><span class="s1">&#39;name_label&#39;</span><span class="p">,</span> <span class="n">aids</span><span class="p">))</span>
         <span class="n">new_ccs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">new_names</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-        <span class="n">old_names</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span>
-            <span class="n">aids</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">old_names</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">old_ccs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">old_names</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
         <span class="n">df</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">name_group_delta_stats</span><span class="p">(</span><span class="n">old_ccs</span><span class="p">,</span> <span class="n">new_ccs</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
@@ -193,8 +315,7 @@
         <span class="n">infr_ccs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">())</span>
         <span class="n">delta</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grouping_delta</span><span class="p">(</span><span class="n">ibs_ccs</span><span class="p">,</span> <span class="n">infr_ccs</span><span class="p">)</span>
 
-        <span class="n">hyrbid_splits</span> <span class="o">=</span> <span class="p">[</span><span class="n">ccs</span> <span class="k">for</span> <span class="n">ccs</span> <span class="ow">in</span> <span class="n">delta</span><span class="p">[</span><span class="s1">&#39;hybrid&#39;</span><span class="p">][</span><span class="s1">&#39;splits&#39;</span><span class="p">]</span>
-                         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ccs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">hyrbid_splits</span> <span class="o">=</span> <span class="p">[</span><span class="n">ccs</span> <span class="k">for</span> <span class="n">ccs</span> <span class="ow">in</span> <span class="n">delta</span><span class="p">[</span><span class="s1">&#39;hybrid&#39;</span><span class="p">][</span><span class="s1">&#39;splits&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ccs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
         <span class="n">pure_splits</span> <span class="o">=</span> <span class="n">delta</span><span class="p">[</span><span class="s1">&#39;splits&#39;</span><span class="p">][</span><span class="s1">&#39;new&#39;</span><span class="p">]</span>
 
         <span class="n">new_splits</span> <span class="o">=</span> <span class="n">hyrbid_splits</span> <span class="o">+</span> <span class="n">pure_splits</span>
@@ -255,18 +376,19 @@
 <span class="sd">            &gt;&gt;&gt; assert got.issubset(expected), ut.repr4(overlap, nl=2)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">uuid</span>
+
         <span class="c1"># Map what add_review expects to the keys used by feedback items</span>
         <span class="n">add_review_alias</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;evidence_decision_list&#39;</span>         <span class="p">:</span> <span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;meta_decision_list&#39;</span>             <span class="p">:</span> <span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;review_uuid_list&#39;</span>               <span class="p">:</span> <span class="s1">&#39;uuid&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;identity_list&#39;</span>                  <span class="p">:</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;user_confidence_list&#39;</span>           <span class="p">:</span> <span class="s1">&#39;confidence&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;tags_list&#39;</span>                      <span class="p">:</span> <span class="s1">&#39;tags&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;review_client_start_time_posix&#39;</span> <span class="p">:</span> <span class="s1">&#39;timestamp_c1&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;review_client_end_time_posix&#39;</span>   <span class="p">:</span> <span class="s1">&#39;timestamp_c2&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;review_server_start_time_posix&#39;</span> <span class="p">:</span> <span class="s1">&#39;timestamp_s1&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;review_server_end_time_posix&#39;</span>   <span class="p">:</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;evidence_decision_list&#39;</span><span class="p">:</span> <span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;meta_decision_list&#39;</span><span class="p">:</span> <span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;review_uuid_list&#39;</span><span class="p">:</span> <span class="s1">&#39;uuid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;identity_list&#39;</span><span class="p">:</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;user_confidence_list&#39;</span><span class="p">:</span> <span class="s1">&#39;confidence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;tags_list&#39;</span><span class="p">:</span> <span class="s1">&#39;tags&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;review_client_start_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;timestamp_c1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;review_client_end_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;timestamp_c2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;review_server_start_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;timestamp_s1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;review_server_end_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="c1"># Initialize kwargs we will pass to add_review</span>
@@ -359,29 +481,32 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">edge_delta_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">edge_delta_df</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">match_state_delta</span><span class="p">(</span><span class="n">old</span><span class="o">=</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
-        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;write_wbia_annotmatch_feedback </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="nb">len</span><span class="p">(</span><span class="n">edge_delta_df</span><span class="p">)))</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;write_wbia_annotmatch_feedback </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">edge_delta_df</span><span class="p">)))</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">edge_delta_df_</span> <span class="o">=</span> <span class="n">edge_delta_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
         <span class="c1"># Find the rows not yet in the annotmatch table</span>
         <span class="n">is_add</span> <span class="o">=</span> <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;am_rowid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
         <span class="n">add_df</span> <span class="o">=</span> <span class="n">edge_delta_df_</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">is_add</span><span class="p">]</span>
         <span class="c1"># Assign then a new annotmatch rowid</span>
-        <span class="n">add_ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch_undirected</span><span class="p">(</span><span class="n">add_df</span><span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
-                                                <span class="n">add_df</span><span class="p">[</span><span class="s1">&#39;aid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">add_ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch_undirected</span><span class="p">(</span>
+            <span class="n">add_df</span><span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">add_df</span><span class="p">[</span><span class="s1">&#39;aid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="p">)</span>
         <span class="n">edge_delta_df_</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">is_add</span><span class="p">,</span> <span class="s1">&#39;am_rowid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_ams</span>
 
         <span class="c1"># Set residual matching data</span>
         <span class="n">new_evidence_decisions</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">,</span>
-            <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_evidence_decision&#39;</span><span class="p">])</span>
+            <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_evidence_decision&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
         <span class="n">new_meta_decisions</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">META_DECISION</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">,</span>
-            <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_meta_decision&#39;</span><span class="p">])</span>
-        <span class="n">new_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_tags&#39;</span><span class="p">]]</span>
-        <span class="n">new_conf</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">,</span>
-                                <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_confidence&#39;</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">META_DECISION</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">,</span> <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_meta_decision&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">new_tags</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_tags&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="n">new_conf</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">,</span> <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_confidence&#39;</span><span class="p">],</span> <span class="kc">None</span>
+        <span class="p">)</span>
         <span class="n">new_timestamp</span> <span class="o">=</span> <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_timestamp&#39;</span><span class="p">]</span>
         <span class="n">new_reviewer</span> <span class="o">=</span> <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_user_id&#39;</span><span class="p">]</span>
         <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">edge_delta_df_</span><span class="p">[</span><span class="s1">&#39;am_rowid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
@@ -503,18 +628,20 @@
             <span class="n">infr</span><span class="o">.</span><span class="n">relabel_using_reviews</span><span class="p">(</span><span class="n">rectify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
         <span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
         <span class="n">node_to_new_label</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;name_label&#39;</span><span class="p">)</span>
         <span class="n">aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">node_to_new_label</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">old_names</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span>
-            <span class="n">aids</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">old_names</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1"># Indicate that unknown names should be replaced</span>
-        <span class="n">old_names</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)</span> <span class="k">else</span> <span class="n">n</span>
-                     <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">old_names</span><span class="p">]</span>
+        <span class="n">old_names</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)</span> <span class="k">else</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">old_names</span>
+        <span class="p">]</span>
         <span class="n">new_labels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">node_to_new_label</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
         <span class="c1"># Recycle as many old names as possible</span>
         <span class="n">label_to_name</span><span class="p">,</span> <span class="n">needs_assign</span><span class="p">,</span> <span class="n">unknown_labels</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_rectify_names</span><span class="p">(</span>
-            <span class="n">old_names</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">)</span>
+            <span class="n">old_names</span><span class="p">,</span> <span class="n">new_labels</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">ignore_unknown</span><span class="p">:</span>
             <span class="n">label_to_name</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">label_to_name</span><span class="p">,</span> <span class="n">unknown_labels</span><span class="p">)</span>
             <span class="n">needs_assign</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">needs_assign</span><span class="p">,</span> <span class="n">unknown_labels</span><span class="p">)</span>
@@ -529,18 +656,18 @@
         <span class="k">if</span> <span class="n">ignore_unknown</span><span class="p">:</span>
             <span class="n">unknown_labels_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">unknown_labels</span><span class="p">)</span>
             <span class="n">node_to_new_label</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">node</span><span class="p">:</span> <span class="n">label</span> <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">node_to_new_label</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="n">node</span><span class="p">:</span> <span class="n">label</span>
+                <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">node_to_new_label</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unknown_labels_</span>
             <span class="p">}</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">node_to_new_label</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">new_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">label_to_name</span><span class="p">,</span> <span class="n">node_to_new_label</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">old_name_list</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span>
-            <span class="n">aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">old_name_list</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1"># Put into a dataframe for convinience</span>
         <span class="n">name_delta_df_</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
             <span class="p">{</span><span class="s1">&#39;old_name&#39;</span><span class="p">:</span> <span class="n">old_name_list</span><span class="p">,</span> <span class="s1">&#39;new_name&#39;</span><span class="p">:</span> <span class="n">new_name_list</span><span class="p">},</span>
             <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;old_name&#39;</span><span class="p">,</span> <span class="s1">&#39;new_name&#39;</span><span class="p">],</span>
-            <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;aid&#39;</span><span class="p">)</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;aid&#39;</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">changed_flags</span> <span class="o">=</span> <span class="n">name_delta_df_</span><span class="p">[</span><span class="s1">&#39;old_name&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">name_delta_df_</span><span class="p">[</span><span class="s1">&#39;new_name&#39;</span><span class="p">]</span>
         <span class="n">name_delta_df</span> <span class="o">=</span> <span class="n">name_delta_df_</span><span class="p">[</span><span class="n">changed_flags</span><span class="p">]</span>
@@ -577,6 +704,7 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
 
         <span class="kn">from</span> <span class="nn">wbia.control.manual_review_funcs</span> <span class="k">import</span> <span class="n">hack_create_aidpair_index</span>
+
         <span class="n">hack_create_aidpair_index</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">edges</span><span class="p">:</span>
@@ -590,30 +718,40 @@
 
         <span class="kn">from</span> <span class="nn">wbia.control.manual_review_funcs</span> <span class="k">import</span> <span class="p">(</span>
             <span class="c1"># REVIEW_UUID,</span>
-            <span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">,</span> <span class="n">REVIEW_COUNT</span><span class="p">,</span> <span class="n">REVIEW_EVIDENCE_DECISION</span><span class="p">,</span>
-            <span class="n">REVIEW_META_DECISION</span><span class="p">,</span> <span class="n">REVIEW_USER_IDENTITY</span><span class="p">,</span> <span class="n">REVIEW_USER_CONFIDENCE</span><span class="p">,</span>
-            <span class="n">REVIEW_TAGS</span><span class="p">,</span> <span class="n">REVIEW_TIME_CLIENT_START</span><span class="p">,</span> <span class="n">REVIEW_TIME_CLIENT_END</span><span class="p">,</span>
-            <span class="n">REVIEW_TIME_SERVER_START</span><span class="p">,</span> <span class="n">REVIEW_TIME_SERVER_END</span><span class="p">)</span>
+            <span class="n">REVIEW_AID1</span><span class="p">,</span>
+            <span class="n">REVIEW_AID2</span><span class="p">,</span>
+            <span class="n">REVIEW_COUNT</span><span class="p">,</span>
+            <span class="n">REVIEW_EVIDENCE_DECISION</span><span class="p">,</span>
+            <span class="n">REVIEW_META_DECISION</span><span class="p">,</span>
+            <span class="n">REVIEW_USER_IDENTITY</span><span class="p">,</span>
+            <span class="n">REVIEW_USER_CONFIDENCE</span><span class="p">,</span>
+            <span class="n">REVIEW_TAGS</span><span class="p">,</span>
+            <span class="n">REVIEW_TIME_CLIENT_START</span><span class="p">,</span>
+            <span class="n">REVIEW_TIME_CLIENT_END</span><span class="p">,</span>
+            <span class="n">REVIEW_TIME_SERVER_START</span><span class="p">,</span>
+            <span class="n">REVIEW_TIME_SERVER_END</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="n">add_review_alias</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-            <span class="p">(</span><span class="n">REVIEW_AID1</span>              <span class="p">,</span> <span class="s1">&#39;aid1&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_AID2</span>              <span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">),</span>
-            <span class="c1"># (REVIEW_UUID              , &#39;uuid&#39;),</span>
-            <span class="p">(</span><span class="n">REVIEW_EVIDENCE_DECISION</span> <span class="p">,</span> <span class="s1">&#39;evidence_decision&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_META_DECISION</span>     <span class="p">,</span> <span class="s1">&#39;meta_decision&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_USER_IDENTITY</span>     <span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_USER_CONFIDENCE</span>   <span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_TAGS</span>              <span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_TIME_CLIENT_START</span> <span class="p">,</span> <span class="s1">&#39;timestamp_c1&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_TIME_CLIENT_END</span>   <span class="p">,</span> <span class="s1">&#39;timestamp_c2&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_TIME_SERVER_START</span> <span class="p">,</span> <span class="s1">&#39;timestamp_s1&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_TIME_SERVER_END</span>   <span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">REVIEW_COUNT</span>             <span class="p">,</span> <span class="s1">&#39;num_reviews&#39;</span><span class="p">),</span>
-        <span class="p">])</span>
+        <span class="n">add_review_alias</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="s1">&#39;aid1&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_AID2</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">),</span>
+                <span class="c1"># (REVIEW_UUID              , &#39;uuid&#39;),</span>
+                <span class="p">(</span><span class="n">REVIEW_EVIDENCE_DECISION</span><span class="p">,</span> <span class="s1">&#39;evidence_decision&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_META_DECISION</span><span class="p">,</span> <span class="s1">&#39;meta_decision&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_USER_IDENTITY</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_USER_CONFIDENCE</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_TAGS</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_TIME_CLIENT_START</span><span class="p">,</span> <span class="s1">&#39;timestamp_c1&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_TIME_CLIENT_END</span><span class="p">,</span> <span class="s1">&#39;timestamp_c2&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_TIME_SERVER_START</span><span class="p">,</span> <span class="s1">&#39;timestamp_s1&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_TIME_SERVER_END</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">REVIEW_COUNT</span><span class="p">,</span> <span class="s1">&#39;num_reviews&#39;</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">add_review_alias</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">feedback_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">add_review_alias</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">review_data</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span>
-                                      <span class="n">review_ids</span><span class="p">)</span>
+        <span class="n">review_data</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">review_ids</span><span class="p">)</span>
         <span class="c1"># table = infr.ibs.staging.get_table_as_pandas(</span>
         <span class="c1">#     ibs.const.REVIEW_TABLE, rowids=review_ids, columns=columns)</span>
 
@@ -630,9 +768,11 @@
 
             <span class="n">tags</span> <span class="o">=</span> <span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span>
             <span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;meta_decision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lookup_meta</span><span class="p">[</span><span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;meta_decision&#39;</span><span class="p">]]</span>
-            <span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lookup_decision</span><span class="p">[</span><span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">]]</span>
+            <span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lookup_decision</span><span class="p">[</span>
+                <span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">]</span>
+            <span class="p">]</span>
             <span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lookup_conf</span><span class="p">[</span><span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]]</span>
-            <span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="p">[]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">tags</span> <span class="k">else</span> <span class="n">tags</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="n">feedback_item</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">tags</span> <span class="k">else</span> <span class="n">tags</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
 
             <span class="n">feedback</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feedback_item</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">feedback</span></div>
@@ -709,12 +849,12 @@
 
     <span class="k">def</span> <span class="nf">_pandas_feedback_format</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="n">feedback</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
         <span class="n">aid_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">feedback</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">aids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
-        <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span>
-                                                                      <span class="n">aids2</span><span class="p">)</span>
+        <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
         <span class="n">rectified_feedback_</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_rectify_feedback</span><span class="p">(</span><span class="n">feedback</span><span class="p">)</span>
         <span class="n">rectified_feedback</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">rectified_feedback_</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="p">)</span>
         <span class="n">decision</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_column</span><span class="p">(</span><span class="n">rectified_feedback</span><span class="p">,</span> <span class="s1">&#39;evidence_decision&#39;</span><span class="p">)</span>
@@ -731,8 +871,7 @@
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;meta_decision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta_decision</span>
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aids1</span>
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;aid2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aids2</span>
-        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">ts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ts</span> <span class="k">if</span> <span class="n">t</span><span class="p">]</span>
-                      <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">ts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ts</span> <span class="k">if</span> <span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">confidence</span>
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;timestamp_c1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestamp_c1</span>
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;timestamp_c2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestamp_c2</span>
@@ -887,13 +1026,14 @@
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
         <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">reduce</span>
         <span class="kn">import</span> <span class="nn">operator</span> <span class="k">as</span> <span class="nn">op</span>
+
         <span class="c1"># Ensure input is in the expected format</span>
         <span class="n">new_index</span> <span class="o">=</span> <span class="n">new_feedback</span><span class="o">.</span><span class="n">index</span>
         <span class="n">old_index</span> <span class="o">=</span> <span class="n">old_feedback</span><span class="o">.</span><span class="n">index</span>
-        <span class="k">assert</span> <span class="n">new_index</span><span class="o">.</span><span class="n">names</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">],</span> <span class="p">(</span><span class="s1">&#39;not indexed on edges&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">old_index</span><span class="o">.</span><span class="n">names</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">],</span> <span class="p">(</span><span class="s1">&#39;not indexed on edges&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new_index</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;bad direction&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">old_index</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;bad direction&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">new_index</span><span class="o">.</span><span class="n">names</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">],</span> <span class="s1">&#39;not indexed on edges&#39;</span>
+        <span class="k">assert</span> <span class="n">old_index</span><span class="o">.</span><span class="n">names</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">],</span> <span class="s1">&#39;not indexed on edges&#39;</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new_index</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="s1">&#39;bad direction&#39;</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">old_index</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="s1">&#39;bad direction&#39;</span>
         <span class="c1"># Determine what edges have changed</span>
         <span class="n">isect_edges</span> <span class="o">=</span> <span class="n">new_index</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">old_index</span><span class="p">)</span>
         <span class="n">isect_new</span> <span class="o">=</span> <span class="n">new_feedback</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">isect_edges</span><span class="p">]</span>
@@ -904,8 +1044,7 @@
         <span class="n">important_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">]</span>
         <span class="n">other_columns</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">data_columns</span><span class="p">,</span> <span class="n">important_columns</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">isect_edges</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">changed_gen</span> <span class="o">=</span> <span class="p">[</span><span class="n">isect_new</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">!=</span> <span class="n">isect_old</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
-                           <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">important_columns</span><span class="p">]</span>
+            <span class="n">changed_gen</span> <span class="o">=</span> <span class="p">[</span><span class="n">isect_new</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">!=</span> <span class="n">isect_old</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">important_columns</span><span class="p">]</span>
             <span class="n">is_changed</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">or_</span><span class="p">,</span> <span class="n">changed_gen</span><span class="p">)</span>
             <span class="n">new_df_</span> <span class="o">=</span> <span class="n">isect_new</span><span class="p">[</span><span class="n">is_changed</span><span class="p">]</span>
             <span class="n">old_df</span> <span class="o">=</span> <span class="n">isect_old</span><span class="p">[</span><span class="n">is_changed</span><span class="p">]</span>
@@ -930,13 +1069,20 @@
         <span class="c1"># Combine into a single delta data frame</span>
         <span class="n">merge_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span> <span class="s1">&#39;am_rowid&#39;</span><span class="p">]</span>
         <span class="n">merged_df</span> <span class="o">=</span> <span class="n">prep_old</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-            <span class="n">prep_new</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="n">merge_keys</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="n">merge_keys</span><span class="p">)</span>
+            <span class="n">prep_new</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="n">merge_keys</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="n">merge_keys</span>
+        <span class="p">)</span>
         <span class="c1"># Reorder the columns</span>
-        <span class="n">col_order</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;old_evidence_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;new_evidence_decision&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;old_tags&#39;</span><span class="p">,</span> <span class="s1">&#39;new_tags&#39;</span><span class="p">,</span> <span class="s1">&#39;old_meta_decision&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;new_meta_decision&#39;</span><span class="p">]</span>
-        <span class="n">edge_delta_df</span> <span class="o">=</span> <span class="n">merged_df</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">(</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">merged_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">col_order</span><span class="p">)</span> <span class="o">+</span> <span class="n">col_order</span><span class="p">))</span>
+        <span class="n">col_order</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;old_evidence_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;new_evidence_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;old_tags&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;new_tags&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;old_meta_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;new_meta_decision&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">edge_delta_df</span> <span class="o">=</span> <span class="n">merged_df</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">merged_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">col_order</span><span class="p">)</span> <span class="o">+</span> <span class="n">col_order</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">edge_delta_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">edge_delta_df</span> <span class="o">=</span> <span class="n">edge_delta_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">is_new</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">add_edges</span><span class="p">):</span>
@@ -950,6 +1096,7 @@
         <span class="n">review_ids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_between</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
         <span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">max_rows</span> <span class="o">=</span> <span class="mi">20</span>
         <span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">max_columns</span> <span class="o">=</span> <span class="mi">40</span>
         <span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">160</span>
@@ -961,15 +1108,18 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=====&#39;</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;AnnotMatch Raw&#39;</span><span class="p">)</span>
-        <span class="n">df_a</span> <span class="o">=</span> <span class="n">df_a</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;annotmatch_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                                    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df_a</span><span class="o">.</span><span class="n">columns</span><span class="p">})</span>
-        <span class="n">df_s</span> <span class="o">=</span> <span class="n">df_s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span>
-            <span class="s1">&#39;annot_rowid1&#39;</span><span class="p">:</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">:</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;reviewer&#39;</span><span class="p">:</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;tag_text&#39;</span><span class="p">:</span> <span class="s1">&#39;tag&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;posixtime_modified&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_s2&#39;</span><span class="p">,</span>
-        <span class="p">})</span>
+        <span class="n">df_a</span> <span class="o">=</span> <span class="n">df_a</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;annotmatch_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df_a</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">df_s</span> <span class="o">=</span> <span class="n">df_s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;annot_rowid1&#39;</span><span class="p">:</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">:</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;reviewer&#39;</span><span class="p">:</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;tag_text&#39;</span><span class="p">:</span> <span class="s1">&#39;tag&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;posixtime_modified&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_s2&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">df_a</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;AnnotMatch Feedback&#39;</span><span class="p">)</span>
@@ -978,22 +1128,38 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----&#39;</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Staging Raw&#39;</span><span class="p">)</span>
-        <span class="n">df_s</span> <span class="o">=</span> <span class="n">df_s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;review_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                                    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df_s</span><span class="o">.</span><span class="n">columns</span><span class="p">})</span>
-        <span class="n">df_s</span> <span class="o">=</span> <span class="n">df_s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span>
-            <span class="s1">&#39;annot_1_rowid&#39;</span><span class="p">:</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;annot_2_rowid&#39;</span><span class="p">:</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;user_identity&#39;</span><span class="p">:</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;user_confidence&#39;</span><span class="p">:</span> <span class="s1">&#39;confidence&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;client_start_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_c1&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;client_end_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_c2&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;server_end_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_s2&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;server_start_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_s1&#39;</span><span class="p">,</span>
-        <span class="p">})</span>
-        <span class="n">df_s</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">pandas_reorder</span><span class="p">(</span><span class="n">df_s</span><span class="p">,</span> <span class="p">[</span>
-            <span class="s1">&#39;rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span> <span class="s1">&#39;count&#39;</span><span class="p">,</span> <span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span> <span class="s1">&#39;ts_s1&#39;</span><span class="p">,</span> <span class="s1">&#39;ts_c1&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;ts_c2&#39;</span><span class="p">,</span> <span class="s1">&#39;ts_s2&#39;</span><span class="p">,</span> <span class="s1">&#39;uuid&#39;</span><span class="p">])</span>
+        <span class="n">df_s</span> <span class="o">=</span> <span class="n">df_s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;review_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df_s</span><span class="o">.</span><span class="n">columns</span><span class="p">})</span>
+        <span class="n">df_s</span> <span class="o">=</span> <span class="n">df_s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;annot_1_rowid&#39;</span><span class="p">:</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;annot_2_rowid&#39;</span><span class="p">:</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;user_identity&#39;</span><span class="p">:</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;user_confidence&#39;</span><span class="p">:</span> <span class="s1">&#39;confidence&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;client_start_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_c1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;client_end_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_c2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;server_end_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_s2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;server_start_time_posix&#39;</span><span class="p">:</span> <span class="s1">&#39;ts_s1&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">df_s</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">pandas_reorder</span><span class="p">(</span>
+            <span class="n">df_s</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;rowid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;aid1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;aid2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;count&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;tags&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;confidence&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;user_id&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;ts_s1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;ts_c1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;ts_c2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;ts_s2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;uuid&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">df_s</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Staging Feedback&#39;</span><span class="p">)</span>
@@ -1039,8 +1205,9 @@
         <span class="n">truths</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_evidence_decision</span><span class="p">(</span><span class="n">am_rowids</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="n">truths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">truths</span><span class="p">)</span>
         <span class="n">is_notcomp_have</span> <span class="o">=</span> <span class="n">truths</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">INCOMPARABLE</span>
-        <span class="n">is_comp_have</span> <span class="o">=</span> <span class="p">((</span><span class="n">truths</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">POSITIVE</span><span class="p">)</span> <span class="o">|</span>
-                        <span class="p">(</span><span class="n">truths</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">))</span>
+        <span class="n">is_comp_have</span> <span class="o">=</span> <span class="p">(</span><span class="n">truths</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">POSITIVE</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span>
+            <span class="n">truths</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">NEGATIVE</span>
+        <span class="p">)</span>
         <span class="n">is_comp</span><span class="p">[</span><span class="n">is_notcomp_have</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">is_comp</span><span class="p">[</span><span class="n">is_comp_have</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">is_comp</span></div>
@@ -1056,7 +1223,7 @@
         <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
         <span class="n">nids1</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span>
         <span class="n">nids2</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span>
-        <span class="n">is_same</span> <span class="o">=</span> <span class="p">(</span><span class="n">nids1</span> <span class="o">==</span> <span class="n">nids2</span><span class="p">)</span>
+        <span class="n">is_same</span> <span class="o">=</span> <span class="n">nids1</span> <span class="o">==</span> <span class="n">nids2</span>
         <span class="k">return</span> <span class="n">is_same</span></div></div>
 
 
@@ -1078,12 +1245,14 @@
     <span class="n">reverse_df</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">match_state_delta</span><span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span> <span class="s1">&#39;staging&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reverse_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
-            <span class="s1">&#39;Cannot update staging because &#39;</span>
-            <span class="s1">&#39;some staging items have not been commited.&#39;</span>
+            <span class="s1">&#39;Cannot update staging because &#39;</span> <span class="s1">&#39;some staging items have not been commited.&#39;</span>
         <span class="p">)</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">match_state_delta</span><span class="p">(</span><span class="s1">&#39;staging&#39;</span><span class="p">,</span> <span class="s1">&#39;annotmatch&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1"> annotmatch items that do not exist in staging&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="nb">sum</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;is_new&#39;</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1"> annotmatch items that do not exist in staging&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;is_new&#39;</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">wbia_edge_delta_info</span><span class="p">(</span><span class="n">df</span><span class="p">)))</span>
 
     <span class="c1"># Find places that exist in annotmatch but not in staging</span>
@@ -1133,9 +1302,14 @@
 
         <span class="n">df3</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;annotmatch_meta_decision&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;annotmatch_confidence&#39;</span><span class="p">,</span> <span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;annotmatch_posixtime_modified&#39;</span><span class="p">,</span> <span class="s1">&#39;annotmatch_reviewer&#39;</span><span class="p">]</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;annotmatch_evidence_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annotmatch_meta_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annotmatch_confidence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annotmatch_posixtime_modified&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annotmatch_reviewer&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
 
         <span class="n">ed_key</span> <span class="o">=</span> <span class="s1">&#39;annotmatch_evidence_decision&#39;</span>
 
@@ -1147,7 +1321,11 @@
         <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">annotmatch_reviewer</span><span class="p">)),</span> <span class="s1">&#39;should not happen&#39;</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">annotmatch_confidence</span><span class="p">)),</span> <span class="s1">&#39;should not happen&#39;</span>
 
-        <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">df3</span><span class="p">[</span><span class="n">ed_key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">df2</span><span class="p">[</span><span class="n">ed_key</span><span class="p">])</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df3</span><span class="p">[</span><span class="n">ed_key</span><span class="p">])</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df2</span><span class="p">[</span><span class="n">ed_key</span><span class="p">])</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">df3</span><span class="p">[</span><span class="n">ed_key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">df2</span><span class="p">[</span><span class="n">ed_key</span><span class="p">])</span>
+            <span class="o">&amp;</span> <span class="o">~</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df3</span><span class="p">[</span><span class="n">ed_key</span><span class="p">])</span>
+            <span class="o">&amp;</span> <span class="o">~</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df2</span><span class="p">[</span><span class="n">ed_key</span><span class="p">])</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">annotmatch_posixtime_modified</span><span class="p">)):</span>
             <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;need to rectify&#39;</span>
 
@@ -1155,26 +1333,44 @@
         <span class="n">tags3</span> <span class="o">=</span> <span class="n">df3</span><span class="o">.</span><span class="n">annotmatch_tag_text</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">{</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">t</span><span class="p">})</span>
 
         <span class="c1"># Merge the tags</span>
-        <span class="n">df3</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">t2</span><span class="p">)))</span> <span class="k">for</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tags3</span><span class="p">,</span> <span class="n">tags2</span><span class="p">)]</span>
+        <span class="n">df3</span><span class="p">[</span><span class="s1">&#39;annotmatch_tag_text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">t2</span><span class="p">)))</span> <span class="k">for</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tags3</span><span class="p">,</span> <span class="n">tags2</span><span class="p">)</span>
+        <span class="p">]</span>
 
         <span class="n">delete_df</span> <span class="o">=</span> <span class="n">df3</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df3</span><span class="p">[</span><span class="n">ed_key</span><span class="p">])]</span>
 
         <span class="n">df4</span> <span class="o">=</span> <span class="n">df3</span><span class="p">[</span><span class="o">~</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df3</span><span class="p">[</span><span class="n">ed_key</span><span class="p">])]</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_evidence_decision</span><span class="p">(</span><span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df4</span><span class="p">[</span><span class="n">ed_key</span><span class="p">]])</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_tag_text</span><span class="p">(</span><span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span> <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_tag_text</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_confidence</span><span class="p">(</span><span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_confidence</span><span class="p">])</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_reviewer</span><span class="p">(</span><span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_reviewer</span><span class="p">])</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_posixtime_modified</span><span class="p">(</span><span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_posixtime_modified</span><span class="p">])</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_evidence_decision</span><span class="p">(</span>
+            <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df4</span><span class="p">[</span><span class="n">ed_key</span><span class="p">]],</span>
+        <span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_tag_text</span><span class="p">(</span>
+            <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span> <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_tag_text</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_confidence</span><span class="p">(</span>
+            <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span>
+            <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_confidence</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_reviewer</span><span class="p">(</span>
+            <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span>
+            <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_reviewer</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_posixtime_modified</span><span class="p">(</span>
+            <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">,</span>
+            <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df4</span><span class="o">.</span><span class="n">annotmatch_posixtime_modified</span><span class="p">],</span>
+        <span class="p">)</span>
 
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">(</span><span class="n">delete_df</span><span class="o">.</span><span class="n">annotmatch_rowid</span><span class="p">)</span>
 
         <span class="c1"># forwards_edge4 = [nxu.e_(u, v) for u, v in df4[[&#39;annot_rowid1&#39;, &#39;annot_rowid2&#39;]].values.tolist()]</span>
         <span class="c1"># forwards_rowids4 = ibs.get_annotmatch_rowid_from_superkey(forwards_edge4)</span>
-        <span class="n">backwards_edge4</span> <span class="o">=</span> <span class="p">[</span><span class="n">nxu</span><span class="o">.</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">df4</span><span class="p">[[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+        <span class="n">backwards_edge4</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">nxu</span><span class="o">.</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">df4</span><span class="p">[[</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="p">]</span>
         <span class="n">backwards_rowids4</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span><span class="n">backwards_edge4</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">(</span><span class="n">backwards_rowids4</span><span class="p">)</span>
 
-    <span class="c1">#-------------------------</span>
+    <span class="c1"># -------------------------</span>
 
     <span class="c1"># NOW WE HAVE RECIFIED DUPLICATE PAIRS AND THERE IS ONLY ONE AID PAIR PER DB</span>
     <span class="c1"># SO WE CAN SAFELY FLIP EVERYTHING TO BE IN UPPER TRIANGULAR MODE</span>
@@ -1239,18 +1435,37 @@
 <span class="sd">        python -m wbia.algo.graph.mixin_wbia --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1258,59 +1473,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../graph.html">wbia.algo.graph</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

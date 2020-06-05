@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.dtool.input_helpers &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.dtool.input_helpers &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.dtool.input_helpers</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.dtool.input_helpers</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -39,6 +154,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>  <span class="c1"># NOQA</span>
+
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[depc_input_helpers]&#39;</span><span class="p">)</span>
 
 
@@ -191,14 +307,14 @@
             <span class="k">elif</span> <span class="n">item</span> <span class="o">!=</span> <span class="n">prev</span><span class="p">:</span>
                 <span class="n">compressed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
             <span class="n">prev</span> <span class="o">=</span> <span class="n">item</span>
-        <span class="c1">#if len(compressed) &gt; 1 and compressed[0] in [&#39;1&#39;, &#39;*&#39;]:</span>
+        <span class="c1"># if len(compressed) &gt; 1 and compressed[0] in [&#39;1&#39;, &#39;*&#39;]:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">compressed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">compressed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
             <span class="n">compressed</span> <span class="o">=</span> <span class="n">compressed</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="n">compressed</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">compressed</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">compressed</span>
 
     <span class="n">BIG_HACK</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="c1">#BIG_HACK = False</span>
+    <span class="c1"># BIG_HACK = False</span>
 
     <span class="k">def</span> <span class="nf">condense_accum_ids_stars</span><span class="p">(</span><span class="n">rinput_path_id</span><span class="p">):</span>
         <span class="c1"># Hack to condense and consolidate graph sources</span>
@@ -224,12 +340,15 @@
         <span class="k">if</span> <span class="n">BIG_HACK</span> <span class="ow">and</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">v_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">edge_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="c1"># show the local_input_ids at the entire level</span>
-            <span class="n">pred_ids</span> <span class="o">=</span> <span class="p">([</span>
+            <span class="n">pred_ids</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;local_input_id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">pred</span><span class="p">[</span><span class="n">node</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">pred</span><span class="p">[</span><span class="n">node</span><span class="p">])</span> <span class="k">else</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">pred</span><span class="p">[</span><span class="n">node</span><span class="p">])</span>
+                <span class="k">else</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">v_list</span>
-            <span class="p">])</span>
-            <span class="n">toaccum_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">toaccum_list_</span><span class="p">,</span> <span class="n">pred_ids</span><span class="p">)]</span>
+            <span class="p">]</span>
+            <span class="n">toaccum_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">toaccum_list_</span><span class="p">,</span> <span class="n">pred_ids</span><span class="p">)</span>
+            <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">toaccum_list</span> <span class="o">=</span> <span class="n">toaccum_list_</span>
 
@@ -249,10 +368,16 @@
 
     <span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_all_nodes_between</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="c1"># Remove superfluous data</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_edge_attr</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;edge_type&#39;</span><span class="p">,</span> <span class="s1">&#39;isnwise&#39;</span><span class="p">,</span>
-                                   <span class="s1">&#39;nwise_idx&#39;</span><span class="p">,</span>
-                                   <span class="c1"># &#39;parent_colx&#39;,</span>
-                                   <span class="s1">&#39;ismulti&#39;</span><span class="p">])</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_edge_attr</span><span class="p">(</span>
+        <span class="n">graph</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="s1">&#39;edge_type&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;isnwise&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;nwise_idx&#39;</span><span class="p">,</span>
+            <span class="c1"># &#39;parent_colx&#39;,</span>
+            <span class="s1">&#39;ismulti&#39;</span><span class="p">,</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
 
     <span class="c1"># Make all &#39;*&#39; edges have distinct local_input_id&#39;s.</span>
     <span class="c1"># TODO: allow non-distinct suffixes</span>
@@ -271,8 +396,7 @@
     <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">target_output</span><span class="p">,</span> <span class="n">local_input_id</span><span class="o">=</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">taillabel</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
 
     <span class="c1"># Find all paths from the table to the source.</span>
-    <span class="n">paths_to_source</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">all_multi_paths</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">source_input</span><span class="p">,</span>
-                                           <span class="n">target_output</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">paths_to_source</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">all_multi_paths</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">source_input</span><span class="p">,</span> <span class="n">target_output</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Build expanded input graph</span>
     <span class="c1"># The inputs to this table can be derived from this graph.</span>
@@ -284,8 +408,10 @@
         <span class="n">accumulate_input_ids</span><span class="p">(</span><span class="n">edge_list</span><span class="p">)</span>
 
         <span class="c1"># A node&#39;s output(?) on this path determines its expanded branch id</span>
-        <span class="n">exi_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ExiNode</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">BranchId</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;accum_id&#39;</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parent_colx&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
-                     <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">edge_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">exi_nodes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ExiNode</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">BranchId</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;accum_id&#39;</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parent_colx&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">edge_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">]</span>
         <span class="n">exi_node_to_label</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">node</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">node</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
             <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">exi_nodes</span>
@@ -328,9 +454,12 @@
     <span class="c1"># Need to specify any combo of red nodes such that</span>
     <span class="c1"># 1) for each path from a (leaf) to the (root) there is exactly one red</span>
     <span class="c1"># node along that path.  This garentees that all inputs are gievn.</span>
-    <span class="n">path_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span>
-        <span class="n">nx</span><span class="o">.</span><span class="n">all_simple_paths</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">source_node</span><span class="p">,</span> <span class="n">sink_node</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">source_node</span> <span class="ow">in</span> <span class="n">source_nodes</span><span class="p">])</span>
+    <span class="n">path_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">all_simple_paths</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">source_node</span><span class="p">,</span> <span class="n">sink_node</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">source_node</span> <span class="ow">in</span> <span class="n">source_nodes</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
     <span class="n">rootmost_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">path_list</span><span class="p">:</span>
         <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">path</span><span class="p">]</span>
@@ -358,12 +487,12 @@
     <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">exi_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">]:</span>
-            <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">,</span> <span class="o">.</span><span class="mi">6</span><span class="p">]</span>
+            <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">rootmost_nodes</span><span class="p">:</span>
         <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span></div>
 
 
-<span class="c1">#@ut.reloadable_class</span>
+<span class="c1"># @ut.reloadable_class</span>
 <div class="viewcode-block" id="RootMostInput"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.RootMostInput">[docs]</a><span class="k">class</span> <span class="nc">RootMostInput</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">HashComparable</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">rmi</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">):</span>
         <span class="n">rmi</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">node</span>
@@ -386,22 +515,26 @@
 <span class="sd">            &gt;&gt;&gt; rmi = inputs.rmi_list[1]</span>
 <span class="sd">            &gt;&gt;&gt; assert len(rmi.parent_level()) == 2</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">def</span> <span class="nf">yield_if</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
             <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">node_dict</span><span class="p">[</span><span class="n">child</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">continue_if</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
             <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
             <span class="k">return</span> <span class="ow">not</span> <span class="n">node_dict</span><span class="p">[</span><span class="n">child</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">)</span>
+
         <span class="n">bfs_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bfs_conditional</span><span class="p">(</span>
-            <span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">,</span>
+            <span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">,</span>
+            <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">yield_if</span><span class="o">=</span><span class="n">yield_if</span><span class="p">,</span>
             <span class="n">continue_if</span><span class="o">=</span><span class="n">continue_if</span><span class="p">,</span>
             <span class="n">yield_source</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">yield_nodes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">bfs_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bfs_iter</span><span class="p">)</span>
-        <span class="n">parent_level</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">sink</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">)</span>
-                        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">bfs_iter</span><span class="p">]</span>
+        <span class="n">parent_level</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">sink</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">bfs_iter</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">parent_level</span></div>
 
     <span class="nd">@property</span>
@@ -427,7 +560,7 @@
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="n">rmi</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
-        <span class="c1">#rmi.tablename + &#39;[&#39; + &#39;, &#39;.join(rmi.input_id) + &#39;]&#39;</span>
+        <span class="c1"># rmi.tablename + &#39;[&#39; + &#39;, &#39;.join(rmi.input_id) + &#39;]&#39;</span>
 
     <span class="fm">__str__</span> <span class="o">=</span> <span class="fm">__repr__</span></div>
 
@@ -459,8 +592,7 @@
     <span class="c1"># rmi = rmi_list[0]  # hack</span>
     <span class="c1"># reverse_compute_branches = [path[::-1] for path in nx.all_simple_paths(rmi.exi_graph, rmi.node, rmi.sink)]</span>
     <span class="n">sort_keys</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="nb">tuple</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">branch_id</span><span class="o">.</span><span class="n">parent_colx</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">reverse_compute_branches</span>
+        <span class="nb">tuple</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">branch_id</span><span class="o">.</span><span class="n">parent_colx</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">])</span> <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">reverse_compute_branches</span>
     <span class="p">]</span>
     <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sort_keys</span><span class="p">)</span>
     <span class="n">rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
@@ -479,7 +611,7 @@
         <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span> <span class="o">=</span> <span class="n">rmi_list</span>
         <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span> <span class="o">=</span> <span class="n">exi_graph</span>
         <span class="n">inputs</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span>
-        <span class="c1">#if reorder:</span>
+        <span class="c1"># if reorder:</span>
         <span class="n">inputs</span><span class="o">.</span><span class="n">_order_rmi_list</span><span class="p">(</span><span class="n">reorder</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_order_rmi_list</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">reorder</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -543,9 +675,12 @@
         <span class="n">source_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_source_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">))</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;can only have one sink node&#39;</span>
         <span class="n">sink_node</span> <span class="o">=</span> <span class="n">sink_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">path_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span>
-            <span class="n">nx</span><span class="o">.</span><span class="n">all_simple_paths</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">source_node</span><span class="p">,</span> <span class="n">sink_node</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">source_node</span> <span class="ow">in</span> <span class="n">source_nodes</span><span class="p">])</span>
+        <span class="n">path_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">all_simple_paths</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">source_node</span><span class="p">,</span> <span class="n">sink_node</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">source_node</span> <span class="ow">in</span> <span class="n">source_nodes</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">rootmost_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
         <span class="n">rootmost_candidates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">rootmost_exi_nodes</span><span class="p">)</span>
         <span class="n">rootmost_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
@@ -596,13 +731,11 @@
 <div class="viewcode-block" id="TableInput.total_expand"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.total_expand">[docs]</a>    <span class="k">def</span> <span class="nf">total_expand</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
         <span class="n">source_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_source_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">))</span>
         <span class="n">sink</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_sink_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">rmi_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">source_nodes</span><span class="p">]</span>
+        <span class="n">rmi_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">source_nodes</span><span class="p">]</span>
         <span class="n">exi_graph</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">table</span>
         <span class="n">reorder</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">new_inputs</span> <span class="o">=</span> <span class="n">TableInput</span><span class="p">(</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span>
-                                <span class="n">reorder</span><span class="o">=</span><span class="n">reorder</span><span class="p">)</span>
+        <span class="n">new_inputs</span> <span class="o">=</span> <span class="n">TableInput</span><span class="p">(</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">reorder</span><span class="o">=</span><span class="n">reorder</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_inputs</span></div>
 
 <div class="viewcode-block" id="TableInput.expand_input"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.expand_input">[docs]</a>    <span class="k">def</span> <span class="nf">expand_input</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -628,8 +761,7 @@
 <span class="sd">            &gt;&gt;&gt;     &#39;(2) unexpected indexer in %s&#39; % (inputs2,))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
-            <span class="n">index_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">([</span><span class="n">rmi</span><span class="o">.</span><span class="n">tablename</span> <span class="o">==</span> <span class="n">index</span>
-                                   <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">])</span>
+            <span class="n">index_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">([</span><span class="n">rmi</span><span class="o">.</span><span class="n">tablename</span> <span class="o">==</span> <span class="n">index</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">])</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">else</span><span class="p">:</span>
@@ -638,11 +770,10 @@
         <span class="n">rmi</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="n">parent_level</span> <span class="o">=</span> <span class="n">rmi</span><span class="o">.</span><span class="n">parent_level</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parent_level</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1">#raise AssertionError(&#39;no parents to expand&#39;)</span>
+            <span class="c1"># raise AssertionError(&#39;no parents to expand&#39;)</span>
             <span class="n">new_rmi_list</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">[:]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">new_rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">insert_values</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span>
-                                            <span class="n">parent_level</span><span class="p">,</span> <span class="n">inplace</span><span class="p">)</span>
+            <span class="n">new_rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">insert_values</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">parent_level</span><span class="p">,</span> <span class="n">inplace</span><span class="p">)</span>
             <span class="n">new_rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">new_rmi_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
             <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span> <span class="o">=</span> <span class="n">new_rmi_list</span>
@@ -679,7 +810,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Compute the order in which all noes must be evaluated</span>
         <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>  <span class="c1"># NOQA</span>
-        <span class="n">ordered_compute_nodes</span> <span class="o">=</span>  <span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">compute_order</span><span class="p">()</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">]</span>
+
+        <span class="n">ordered_compute_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">compute_order</span><span class="p">()</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">]</span>
         <span class="n">flat_node_order_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ordered_compute_nodes</span><span class="p">))</span>
 
         <span class="n">rgraph</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
@@ -743,8 +875,7 @@
             <span class="n">sortx_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span>
             <span class="n">input_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">input_nodes</span><span class="p">,</span> <span class="n">sortx_</span><span class="p">)</span>
 
-            <span class="n">input_rmis</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">)</span>
-                          <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">input_nodes</span><span class="p">]</span>
+            <span class="n">input_rmis</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">input_nodes</span><span class="p">]</span>
 
             <span class="c1"># input_rmis = sort_rmi_list(input_rmis)</span>
 
@@ -816,6 +947,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
         <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="k">import</span> <span class="n">ExpandableInteraction</span>
+
         <span class="n">autostart</span> <span class="o">=</span> <span class="n">inter</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">inter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">inter</span> <span class="o">=</span> <span class="n">ExpandableInteraction</span><span class="p">()</span>
@@ -833,10 +965,16 @@
                 <span class="n">node_dict</span><span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39; #</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,)</span>
 
         <span class="n">plot_kw</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fontname&#39;</span><span class="p">:</span> <span class="s1">&#39;Ubuntu&#39;</span><span class="p">}</span>
-        <span class="c1">#inter.append_plot(</span>
+        <span class="c1"># inter.append_plot(</span>
         <span class="c1">#    ut.partial(pt.show_nx, G, title=&#39;Dependency Subgraph (%s)&#39; % (tablename), **plot_kw))</span>
         <span class="n">inter</span><span class="o">.</span><span class="n">append_plot</span><span class="p">(</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Expanded Input (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,),</span> <span class="o">**</span><span class="n">plot_kw</span><span class="p">))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">,</span>
+                <span class="n">exi_graph</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Expanded Input (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,),</span>
+                <span class="o">**</span><span class="n">plot_kw</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">autostart</span><span class="p">:</span>
             <span class="n">inter</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">inter</span></div></div>
@@ -875,10 +1013,9 @@
     <span class="n">attrs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_get_default_node_attributes</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="s1">&#39;rootmost&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">rootmost_exi_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">]</span>
     <span class="n">sink</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_sink_nodes</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">rmi_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">rootmost_exi_nodes</span><span class="p">]</span>
+    <span class="n">rmi_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">rootmost_exi_nodes</span><span class="p">]</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="n">TableInput</span><span class="p">(</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">reorder</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="c1">#x = inmputs.parent_level()[0].parent_level()[0]  # NOQA</span>
+    <span class="c1"># x = inmputs.parent_level()[0].parent_level()[0]  # NOQA</span>
     <span class="k">return</span> <span class="n">inputs</span></div>
 
 
@@ -889,18 +1026,37 @@
 <span class="sd">        python -m dtool.input_helpers --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -908,55 +1064,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

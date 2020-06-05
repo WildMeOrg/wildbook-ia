@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.other.dbinfo &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.other.dbinfo &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../other.html">wbia.other</a> &raquo;</li>
+
+      <li>wbia.other.dbinfo</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.other.dbinfo</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -46,6 +163,7 @@
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -62,25 +180,38 @@
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qd_info] * daid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">bigstr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)))</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qd_info] * len(qaid_list) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qd_info] * len(daid_list) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qd_info] * intersection = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)))))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;[qd_info] * intersection = </span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))))</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="n">infokw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">with_contrib</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_agesex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">d_info_str</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;DataInfo&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">infokw</span><span class="p">)[</span><span class="s1">&#39;info_str2&#39;</span><span class="p">]</span>
-        <span class="n">q_info_str</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;QueryInfo&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">infokw</span><span class="p">)[</span><span class="s1">&#39;info_str2&#39;</span><span class="p">]</span>
+        <span class="n">infokw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">with_contrib</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_agesex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="n">d_info_str</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;DataInfo&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">infokw</span><span class="p">)[</span>
+            <span class="s1">&#39;info_str2&#39;</span>
+        <span class="p">]</span>
+        <span class="n">q_info_str</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;QueryInfo&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">infokw</span><span class="p">)[</span>
+            <span class="s1">&#39;info_str2&#39;</span>
+        <span class="p">]</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">q_info_str</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">d_info_str</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_dbinfo"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.dbinfo.get_dbinfo">[docs]</a><span class="k">def</span> <span class="nf">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-               <span class="n">with_imgsize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">with_bytes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">with_contrib</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">with_agesex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">with_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-               <span class="n">short</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;dbinfo&#39;</span><span class="p">,</span>
-               <span class="n">aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_dbinfo"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.dbinfo.get_dbinfo">[docs]</a><span class="k">def</span> <span class="nf">get_dbinfo</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">with_imgsize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">with_bytes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">with_contrib</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">with_agesex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">with_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">short</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;dbinfo&#39;</span><span class="p">,</span>
+    <span class="n">aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">aids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    Returns dictionary of digestable database information</span>
@@ -197,20 +328,22 @@
             <span class="n">acfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid_list</span><span class="p">]</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Specified custom aids via acfgname </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">acfg_name_list</span><span class="p">,))</span>
             <span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="k">import</span> <span class="n">experiment_helpers</span>
+
             <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">)</span>
+                <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span>
+            <span class="p">)</span>
             <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">)))))</span>
-            <span class="c1">#aid_list =</span>
+            <span class="c1"># aid_list =</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Specified </span><span class="si">%d</span><span class="s1"> custom aids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,)))</span>
         <span class="n">request_annot_subset</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">aid_list</span>
         <span class="n">valid_nids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-            <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span> <span class="o">-</span>
-            <span class="p">{</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span><span class="p">}</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="o">-</span> <span class="p">{</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span><span class="p">}</span>
         <span class="p">)</span>
         <span class="n">valid_gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
-    <span class="c1">#associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation</span>
+    <span class="c1"># associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation</span>
     <span class="n">valid_images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
     <span class="n">valid_annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
 
@@ -221,12 +354,13 @@
     <span class="k">if</span> <span class="n">request_annot_subset</span><span class="p">:</span>
         <span class="c1"># remove annots not in this subset</span>
         <span class="n">valid_aids_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-        <span class="n">gx2_aids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids_</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">valid_aids_set</span><span class="p">))</span>
-                    <span class="k">for</span> <span class="n">aids_</span> <span class="ow">in</span> <span class="n">gx2_aids</span><span class="p">]</span>
+        <span class="n">gx2_aids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids_</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">valid_aids_set</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids_</span> <span class="ow">in</span> <span class="n">gx2_aids</span><span class="p">]</span>
 
     <span class="n">gx2_nAnnots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">gx2_aids</span><span class="p">)))</span>
     <span class="n">image_without_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gx2_nAnnots</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">gx2_nAnnots_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">gx2_nAnnots</span><span class="p">,</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">gx2_nAnnots_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">gx2_nAnnots</span><span class="p">,</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
     <span class="n">image_reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
 
     <span class="c1"># Name stats</span>
@@ -236,8 +370,7 @@
     <span class="k">if</span> <span class="n">request_annot_subset</span><span class="p">:</span>
         <span class="c1"># remove annots not in this subset</span>
         <span class="n">valid_aids_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-        <span class="n">nx2_aids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids_</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">valid_aids_set</span><span class="p">))</span>
-                    <span class="k">for</span> <span class="n">aids_</span> <span class="ow">in</span> <span class="n">nx2_aids</span><span class="p">]</span>
+        <span class="n">nx2_aids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids_</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">valid_aids_set</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids_</span> <span class="ow">in</span> <span class="n">nx2_aids</span><span class="p">]</span>
     <span class="n">associated_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">nx2_aids</span><span class="p">)))</span>
 
     <span class="n">ibs</span><span class="o">.</span><span class="n">check_name_mapping_consistency</span><span class="p">(</span><span class="n">nx2_aids</span><span class="p">)</span>
@@ -246,16 +379,22 @@
         <span class="c1"># Occurrence Info</span>
         <span class="k">def</span> <span class="nf">compute_annot_occurrence_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
             <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="k">import</span> <span class="n">preproc_occurrence</span>
+
             <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="n">gid2_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
             <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;seconds_thresh&#39;</span><span class="p">:</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">}</span>
             <span class="n">flat_imgsetids</span><span class="p">,</span> <span class="n">flat_gids</span> <span class="o">=</span> <span class="n">preproc_occurrence</span><span class="o">.</span><span class="n">wbia_compute_occurrences</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
             <span class="n">occurid2_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">flat_gids</span><span class="p">,</span> <span class="n">flat_imgsetids</span><span class="p">)</span>
-            <span class="n">occurid2_aids</span> <span class="o">=</span> <span class="p">{</span><span class="n">oid</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gid2_aids</span><span class="p">,</span> <span class="n">gids</span><span class="p">))</span> <span class="k">for</span> <span class="n">oid</span><span class="p">,</span> <span class="n">gids</span> <span class="ow">in</span> <span class="n">occurid2_gids</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="n">occurid2_aids</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">oid</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gid2_aids</span><span class="p">,</span> <span class="n">gids</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">oid</span><span class="p">,</span> <span class="n">gids</span> <span class="ow">in</span> <span class="n">occurid2_gids</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
             <span class="k">return</span> <span class="n">occurid2_aids</span>
 
         <span class="kn">import</span> <span class="nn">utool</span>
+
         <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
             <span class="n">occurid2_aids</span> <span class="o">=</span> <span class="n">compute_annot_occurrence_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">valid_aids</span><span class="p">)</span>
             <span class="n">occur_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">occurid2_aids</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
@@ -265,36 +404,51 @@
                 <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nids</span><span class="p">:</span>
                     <span class="n">nid2_occurxs</span><span class="p">[</span><span class="n">nid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">occurx</span><span class="p">)</span>
 
-        <span class="n">nid2_occurx_single</span> <span class="o">=</span> <span class="p">{</span><span class="n">nid</span><span class="p">:</span> <span class="n">occurxs</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">occurxs</span> <span class="ow">in</span> <span class="n">nid2_occurxs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">occurxs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">}</span>
-        <span class="n">nid2_occurx_resight</span> <span class="o">=</span> <span class="p">{</span><span class="n">nid</span><span class="p">:</span> <span class="n">occurxs</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">occurxs</span> <span class="ow">in</span> <span class="n">nid2_occurxs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">occurxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">nid2_occurx_single</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">nid</span><span class="p">:</span> <span class="n">occurxs</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">occurxs</span> <span class="ow">in</span> <span class="n">nid2_occurxs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">occurxs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+        <span class="p">}</span>
+        <span class="n">nid2_occurx_resight</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">nid</span><span class="p">:</span> <span class="n">occurxs</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">occurxs</span> <span class="ow">in</span> <span class="n">nid2_occurxs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">occurxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+        <span class="p">}</span>
         <span class="n">singlesight_encounters</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid2_occurx_single</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
-        <span class="n">singlesight_annot_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">singlesight_encounters</span><span class="p">)),</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_sum</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">resight_name_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">nid2_occurx_resight</span><span class="o">.</span><span class="n">values</span><span class="p">())),</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_sum</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">singlesight_annot_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">singlesight_encounters</span><span class="p">)),</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_sum</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">resight_name_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">nid2_occurx_resight</span><span class="o">.</span><span class="n">values</span><span class="p">())),</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_sum</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
 
     <span class="c1"># Encounter Info</span>
     <span class="k">def</span> <span class="nf">break_annots_into_encounters</span><span class="p">(</span><span class="n">aids</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="k">import</span> <span class="n">occurrence_blackbox</span>
         <span class="kn">import</span> <span class="nn">datetime</span>
+
         <span class="n">thresh_sec</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span>
         <span class="n">posixtimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes_asfloat</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
-        <span class="c1">#latlons = ibs.get_annot_image_gps(aids)</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">occurrence_blackbox</span><span class="o">.</span><span class="n">cluster_timespace2</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="o">=</span><span class="n">thresh_sec</span><span class="p">)</span>
+        <span class="c1"># latlons = ibs.get_annot_image_gps(aids)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">occurrence_blackbox</span><span class="o">.</span><span class="n">cluster_timespace2</span><span class="p">(</span>
+            <span class="n">posixtimes</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="o">=</span><span class="n">thresh_sec</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">labels</span>
-        <span class="c1">#ave_enc_time = [np.mean(times) for lbl, times in ut.group_items(posixtimes, labels).items()]</span>
-        <span class="c1">#ut.square_pdist(ave_enc_time)</span>
+        <span class="c1"># ave_enc_time = [np.mean(times) for lbl, times in ut.group_items(posixtimes, labels).items()]</span>
+        <span class="c1"># ut.square_pdist(ave_enc_time)</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_between_groups</span><span class="p">([</span><span class="n">valid_aids</span><span class="p">],</span> <span class="p">[</span><span class="n">valid_aids</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_between_groups</span><span class="p">([</span><span class="n">valid_aids</span><span class="p">],</span> <span class="p">[</span><span class="n">valid_aids</span><span class="p">])[</span>
+            <span class="mi">0</span>
+        <span class="p">]</span>
         <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aidpairs_by_tags</span><span class="p">(</span><span class="n">min_num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">am_rowids</span><span class="o">=</span><span class="n">am_rowids</span><span class="p">)</span>
-        <span class="n">undirected_tags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_aidpair_tags</span><span class="p">(</span><span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">undirected_tags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_aidpair_tags</span><span class="p">(</span>
+            <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directed</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
         <span class="n">tagged_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_pairs</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">undirected_tags</span><span class="p">))</span>
         <span class="n">tag_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">groupby_tags</span><span class="p">(</span><span class="n">tagged_pairs</span><span class="p">,</span> <span class="n">undirected_tags</span><span class="p">)</span>
         <span class="n">pair_tag_info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">tag_dict</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">pair_tag_info</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="c1">#print(ut.repr2(pair_tag_info))</span>
+    <span class="c1"># print(ut.repr2(pair_tag_info))</span>
 
     <span class="c1"># Annot Stats</span>
     <span class="c1"># TODO: number of images where chips cover entire image</span>
@@ -318,11 +472,11 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking Multiton/Singleton Species&#39;</span><span class="p">)</span>
     <span class="n">nx2_nAnnots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">nx2_aids</span><span class="p">)))</span>
     <span class="c1"># Seperate singleton / multitons</span>
-    <span class="n">multiton_nxs</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nx2_nAnnots</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">multiton_nxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nx2_nAnnots</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">singleton_nxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nx2_nAnnots</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">unassociated_nxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nx2_nAnnots</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">singleton_nxs</span><span class="p">,</span> <span class="n">multiton_nxs</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;intersecting names&#39;</span>
-    <span class="n">valid_nxs</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">multiton_nxs</span><span class="p">,</span> <span class="n">singleton_nxs</span><span class="p">])</span>
+    <span class="n">valid_nxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">multiton_nxs</span><span class="p">,</span> <span class="n">singleton_nxs</span><span class="p">])</span>
     <span class="n">num_names_with_gt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiton_nxs</span><span class="p">)</span>
 
     <span class="c1"># Annot Info</span>
@@ -343,29 +497,32 @@
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking ImageSize Info&#39;</span><span class="p">)</span>
         <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">wh_print_stats</span><span class="p">(</span><span class="n">wh_list</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wh_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{empty}</span><span class="s1">&#39;</span>
             <span class="n">wh_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wh_list</span><span class="p">)</span>
             <span class="n">stat_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">(</span>
-                <span class="p">[(</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
-                 <span class="p">(</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
-                 <span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
-                 <span class="p">(</span> <span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="mi">0</span><span class="p">))])</span>
+                <span class="p">[</span>
+                    <span class="p">(</span><span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
             <span class="k">def</span> <span class="nf">arr2str</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
-                <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="p">(</span>
-                    <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%.1f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">,</span> <span class="n">var</span><span class="p">)))</span>
-                <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span><span class="p">)</span>
-            <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">    &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-                <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">arr2str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
-                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">stat_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-            <span class="p">]))</span>
+                <span class="k">return</span> <span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%.1f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">,</span> <span class="n">var</span><span class="p">))))</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+
+            <span class="n">ret</span> <span class="o">=</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">    &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">arr2str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">stat_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="s1">&#39;{</span><span class="se">\n</span><span class="s1">    &#39;</span> <span class="o">+</span> <span class="n">ret</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">}&#39;</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;reading image sizes&#39;</span><span class="p">)</span>
         <span class="c1"># Image size stats</span>
-        <span class="n">img_size_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
-        <span class="n">img_size_stats</span>  <span class="o">=</span> <span class="n">wh_print_stats</span><span class="p">(</span><span class="n">img_size_list</span><span class="p">)</span>
+        <span class="n">img_size_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+        <span class="n">img_size_stats</span> <span class="o">=</span> <span class="n">wh_print_stats</span><span class="p">(</span><span class="n">img_size_list</span><span class="p">)</span>
 
         <span class="c1"># Chip size stats</span>
         <span class="n">annotation_bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
@@ -386,12 +543,14 @@
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Building Stats String&#39;</span><span class="p">)</span>
 
-    <span class="n">multiton_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">multiton_nid2_nannots</span><span class="p">,</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">multiton_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">multiton_nid2_nannots</span><span class="p">,</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
 
     <span class="c1"># Time stats</span>
     <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">valid_images</span><span class="o">.</span><span class="n">unixtime2</span>
-    <span class="c1">#valid_unixtime_list = [time for time in unixtime_list if time != -1]</span>
-    <span class="c1">#unixtime_statstr = ibs.get_image_time_statstr(valid_gids)</span>
+    <span class="c1"># valid_unixtime_list = [time for time in unixtime_list if time != -1]</span>
+    <span class="c1"># unixtime_statstr = ibs.get_image_time_statstr(valid_gids)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--hackshow-unixtime&#39;</span><span class="p">):</span>
         <span class="n">show_time_distributions</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">unixtime_list</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
@@ -400,19 +559,19 @@
     <span class="c1"># GPS stats</span>
     <span class="n">gps_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
     <span class="n">gpsvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gps</span> <span class="o">!=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">gps</span> <span class="ow">in</span> <span class="n">gps_list_</span><span class="p">]</span>
-    <span class="n">gps_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gps_list_</span><span class="p">,</span> <span class="n">gpsvalid_list</span><span class="p">)</span>
+    <span class="n">gps_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gps_list_</span><span class="p">,</span> <span class="n">gpsvalid_list</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_annot_age_stats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
         <span class="n">annot_age_months_est_min</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">annot_age_months_est_max</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">age_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">((</span><span class="k">lambda</span> <span class="p">:</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">age_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">((</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">min_age</span><span class="p">,</span> <span class="n">max_age</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annot_age_months_est_min</span><span class="p">,</span> <span class="n">annot_age_months_est_max</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">max_age</span> <span class="o">=</span> <span class="n">min_age</span>
             <span class="k">if</span> <span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">min_age</span> <span class="o">=</span> <span class="n">max_age</span>
             <span class="k">if</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found UNKNOWN Age: </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">min_age</span><span class="p">,</span> <span class="n">max_age</span><span class="p">,</span> <span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found UNKNOWN Age: </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">min_age</span><span class="p">,</span> <span class="n">max_age</span><span class="p">,))</span>
                 <span class="n">age_dict</span><span class="p">[</span><span class="s1">&#39;UNKNOWN&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">elif</span> <span class="p">(</span><span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">min_age</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">)</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">:</span>
                 <span class="n">age_dict</span><span class="p">[</span><span class="s1">&#39;Infant&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -426,17 +585,23 @@
         <span class="n">annot_sextext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_sex_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">sextext2_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_sextext_list</span><span class="p">)</span>
         <span class="n">sex_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">SEX_TEXT_TO_INT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">sex_keys</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">annot_sextext_list</span><span class="p">),</span> <span class="s1">&#39;bad keys: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">annot_sextext_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">sex_keys</span><span class="p">))</span>
-        <span class="n">sextext2_nAnnots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sextext2_aids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[])))</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">sex_keys</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">sex_keys</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">annot_sextext_list</span><span class="p">),</span> <span class="s1">&#39;bad keys: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">annot_sextext_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">sex_keys</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">sextext2_nAnnots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sextext2_aids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[])))</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">sex_keys</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="c1"># Filter 0&#39;s</span>
-        <span class="n">sextext2_nAnnots</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">sextext2_nAnnots</span><span class="p">)</span> <span class="k">if</span> <span class="n">val</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="n">sextext2_nAnnots</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">sextext2_nAnnots</span><span class="p">)</span> <span class="k">if</span> <span class="n">val</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="p">}</span>
         <span class="k">return</span> <span class="n">sextext2_nAnnots</span>
 
     <span class="k">def</span> <span class="nf">get_annot_qual_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
         <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">qualtext2_nAnnots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">order_dict_by</span><span class="p">(</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">map_vals</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">annots</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">quality_texts</span><span class="p">)),</span>
-            <span class="nb">list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">QUALITY_TEXT_TO_INT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">QUALITY_TEXT_TO_INT</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">qualtext2_nAnnots</span>
 
@@ -444,7 +609,7 @@
         <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">viewcode2_nAnnots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">order_dict_by</span><span class="p">(</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">map_vals</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">annots</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">viewpoint_code</span><span class="p">)),</span>
-            <span class="nb">list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">],</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">viewcode2_nAnnots</span>
 
@@ -463,16 +628,27 @@
     <span class="c1"># hack remove colon for image alignment</span>
     <span class="k">def</span> <span class="nf">fix_tag_list</span><span class="p">(</span><span class="n">tag_list</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tag_list</span><span class="p">]</span>
+
     <span class="n">image_contributor_tags</span> <span class="o">=</span> <span class="n">fix_tag_list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_contributor_tag</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">))</span>
     <span class="n">annot_contributor_tags</span> <span class="o">=</span> <span class="n">fix_tag_list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_contributor_tag</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">))</span>
     <span class="n">contributor_tag_to_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">,</span> <span class="n">image_contributor_tags</span><span class="p">)</span>
     <span class="n">contributor_tag_to_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">annot_contributor_tags</span><span class="p">)</span>
 
-    <span class="n">contributor_tag_to_qualstats</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">get_annot_qual_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">contributor_tag_to_aids</span><span class="p">)}</span>
-    <span class="n">contributor_tag_to_viewstats</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">get_annot_viewpoint_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">contributor_tag_to_aids</span><span class="p">)}</span>
+    <span class="n">contributor_tag_to_qualstats</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">get_annot_qual_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">contributor_tag_to_aids</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">contributor_tag_to_viewstats</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">get_annot_viewpoint_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">contributor_tag_to_aids</span><span class="p">)</span>
+    <span class="p">}</span>
 
-    <span class="n">contributor_tag_to_nImages</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">contributor_tag_to_gids</span><span class="p">)}</span>
-    <span class="n">contributor_tag_to_nAnnots</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">contributor_tag_to_aids</span><span class="p">)}</span>
+    <span class="n">contributor_tag_to_nImages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">contributor_tag_to_gids</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">contributor_tag_to_nAnnots</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">contributor_tag_to_aids</span><span class="p">)</span>
+    <span class="p">}</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Summarizing&#39;</span><span class="p">)</span>
@@ -481,7 +657,7 @@
     <span class="n">num_names</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">)</span>
     <span class="n">num_names_unassociated</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">associated_nids</span><span class="p">)</span>
     <span class="n">num_names_singleton</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">singleton_nxs</span><span class="p">)</span>
-    <span class="n">num_names_multiton</span> <span class="o">=</span>  <span class="nb">len</span><span class="p">(</span><span class="n">multiton_nxs</span><span class="p">)</span>
+    <span class="n">num_names_multiton</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiton_nxs</span><span class="p">)</span>
 
     <span class="n">num_singleton_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">singleton_aids</span><span class="p">)</span>
     <span class="n">num_multiton_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiton_aids</span><span class="p">)</span>
@@ -491,9 +667,9 @@
     <span class="k">if</span> <span class="n">with_bytes</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking Disk Space&#39;</span><span class="p">)</span>
-        <span class="n">ibsdir_space</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">()))</span>
-        <span class="n">dbdir_space</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()))</span>
-        <span class="n">imgdir_space</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">()))</span>
+        <span class="n">ibsdir_space</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">()))</span>
+        <span class="n">dbdir_space</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()))</span>
+        <span class="n">imgdir_space</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">()))</span>
         <span class="n">cachedir_space</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">()))</span>
 
     <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
@@ -501,25 +677,32 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Check asserts&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">bad_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">multiton_aids</span><span class="p">,</span> <span class="n">unknown_annots</span><span class="p">)</span>
-            <span class="n">_num_names_total_check</span> <span class="o">=</span> <span class="n">num_names_singleton</span> <span class="o">+</span> <span class="n">num_names_unassociated</span> <span class="o">+</span> <span class="n">num_names_multiton</span>
-            <span class="n">_num_annots_total_check</span> <span class="o">=</span> <span class="n">num_unknown_annots</span> <span class="o">+</span> <span class="n">num_singleton_annots</span> <span class="o">+</span> <span class="n">num_multiton_annots</span>
+            <span class="n">_num_names_total_check</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">num_names_singleton</span> <span class="o">+</span> <span class="n">num_names_unassociated</span> <span class="o">+</span> <span class="n">num_names_multiton</span>
+            <span class="p">)</span>
+            <span class="n">_num_annots_total_check</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">num_unknown_annots</span> <span class="o">+</span> <span class="n">num_singleton_annots</span> <span class="o">+</span> <span class="n">num_multiton_annots</span>
+            <span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;intersecting multiton aids and unknown aids&#39;</span>
             <span class="k">assert</span> <span class="n">_num_names_total_check</span> <span class="o">==</span> <span class="n">num_names</span><span class="p">,</span> <span class="s1">&#39;inconsistent num names&#39;</span>
-            <span class="c1">#if not request_annot_subset:</span>
+            <span class="c1"># if not request_annot_subset:</span>
             <span class="c1"># dont check this if you have an annot subset</span>
             <span class="k">assert</span> <span class="n">_num_annots_total_check</span> <span class="o">==</span> <span class="n">num_annots</span><span class="p">,</span> <span class="s1">&#39;inconsistent num annots&#39;</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
-                <span class="s1">&#39;_num_names_total_check&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;num_names&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;_num_annots_total_check&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;num_annots&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;num_names_singleton&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;num_names_multiton&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;num_unknown_annots&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;num_multiton_annots&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;num_singleton_annots&#39;</span><span class="p">,</span>
-            <span class="p">])</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                <span class="n">ex</span><span class="p">,</span>
+                <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
+                    <span class="s1">&#39;_num_names_total_check&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;num_names&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;_num_annots_total_check&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;num_annots&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;num_names_singleton&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;num_names_multiton&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;num_unknown_annots&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;num_multiton_annots&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;num_singleton_annots&#39;</span><span class="p">,</span>
+                <span class="p">],</span>
+            <span class="p">)</span>
             <span class="k">raise</span>
 
     <span class="c1"># Get contributor statistics</span>
@@ -536,14 +719,14 @@
         <span class="n">str_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">align2</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span>
 
-    <span class="n">header_block_lines</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">[(</span><span class="s1">&#39;+============================&#39;</span><span class="p">),</span> <span class="p">]</span> <span class="o">+</span> <span class="p">(</span>
-            <span class="p">[</span>
-                <span class="p">(</span><span class="s1">&#39;+ singleton := single sighting&#39;</span><span class="p">),</span>
-                <span class="p">(</span><span class="s1">&#39;+ multiton  := multiple sightings&#39;</span><span class="p">),</span>
-                <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
-            <span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span> <span class="ow">and</span> <span class="n">with_header</span> <span class="k">else</span> <span class="p">[]</span>
-        <span class="p">)</span>
+    <span class="n">header_block_lines</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;+============================&#39;</span><span class="p">),]</span> <span class="o">+</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;+ singleton := single sighting&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;+ multiton  := multiple sightings&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span> <span class="ow">and</span> <span class="n">with_header</span>
+        <span class="k">else</span> <span class="p">[]</span>
     <span class="p">)</span>
 
     <span class="n">source_block_lines</span> <span class="o">=</span> <span class="p">[</span>
@@ -552,14 +735,18 @@
         <span class="p">(</span><span class="s1">&#39;DB NumContrib: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">num_contributors</span><span class="p">),</span>
     <span class="p">]</span>
 
-    <span class="n">bytes_block_lines</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;DB Bytes: &#39;</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;     +- dbdir nBytes:         &#39;</span> <span class="o">+</span> <span class="n">dbdir_space</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;     |  +- _ibsdb nBytes:     &#39;</span> <span class="o">+</span> <span class="n">ibsdir_space</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;     |  |  +-imgdir nBytes:   &#39;</span> <span class="o">+</span> <span class="n">imgdir_space</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;     |  |  +-cachedir nBytes: &#39;</span> <span class="o">+</span> <span class="n">cachedir_space</span><span class="p">),</span>
-    <span class="p">]</span> <span class="k">if</span> <span class="n">with_bytes</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">bytes_block_lines</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;DB Bytes: &#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;     +- dbdir nBytes:         &#39;</span> <span class="o">+</span> <span class="n">dbdir_space</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;     |  +- _ibsdb nBytes:     &#39;</span> <span class="o">+</span> <span class="n">ibsdir_space</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;     |  |  +-imgdir nBytes:   &#39;</span> <span class="o">+</span> <span class="n">imgdir_space</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;     |  |  +-cachedir nBytes: &#39;</span> <span class="o">+</span> <span class="n">cachedir_space</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">with_bytes</span>
+        <span class="k">else</span> <span class="p">[]</span>
+    <span class="p">)</span>
 
     <span class="n">name_block_lines</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
@@ -579,60 +766,82 @@
         <span class="p">(</span><span class="s1">&#39;# Annots (multiton)          = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">num_multiton_annots</span><span class="p">),</span>
     <span class="p">]</span>
 
-    <span class="n">annot_per_basic_block_lines</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;# Annots per Name (multiton) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align2</span><span class="p">(</span><span class="n">multiton_stats</span><span class="p">),)),</span>
-        <span class="p">(</span><span class="s1">&#39;# Annots per Image           = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align2</span><span class="p">(</span><span class="n">gx2_nAnnots_stats</span><span class="p">),)),</span>
-        <span class="p">(</span><span class="s1">&#39;# Annots per Species         = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align_dict2</span><span class="p">(</span><span class="n">species2_nAids</span><span class="p">),)),</span>
-    <span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">annot_per_basic_block_lines</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;# Annots per Name (multiton) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align2</span><span class="p">(</span><span class="n">multiton_stats</span><span class="p">),)),</span>
+            <span class="p">(</span><span class="s1">&#39;# Annots per Image           = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align2</span><span class="p">(</span><span class="n">gx2_nAnnots_stats</span><span class="p">),)),</span>
+            <span class="p">(</span><span class="s1">&#39;# Annots per Species         = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align_dict2</span><span class="p">(</span><span class="n">species2_nAids</span><span class="p">),)),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span>
+        <span class="k">else</span> <span class="p">[]</span>
+    <span class="p">)</span>
 
-    <span class="n">occurrence_block_lines</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
-        <span class="c1">#(&#39;# Occurrence Per Name (Resights) = %s&#39; % (align_dict2(resight_name_stats),)),</span>
-        <span class="c1">#(&#39;# Annots per Encounter (Singlesights) = %s&#39; % (align_dict2(singlesight_annot_stats),)),</span>
-        <span class="p">(</span><span class="s1">&#39;# Pair Tag Info (annots) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align_dict2</span><span class="p">(</span><span class="n">pair_tag_info</span><span class="p">),)),</span>
-    <span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">occurrence_block_lines</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+            <span class="c1"># (&#39;# Occurrence Per Name (Resights) = %s&#39; % (align_dict2(resight_name_stats),)),</span>
+            <span class="c1"># (&#39;# Annots per Encounter (Singlesights) = %s&#39; % (align_dict2(singlesight_annot_stats),)),</span>
+            <span class="p">(</span><span class="s1">&#39;# Pair Tag Info (annots) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align_dict2</span><span class="p">(</span><span class="n">pair_tag_info</span><span class="p">),)),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span>
+        <span class="k">else</span> <span class="p">[]</span>
+    <span class="p">)</span>
 
     <span class="n">annot_per_qualview_block_lines</span> <span class="o">=</span> <span class="p">[</span>
         <span class="kc">None</span> <span class="k">if</span> <span class="n">short</span> <span class="k">else</span> <span class="s1">&#39;# Annots per Viewpoint = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">viewcode2_nAnnots</span><span class="p">),</span>
         <span class="kc">None</span> <span class="k">if</span> <span class="n">short</span> <span class="k">else</span> <span class="s1">&#39;# Annots per Quality = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">qualtext2_nAnnots</span><span class="p">),</span>
     <span class="p">]</span>
 
-    <span class="n">annot_per_agesex_block_lines</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;# Annots per Age = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">agetext2_nAnnots</span><span class="p">),</span>
-        <span class="s1">&#39;# Annots per Sex = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">sextext2_nAnnots</span><span class="p">),</span>
-    <span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span>  <span class="ow">and</span> <span class="n">with_agesex</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">annot_per_agesex_block_lines</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="s1">&#39;# Annots per Age = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">agetext2_nAnnots</span><span class="p">),</span>
+            <span class="s1">&#39;# Annots per Sex = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">sextext2_nAnnots</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span> <span class="ow">and</span> <span class="n">with_agesex</span>
+        <span class="k">else</span> <span class="p">[]</span>
+    <span class="p">)</span>
 
-    <span class="n">contributor_block_lines</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;# Images per contributor       = &#39;</span> <span class="o">+</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">contributor_tag_to_nImages</span><span class="p">),</span>
-        <span class="s1">&#39;# Annots per contributor       = &#39;</span> <span class="o">+</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">contributor_tag_to_nAnnots</span><span class="p">),</span>
-        <span class="s1">&#39;# Quality per contributor      = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">contributor_tag_to_qualstats</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-        <span class="s1">&#39;# Viewpoint per contributor    = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">contributor_tag_to_viewstats</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-    <span class="p">]</span> <span class="k">if</span> <span class="n">with_contrib</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">contributor_block_lines</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="s1">&#39;# Images per contributor       = &#39;</span> <span class="o">+</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">contributor_tag_to_nImages</span><span class="p">),</span>
+            <span class="s1">&#39;# Annots per contributor       = &#39;</span> <span class="o">+</span> <span class="n">align_dict2</span><span class="p">(</span><span class="n">contributor_tag_to_nAnnots</span><span class="p">),</span>
+            <span class="s1">&#39;# Quality per contributor      = &#39;</span>
+            <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">contributor_tag_to_qualstats</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;# Viewpoint per contributor    = &#39;</span>
+            <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">contributor_tag_to_viewstats</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">with_contrib</span>
+        <span class="k">else</span> <span class="p">[]</span>
+    <span class="p">)</span>
 
     <span class="n">img_block_lines</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
         <span class="p">(</span><span class="s1">&#39;# Img                        = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)),</span>
-        <span class="kc">None</span> <span class="k">if</span> <span class="n">short</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;# Img reviewed               = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">sum</span><span class="p">(</span><span class="n">image_reviewed_list</span><span class="p">)),</span>
+        <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">short</span>
+        <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;# Img reviewed               = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">sum</span><span class="p">(</span><span class="n">image_reviewed_list</span><span class="p">)),</span>
         <span class="kc">None</span> <span class="k">if</span> <span class="n">short</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;# Img with gps               = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gps_list</span><span class="p">)),</span>
-        <span class="c1">#(&#39;# Img with timestamp         = %d&#39; % len(valid_unixtime_list)),</span>
-        <span class="kc">None</span> <span class="k">if</span> <span class="n">short</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;Img Time Stats               = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align2</span><span class="p">(</span><span class="n">unixtime_statstr</span><span class="p">),)),</span>
+        <span class="c1"># (&#39;# Img with timestamp         = %d&#39; % len(valid_unixtime_list)),</span>
+        <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">short</span>
+        <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;Img Time Stats               = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">align2</span><span class="p">(</span><span class="n">unixtime_statstr</span><span class="p">),)),</span>
     <span class="p">]</span>
 
     <span class="n">info_str_lines</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">header_block_lines</span> <span class="o">+</span>
-        <span class="n">bytes_block_lines</span> <span class="o">+</span>
-        <span class="n">source_block_lines</span> <span class="o">+</span>
-        <span class="n">name_block_lines</span> <span class="o">+</span>
-        <span class="n">annot_block_lines</span> <span class="o">+</span>
-        <span class="n">annot_per_basic_block_lines</span> <span class="o">+</span>
-        <span class="n">occurrence_block_lines</span> <span class="o">+</span>
-        <span class="n">annot_per_qualview_block_lines</span> <span class="o">+</span>
-        <span class="n">annot_per_agesex_block_lines</span> <span class="o">+</span>
-        <span class="n">img_block_lines</span> <span class="o">+</span>
-        <span class="n">contributor_block_lines</span> <span class="o">+</span>
-        <span class="n">imgsize_stat_lines</span> <span class="o">+</span>
-        <span class="p">[(</span><span class="s1">&#39;L============================&#39;</span><span class="p">),</span> <span class="p">]</span>
+        <span class="n">header_block_lines</span>
+        <span class="o">+</span> <span class="n">bytes_block_lines</span>
+        <span class="o">+</span> <span class="n">source_block_lines</span>
+        <span class="o">+</span> <span class="n">name_block_lines</span>
+        <span class="o">+</span> <span class="n">annot_block_lines</span>
+        <span class="o">+</span> <span class="n">annot_per_basic_block_lines</span>
+        <span class="o">+</span> <span class="n">occurrence_block_lines</span>
+        <span class="o">+</span> <span class="n">annot_per_qualview_block_lines</span>
+        <span class="o">+</span> <span class="n">annot_per_agesex_block_lines</span>
+        <span class="o">+</span> <span class="n">img_block_lines</span>
+        <span class="o">+</span> <span class="n">contributor_block_lines</span>
+        <span class="o">+</span> <span class="n">imgsize_stat_lines</span>
+        <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;L============================&#39;</span><span class="p">),]</span>
     <span class="p">)</span>
     <span class="n">info_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">info_str_lines</span><span class="p">))</span>
     <span class="n">info_str2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">info_str</span><span class="p">,</span> <span class="s1">&#39;[</span><span class="si">{tag}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">))</span>
@@ -664,47 +873,52 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
     <span class="n">grouped_aids</span><span class="p">,</span> <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">grouped_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aids</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">grouped_aids</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">unixtimes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes_asfloat</span><span class="p">,</span> <span class="n">grouped_aids</span><span class="p">)</span>
     <span class="n">yaws_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaws</span><span class="p">,</span> <span class="n">grouped_aids</span><span class="p">)</span>
-    <span class="c1">#markers_list = [[(1, 2, yaw * 360 / (np.pi * 2)) for yaw in yaws] for yaws in yaws_list]</span>
+    <span class="c1"># markers_list = [[(1, 2, yaw * 360 / (np.pi * 2)) for yaw in yaws] for yaws in yaws_list]</span>
 
     <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unixtimes_list</span><span class="p">)</span>
     <span class="n">timemax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
     <span class="n">timemin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
     <span class="n">timerange</span> <span class="o">=</span> <span class="n">timemax</span> <span class="o">-</span> <span class="n">timemin</span>
-    <span class="n">unixtimes_list</span> <span class="o">=</span> <span class="p">[((</span><span class="n">unixtimes</span><span class="p">[:]</span> <span class="o">-</span> <span class="n">timemin</span><span class="p">)</span> <span class="o">/</span> <span class="n">timerange</span><span class="p">)</span> <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span><span class="p">]</span>
+    <span class="n">unixtimes_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">((</span><span class="n">unixtimes</span><span class="p">[:]</span> <span class="o">-</span> <span class="n">timemin</span><span class="p">)</span> <span class="o">/</span> <span class="n">timerange</span><span class="p">)</span> <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span>
+    <span class="p">]</span>
     <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span><span class="p">:</span>
         <span class="n">num_nan</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">))</span>
-        <span class="n">unixtimes</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_nan</span><span class="p">)</span>
-    <span class="c1">#ydata_list = [np.arange(len(aids)) for aids in grouped_aids]</span>
+        <span class="n">unixtimes</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">num_nan</span><span class="p">)</span>
+    <span class="c1"># ydata_list = [np.arange(len(aids)) for aids in grouped_aids]</span>
     <span class="n">sortx_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">argsort_groups</span><span class="p">(</span><span class="n">unixtimes_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="c1">#markers_list = ut.list_ziptake(markers_list, sortx_list)</span>
+    <span class="c1"># markers_list = ut.list_ziptake(markers_list, sortx_list)</span>
     <span class="n">yaws_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_ziptake</span><span class="p">(</span><span class="n">yaws_list</span><span class="p">,</span> <span class="n">sortx_list</span><span class="p">)</span>
     <span class="n">ydatas_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">unixtimes_list</span><span class="p">,</span> <span class="n">sortx_list</span><span class="p">)</span>
-    <span class="c1">#ydatas_list = sortx_list</span>
-    <span class="c1">#ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)</span>
+    <span class="c1"># ydatas_list = sortx_list</span>
+    <span class="c1"># ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)</span>
 
     <span class="c1"># Sort by num members</span>
-    <span class="c1">#ydatas_list = ut.take(ydatas_list, np.argsort(list(map(len, ydatas_list))))</span>
-    <span class="n">xdatas_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ydatas</span><span class="p">))</span> <span class="o">+</span> <span class="n">count</span> <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">ydatas</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ydatas_list</span><span class="p">)]</span>
-    <span class="c1">#markers = ut.flatten(markers_list)</span>
-    <span class="c1">#yaws = np.array(ut.flatten(yaws_list))</span>
+    <span class="c1"># ydatas_list = ut.take(ydatas_list, np.argsort(list(map(len, ydatas_list))))</span>
+    <span class="n">xdatas_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ydatas</span><span class="p">))</span> <span class="o">+</span> <span class="n">count</span> <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">ydatas</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ydatas_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c1"># markers = ut.flatten(markers_list)</span>
+    <span class="c1"># yaws = np.array(ut.flatten(yaws_list))</span>
     <span class="n">y_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ydatas_list</span><span class="p">))</span>
     <span class="n">x_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">xdatas_list</span><span class="p">))</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
-    <span class="c1">#unique_yaws, groupxs = vt.group_indices(yaws)</span>
+    <span class="c1"># unique_yaws, groupxs = vt.group_indices(yaws)</span>
 
     <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
-    <span class="c1">#pt.draw_stems(x_data, y_data, marker=markers, setlims=True, linestyle=&#39;&#39;)</span>
+    <span class="c1"># pt.draw_stems(x_data, y_data, marker=markers, setlims=True, linestyle=&#39;&#39;)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">dark_background</span><span class="p">()</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span> <span class="o">-</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span> <span class="o">+</span> <span class="o">.</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">y_data</span><span class="p">)</span> <span class="o">-</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_data</span><span class="p">)</span> <span class="o">+</span> <span class="o">.</span><span class="mi">1</span><span class="p">)</span></div>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">y_data</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_data</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="show_image_time_distributions"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.dbinfo.show_image_time_distributions">[docs]</a><span class="k">def</span> <span class="nf">show_image_time_distributions</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
@@ -737,8 +951,9 @@
 <div class="viewcode-block" id="show_time_distributions"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.dbinfo.show_time_distributions">[docs]</a><span class="k">def</span> <span class="nf">show_time_distributions</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">unixtime_list</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#import vtool as vt</span>
+    <span class="c1"># import vtool as vt</span>
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
     <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
     <span class="n">num_nan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
     <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
@@ -746,46 +961,54 @@
 
     <span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="k">import</span> <span class="n">TMP_RC</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
     <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">TMP_RC</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">dates</span> <span class="k">as</span> <span class="n">mpldates</span>
-        <span class="c1">#data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))</span>
+
+        <span class="c1"># data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))</span>
         <span class="n">n</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">patches</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">,</span> <span class="mi">365</span><span class="p">)</span>
-        <span class="c1">#n_ = list(map(ut.unixtime_to_datetimeobj, n))</span>
-        <span class="c1">#bins_ = list(map(ut.unixtime_to_datetimeobj, bins))</span>
+        <span class="c1"># n_ = list(map(ut.unixtime_to_datetimeobj, n))</span>
+        <span class="c1"># bins_ = list(map(ut.unixtime_to_datetimeobj, bins))</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">)</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-        <span class="c1">#ax.xaxis.set_major_locator(mpldates.YearLocator())</span>
-        <span class="c1">#hfmt = mpldates.DateFormatter(&#39;%y/%m/%d&#39;)</span>
-        <span class="c1">#ax.xaxis.set_major_formatter(hfmt)</span>
+        <span class="c1"># ax.xaxis.set_major_locator(mpldates.YearLocator())</span>
+        <span class="c1"># hfmt = mpldates.DateFormatter(&#39;%y/%m/%d&#39;)</span>
+        <span class="c1"># ax.xaxis.set_major_formatter(hfmt)</span>
         <span class="n">mpldates</span><span class="o">.</span><span class="n">num2date</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
-        <span class="c1">#pt.gcf().autofmt_xdate()</span>
-        <span class="c1">#y = pt.plt.normpdf( bins, unixtime_list.mean(), unixtime_list.std())</span>
-        <span class="c1">#ax.set_xticks(bins_)</span>
-        <span class="c1">#l = pt.plt.plot(bins_, y, &#39;k--&#39;, linewidth=1.5)</span>
+        <span class="c1"># pt.gcf().autofmt_xdate()</span>
+        <span class="c1"># y = pt.plt.normpdf( bins, unixtime_list.mean(), unixtime_list.std())</span>
+        <span class="c1"># ax.set_xticks(bins_)</span>
+        <span class="c1"># l = pt.plt.plot(bins_, y, &#39;k--&#39;, linewidth=1.5)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">draw_time_distribution</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
-        <span class="c1">#pt.draw_histogram()</span>
+        <span class="c1"># pt.draw_histogram()</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Date&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Timestamp distribution of </span><span class="si">%s</span><span class="s1">. #nan=</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname_alias</span><span class="p">(),</span>
-            <span class="n">num_nan</span><span class="p">,</span> <span class="n">num_total</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+            <span class="s1">&#39;Timestamp distribution of </span><span class="si">%s</span><span class="s1">. #nan=</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname_alias</span><span class="p">(),</span> <span class="n">num_nan</span><span class="p">,</span> <span class="n">num_total</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">autofmt_xdate</span><span class="p">()</span>
 
         <span class="n">icon</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_icon</span><span class="p">()</span>
         <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">icon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1">#import matplotlib as mpl</span>
-            <span class="c1">#import vtool as vt</span>
+            <span class="c1"># import matplotlib as mpl</span>
+            <span class="c1"># import vtool as vt</span>
             <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
             <span class="c1"># Overlay a species icon</span>
             <span class="c1"># http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html</span>
-            <span class="c1">#icon = vt.convert_image_list_colorspace([icon], &#39;RGB&#39;, &#39;BGR&#39;)[0]</span>
+            <span class="c1"># icon = vt.convert_image_list_colorspace([icon], &#39;RGB&#39;, &#39;BGR&#39;)[0]</span>
             <span class="c1"># pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1))</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">overlay_icon</span><span class="p">(</span><span class="n">icon</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">bbox_alignment</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-                            <span class="n">as_artist</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_asize</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
-            <span class="c1">#imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">overlay_icon</span><span class="p">(</span>
+                <span class="n">icon</span><span class="p">,</span>
+                <span class="n">coords</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">bbox_alignment</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">as_artist</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">max_asize</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="c1"># imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)</span>
             <span class="c1">##xy = [ax.get_xlim()[0] + 5, ax.get_ylim()[1]]</span>
             <span class="c1">##ax.set_xlim(1, 100)</span>
             <span class="c1">##ax.set_ylim(0, 100)</span>
@@ -797,16 +1020,16 @@
             <span class="c1">##xy = [x, y]</span>
             <span class="c1">##print(&#39;xy = %r&#39; % (xy,))</span>
             <span class="c1">##ax.get_ylim()[0]]</span>
-            <span class="c1">#xy = [ax.get_xlim()[0], ax.get_ylim()[1]]</span>
-            <span class="c1">#ab = mpl.offsetbox.AnnotationBbox(</span>
+            <span class="c1"># xy = [ax.get_xlim()[0], ax.get_ylim()[1]]</span>
+            <span class="c1"># ab = mpl.offsetbox.AnnotationBbox(</span>
             <span class="c1">#    imagebox, xy, xycoords=&#39;data&#39;,</span>
             <span class="c1">#    xybox=(-0., 0.),</span>
             <span class="c1">#    boxcoords=&quot;offset points&quot;,</span>
             <span class="c1">#    box_alignment=(0, 1), pad=0.0)</span>
-            <span class="c1">#ax.add_artist(ab)</span>
+            <span class="c1"># ax.add_artist(ab)</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--contextadjust&#39;</span><span class="p">):</span>
-        <span class="c1">#pt.adjust_subplots(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)</span>
+        <span class="c1"># pt.adjust_subplots(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">adjust_subplots</span><span class="p">(</span><span class="n">use_argv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
@@ -842,62 +1065,70 @@
 <span class="sd">        &gt;&gt;&gt; ut.render_latex_text(&#39;\\noindent \n&#39; + tabular_str)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="c1"># Parse for aids test data</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wbia</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span> <span class="k">for</span> <span class="n">ibs</span> <span class="ow">in</span> <span class="n">ibs_list</span><span class="p">]</span>
 
-    <span class="c1">#dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]</span>
-    <span class="n">dbinfo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
-                   <span class="k">for</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ibs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)]</span>
+    <span class="c1"># dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]</span>
+    <span class="n">dbinfo_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ibs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="p">]</span>
 
-    <span class="c1">#title = db_name + &#39; database statistics&#39;</span>
+    <span class="c1"># title = db_name + &#39; database statistics&#39;</span>
     <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Database statistics&#39;</span>
     <span class="n">stat_title</span> <span class="o">=</span> <span class="s1">&#39;# Annotations per name (multiton)&#39;</span>
 
-    <span class="c1">#col_lbls = [</span>
+    <span class="c1"># col_lbls = [</span>
     <span class="c1">#    &#39;multiton&#39;,</span>
     <span class="c1">#    #&#39;singleton&#39;,</span>
     <span class="c1">#    &#39;total&#39;,</span>
     <span class="c1">#    &#39;multiton&#39;,</span>
     <span class="c1">#    &#39;singleton&#39;,</span>
     <span class="c1">#    &#39;total&#39;,</span>
-    <span class="c1">#]</span>
+    <span class="c1"># ]</span>
     <span class="n">key_to_col_lbls</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;num_names_multiton&#39;</span><span class="p">:</span>   <span class="s1">&#39;multiton&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;num_names_singleton&#39;</span><span class="p">:</span>  <span class="s1">&#39;singleton&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;num_names&#39;</span><span class="p">:</span>            <span class="s1">&#39;total&#39;</span><span class="p">,</span>
-
-        <span class="s1">&#39;num_multiton_annots&#39;</span><span class="p">:</span>  <span class="s1">&#39;multiton&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;num_names_multiton&#39;</span><span class="p">:</span> <span class="s1">&#39;multiton&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;num_names_singleton&#39;</span><span class="p">:</span> <span class="s1">&#39;singleton&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;num_names&#39;</span><span class="p">:</span> <span class="s1">&#39;total&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;num_multiton_annots&#39;</span><span class="p">:</span> <span class="s1">&#39;multiton&#39;</span><span class="p">,</span>
         <span class="s1">&#39;num_singleton_annots&#39;</span><span class="p">:</span> <span class="s1">&#39;singleton&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;num_unknown_annots&#39;</span><span class="p">:</span>   <span class="s1">&#39;unknown&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;num_annots&#39;</span><span class="p">:</span>           <span class="s1">&#39;total&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;num_unknown_annots&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;num_annots&#39;</span><span class="p">:</span> <span class="s1">&#39;total&#39;</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="c1"># Structure of columns / multicolumns</span>
     <span class="n">multi_col_keys</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s1">&#39;# Names&#39;</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s1">&#39;num_names_multiton&#39;</span><span class="p">,</span>
-            <span class="c1">#&#39;num_names_singleton&#39;,</span>
-            <span class="s1">&#39;num_names&#39;</span><span class="p">,</span>
-        <span class="p">)),</span>
-
-        <span class="p">(</span><span class="s1">&#39;# Annots&#39;</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s1">&#39;num_multiton_annots&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;num_singleton_annots&#39;</span><span class="p">,</span>
-            <span class="c1">#&#39;num_unknown_annots&#39;,</span>
-            <span class="s1">&#39;num_annots&#39;</span><span class="p">)),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;# Names&#39;</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;num_names_multiton&#39;</span><span class="p">,</span>
+                <span class="c1">#&#39;num_names_singleton&#39;,</span>
+                <span class="s1">&#39;num_names&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;# Annots&#39;</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;num_multiton_annots&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;num_singleton_annots&#39;</span><span class="p">,</span>
+                <span class="c1">#&#39;num_unknown_annots&#39;,</span>
+                <span class="s1">&#39;num_annots&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
     <span class="p">]</span>
-    <span class="c1">#multicol_lbls = [(&#39;# Names&#39;, 3), (&#39;# Annots&#39;, 3)]</span>
+    <span class="c1"># multicol_lbls = [(&#39;# Names&#39;, 3), (&#39;# Annots&#39;, 3)]</span>
     <span class="n">multicol_lbls</span> <span class="o">=</span> <span class="p">[(</span><span class="n">mcolname</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mcols</span><span class="p">))</span> <span class="k">for</span> <span class="n">mcolname</span><span class="p">,</span> <span class="n">mcols</span> <span class="ow">in</span> <span class="n">multi_col_keys</span><span class="p">]</span>
 
     <span class="c1"># Flatten column labels</span>
     <span class="n">col_keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">multi_col_keys</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">col_lbls</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">key_to_col_lbls</span><span class="p">,</span> <span class="n">col_keys</span><span class="p">)</span>
 
-    <span class="n">row_lbls</span>   <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">row_lbls</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">row_values</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="c1">#stat_col_lbls = [&#39;max&#39;, &#39;min&#39;, &#39;mean&#39;, &#39;std&#39;, &#39;nMin&#39;, &#39;nMax&#39;]</span>
+    <span class="c1"># stat_col_lbls = [&#39;max&#39;, &#39;min&#39;, &#39;mean&#39;, &#39;std&#39;, &#39;nMin&#39;, &#39;nMax&#39;]</span>
     <span class="n">stat_col_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="s1">&#39;med&#39;</span><span class="p">]</span>
-    <span class="c1">#stat_row_lbls = [&#39;# Annot per Name (multiton)&#39;]</span>
+    <span class="c1"># stat_row_lbls = [&#39;# Annot per Name (multiton)&#39;]</span>
     <span class="n">stat_row_lbls</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">stat_row_values</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -908,7 +1139,9 @@
         <span class="n">row_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">,</span> <span class="n">col_keys</span><span class="p">)</span>
         <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname_alias</span><span class="p">()</span>
         <span class="n">row_lbls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
-        <span class="n">multiton_annot_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="s1">&#39;multiton_nid2_nannots&#39;</span><span class="p">],</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">multiton_annot_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span>
+            <span class="n">dbinfo_locals</span><span class="p">[</span><span class="s1">&#39;multiton_nid2_nannots&#39;</span><span class="p">],</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
         <span class="n">stat_rows</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">multiton_annot_stats</span><span class="p">,</span> <span class="n">stat_col_lbls</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">SINGLE_TABLE</span><span class="p">:</span>
             <span class="n">row_</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">stat_rows</span><span class="p">)</span>
@@ -921,9 +1154,14 @@
     <span class="n">CENTERLINE</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">AS_TABLE</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">tablekw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">astable</span><span class="o">=</span><span class="n">AS_TABLE</span><span class="p">,</span> <span class="n">centerline</span><span class="o">=</span><span class="n">CENTERLINE</span><span class="p">,</span> <span class="n">FORCE_INT</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-        <span class="n">col_sep</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">multicol_sep</span><span class="o">=</span><span class="s1">&#39;|&#39;</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">astable</span><span class="o">=</span><span class="n">AS_TABLE</span><span class="p">,</span>
+        <span class="n">centerline</span><span class="o">=</span><span class="n">CENTERLINE</span><span class="p">,</span>
+        <span class="n">FORCE_INT</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">col_sep</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">multicol_sep</span><span class="o">=</span><span class="s1">&#39;|&#39;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">EXTRA</span><span class="p">:</span>
         <span class="n">extra_keys</span> <span class="o">=</span> <span class="p">[</span>
@@ -942,42 +1180,86 @@
 
         <span class="k">for</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">dbinfo_locals</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ibs_list</span><span class="p">,</span> <span class="n">dbinfo_list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">extra_keys</span><span class="p">:</span>
-                <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+                <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span>
+                    <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="p">)</span>
 
-        <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;qualtext2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;excellent&#39;</span><span class="p">,</span> <span class="s1">&#39;good&#39;</span><span class="p">,</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span> <span class="s1">&#39;poor&#39;</span><span class="p">,</span> <span class="s1">&#39;junk&#39;</span><span class="p">,</span> <span class="s1">&#39;UNKNOWN&#39;</span><span class="p">]</span>
-        <span class="c1">#extra_collbls[&#39;viewcode2_nAnnots&#39;] = [&#39;backleft&#39;, &#39;left&#39;, &#39;frontleft&#39;, &#39;front&#39;, &#39;frontright&#39;, &#39;right&#39;, &#39;backright&#39;, &#39;back&#39;, None]</span>
-        <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;viewcode2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BL&#39;</span><span class="p">,</span> <span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;FL&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;FR&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;BR&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;qualtext2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;excellent&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;good&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;poor&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;junk&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UNKNOWN&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="c1"># extra_collbls[&#39;viewcode2_nAnnots&#39;] = [&#39;backleft&#39;, &#39;left&#39;, &#39;frontleft&#39;, &#39;front&#39;, &#39;frontright&#39;, &#39;right&#39;, &#39;backright&#39;, &#39;back&#39;, None]</span>
+        <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;viewcode2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;BL&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;L&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;FL&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;F&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;FR&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;R&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BR&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;B&#39;</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+        <span class="p">]</span>
 
         <span class="k">for</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">dbinfo_locals</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ibs_list</span><span class="p">,</span> <span class="n">dbinfo_list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">extra_keys</span><span class="p">:</span>
-                <span class="n">extra_rowvalues</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="n">extra_rowvalues</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="p">)</span>
 
         <span class="n">qualalias</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;UNKNOWN&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 
-        <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;viewcode2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;viewcode2_nAnnots&#39;</span><span class="p">]]</span>
-        <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;qualtext2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">qualalias</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;qualtext2_nAnnots&#39;</span><span class="p">]]</span>
+        <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;viewcode2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;viewcode2_nAnnots&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;qualtext2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">qualalias</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">extra_collbls</span><span class="p">[</span><span class="s1">&#39;qualtext2_nAnnots&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
 
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">extra_keys</span><span class="p">:</span>
             <span class="n">extra_tables</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_latex</span><span class="o">.</span><span class="n">make_score_tabular</span><span class="p">(</span>
-                <span class="n">row_lbls</span><span class="p">,</span> <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">extra_rowvalues</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
-                <span class="n">title</span><span class="o">=</span><span class="n">extra_titles</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">col_align</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">table_position</span><span class="o">=</span><span class="s1">&#39;[h!]&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
+                <span class="n">row_lbls</span><span class="p">,</span>
+                <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
+                <span class="n">extra_rowvalues</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
+                <span class="n">title</span><span class="o">=</span><span class="n">extra_titles</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
+                <span class="n">col_align</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
+                <span class="n">table_position</span><span class="o">=</span><span class="s1">&#39;[h!]&#39;</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">tablekw</span>
+            <span class="p">)</span>
 
-    <span class="c1">#tabular_str = util_latex.tabular_join(tabular_body_list)</span>
+    <span class="c1"># tabular_str = util_latex.tabular_join(tabular_body_list)</span>
     <span class="k">if</span> <span class="n">SINGLE_TABLE</span><span class="p">:</span>
         <span class="n">col_lbls</span> <span class="o">+=</span> <span class="n">stat_col_lbls</span>
         <span class="n">multicol_lbls</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">stat_title</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">stat_col_lbls</span><span class="p">))]</span>
 
     <span class="n">count_tabular_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_latex</span><span class="o">.</span><span class="n">make_score_tabular</span><span class="p">(</span>
-        <span class="n">row_lbls</span><span class="p">,</span> <span class="n">col_lbls</span><span class="p">,</span> <span class="n">row_values</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">multicol_lbls</span><span class="o">=</span><span class="n">multicol_lbls</span><span class="p">,</span> <span class="n">table_position</span><span class="o">=</span><span class="s1">&#39;[ht!]&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
+        <span class="n">row_lbls</span><span class="p">,</span>
+        <span class="n">col_lbls</span><span class="p">,</span>
+        <span class="n">row_values</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+        <span class="n">multicol_lbls</span><span class="o">=</span><span class="n">multicol_lbls</span><span class="p">,</span>
+        <span class="n">table_position</span><span class="o">=</span><span class="s1">&#39;[ht!]&#39;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">tablekw</span>
+    <span class="p">)</span>
 
-    <span class="c1">#print(row_lbls)</span>
+    <span class="c1"># print(row_lbls)</span>
 
     <span class="k">if</span> <span class="n">SINGLE_TABLE</span><span class="p">:</span>
         <span class="n">tabular_str</span> <span class="o">=</span> <span class="n">count_tabular_str</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">stat_tabular_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_latex</span><span class="o">.</span><span class="n">make_score_tabular</span><span class="p">(</span>
-            <span class="n">stat_row_lbls</span><span class="p">,</span> <span class="n">stat_col_lbls</span><span class="p">,</span> <span class="n">stat_row_values</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">stat_title</span><span class="p">,</span>
-            <span class="n">col_align</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">table_position</span><span class="o">=</span><span class="s1">&#39;[h!]&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
+            <span class="n">stat_row_lbls</span><span class="p">,</span>
+            <span class="n">stat_col_lbls</span><span class="p">,</span>
+            <span class="n">stat_row_values</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">stat_title</span><span class="p">,</span>
+            <span class="n">col_align</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
+            <span class="n">table_position</span><span class="o">=</span><span class="s1">&#39;[h!]&#39;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">tablekw</span>
+        <span class="p">)</span>
 
         <span class="c1"># Make a table of statistics</span>
         <span class="k">if</span> <span class="n">tablekw</span><span class="p">[</span><span class="s1">&#39;astable&#39;</span><span class="p">]:</span>
@@ -985,7 +1267,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">tablesep</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\\\\n</span><span class="s1">%--</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">if</span> <span class="n">EXTRA</span><span class="p">:</span>
-            <span class="n">tabular_str</span> <span class="o">=</span> <span class="n">tablesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">count_tabular_str</span><span class="p">,</span> <span class="n">stat_tabular_str</span><span class="p">]</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">extra_tables</span><span class="p">,</span> <span class="n">extra_keys</span><span class="p">))</span>
+            <span class="n">tabular_str</span> <span class="o">=</span> <span class="n">tablesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">count_tabular_str</span><span class="p">,</span> <span class="n">stat_tabular_str</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">extra_tables</span><span class="p">,</span> <span class="n">extra_keys</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">tabular_str</span> <span class="o">=</span> <span class="n">tablesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">count_tabular_str</span><span class="p">,</span> <span class="n">stat_tabular_str</span><span class="p">])</span>
 
@@ -1018,30 +1303,35 @@
 <span class="sd">        num_names = 7</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
-    <span class="c1">#workdir = ut.unixpath(ibs.get_workdir())</span>
+    <span class="c1"># workdir = ut.unixpath(ibs.get_workdir())</span>
     <span class="n">num_images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_num_images</span><span class="p">()</span>
     <span class="n">num_annotations</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_num_annotations</span><span class="p">()</span>
     <span class="n">num_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_num_names</span><span class="p">()</span>
-    <span class="c1">#workdir = %r</span>
-    <span class="n">infostr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">    dbname = </span><span class="si">%s</span><span class="s1"></span>
-<span class="s1">    num_images = </span><span class="si">%r</span><span class="s1"></span>
-<span class="s1">    num_annotations = </span><span class="si">%r</span><span class="s1"></span>
-<span class="s1">    num_names = </span><span class="si">%r</span><span class="s1"></span>
-<span class="s1">    &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">dbname</span><span class="p">),</span> <span class="n">num_images</span><span class="p">,</span> <span class="n">num_annotations</span><span class="p">,</span> <span class="n">num_names</span><span class="p">))</span>
+    <span class="c1"># workdir = %r</span>
+    <span class="n">infostr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    dbname = %s</span>
+<span class="sd">    num_images = %r</span>
+<span class="sd">    num_annotations = %r</span>
+<span class="sd">    num_names = %r</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">dbname</span><span class="p">),</span> <span class="n">num_images</span><span class="p">,</span> <span class="n">num_annotations</span><span class="p">,</span> <span class="n">num_names</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">infostr</span></div>
 
 
 <div class="viewcode-block" id="cache_memory_stats"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.dbinfo.cache_memory_stats">[docs]</a><span class="k">def</span> <span class="nf">cache_memory_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[dev stats] cache_memory_stats()&#39;</span><span class="p">)</span>
-    <span class="c1">#kpts_list = ibs.get_annot_kpts(cid_list)</span>
-    <span class="c1">#desc_list = ibs.get_annot_vecs(cid_list)</span>
-    <span class="c1">#nFeats_list = map(len, kpts_list)</span>
+    <span class="c1"># kpts_list = ibs.get_annot_kpts(cid_list)</span>
+    <span class="c1"># desc_list = ibs.get_annot_vecs(cid_list)</span>
+    <span class="c1"># nFeats_list = map(len, kpts_list)</span>
     <span class="n">gx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cx2_gx</span><span class="p">(</span><span class="n">cid_list</span><span class="p">))</span>
 
     <span class="n">bytes_map</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;chip dbytes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">file_bytes</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_rchip_path</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)],</span>
-        <span class="s1">&#39;img dbytes&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">file_bytes</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">gx2_gname</span><span class="p">(</span><span class="n">gx_list</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)],</span>
+        <span class="s1">&#39;img dbytes&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">file_bytes</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">gx2_gname</span><span class="p">(</span><span class="n">gx_list</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">],</span>
         <span class="c1">#&#39;flann dbytes&#39;:  ut.file_bytes(flann_fpath),</span>
     <span class="p">}</span>
 
@@ -1051,8 +1341,7 @@
         <span class="s1">&#39;KB&#39;</span><span class="p">:</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">10</span><span class="p">,</span>
     <span class="p">}</span>
 
-    <span class="n">tabular_body_list</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">]</span>
+    <span class="n">tabular_body_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">convert_to</span> <span class="o">=</span> <span class="s1">&#39;KB&#39;</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">bytes_map</span><span class="p">):</span>
@@ -1084,18 +1373,37 @@
 <span class="sd">        python -m wbia.other.dbinfo --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1103,57 +1411,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../other.html">wbia.other</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

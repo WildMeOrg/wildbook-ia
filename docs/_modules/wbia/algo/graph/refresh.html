@@ -1,43 +1,163 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.refresh &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.graph.refresh &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+
+      <li>wbia.algo.graph.refresh</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.graph.refresh</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">NULL</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">NULL</span>  <span class="c1"># NOQA</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -56,8 +176,8 @@
 <span class="sd">    average. This is the rate parameter / individual event probability.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">method</span><span class="o">=</span><span class="s1">&#39;binomial&#39;</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;binomial&#39;</span><span class="p">):</span>
         <span class="n">refresh</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">window</span>
         <span class="n">refresh</span><span class="o">.</span><span class="n">_patience</span> <span class="o">=</span> <span class="n">patience</span>
         <span class="n">refresh</span><span class="o">.</span><span class="n">_prob_any_remain_thresh</span> <span class="o">=</span> <span class="n">thresh</span>
@@ -93,8 +213,9 @@
         <span class="k">def</span> <span class="nf">poisson_prob_at_most_k_events</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">lam</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot; this is the cdf &quot;&quot;&quot;</span>
             <span class="n">k_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">lam</span><span class="p">)</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">((</span><span class="n">lam</span> <span class="o">**</span> <span class="n">i</span><span class="p">)</span> <span class="o">/</span> <span class="n">sp</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k_</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">lam</span><span class="p">)</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">lam</span> <span class="o">**</span> <span class="n">i</span><span class="p">)</span> <span class="o">/</span> <span class="n">sp</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k_</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="c1"># return sp.special.gammaincc(k_ + 1, lam) / sp.math.factorial(k_)</span>
 
         <span class="k">def</span> <span class="nf">poisson_prob_more_than_k_events</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">lam</span><span class="p">):</span>
@@ -236,7 +357,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pos_frac</span><span class="p">(</span><span class="n">refresh</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">refresh</span><span class="o">.</span><span class="n">manual_decisions</span><span class="p">[</span><span class="o">-</span><span class="n">refresh</span><span class="o">.</span><span class="n">window</span><span class="p">:])</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">refresh</span><span class="o">.</span><span class="n">manual_decisions</span><span class="p">[</span><span class="o">-</span><span class="n">refresh</span><span class="o">.</span><span class="n">window</span> <span class="p">:])</span></div>
 
 
 <div class="viewcode-block" id="demo_refresh"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.refresh.demo_refresh">[docs]</a><span class="k">def</span> <span class="nf">demo_refresh</span><span class="p">():</span>
@@ -252,6 +373,7 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">demo</span>
+
     <span class="n">demokw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">({</span><span class="s1">&#39;num_pccs&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>
     <span class="n">refreshkw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_funckw</span><span class="p">(</span><span class="n">RefreshCriteria</span><span class="p">)</span>
     <span class="c1"># make an inference object</span>
@@ -276,29 +398,36 @@
         <span class="k">if</span> <span class="n">refresh</span><span class="o">.</span><span class="n">check</span><span class="p">():</span>
             <span class="k">break</span>
     <span class="n">xdata</span> <span class="o">=</span> <span class="n">xdata</span>
-    <span class="n">ydatas</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-        <span class="p">(</span><span class="s1">&#39;Est. probability any remain&#39;</span><span class="p">,</span> <span class="n">pprob_any</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;Fraction remaining&#39;</span><span class="p">,</span> <span class="n">rfrac_any</span><span class="p">),</span>
-    <span class="p">])</span>
+    <span class="n">ydatas</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[(</span><span class="s1">&#39;Est. probability any remain&#39;</span><span class="p">,</span> <span class="n">pprob_any</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Fraction remaining&#39;</span><span class="p">,</span> <span class="n">rfrac_any</span><span class="p">),]</span>
+    <span class="p">)</span>
 
     <span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
     <span class="n">pt</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
     <span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="k">import</span> <span class="n">TMP_RC</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
     <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">TMP_RC</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">multi_plot</span><span class="p">(</span>
-        <span class="n">xdata</span><span class="p">,</span> <span class="n">ydatas</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;# manual reviews&#39;</span><span class="p">,</span> <span class="n">rcParams</span><span class="o">=</span><span class="n">TMP_RC</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">use_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">xdata</span><span class="p">,</span>
+        <span class="n">ydatas</span><span class="p">,</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;# manual reviews&#39;</span><span class="p">,</span>
+        <span class="n">rcParams</span><span class="o">=</span><span class="n">TMP_RC</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">use_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">demokw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">({</span><span class="s1">&#39;num_pccs&#39;</span><span class="p">:</span> <span class="s1">&#39;#PCC&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="s1">&#39;PCC size&#39;</span><span class="p">},</span>
-                         <span class="n">demokw</span><span class="p">)</span>
+    <span class="n">demokw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">({</span><span class="s1">&#39;num_pccs&#39;</span><span class="p">:</span> <span class="s1">&#39;#PCC&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="s1">&#39;PCC size&#39;</span><span class="p">},</span> <span class="n">demokw</span><span class="p">)</span>
     <span class="n">thresh</span> <span class="o">=</span> <span class="n">refreshkw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;thresh&#39;</span><span class="p">)</span>
     <span class="n">refreshkw</span><span class="p">[</span><span class="s1">&#39;span&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refreshkw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;window&#39;</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">relative_text</span><span class="p">((</span><span class="o">.</span><span class="mi">02</span><span class="p">,</span> <span class="o">.</span><span class="mi">58</span> <span class="o">+</span> <span class="o">.</span><span class="mi">0</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">demokw</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span>
-                     <span class="n">valign</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">relative_text</span><span class="p">((</span><span class="o">.</span><span class="mi">02</span><span class="p">,</span> <span class="o">.</span><span class="mi">68</span> <span class="o">+</span> <span class="o">.</span><span class="mi">0</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">refreshkw</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span>
-                     <span class="n">valign</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">relative_text</span><span class="p">(</span>
+        <span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.58</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">demokw</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">valign</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span>
+    <span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">relative_text</span><span class="p">(</span>
+        <span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.68</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">refreshkw</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">valign</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span>
+    <span class="p">)</span>
     <span class="n">legend</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
     <span class="n">legend</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">xdata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xdata</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">thresh</span><span class="p">,</span> <span class="n">thresh</span><span class="p">],</span> <span class="s1">&#39;g--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;thresh&#39;</span><span class="p">)</span></div>
@@ -329,6 +458,7 @@
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
     <span class="kn">import</span> <span class="nn">sympy</span> <span class="k">as</span> <span class="nn">sym</span>
+
     <span class="n">i</span> <span class="o">=</span> <span class="n">sym</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nonnegative</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="c1"># mu_i = sym.symbols(&#39;mu_i&#39;, integer=True, nonnegative=True, finite=True)</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">sym</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nonnegative</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># NOQA</span>
@@ -378,8 +508,12 @@
     <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">i_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
         <span class="n">mu_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">subs</span><span class="p">(</span><span class="n">mu_i</span><span class="p">)</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="n">i_</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="k">for</span> <span class="n">i_</span> <span class="ow">in</span> <span class="n">i_vals</span><span class="p">])</span>  <span class="c1"># NOQA</span>
-        <span class="n">binom_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">subs</span><span class="p">(</span><span class="n">binom_i</span><span class="p">)</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="n">i_</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="k">for</span> <span class="n">i_</span> <span class="ow">in</span> <span class="n">i_vals</span><span class="p">])</span>  <span class="c1"># NOQA</span>
-        <span class="n">poisson_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">subs</span><span class="p">(</span><span class="n">poisson_i</span><span class="p">)</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="n">i_</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="k">for</span> <span class="n">i_</span> <span class="ow">in</span> <span class="n">i_vals</span><span class="p">])</span>  <span class="c1"># NOQA</span>
+        <span class="n">binom_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">subs</span><span class="p">(</span><span class="n">binom_i</span><span class="p">)</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="n">i_</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="k">for</span> <span class="n">i_</span> <span class="ow">in</span> <span class="n">i_vals</span><span class="p">]</span>
+        <span class="p">)</span>  <span class="c1"># NOQA</span>
+        <span class="n">poisson_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">subs</span><span class="p">(</span><span class="n">poisson_i</span><span class="p">)</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="n">i_</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="k">for</span> <span class="n">i_</span> <span class="ow">in</span> <span class="n">i_vals</span><span class="p">]</span>
+        <span class="p">)</span>  <span class="c1"># NOQA</span>
 
         <span class="c1"># Find how many iters it actually takes my expt to terminate</span>
         <span class="n">thesis_draft_thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
@@ -420,38 +554,71 @@
     <span class="n">S</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
     <span class="n">SA_coords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">A</span><span class="o">.</span><span class="n">ravel</span><span class="p">()))</span>
     <span class="k">for</span> <span class="n">sval</span><span class="p">,</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">SA_coords</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">poisson_cache</span><span class="p">:</span>
-            <span class="n">poisson_cache</span><span class="p">[(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">poisson_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span>
+            <span class="n">poisson_cache</span><span class="p">[(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                <span class="n">poisson_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
+            <span class="p">)</span>
     <span class="n">poisson_zdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">poisson_cache</span><span class="p">[(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)]</span> <span class="k">for</span> <span class="n">sval</span><span class="p">,</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">SA_coords</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">poisson_cache</span><span class="p">[(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)]</span> <span class="k">for</span> <span class="n">sval</span><span class="p">,</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">SA_coords</span><span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">plot_surface3d</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">poisson_zdata</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
-                      <span class="n">rstride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">cstride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                      <span class="n">zlabel</span><span class="o">=</span><span class="s1">&#39;poisson&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wire&#39;</span><span class="p">,</span> <span class="n">contour</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">title</span><span class="o">=</span><span class="s1">&#39;poisson3d&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plot_surface3d</span><span class="p">(</span>
+        <span class="n">S</span><span class="p">,</span>
+        <span class="n">A</span><span class="p">,</span>
+        <span class="n">poisson_zdata</span><span class="p">,</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+        <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+        <span class="n">rstride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">cstride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">zlabel</span><span class="o">=</span><span class="s1">&#39;poisson&#39;</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wire&#39;</span><span class="p">,</span>
+        <span class="n">contour</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;poisson3d&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_zlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="n">taud</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">16</span><span class="p">),</span> <span class="n">azim</span><span class="o">=</span><span class="n">taud</span><span class="p">(</span><span class="mi">5</span> <span class="o">/</span> <span class="mi">8</span><span class="p">))</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;a-s-t-poisson3d.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+        <span class="s1">&#39;a-s-t-poisson3d.png&#39;</span><span class="p">,</span>
+        <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">sval</span><span class="p">,</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">SA_coords</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">binom_cache</span><span class="p">:</span>
-            <span class="n">binom_cache</span><span class="p">[(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">binom_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span>
+            <span class="n">binom_cache</span><span class="p">[(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                <span class="n">binom_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
+            <span class="p">)</span>
     <span class="n">binom_zdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">binom_cache</span><span class="p">[(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)]</span> <span class="k">for</span> <span class="n">sval</span><span class="p">,</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">SA_coords</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">binom_cache</span><span class="p">[(</span><span class="n">sval</span><span class="p">,</span> <span class="n">aval</span><span class="p">)]</span> <span class="k">for</span> <span class="n">sval</span><span class="p">,</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">SA_coords</span><span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">plot_surface3d</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">binom_zdata</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
-                      <span class="n">rstride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">cstride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                      <span class="n">zlabel</span><span class="o">=</span><span class="s1">&#39;binom&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wire&#39;</span><span class="p">,</span> <span class="n">contour</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">title</span><span class="o">=</span><span class="s1">&#39;binom3d&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plot_surface3d</span><span class="p">(</span>
+        <span class="n">S</span><span class="p">,</span>
+        <span class="n">A</span><span class="p">,</span>
+        <span class="n">binom_zdata</span><span class="p">,</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+        <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+        <span class="n">rstride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">cstride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">zlabel</span><span class="o">=</span><span class="s1">&#39;binom&#39;</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wire&#39;</span><span class="p">,</span>
+        <span class="n">contour</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;binom3d&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_zlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="n">taud</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">16</span><span class="p">),</span> <span class="n">azim</span><span class="o">=</span><span class="n">taud</span><span class="p">(</span><span class="mi">5</span> <span class="o">/</span> <span class="mi">8</span><span class="p">))</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;a-s-t-binom3d.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+        <span class="s1">&#39;a-s-t-binom3d.png&#39;</span><span class="p">,</span>
+        <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="c1"># Find point on the surface that achieves a reasonable threshold</span>
 
@@ -475,15 +642,18 @@
 <span class="sd">        solve_numeric(poisson_thresh, .05, {s: 30}, method=&#39;BFGS&#39;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">scipy.optimize</span>
+
         <span class="c1"># Find the symbol you want to solve for</span>
         <span class="n">want_symbols</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">free_symbols</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">fixed</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="c1"># TODO: can probably extend this to multiple params</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">want_symbols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;specify all but one var&#39;</span>
         <span class="k">assert</span> <span class="n">want</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="n">want_symbols</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">fixed_expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">a1</span><span class="p">):</span>
             <span class="n">expr_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fixed_expr</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">want</span><span class="p">:</span> <span class="n">a1</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">expr_value</span> <span class="o">-</span> <span class="n">target</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
         <span class="c1"># if method is None:</span>
         <span class="c1">#     method = &#39;Nelder-Mead&#39;</span>
         <span class="c1">#     method = &#39;Newton-CG&#39;</span>
@@ -499,7 +669,7 @@
 
     <span class="c1"># Numeric measurments of thie line</span>
 
-    <span class="n">thresh_vals</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">001</span><span class="p">,</span> <span class="o">.</span><span class="mi">01</span><span class="p">,</span> <span class="o">.</span><span class="mi">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">135</span><span class="p">]</span>
+    <span class="n">thresh_vals</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.135</span><span class="p">]</span>
     <span class="n">svals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 
     <span class="n">target_poisson_plots</span> <span class="o">=</span> <span class="p">{}</span>
@@ -509,8 +679,7 @@
             <span class="n">expr</span> <span class="o">=</span> <span class="n">poisson_thresh</span>
             <span class="n">fixed</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">}</span>
             <span class="n">want</span> <span class="o">=</span> <span class="n">a</span>
-            <span class="n">aval</span> <span class="o">=</span> <span class="n">solve_numeric</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">want</span><span class="p">,</span> <span class="n">fixed</span><span class="p">,</span>
-                                 <span class="n">method</span><span class="o">=</span><span class="s1">&#39;Nelder-Mead&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">aval</span> <span class="o">=</span> <span class="n">solve_numeric</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">want</span><span class="p">,</span> <span class="n">fixed</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;Nelder-Mead&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">poisson_avals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aval</span><span class="p">)</span>
         <span class="n">target_poisson_plots</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">svals</span><span class="p">,</span> <span class="n">poisson_avals</span><span class="p">)</span>
 
@@ -522,13 +691,19 @@
     <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;poisson&#39;</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;a-vs-s-poisson.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+        <span class="s1">&#39;a-vs-s-poisson.png&#39;</span><span class="p">,</span>
+        <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="n">target_binom_plots</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">thresh_vals</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">binom_avals</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">sval</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">svals</span><span class="p">,</span> <span class="s1">&#39;binom&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">aval</span> <span class="o">=</span> <span class="n">solve_numeric</span><span class="p">(</span><span class="n">binom_thresh</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">},</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;Nelder-Mead&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">aval</span> <span class="o">=</span> <span class="n">solve_numeric</span><span class="p">(</span>
+                <span class="n">binom_thresh</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">},</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;Nelder-Mead&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">binom_avals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aval</span><span class="p">)</span>
         <span class="n">target_binom_plots</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">svals</span><span class="p">,</span> <span class="n">binom_avals</span><span class="p">)</span>
 
@@ -540,7 +715,11 @@
     <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;binom&#39;</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;a-vs-s-binom.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+        <span class="s1">&#39;a-vs-s-binom.png&#39;</span><span class="p">,</span>
+        <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="c1"># ----</span>
     <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
@@ -551,27 +730,39 @@
             <span class="n">pp</span> <span class="o">=</span> <span class="n">poisson_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span>
 
             <span class="n">a_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
-            <span class="n">pp_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span> <span class="k">for</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">a_vals</span><span class="p">])</span>  <span class="c1"># NOQA</span>
+            <span class="n">pp_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span> <span class="k">for</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">a_vals</span><span class="p">]</span>
+            <span class="p">)</span>  <span class="c1"># NOQA</span>
 
             <span class="n">pt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">a_vals</span><span class="p">,</span> <span class="n">pp_vals</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;s=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sval</span><span class="p">,))</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;poisson prob after a reviews&#39;</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;a-vs-thresh-poisson.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="s1">&#39;a-vs-thresh-poisson.png&#39;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">)</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">s_vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">sval</span> <span class="ow">in</span> <span class="n">s_vals</span><span class="p">:</span>
             <span class="n">pp</span> <span class="o">=</span> <span class="n">binom_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span>
             <span class="n">a_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
-            <span class="n">pp_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span> <span class="k">for</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">a_vals</span><span class="p">])</span>  <span class="c1"># NOQA</span>
+            <span class="n">pp_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span> <span class="k">for</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">a_vals</span><span class="p">]</span>
+            <span class="p">)</span>  <span class="c1"># NOQA</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">a_vals</span><span class="p">,</span> <span class="n">pp_vals</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;s=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sval</span><span class="p">,))</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;binom prob after a reviews&#39;</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;a-vs-thresh-binom.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="s1">&#39;a-vs-thresh-binom.png&#39;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">)</span>
 
         <span class="c1"># -------</span>
 
@@ -580,28 +771,40 @@
         <span class="k">for</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">a_vals</span><span class="p">:</span>
             <span class="n">pp</span> <span class="o">=</span> <span class="n">poisson_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">})</span>
             <span class="n">s_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
-            <span class="n">pp_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span> <span class="k">for</span> <span class="n">sval</span> <span class="ow">in</span> <span class="n">s_vals</span><span class="p">])</span>  <span class="c1"># NOQA</span>
+            <span class="n">pp_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span> <span class="k">for</span> <span class="n">sval</span> <span class="ow">in</span> <span class="n">s_vals</span><span class="p">]</span>
+            <span class="p">)</span>  <span class="c1"># NOQA</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s_vals</span><span class="p">,</span> <span class="n">pp_vals</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;a=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aval</span><span class="p">,))</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;poisson prob&#39;</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;s-vs-thresh-poisson.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="s1">&#39;s-vs-thresh-poisson.png&#39;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">)</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">a_vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">aval</span> <span class="ow">in</span> <span class="n">a_vals</span><span class="p">:</span>
             <span class="n">pp</span> <span class="o">=</span> <span class="n">binom_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">})</span>
             <span class="n">s_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
-            <span class="n">pp_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span> <span class="k">for</span> <span class="n">sval</span> <span class="ow">in</span> <span class="n">s_vals</span><span class="p">])</span>  <span class="c1"># NOQA</span>
+            <span class="n">pp_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span> <span class="k">for</span> <span class="n">sval</span> <span class="ow">in</span> <span class="n">s_vals</span><span class="p">]</span>
+            <span class="p">)</span>  <span class="c1"># NOQA</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s_vals</span><span class="p">,</span> <span class="n">pp_vals</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;a=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aval</span><span class="p">,))</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;binom prob&#39;</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;s-vs-thresh-binom.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="s1">&#39;s-vs-thresh-binom.png&#39;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">bbox_inches</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">)</span>
 
-    <span class="c1">#---------------------</span>
+    <span class="c1"># ---------------------</span>
     <span class="c1"># Plot out a table</span>
 
     <span class="n">mu_i</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="mi">75</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="mi">75</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
@@ -626,18 +829,37 @@
 <span class="sd">        python -m wbia.algo.graph.refresh --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -645,59 +867,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../graph.html">wbia.algo.graph</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

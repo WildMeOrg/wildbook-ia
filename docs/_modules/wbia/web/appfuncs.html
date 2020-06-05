@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.appfuncs &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.web.appfuncs &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.web.appfuncs</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.web.appfuncs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -82,8 +197,7 @@
     <span class="mi">7</span><span class="p">:</span> <span class="s1">&#39;backleft&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="n">VIEWPOINT_MAPPING_INVERT</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">value</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">VIEWPOINT_MAPPING</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">VIEWPOINT_MAPPING</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="p">}</span>
 
 
@@ -115,13 +229,24 @@
 
 
 <div class="viewcode-block" id="resize_via_web_parameters"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.resize_via_web_parameters">[docs]</a><span class="k">def</span> <span class="nf">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
-    <span class="n">w_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_w&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_w&#39;</span><span class="p">,</span>      <span class="kc">None</span> <span class="p">))</span>
-    <span class="n">h_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_h&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_h&#39;</span><span class="p">,</span>      <span class="kc">None</span> <span class="p">))</span>
-    <span class="n">w_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_w&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_w&#39;</span><span class="p">,</span>      <span class="kc">None</span> <span class="p">))</span>
-    <span class="n">h_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_h&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_h&#39;</span><span class="p">,</span>      <span class="kc">None</span> <span class="p">))</span>
-    <span class="n">_pix</span>  <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-    <span class="n">_per</span>  <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">w_pix</span><span class="p">,</span> <span class="n">h_pix</span><span class="p">,</span> <span class="n">w_per</span><span class="p">,</span> <span class="n">h_per</span><span class="p">,</span> <span class="n">_pix</span><span class="p">,</span> <span class="n">_per</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">w_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_w&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_w&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">h_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_h&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_h&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">w_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_w&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_w&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">h_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_h&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_h&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">w_pix</span><span class="p">,</span>
+        <span class="n">h_pix</span><span class="p">,</span>
+        <span class="n">w_per</span><span class="p">,</span>
+        <span class="n">h_per</span><span class="p">,</span>
+        <span class="n">_pix</span><span class="p">,</span>
+        <span class="n">_per</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CHECKING RESIZING WITH </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1">, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1"> [</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
     <span class="c1"># Check for nothing</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">w_pix</span> <span class="ow">or</span> <span class="n">h_pix</span> <span class="ow">or</span> <span class="n">w_per</span> <span class="ow">or</span> <span class="n">h_per</span><span class="p">):</span>
@@ -147,6 +272,7 @@
     <span class="sd">&quot;&quot;&quot; Creates an image embedded in HTML base64 format. &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">cv2</span>
     <span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+
     <span class="k">if</span> <span class="n">target_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">_resize</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="n">target_width</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">target_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -155,11 +281,13 @@
     <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">imgRGB</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">cStringIO</span> <span class="k">as</span> <span class="n">StringIO</span>
+
         <span class="n">string_buf</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
         <span class="n">pil_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">string_buf</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;jpeg&#39;</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">string_buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;base64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">io</span>
+
         <span class="n">byte_buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
         <span class="n">pil_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">byte_buf</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;jpeg&#39;</span><span class="p">)</span>
         <span class="n">byte_buf</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -169,7 +297,7 @@
 
 
 <div class="viewcode-block" id="check_valid_function_name"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.check_valid_function_name">[docs]</a><span class="k">def</span> <span class="nf">check_valid_function_name</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span> <span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="ow">or</span> <span class="n">char</span> <span class="o">==</span> <span class="s1">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">char</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">string</span><span class="p">])</span></div>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="ow">or</span> <span class="n">char</span> <span class="o">==</span> <span class="s1">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">char</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">string</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="encode_refer_url"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.encode_refer_url">[docs]</a><span class="k">def</span> <span class="nf">encode_refer_url</span><span class="p">(</span><span class="n">decoded</span><span class="p">):</span>
@@ -198,29 +326,29 @@
 <div class="viewcode-block" id="template"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.template">[docs]</a><span class="k">def</span> <span class="nf">template</span><span class="p">(</span><span class="n">template_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">template_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">global_args</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;NAVBAR&#39;</span>             <span class="p">:</span> <span class="n">NavbarClass</span><span class="p">(),</span>
-        <span class="s1">&#39;YEAR&#39;</span>               <span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
-        <span class="s1">&#39;URL&#39;</span>                <span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
-        <span class="s1">&#39;REFER_SRC_STR&#39;</span>      <span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
-        <span class="s1">&#39;__login__&#39;</span>          <span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_rule</span><span class="o">.</span><span class="n">rule</span> <span class="o">==</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">),</span>
-        <span class="s1">&#39;__wrapper__&#39;</span>        <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;__wrapper_header__&#39;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;__wrapper_footer__&#39;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s1">&#39;__containerized__&#39;</span>  <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,</span>
-        <span class="s1">&#39;__https__&#39;</span>          <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">https</span><span class="p">,</span>
-        <span class="s1">&#39;user&#39;</span>               <span class="p">:</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_user</span><span class="p">(),</span>
+        <span class="s1">&#39;NAVBAR&#39;</span><span class="p">:</span> <span class="n">NavbarClass</span><span class="p">(),</span>
+        <span class="s1">&#39;YEAR&#39;</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+        <span class="s1">&#39;URL&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+        <span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;__login__&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_rule</span><span class="o">.</span><span class="n">rule</span> <span class="o">==</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;__wrapper__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;__wrapper_header__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;__wrapper_footer__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;__containerized__&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,</span>
+        <span class="s1">&#39;__https__&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">https</span><span class="p">,</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_user</span><span class="p">(),</span>
         <span class="s1">&#39;GOOGLE_MAPS_API_KEY&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;&lt;INSERT GOOGLE API KEY&gt;&gt;&#39;</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_SRC_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encode_refer_url</span><span class="p">(</span><span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">])</span>
     <span class="k">if</span> <span class="s1">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">refer</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;refer&#39;</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] REFER: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refer</span><span class="p">,</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] REFER: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refer</span><span class="p">,))</span>
         <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_DST_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refer</span>
         <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_DST_STR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">template_directory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">template_directory</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="c1">#template_directory = abspath(join(dirname(__file__), &#39;templates&#39;))</span>
-        <span class="c1">#template_directory = join(dirname(dirname(__file__)))</span>
+        <span class="c1"># template_directory = abspath(join(dirname(__file__), &#39;templates&#39;))</span>
+        <span class="c1"># template_directory = join(dirname(dirname(__file__)))</span>
     <span class="k">if</span> <span class="n">template_filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">template_filename</span> <span class="o">=</span> <span class="s1">&#39;index&#39;</span>
     <span class="n">template_</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">template_directory</span><span class="p">,</span> <span class="n">template_filename</span> <span class="o">+</span> <span class="s1">&#39;.html&#39;</span><span class="p">)</span>
@@ -237,7 +365,7 @@
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_</span><span class="p">,))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="n">template_</span><span class="p">,</span> <span class="o">**</span><span class="n">_global_args</span><span class="p">)</span>
-        <span class="c1">#ret = flask.render_template(full_template_fpath, **_global_args)</span>
+        <span class="c1"># ret = flask.render_template(full_template_fpath, **_global_args)</span>
     <span class="k">except</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">TemplateNotFound</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error template not found&#39;</span><span class="p">)</span>
         <span class="n">full_template_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,</span> <span class="n">template_</span><span class="p">)</span>
@@ -266,6 +394,7 @@
 <span class="sd">    Helper to return gids in an imageset or a group review</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
     <span class="k">def</span> <span class="nf">_ensureid</span><span class="p">(</span><span class="n">_id</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
 
@@ -278,7 +407,7 @@
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">num_reviewed</span> <span class="o">=</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">num_reviewed</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="p">)</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">num_reviewed</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),)</span>
     <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
         <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;0.00&#39;</span>
     <span class="n">gid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;gid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -302,6 +431,7 @@
 <span class="sd">    Helper to return aids in an imageset or a group review</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
     <span class="k">def</span> <span class="nf">_ensureid</span><span class="p">(</span><span class="n">_id</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
 
@@ -329,10 +459,10 @@
         <span class="n">src_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_aid</span><span class="p">(</span><span class="n">src_gar_rowid_list</span><span class="p">)</span>
         <span class="n">dst_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_aid</span><span class="p">(</span><span class="n">dst_gar_rowid_list</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">src_aid_list</span>
-        <span class="n">reviewed_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">dst_aid_list</span> <span class="k">for</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">src_aid_list</span> <span class="p">]</span>
+        <span class="n">reviewed_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">src_aid</span> <span class="ow">in</span> <span class="n">dst_aid_list</span> <span class="k">for</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">src_aid_list</span><span class="p">]</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),)</span>
     <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
         <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;0.00&#39;</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -351,7 +481,7 @@
     <span class="n">previous</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;previous&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
-    <span class="c1">#print(ut.repr2(ibs.get_annot_info(aid)))</span>
+    <span class="c1"># print(ut.repr2(ibs.get_annot_info(aid)))</span>
     <span class="c1"># if aid is not None:</span>
     <span class="c1">#     print(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))</span>
     <span class="k">return</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">,</span> <span class="n">progress</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">previous</span></div>
@@ -425,7 +555,7 @@
 
         <span class="c1"># ibs.set_image_reviewed(gid_list, update_reviewed_list)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">images_reviewed</span> <span class="o">=</span> <span class="p">[</span> <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="p">]</span>
+        <span class="n">images_reviewed</span> <span class="o">=</span> <span class="p">[</span><span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">images_reviewed</span></div>
 
 
@@ -449,7 +579,9 @@
     <span class="n">part_types_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">,</span> <span class="n">part_rowids_list</span><span class="p">))</span>
 
     <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_type_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">part_rowids_list</span><span class="p">,</span> <span class="n">part_types_list</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_type_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">aid_list</span><span class="p">,</span> <span class="n">part_rowids_list</span><span class="p">,</span> <span class="n">part_types_list</span>
+    <span class="p">):</span>
         <span class="n">reviewed</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">part_rowid</span><span class="p">,</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_type_list</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">part_type</span> <span class="o">==</span> <span class="n">canonical_part_type</span><span class="p">:</span>
@@ -460,36 +592,47 @@
 
 
 <div class="viewcode-block" id="imageset_image_cameratrap_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_image_cameratrap_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_image_cameratrap_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
-    <span class="n">images_reviewed</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_cameratrap</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="p">]</span>
+    <span class="n">images_reviewed</span> <span class="o">=</span> <span class="p">[</span><span class="n">flag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_cameratrap</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">images_reviewed</span></div>
 
 
 <div class="viewcode-block" id="imageset_annot_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span> <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_reviewed</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="p">]</span>
+    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span><span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_reviewed</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">annots_reviewed</span></div>
 
 
 <div class="viewcode-block" id="imageset_annot_viewpoint_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_viewpoint_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_viewpoint_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span> <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="p">]</span>
+    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">annots_reviewed</span></div>
 
 
 <div class="viewcode-block" id="imageset_annot_quality_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_quality_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_quality_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span> <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="p">]</span>
+    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">annots_reviewed</span></div>
 
 
 <div class="viewcode-block" id="imageset_part_type_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_part_type_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_part_type_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">reviewed_flag_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">reviewed_flag_progress</span><span class="p">:</span>
-        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span> <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_reviewed</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span> <span class="p">]</span>
+        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_reviewed</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span> <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span> <span class="p">]</span>
+        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="p">]</span>
     <span class="k">return</span> <span class="n">parts_reviewed</span></div>
 
 
 <div class="viewcode-block" id="imageset_part_contour_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_part_contour_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_part_contour_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">reviewed_flag_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">reviewed_flag_progress</span><span class="p">:</span>
-        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span> <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_reviewed</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span> <span class="p">]</span>
+        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_reviewed</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">contour_dict_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_contour</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
@@ -502,20 +645,17 @@
 
 
 <div class="viewcode-block" id="imageset_annot_demographics_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_demographics_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_demographics_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Check </span><span class="si">%d</span><span class="s1"> total annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Check </span><span class="si">%d</span><span class="s1"> total annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
 
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span> <span class="p">]</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
     <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> named annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> named annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),))</span>
 
     <span class="n">sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_sex</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
-    <span class="n">sex_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">aid</span><span class="p">:</span> <span class="n">sex</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">sex</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">sex_list</span><span class="p">)</span>
-    <span class="p">}</span>
+    <span class="n">sex_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">sex</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">sex</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">sex_list</span><span class="p">)}</span>
     <span class="n">value_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sex_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set sex annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set sex annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
 
     <span class="n">age_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">age_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -523,14 +663,13 @@
         <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">age</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">age_list</span><span class="p">)</span>
     <span class="p">}</span>
     <span class="n">value_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">age_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set age annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set age annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
 
     <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">sex_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">age_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span>
+        <span class="n">sex_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">age_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span>
     <span class="p">]</span>
     <span class="n">value_list</span> <span class="o">=</span> <span class="n">annots_reviewed</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> reviewed annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> reviewed annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
     <span class="k">return</span> <span class="n">annots_reviewed</span></div>
 
 
@@ -549,16 +688,14 @@
         <span class="n">dt</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">timestamp</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">second</span><span class="p">)</span>
         <span class="c1"># Gather values</span>
-        <span class="n">posix</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">))</span>
-        <span class="n">posix</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="n">GMT_OFFSET</span><span class="p">)</span>
-        <span class="n">lat</span>   <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">latitude</span><span class="p">)</span>
-        <span class="n">lon</span>   <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">longitude</span><span class="p">)</span>
-        <span class="n">json_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-            <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">posix</span><span class="p">,</span>
-            <span class="s1">&#39;lat&#39;</span><span class="p">:</span>  <span class="n">lat</span><span class="p">,</span>
-            <span class="s1">&#39;lon&#39;</span><span class="p">:</span>  <span class="n">lon</span><span class="p">,</span>
-        <span class="p">})</span>
-    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span> <span class="s2">&quot;track&quot;</span><span class="p">:</span> <span class="n">json_list</span> <span class="p">})</span></div>
+        <span class="n">posix</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">))</span>
+        <span class="n">posix</span> <span class="o">+=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="n">GMT_OFFSET</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">latitude</span><span class="p">)</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">longitude</span><span class="p">)</span>
+        <span class="n">json_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">posix</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">,}</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s1">&#39;track&#39;</span><span class="p">:</span> <span class="n">json_list</span><span class="p">})</span></div>
 
 
 <div class="viewcode-block" id="convert_tuple_to_viewpoint"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.convert_tuple_to_viewpoint">[docs]</a><span class="k">def</span> <span class="nf">convert_tuple_to_viewpoint</span><span class="p">(</span><span class="n">viewpoint_tuple</span><span class="p">):</span>
@@ -568,7 +705,7 @@
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="s1">&#39;__&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">))</span>
-        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">_&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">viewpoint_text</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">_&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">viewpoint_text</span><span class="p">,)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_-1_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_0_&#39;</span><span class="p">,</span> <span class="s1">&#39;up&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_1_&#39;</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">)</span>
@@ -576,7 +713,10 @@
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_3_&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_4_&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_5_&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">viewpoint_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">,</span> <span class="s1">&#39;Value </span><span class="si">%r</span><span class="s1"> not in acceptable </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">viewpoint_text</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">viewpoint_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s1">&#39;Value </span><span class="si">%r</span><span class="s1"> not in acceptable </span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">viewpoint_text</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">))</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">viewpoint_text</span></div>
 
 
@@ -586,14 +726,14 @@
     <span class="k">elif</span> <span class="n">viewpoint_text</span> <span class="o">==</span> <span class="s1">&#39;unknown&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;up&#39;</span><span class="p">,</span>    <span class="s1">&#39;_0_&#39;</span><span class="p">)</span>
-        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;down&#39;</span><span class="p">,</span>  <span class="s1">&#39;_1_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;_0_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;down&#39;</span><span class="p">,</span> <span class="s1">&#39;_1_&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="s1">&#39;_2_&#39;</span><span class="p">)</span>
-        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span>  <span class="s1">&#39;_3_&#39;</span><span class="p">)</span>
-        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>  <span class="s1">&#39;_4_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span> <span class="s1">&#39;_3_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;_4_&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;_5_&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">viewpoint_list</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">]</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">viewpoint_list</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
         <span class="k">assert</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint_list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint_list</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">3</span>
         <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
         <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">viewpoint_list</span><span class="p">))</span>
@@ -609,12 +749,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
         <span class="n">maxdims</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">t_width</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">t_height</span><span class="p">)))</span>
         <span class="n">interpolation</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span>
         <span class="k">return</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize_to_maxdims</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">maxdims</span><span class="p">,</span> <span class="n">interpolation</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">cv2</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">,</span> <span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">,))</span>
         <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">image</span>
@@ -627,20 +769,38 @@
         <span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_width</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_height</span><span class="p">)</span>
         <span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">t_width</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">t_height</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">t_width</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;target size too small&#39;</span>
-        <span class="k">assert</span> <span class="n">t_width</span> <span class="o">&lt;=</span> <span class="n">width</span> <span class="o">*</span> <span class="mi">100</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&lt;=</span> <span class="n">height</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s1">&#39;target size too large (capped at 10,000%)&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">t_width</span> <span class="o">&lt;=</span> <span class="n">width</span> <span class="o">*</span> <span class="mi">100</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&lt;=</span> <span class="n">height</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="p">),</span> <span class="s1">&#39;target size too large (capped at 10,000%)&#39;</span>
         <span class="c1"># interpolation = cv2.INTER_LANCZOS4</span>
         <span class="n">interpolation</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LINEAR</span>
         <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span><span class="p">)</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -648,55 +808,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

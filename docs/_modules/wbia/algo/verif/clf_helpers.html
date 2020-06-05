@@ -1,36 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.verif.clf_helpers &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.verif.clf_helpers &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../verif.html">wbia.algo.verif</a> &raquo;</li>
+
+      <li>wbia.algo.verif.clf_helpers</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.verif.clf_helpers</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -54,6 +173,7 @@
 <span class="kn">import</span> <span class="nn">sklearn.neural_network</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">sklearn_utils</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -62,10 +182,14 @@
         <span class="c1"># ut.ParamInfo(&#39;type&#39;, &#39;StratifiedKFold&#39;),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;StratifiedGroupKFold&#39;</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;n_splits&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;shuffle&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span>
-                     <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;StratifiedGroupKFold&#39;</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;random_state&#39;</span><span class="p">,</span> <span class="mi">3953056901</span><span class="p">,</span>
-                     <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;StratifiedGroupKFold&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+            <span class="s1">&#39;shuffle&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;StratifiedGroupKFold&#39;</span>
+        <span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+            <span class="s1">&#39;random_state&#39;</span><span class="p">,</span>
+            <span class="mi">3953056901</span><span class="p">,</span>
+            <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;StratifiedGroupKFold&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">]</span></div>
 
 
@@ -100,8 +224,7 @@
         <span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">160</span>
         <span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">float_format</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,)</span></div>
 
-<div class="viewcode-block" id="ClfProblem.learn_evaluation_classifiers"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfProblem.learn_evaluation_classifiers">[docs]</a>    <span class="k">def</span> <span class="nf">learn_evaluation_classifiers</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clf_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                     <span class="n">data_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="ClfProblem.learn_evaluation_classifiers"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfProblem.learn_evaluation_classifiers">[docs]</a>    <span class="k">def</span> <span class="nf">learn_evaluation_classifiers</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clf_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluates by learning classifiers using cross validation.</span>
 <span class="sd">        Do not use this to learn production classifiers.</span>
@@ -161,8 +284,7 @@
                 <span class="k">for</span> <span class="n">clf_key</span> <span class="ow">in</span> <span class="n">clf_prog</span><span class="p">:</span>
                     <span class="n">pblm</span><span class="o">.</span><span class="n">_ensure_evaluation_clf</span><span class="p">(</span><span class="n">task_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">clf_key</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_ensure_evaluation_clf</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">clf_key</span><span class="p">,</span>
-                               <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_ensure_evaluation_clf</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">clf_key</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Learns and caches an evaluation (cross-validated) classifier and tests</span>
 <span class="sd">        and caches the results.</span>
@@ -181,10 +303,17 @@
             <span class="n">est_kw1</span><span class="p">,</span> <span class="n">est_kw2</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">_estimator_params</span><span class="p">(</span><span class="n">clf_key</span><span class="p">)</span>
             <span class="n">param_id</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">(</span><span class="n">est_kw1</span><span class="p">)</span>
             <span class="n">xval_id</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">xval_kw</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
-            <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-                <span class="n">sample_hashid</span><span class="p">,</span> <span class="n">param_id</span><span class="p">,</span> <span class="n">xval_id</span><span class="p">,</span> <span class="n">task_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">clf_key</span><span class="p">,</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">hashid_arr</span><span class="p">(</span><span class="n">feat_dims</span><span class="p">,</span> <span class="s1">&#39;feats&#39;</span><span class="p">)</span>
-            <span class="p">])</span>
+            <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">sample_hashid</span><span class="p">,</span>
+                    <span class="n">param_id</span><span class="p">,</span>
+                    <span class="n">xval_id</span><span class="p">,</span>
+                    <span class="n">task_key</span><span class="p">,</span>
+                    <span class="n">data_key</span><span class="p">,</span>
+                    <span class="n">clf_key</span><span class="p">,</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">hashid_arr</span><span class="p">(</span><span class="n">feat_dims</span><span class="p">,</span> <span class="s1">&#39;feats&#39;</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
             <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;eval_clfres_&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;foo&#39;</span>
@@ -193,10 +322,8 @@
             <span class="n">use_cache</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># TODO: ABI class should not be caching</span>
-        <span class="n">cacher_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s1">&#39;vsone_rf_train&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
-                         <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">cacher_clf</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">Cacher</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">,</span>
-                               <span class="n">meta</span><span class="o">=</span><span class="p">[</span><span class="n">feat_dims</span><span class="p">],</span> <span class="o">**</span><span class="n">cacher_kw</span><span class="p">)</span>
+        <span class="n">cacher_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s1">&#39;vsone_rf_train&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">cacher_clf</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">Cacher</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="p">[</span><span class="n">feat_dims</span><span class="p">],</span> <span class="o">**</span><span class="n">cacher_kw</span><span class="p">)</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">cacher_clf</span><span class="o">.</span><span class="n">tryload</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
@@ -209,8 +336,7 @@
         <span class="n">pblm</span><span class="o">.</span><span class="n">eval_task_clfs</span><span class="p">[</span><span class="n">task_key</span><span class="p">][</span><span class="n">clf_key</span><span class="p">][</span><span class="n">data_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">clf_list</span>
         <span class="n">pblm</span><span class="o">.</span><span class="n">task_combo_res</span><span class="p">[</span><span class="n">task_key</span><span class="p">][</span><span class="n">clf_key</span><span class="p">][</span><span class="n">data_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">combo_res</span>
 
-    <span class="k">def</span> <span class="nf">_train_evaluation_clf</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">clf_key</span><span class="p">,</span>
-                              <span class="n">feat_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_train_evaluation_clf</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">clf_key</span><span class="p">,</span> <span class="n">feat_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Learns a cross-validated classifier on the dataset</span>
 
@@ -239,8 +365,7 @@
         <span class="n">skf_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">skf_list</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;skf-train-eval&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">train_idx</span><span class="p">,</span> <span class="n">test_idx</span> <span class="ow">in</span> <span class="n">skf_prog</span><span class="p">:</span>
             <span class="n">X_df_train</span> <span class="o">=</span> <span class="n">X_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train_idx</span><span class="p">]</span>
-            <span class="k">assert</span> <span class="p">(</span><span class="n">X_df_train</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">==</span>
-                    <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">train_idx</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">X_df_train</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">train_idx</span><span class="p">)</span>
             <span class="c1"># train_uv = X_df.iloc[train_idx].index</span>
             <span class="c1"># X_train = X_df.loc[train_uv]</span>
             <span class="c1"># y_train = labels.encoded_df.loc[train_uv]</span>
@@ -260,14 +385,16 @@
             <span class="c1"># other classifiers trained on the same labels.</span>
 
             <span class="c1"># Evaluate results</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">ClfResult</span><span class="o">.</span><span class="n">make_single</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">X_df</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span>
-                                        <span class="n">feat_dims</span><span class="o">=</span><span class="n">feat_dims</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">ClfResult</span><span class="o">.</span><span class="n">make_single</span><span class="p">(</span>
+                <span class="n">clf</span><span class="p">,</span> <span class="n">X_df</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">feat_dims</span><span class="o">=</span><span class="n">feat_dims</span>
+            <span class="p">)</span>
             <span class="n">clf_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clf</span><span class="p">)</span>
             <span class="n">res_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">clf_list</span><span class="p">,</span> <span class="n">res_list</span>
 
-    <span class="k">def</span> <span class="nf">_external_classifier_result</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">task_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span>
-                                    <span class="n">feat_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_external_classifier_result</span><span class="p">(</span>
+        <span class="n">pblm</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">task_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">feat_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_idx</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given an external classifier (ensure its trained on disjoint data)</span>
 <span class="sd">        evaluate all data on it.</span>
@@ -281,13 +408,13 @@
             <span class="n">test_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_df</span><span class="p">))</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">subtasks</span><span class="p">[</span><span class="n">task_key</span><span class="p">]</span>
 
-        <span class="n">res</span> <span class="o">=</span> <span class="n">ClfResult</span><span class="o">.</span><span class="n">make_single</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">X_df</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span>
-                                    <span class="n">feat_dims</span><span class="o">=</span><span class="n">feat_dims</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">ClfResult</span><span class="o">.</span><span class="n">make_single</span><span class="p">(</span>
+            <span class="n">clf</span><span class="p">,</span> <span class="n">X_df</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">feat_dims</span><span class="o">=</span><span class="n">feat_dims</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">res</span>
 
-<div class="viewcode-block" id="ClfProblem.learn_deploy_classifiers"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfProblem.learn_deploy_classifiers">[docs]</a>    <span class="k">def</span> <span class="nf">learn_deploy_classifiers</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clf_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                 <span class="n">data_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="ClfProblem.learn_deploy_classifiers"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfProblem.learn_deploy_classifiers">[docs]</a>    <span class="k">def</span> <span class="nf">learn_deploy_classifiers</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clf_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Learns on data without any train/validation split</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -329,7 +456,9 @@
                 <span class="s1">&#39;n_estimators&#39;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
             <span class="p">}</span>
             <span class="c1"># Hack to only use missing values if we have the right sklearn</span>
-            <span class="k">if</span> <span class="s1">&#39;missing_values&#39;</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_kwargs</span><span class="p">(</span><span class="n">sklearn</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">RandomForestClassifier</span><span class="o">.</span><span class="fm">__init__</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;missing_values&#39;</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_kwargs</span><span class="p">(</span>
+                <span class="n">sklearn</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">RandomForestClassifier</span><span class="o">.</span><span class="fm">__init__</span>
+            <span class="p">):</span>
                 <span class="n">est_kw1</span><span class="p">[</span><span class="s1">&#39;missing_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
             <span class="n">est_kw2</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="mi">3915904814</span><span class="p">,</span>
@@ -344,14 +473,26 @@
             <span class="n">est_kw2</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">elif</span> <span class="n">est_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;MLP&#39;</span><span class="p">}:</span>
             <span class="n">est_kw1</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-                <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
-                <span class="n">beta_1</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">beta_2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span> <span class="n">early_stopping</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">hidden_layer_sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
-                <span class="n">learning_rate</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">learning_rate_init</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-                <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">nesterovs_momentum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">power_t</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">3915904814</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">solver</span><span class="o">=</span><span class="s1">&#39;lbfgs&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">validation_fraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-                <span class="n">warm_start</span><span class="o">=</span><span class="kc">False</span>
+                <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+                <span class="n">beta_1</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                <span class="n">beta_2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
+                <span class="n">early_stopping</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span>
+                <span class="n">hidden_layer_sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                <span class="n">learning_rate</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+                <span class="n">learning_rate_init</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                <span class="n">nesterovs_momentum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">power_t</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">random_state</span><span class="o">=</span><span class="mi">3915904814</span><span class="p">,</span>
+                <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">solver</span><span class="o">=</span><span class="s1">&#39;lbfgs&#39;</span><span class="p">,</span>
+                <span class="n">tol</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+                <span class="n">validation_fraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">warm_start</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">est_kw2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -385,23 +526,40 @@
         <span class="c1"># if wrap_type is not None:</span>
         <span class="c1">#     steps.append((wrap_type, multiclass_wrapper))</span>
         <span class="k">if</span> <span class="n">est_type</span> <span class="o">==</span> <span class="s1">&#39;MLP&#39;</span><span class="p">:</span>
+
             <span class="k">def</span> <span class="nf">clf_partial</span><span class="p">():</span>
-                <span class="n">pipe</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">([</span>
-                    <span class="p">(</span><span class="s1">&#39;inputer&#39;</span><span class="p">,</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">Imputer</span><span class="p">(</span>
-                        <span class="n">missing_values</span><span class="o">=</span><span class="s1">&#39;NaN&#39;</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
-                    <span class="c1"># (&#39;scale&#39;, sklearn.preprocessing.StandardScaler),</span>
-                    <span class="p">(</span><span class="s1">&#39;est&#39;</span><span class="p">,</span> <span class="n">est_class</span><span class="p">(</span><span class="o">**</span><span class="n">est_params</span><span class="p">)),</span>
-                <span class="p">])</span>
+                <span class="n">pipe</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="p">(</span>
+                            <span class="s1">&#39;inputer&#39;</span><span class="p">,</span>
+                            <span class="n">sklearn</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">Imputer</span><span class="p">(</span>
+                                <span class="n">missing_values</span><span class="o">=</span><span class="s1">&#39;NaN&#39;</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+                            <span class="p">),</span>
+                        <span class="p">),</span>
+                        <span class="c1"># (&#39;scale&#39;, sklearn.preprocessing.StandardScaler),</span>
+                        <span class="p">(</span><span class="s1">&#39;est&#39;</span><span class="p">,</span> <span class="n">est_class</span><span class="p">(</span><span class="o">**</span><span class="n">est_params</span><span class="p">)),</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
                 <span class="k">return</span> <span class="n">multiclass_wrapper</span><span class="p">(</span><span class="n">pipe</span><span class="p">)</span>
+
         <span class="k">elif</span> <span class="n">est_type</span> <span class="o">==</span> <span class="s1">&#39;Logit&#39;</span><span class="p">:</span>
+
             <span class="k">def</span> <span class="nf">clf_partial</span><span class="p">():</span>
-                <span class="n">pipe</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">([</span>
-                    <span class="p">(</span><span class="s1">&#39;inputer&#39;</span><span class="p">,</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">Imputer</span><span class="p">(</span>
-                        <span class="n">missing_values</span><span class="o">=</span><span class="s1">&#39;NaN&#39;</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s1">&#39;est&#39;</span><span class="p">,</span> <span class="n">est_class</span><span class="p">(</span><span class="o">**</span><span class="n">est_params</span><span class="p">)),</span>
-                <span class="p">])</span>
+                <span class="n">pipe</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="p">(</span>
+                            <span class="s1">&#39;inputer&#39;</span><span class="p">,</span>
+                            <span class="n">sklearn</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">Imputer</span><span class="p">(</span>
+                                <span class="n">missing_values</span><span class="o">=</span><span class="s1">&#39;NaN&#39;</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+                            <span class="p">),</span>
+                        <span class="p">),</span>
+                        <span class="p">(</span><span class="s1">&#39;est&#39;</span><span class="p">,</span> <span class="n">est_class</span><span class="p">(</span><span class="o">**</span><span class="n">est_params</span><span class="p">)),</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
                 <span class="k">return</span> <span class="n">multiclass_wrapper</span><span class="p">(</span><span class="n">pipe</span><span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
+
             <span class="k">def</span> <span class="nf">clf_partial</span><span class="p">():</span>
                 <span class="k">return</span> <span class="n">multiclass_wrapper</span><span class="p">(</span><span class="n">est_class</span><span class="p">(</span><span class="o">**</span><span class="n">est_params</span><span class="p">))</span>
 
@@ -412,8 +570,11 @@
         <span class="n">labels</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">subtasks</span><span class="p">[</span><span class="n">task_key</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">encoded_df</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="n">X_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
         <span class="n">clf_partial</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">_get_estimator</span><span class="p">(</span><span class="n">clf_key</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Training deployment </span><span class="si">{}</span><span class="s1"> classifier on </span><span class="si">{}</span><span class="s1"> for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">clf_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">task_key</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;Training deployment </span><span class="si">{}</span><span class="s1"> classifier on </span><span class="si">{}</span><span class="s1"> for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">clf_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">task_key</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">clf</span> <span class="o">=</span> <span class="n">clf_partial</span><span class="p">()</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">X_df</span><span class="o">.</span><span class="n">index</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">X_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
@@ -492,15 +653,17 @@
         <span class="n">search</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">groups</span><span class="p">)</span>
 
         <span class="n">res</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">cv_results_</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">alias</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-            <span class="p">(</span><span class="s1">&#39;rank_test_score&#39;</span><span class="p">,</span>  <span class="s1">&#39;rank&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;mean_test_score&#39;</span><span class="p">,</span>  <span class="s1">&#39;μ-test&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;std_test_score&#39;</span><span class="p">,</span>   <span class="s1">&#39;σ-test&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;mean_train_score&#39;</span><span class="p">,</span> <span class="s1">&#39;μ-train&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;std_train_score&#39;</span><span class="p">,</span>  <span class="s1">&#39;σ-train&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;mean_fit_time&#39;</span><span class="p">,</span> <span class="s1">&#39;fit_time&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;params&#39;</span><span class="p">,</span>  <span class="s1">&#39;params&#39;</span><span class="p">)</span>
-        <span class="p">])</span>
+        <span class="n">alias</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="s1">&#39;rank_test_score&#39;</span><span class="p">,</span> <span class="s1">&#39;rank&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;mean_test_score&#39;</span><span class="p">,</span> <span class="s1">&#39;μ-test&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;std_test_score&#39;</span><span class="p">,</span> <span class="s1">&#39;σ-test&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;mean_train_score&#39;</span><span class="p">,</span> <span class="s1">&#39;μ-train&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;std_train_score&#39;</span><span class="p">,</span> <span class="s1">&#39;σ-train&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;mean_fit_time&#39;</span><span class="p">,</span> <span class="s1">&#39;fit_time&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">alias</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">cvresult_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">res</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">alias</span><span class="p">)</span>
         <span class="n">cvresult_df</span> <span class="o">=</span> <span class="n">cvresult_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;rank&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -509,9 +672,9 @@
         <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">map_vals</span><span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="s1">&#39;list&#39;</span><span class="p">))))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Ranked Params&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ranked scores on development set:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Ranked scores on development set:&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">cvresult_df</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Best parameters set found on hyperparam set:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best parameters set found on hyperparam set:&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;best_params_ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">search</span><span class="o">.</span><span class="n">best_params_</span><span class="p">),))</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fastest params&#39;</span><span class="p">)</span>
@@ -565,23 +728,34 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cal_score = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cal_score</span><span class="p">,))</span>
 
         <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
         <span class="n">y_test</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">test_idx</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
-        <span class="n">fraction_of_positives</span><span class="p">,</span> <span class="n">mean_predicted_value</span> <span class="o">=</span> \
-                <span class="n">calibration_curve</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">uncal_probs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">fraction_of_positives</span><span class="p">,</span> <span class="n">mean_predicted_value</span> <span class="o">=</span> <span class="n">calibration_curve</span><span class="p">(</span>
+            <span class="n">y_test</span><span class="p">,</span> <span class="n">uncal_probs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">10</span>
+        <span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;k:&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Perfectly calibrated&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;k:&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Perfectly calibrated&#39;</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mean_predicted_value</span><span class="p">,</span> <span class="n">fraction_of_positives</span><span class="p">,</span> <span class="s2">&quot;s-&quot;</span><span class="p">,</span>
-                 <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%1.3f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;uncal-RF&#39;</span><span class="p">,</span> <span class="n">uncal_brier</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">mean_predicted_value</span><span class="p">,</span>
+            <span class="n">fraction_of_positives</span><span class="p">,</span>
+            <span class="s1">&#39;s-&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%1.3f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;uncal-RF&#39;</span><span class="p">,</span> <span class="n">uncal_brier</span><span class="p">),</span>
+        <span class="p">)</span>
 
-        <span class="n">fraction_of_positives</span><span class="p">,</span> <span class="n">mean_predicted_value</span> <span class="o">=</span> \
-                <span class="n">calibration_curve</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">cal_probs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mean_predicted_value</span><span class="p">,</span> <span class="n">fraction_of_positives</span><span class="p">,</span> <span class="s2">&quot;s-&quot;</span><span class="p">,</span>
-                 <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%1.3f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;cal-RF&#39;</span><span class="p">,</span> <span class="n">cal_brier</span><span class="p">))</span>
+        <span class="n">fraction_of_positives</span><span class="p">,</span> <span class="n">mean_predicted_value</span> <span class="o">=</span> <span class="n">calibration_curve</span><span class="p">(</span>
+            <span class="n">y_test</span><span class="p">,</span> <span class="n">cal_probs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">10</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">mean_predicted_value</span><span class="p">,</span>
+            <span class="n">fraction_of_positives</span><span class="p">,</span>
+            <span class="s1">&#39;s-&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%1.3f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;cal-RF&#39;</span><span class="p">,</span> <span class="n">cal_brier</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span></div>
 
 
@@ -596,8 +770,7 @@
     <span class="n">_key_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;task_key&#39;</span><span class="p">,</span> <span class="s1">&#39;data_key&#39;</span><span class="p">,</span> <span class="s1">&#39;class_names&#39;</span><span class="p">]</span>
 
     <span class="c1"># Attributes about results and labels of individual samples</span>
-    <span class="n">_datafame_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;probs_df&#39;</span><span class="p">,</span> <span class="s1">&#39;probhats_df&#39;</span><span class="p">,</span> <span class="s1">&#39;target_bin_df&#39;</span><span class="p">,</span>
-                       <span class="s1">&#39;target_enc_df&#39;</span><span class="p">]</span>
+    <span class="n">_datafame_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;probs_df&#39;</span><span class="p">,</span> <span class="s1">&#39;probhats_df&#39;</span><span class="p">,</span> <span class="s1">&#39;target_bin_df&#39;</span><span class="p">,</span> <span class="s1">&#39;target_enc_df&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
         <span class="k">pass</span>
@@ -610,8 +783,7 @@
         <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">probs_df</span><span class="o">.</span><span class="n">index</span>
 
 <div class="viewcode-block" id="ClfResult.make_single"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfResult.make_single">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">make_single</span><span class="p">(</span><span class="n">ClfResult</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">X_df</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span>
-                    <span class="n">feat_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">make_single</span><span class="p">(</span><span class="n">ClfResult</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">X_df</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">data_key</span><span class="p">,</span> <span class="n">feat_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make a result for a single cross validiation subset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -626,6 +798,7 @@
 
         <span class="k">def</span> <span class="nf">align_cols</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">arr_cols</span><span class="p">,</span> <span class="n">target_cols</span><span class="p">):</span>
             <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
             <span class="n">alignx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_alignment</span><span class="p">(</span><span class="n">arr_cols</span><span class="p">,</span> <span class="n">target_cols</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">aligned_arrT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">none_take</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">alignx</span><span class="p">)</span>
             <span class="n">aligned_arrT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">aligned_arrT</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)))</span>
@@ -638,19 +811,20 @@
         <span class="n">res</span><span class="o">.</span><span class="n">class_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span>
         <span class="n">res</span><span class="o">.</span><span class="n">feat_dims</span> <span class="o">=</span> <span class="n">feat_dims</span>
 
-        <span class="n">res</span><span class="o">.</span><span class="n">probs_df</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">predict_proba_df</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">X_df_test</span><span class="p">,</span>
-                                                      <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">probs_df</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">predict_proba_df</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">X_df_test</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span>
         <span class="n">res</span><span class="o">.</span><span class="n">target_bin_df</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">indicator_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">test_idx</span><span class="p">]</span>
         <span class="n">res</span><span class="o">.</span><span class="n">target_enc_df</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">encoded_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">test_idx</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="s1">&#39;estimators_&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">labels</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="c1"># The n-th estimator in the OVR classifier predicts the prob of the</span>
             <span class="c1"># n-th class (as label 1).</span>
-            <span class="n">probs_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">est</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_df_test</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-                                   <span class="k">for</span> <span class="n">est</span> <span class="ow">in</span> <span class="n">clf</span><span class="o">.</span><span class="n">estimators_</span><span class="p">])</span>
+            <span class="n">probs_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">est</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_df_test</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">est</span> <span class="ow">in</span> <span class="n">clf</span><span class="o">.</span><span class="n">estimators_</span><span class="p">]</span>
+            <span class="p">)</span>
             <span class="n">res</span><span class="o">.</span><span class="n">probhats_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
                 <span class="n">align_cols</span><span class="p">(</span><span class="n">probs_hat</span><span class="p">,</span> <span class="n">clf</span><span class="o">.</span><span class="n">classes_</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">classes_</span><span class="p">),</span>
-                <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">,</span>
+                <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+                <span class="n">columns</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="c1"># In the OVR-case, ideally things will sum to 1, but when they</span>
             <span class="c1"># don&#39;t normalization happens. An Z-value of more than 1 means</span>
@@ -683,8 +857,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Ensure that res_lists are not overlapping</span>
         <span class="k">for</span> <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">r1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">r2</span><span class="o">.</span><span class="n">index</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s1">&#39;ClfResult dataframes must be disjoint&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">r1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">r2</span><span class="o">.</span><span class="n">index</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">),</span> <span class="s1">&#39;ClfResult dataframes must be disjoint&#39;</span>
         <span class="c1"># sanity check</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res_list</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="n">r</span><span class="o">.</span><span class="n">probs_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
@@ -698,8 +873,9 @@
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">ClfResult</span><span class="o">.</span><span class="n">_key_attrs</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">res0</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">==</span> <span class="n">val</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res_list</span><span class="p">]),</span> <span class="p">(</span>
-                <span class="s1">&#39;ClfResult with different key attributes are incompatible&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">==</span> <span class="n">val</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res_list</span><span class="p">]</span>
+            <span class="p">),</span> <span class="s1">&#39;ClfResult with different key attributes are incompatible&#39;</span>
         <span class="c1"># Combine dataframe properties (which should all have disjoint indices)</span>
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">ClfResult</span><span class="o">.</span><span class="n">_datafame_attrs</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">res0</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -755,8 +931,7 @@
         <span class="c1"># pred = sklearn_utils.predict_from_probs(res.probs_df, predict_method)</span>
         <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;max-mcc&#39;</span><span class="p">:</span>
             <span class="n">method</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">get_thresholds</span><span class="p">(</span><span class="s1">&#39;mcc&#39;</span><span class="p">,</span> <span class="s1">&#39;maximize&#39;</span><span class="p">)</span>
-        <span class="n">pred</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">predict_from_probs</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">probs_df</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span>
-                                                <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">predict_from_probs</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">probs_df</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;easiness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">easiness</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
         <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;hardness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;easiness&#39;</span><span class="p">]</span>
@@ -775,9 +950,11 @@
             <span class="n">ibs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
             <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
             <span class="n">conf_dict</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_edge_attrs</span><span class="p">(</span>
-                <span class="s1">&#39;confidence&#39;</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span>
+                <span class="s1">&#39;confidence&#39;</span><span class="p">,</span>
+                <span class="n">edges</span><span class="p">,</span>
                 <span class="n">on_missing</span><span class="o">=</span><span class="s1">&#39;filter&#39;</span><span class="p">,</span>
-                <span class="n">default</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)</span>
+                <span class="n">default</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">conf_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">conf_dict</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
             <span class="n">conf_df</span> <span class="o">=</span> <span class="n">conf_df</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">)</span>
             <span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">real_conf</span><span class="o">=</span><span class="n">conf_df</span><span class="p">)</span>
@@ -839,8 +1016,12 @@
         <span class="n">sample_weight</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">sample_weight</span>
         <span class="n">target_names</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">classification_report2</span><span class="p">(</span>
-            <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="n">target_names</span><span class="p">,</span>
-            <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="n">y_true</span><span class="p">,</span>
+            <span class="n">y_pred</span><span class="p">,</span>
+            <span class="n">target_names</span><span class="o">=</span><span class="n">target_names</span><span class="p">,</span>
+            <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">report</span></div>
 
 <div class="viewcode-block" id="ClfResult.print_report"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfResult.print_report">[docs]</a>    <span class="k">def</span> <span class="nf">print_report</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
@@ -848,7 +1029,8 @@
         <span class="n">pred_enc</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">clf_probs</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">res</span><span class="o">.</span><span class="n">extended_clf_report</span><span class="p">()</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span>
-            <span class="n">y_true</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">y_test_enc</span><span class="p">,</span> <span class="n">y_pred</span><span class="o">=</span><span class="n">pred_enc</span><span class="p">,</span>
+            <span class="n">y_true</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">y_test_enc</span><span class="p">,</span>
+            <span class="n">y_pred</span><span class="o">=</span><span class="n">pred_enc</span><span class="p">,</span>
             <span class="n">target_names</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">,</span>
             <span class="n">sample_weight</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">sample_weight</span><span class="p">,</span>
         <span class="p">)</span>
@@ -879,8 +1061,15 @@
         <span class="k">return</span> <span class="n">threshes</span></div>
 
 <div class="viewcode-block" id="ClfResult.get_pos_threshes"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfResult.get_pos_threshes">[docs]</a>    <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">get_pos_threshes</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1E-4</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                         <span class="n">warmup</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">priors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_thresh</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_pos_threshes</span><span class="p">(</span>
+        <span class="n">res</span><span class="p">,</span>
+        <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+        <span class="n">maximize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">warmup</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="n">priors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">min_thresh</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds a threshold that achieves the desired `value` for the desired</span>
 <span class="sd">        metric, while maximizing or minimizing the threshold.</span>
@@ -913,7 +1102,7 @@
                 <span class="c1"># alpha varies from 0 to 1</span>
                 <span class="n">alpha</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">nmax</span><span class="p">,</span> <span class="n">n_support</span><span class="p">)</span> <span class="o">/</span> <span class="n">nmax</span>
                 <span class="c1"># transform alpha through nonlinear function (similar to ReLU)</span>
-                <span class="n">p</span> <span class="o">=</span> <span class="o">.</span><span class="mi">6</span>  <span class="c1"># transition point</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="mf">0.6</span>  <span class="c1"># transition point</span>
                 <span class="n">alpha</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">))</span>
                 <span class="n">thresh</span> <span class="o">=</span> <span class="n">prior_thresh</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">+</span> <span class="n">learned_thresh</span> <span class="o">*</span> <span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -934,16 +1123,18 @@
         <span class="c1"># thresh_df[&#39;foo&#39;][res.class_names[k]] = 1</span>
 
         <span class="c1"># for k in [2, 0, 1]:</span>
-        <span class="n">choice_mv</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-            <span class="p">(</span><span class="s1">&#39;@fpr=.01&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">01</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;@fpr=.001&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">001</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;@fpr=.0001&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="mf">1E-4</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;@fpr=.0000&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;@max(mcc)&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;mcc&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">)),</span>
-            <span class="c1"># (class_name + &#39;@max(acc)&#39;, (&#39;acc&#39;, &#39;max&#39;)),</span>
-            <span class="c1"># (class_name + &#39;@max(mk)&#39;, (&#39;mk&#39;, &#39;max&#39;)),</span>
-            <span class="c1"># (class_name + &#39;@max(bm)&#39;, (&#39;bm&#39;, &#39;max&#39;)),</span>
-        <span class="p">])</span>
+        <span class="n">choice_mv</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="s1">&#39;@fpr=.01&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;@fpr=.001&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;@fpr=.0001&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;@fpr=.0000&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;fpr&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;@max(mcc)&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;mcc&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">)),</span>
+                <span class="c1"># (class_name + &#39;@max(acc)&#39;, (&#39;acc&#39;, &#39;max&#39;)),</span>
+                <span class="c1"># (class_name + &#39;@max(mk)&#39;, (&#39;mk&#39;, &#39;max&#39;)),</span>
+                <span class="c1"># (class_name + &#39;@max(bm)&#39;, (&#39;bm&#39;, &#39;max&#39;)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">y_test_bin</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
             <span class="n">thresh_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">()</span>
             <span class="n">class_name</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
@@ -962,9 +1153,7 @@
             <span class="n">thresh_df</span> <span class="o">=</span> <span class="n">thresh_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">thresh_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
             <span class="k">if</span> <span class="n">cfms</span><span class="o">.</span><span class="n">n_pos</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">cfms</span><span class="o">.</span><span class="n">n_neg</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Raw 1vR </span><span class="si">{}</span><span class="s1"> Thresholds&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">class_name</span><span class="p">))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span>
-                    <span class="n">thresh_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">float_format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{:.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
-                <span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">thresh_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">float_format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{:.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">)))</span>
                 <span class="c1"># chosen_type = class_name + &#39;@fpr=0&#39;</span>
                 <span class="c1"># pos_threshes[class_name] = thresh_df.loc[chosen_type][&#39;thresh&#39;]</span>
 
@@ -977,16 +1166,23 @@
 <div class="viewcode-block" id="ClfResult.report_auto_thresholds"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfResult.report_auto_thresholds">[docs]</a>    <span class="k">def</span> <span class="nf">report_auto_thresholds</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">threshes</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">report_lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">print_</span> <span class="o">=</span> <span class="n">report_lines</span><span class="o">.</span><span class="n">append</span>
-        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;Chosen thresholds = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span>
-            <span class="n">threshes</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span><span class="p">),))</span>
+        <span class="n">print_</span><span class="p">(</span>
+            <span class="s1">&#39;Chosen thresholds = </span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">threshes</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span><span class="p">),)</span>
+        <span class="p">)</span>
 
         <span class="n">res</span><span class="o">.</span><span class="n">augment_if_needed</span><span class="p">()</span>
         <span class="n">target_names</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span>
         <span class="n">sample_weight</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">sample_weight</span>
         <span class="n">y_true</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">y_test_enc</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
         <span class="n">y_pred</span><span class="p">,</span> <span class="n">can_autodecide</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">predict_from_probs</span><span class="p">(</span>
-            <span class="n">res</span><span class="o">.</span><span class="n">clf_probs</span><span class="p">,</span> <span class="n">threshes</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">,</span>
-            <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">multi</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_flags</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">clf_probs</span><span class="p">,</span>
+            <span class="n">threshes</span><span class="p">,</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">,</span>
+            <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">multi</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">return_flags</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">can_autodecide</span><span class="p">[</span><span class="n">res</span><span class="o">.</span><span class="n">sample_weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="n">auto_pred</span> <span class="o">=</span> <span class="n">y_pred</span><span class="p">[</span><span class="n">can_autodecide</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
@@ -994,15 +1190,13 @@
         <span class="n">auto_probs</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">clf_probs</span><span class="p">[</span><span class="n">can_autodecide</span><span class="p">]</span>
 
         <span class="n">total_cases</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_weight</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
-        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;Will autodecide for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> cases&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">can_autodecide</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
-                                                     <span class="p">(</span><span class="n">total_cases</span><span class="p">)))</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;Will autodecide for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> cases&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">can_autodecide</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="p">(</span><span class="n">total_cases</span><span class="p">)))</span>
 
         <span class="k">def</span> <span class="nf">frac_str</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
             <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{:}</span><span class="s1">/</span><span class="si">{:}</span><span class="s1"> = </span><span class="si">{:.2f}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">)</span>
 
         <span class="n">y_test_bin</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">target_bin_df</span><span class="o">.</span><span class="n">values</span>
-        <span class="n">supported_class_idxs</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y_test_bin</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">supported_class_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y_test_bin</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
 
         <span class="n">print_</span><span class="p">(</span><span class="s1">&#39; * Auto-Decide Per-Class Summary&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">supported_class_idxs</span><span class="p">:</span>
@@ -1011,8 +1205,8 @@
             <span class="c1"># number of times this class appears overall</span>
             <span class="n">n_total_k</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_test_bin</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="c1"># get the cases where this class was predicted</span>
-            <span class="n">auto_true_k</span> <span class="o">=</span> <span class="p">(</span><span class="n">auto_true</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span>
-            <span class="n">auto_pred_k</span> <span class="o">=</span> <span class="p">(</span><span class="n">auto_pred</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">auto_true_k</span> <span class="o">=</span> <span class="n">auto_true</span> <span class="o">==</span> <span class="n">k</span>
+            <span class="n">auto_pred_k</span> <span class="o">=</span> <span class="n">auto_pred</span> <span class="o">==</span> <span class="n">k</span>
             <span class="c1"># number of cases auto predicted</span>
             <span class="n">n_pred_k</span> <span class="o">=</span> <span class="n">auto_pred_k</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="c1"># number of times auto was right</span>
@@ -1021,17 +1215,23 @@
             <span class="n">n_fp</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">auto_true_k</span> <span class="o">&amp;</span> <span class="n">auto_pred_k</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">fail_str</span> <span class="o">=</span> <span class="n">frac_str</span><span class="p">(</span><span class="n">n_fp</span><span class="p">,</span> <span class="n">n_pred_k</span><span class="p">)</span>
             <span class="n">pass_str</span> <span class="o">=</span> <span class="n">frac_str</span><span class="p">(</span><span class="n">n_tp</span><span class="p">,</span> <span class="n">n_total_k</span><span class="p">)</span>
-            <span class="n">fmtstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-                <span class="s1">&#39;</span><span class="si">{name}</span><span class="s1">:&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;    </span><span class="si">{n_total_k}</span><span class="s1"> samples existed, and did </span><span class="si">{n_pred_k}</span><span class="s1"> auto predictions&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;    got </span><span class="si">{pass_str}</span><span class="s1"> right&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;    made </span><span class="si">{fail_str}</span><span class="s1"> errors&#39;</span><span class="p">,</span>
-            <span class="p">])</span>
+            <span class="n">fmtstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s1">&#39;</span><span class="si">{name}</span><span class="s1">:&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;    </span><span class="si">{n_total_k}</span><span class="s1"> samples existed, and did </span><span class="si">{n_pred_k}</span><span class="s1"> auto predictions&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;    got </span><span class="si">{pass_str}</span><span class="s1"> right&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;    made </span><span class="si">{fail_str}</span><span class="s1"> errors&#39;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
             <span class="n">print_</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())))</span>
 
         <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">classification_report2</span><span class="p">(</span>
-            <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="n">target_names</span><span class="p">,</span>
-            <span class="n">sample_weight</span><span class="o">=</span><span class="n">can_autodecide</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">y_true</span><span class="p">,</span>
+            <span class="n">y_pred</span><span class="p">,</span>
+            <span class="n">target_names</span><span class="o">=</span><span class="n">target_names</span><span class="p">,</span>
+            <span class="n">sample_weight</span><span class="o">=</span><span class="n">can_autodecide</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">print_</span><span class="p">(</span><span class="s1">&#39; * Auto-Decide Confusion&#39;</span><span class="p">)</span>
         <span class="n">print_</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">[</span><span class="s1">&#39;confusion&#39;</span><span class="p">])))</span>
         <span class="n">print_</span><span class="p">(</span><span class="s1">&#39; * Auto-Decide Metrics&#39;</span><span class="p">)</span>
@@ -1046,8 +1246,11 @@
                 <span class="n">auto_probs_k</span> <span class="o">=</span> <span class="n">auto_probs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">auto_probs_k</span><span class="o">.</span><span class="n">sum</span><span class="p">():</span>
                     <span class="n">auc</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">roc_auc_score</span><span class="p">(</span><span class="n">auto_truth_k</span><span class="p">,</span> <span class="n">auto_probs_k</span><span class="p">)</span>
-                    <span class="n">print_</span><span class="p">(</span><span class="s1">&#39; * Auto AUC(Macro): </span><span class="si">{:.4f}</span><span class="s1"> for class=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">auc</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+                    <span class="n">print_</span><span class="p">(</span>
+                        <span class="s1">&#39; * Auto AUC(Macro): </span><span class="si">{:.4f}</span><span class="s1"> for class=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">auc</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="n">report</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report_lines</span><span class="p">)</span>
@@ -1057,6 +1260,7 @@
 
 <div class="viewcode-block" id="ClfResult.confusions"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfResult.confusions">[docs]</a>    <span class="k">def</span> <span class="nf">confusions</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">class_name</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
         <span class="n">y_test_bin</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">target_bin_df</span><span class="o">.</span><span class="n">values</span>
         <span class="n">clf_probs</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">probs_df</span><span class="o">.</span><span class="n">values</span>
         <span class="n">k</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span>
@@ -1067,6 +1271,7 @@
 <div class="viewcode-block" id="ClfResult.ishow_roc"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfResult.ishow_roc">[docs]</a>    <span class="k">def</span> <span class="nf">ishow_roc</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
         <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
         <span class="n">ut</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
         <span class="n">y_test_bin</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">target_bin_df</span><span class="o">.</span><span class="n">values</span>
         <span class="c1"># The maximum allowed false positive rate</span>
@@ -1080,8 +1285,9 @@
                 <span class="k">continue</span>
             <span class="n">class_name</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
             <span class="n">confusions</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">confusions</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span>
-            <span class="n">ROCInteraction</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">interact_roc_factory</span><span class="p">(</span><span class="n">confusions</span><span class="p">,</span>
-                                                     <span class="n">show_operating_point</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">ROCInteraction</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">interact_roc_factory</span><span class="p">(</span>
+                <span class="n">confusions</span><span class="p">,</span> <span class="n">show_operating_point</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
             <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
             <span class="c1"># ROCInteraction.static_plot(fnum, None, name=class_name)</span>
             <span class="n">inter</span> <span class="o">=</span> <span class="n">ROCInteraction</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">class_name</span><span class="p">)</span>
@@ -1098,6 +1304,7 @@
 
 <div class="viewcode-block" id="ClfResult.show_roc"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfResult.show_roc">[docs]</a>    <span class="k">def</span> <span class="nf">show_roc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">class_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
         <span class="n">labels</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">target_bin_df</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
         <span class="n">probs</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">probs_df</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
         <span class="n">confusions</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ConfusionMetrics</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
@@ -1122,6 +1329,7 @@
 <div class="viewcode-block" id="ClfResult.confusions_ovr"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.ClfResult.confusions_ovr">[docs]</a>    <span class="k">def</span> <span class="nf">confusions_ovr</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
         <span class="c1"># one_vs_rest confusions</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
         <span class="n">res</span><span class="o">.</span><span class="n">augment_if_needed</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">y_test_bin</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
             <span class="n">class_k_truth</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">y_test_bin</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
@@ -1162,6 +1370,7 @@
 <span class="sd">        &gt;&gt;&gt; ])</span>
 <span class="sd">        &gt;&gt;&gt; samples.apply_indicators(tasks_to_indicators)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">samples</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
         <span class="n">samples</span><span class="o">.</span><span class="n">subtasks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">()</span>
@@ -1205,7 +1414,8 @@
         <span class="n">samples</span><span class="o">.</span><span class="n">n_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tasks_to_indicators</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">indicator</span> <span class="ow">in</span> <span class="n">tasks_to_indicators</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">labels</span> <span class="o">=</span> <span class="n">MultiClassLabels</span><span class="o">.</span><span class="n">from_indicators</span><span class="p">(</span>
-                <span class="n">indicator</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="n">indicator</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">index</span>
+            <span class="p">)</span>
             <span class="n">samples</span><span class="o">.</span><span class="n">subtasks</span><span class="p">[</span><span class="n">task_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
             <span class="k">if</span> <span class="n">n_samples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">n_samples</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">n_samples</span>
@@ -1223,12 +1433,19 @@
 <span class="sd">            task_name (str): key for denoting this specific task</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># convert to indicator structure and use that</span>
-        <span class="n">tasks_to_indicators</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-            <span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-                <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_enc</span><span class="p">)</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span>
-            <span class="p">]))</span>
-        <span class="p">])</span>
+        <span class="n">tasks_to_indicators</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span>
+                    <span class="n">task_name</span><span class="p">,</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_enc</span><span class="p">)</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span>
+                        <span class="p">]</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">samples</span><span class="o">.</span><span class="n">apply_indicators</span><span class="p">(</span><span class="n">tasks_to_indicators</span><span class="p">)</span></div>
 
     <span class="c1"># @ut.memoize</span>
@@ -1238,16 +1455,22 @@
 
 <div class="viewcode-block" id="MultiTaskSamples.class_name_basis"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiTaskSamples.class_name_basis">[docs]</a>    <span class="k">def</span> <span class="nf">class_name_basis</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; corresponds with indexes returned from encoded1d &quot;&quot;&quot;</span>
-        <span class="n">class_name_basis</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span>
-            <span class="n">v</span><span class="o">.</span><span class="n">class_names</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">()][::</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+        <span class="n">class_name_basis</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">t</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">class_names</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">()][::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="p">]</span>
         <span class="c1"># class_name_basis = [(b, a) for a, b in ut.product(*[</span>
         <span class="c1">#     v.class_names for k, v in samples.items()][::-1])]</span>
         <span class="k">return</span> <span class="n">class_name_basis</span></div>
 
 <div class="viewcode-block" id="MultiTaskSamples.class_idx_basis_2d"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiTaskSamples.class_idx_basis_2d">[docs]</a>    <span class="k">def</span> <span class="nf">class_idx_basis_2d</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; 2d-index version of class_name_basis &quot;&quot;&quot;</span>
-        <span class="n">class_idx_basis_2d</span> <span class="o">=</span> <span class="p">[(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span>
-            <span class="nb">range</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">n_classes</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">()][::</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+        <span class="n">class_idx_basis_2d</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">n_classes</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">()][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
         <span class="k">return</span> <span class="n">class_idx_basis_2d</span></div>
 
 <div class="viewcode-block" id="MultiTaskSamples.class_idx_basis_1d"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiTaskSamples.class_idx_basis_1d">[docs]</a>    <span class="k">def</span> <span class="nf">class_idx_basis_1d</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
@@ -1296,9 +1519,9 @@
         <span class="c1"># print(&#39;class_idx_basis_1d = %r&#39; % (class_idx_basis_1d,))</span>
         <span class="c1"># print(samples.encoded_1d())</span>
         <span class="n">multi_task_idx_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span>
-            <span class="n">samples</span><span class="o">.</span><span class="n">encoded_1d</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">class_idx_basis_1d</span><span class="p">)</span>
-        <span class="n">multi_task_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">class_name_basis</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">multi_task_idx_hist</span><span class="p">)</span>
+            <span class="n">samples</span><span class="o">.</span><span class="n">encoded_1d</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">class_idx_basis_1d</span>
+        <span class="p">)</span>
+        <span class="n">multi_task_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">class_name_basis</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">multi_task_idx_hist</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">multi_task_hist</span></div>
 
 <div class="viewcode-block" id="MultiTaskSamples.items"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiTaskSamples.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
@@ -1358,8 +1581,10 @@
             <span class="n">rel_skf_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">splitter</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">))</span>
 
         <span class="c1"># map back into original coords</span>
-        <span class="n">skf_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">subset_idx</span><span class="p">[</span><span class="n">rel_idx1</span><span class="p">],</span> <span class="n">subset_idx</span><span class="p">[</span><span class="n">rel_idx2</span><span class="p">])</span>
-                    <span class="k">for</span> <span class="n">rel_idx1</span><span class="p">,</span> <span class="n">rel_idx2</span> <span class="ow">in</span> <span class="n">rel_skf_list</span><span class="p">]</span>
+        <span class="n">skf_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">subset_idx</span><span class="p">[</span><span class="n">rel_idx1</span><span class="p">],</span> <span class="n">subset_idx</span><span class="p">[</span><span class="n">rel_idx2</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">rel_idx1</span><span class="p">,</span> <span class="n">rel_idx2</span> <span class="ow">in</span> <span class="n">rel_skf_list</span>
+        <span class="p">]</span>
 
         <span class="k">for</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="n">skf_list</span><span class="p">:</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">subset_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx1</span><span class="p">)</span>
@@ -1380,6 +1605,7 @@
 <span class="sd">        pd.options.display.max_columns = 40</span>
 <span class="sd">        pd.options.display.width = 160</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
         <span class="c1"># Helper Info</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">task_name</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1401,19 +1627,19 @@
 <div class="viewcode-block" id="MultiClassLabels.from_indicators"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiClassLabels.from_indicators">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_indicators</span><span class="p">(</span><span class="n">MultiClassLabels</span><span class="p">,</span> <span class="n">indicator</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">six</span>
+
         <span class="n">labels</span> <span class="o">=</span> <span class="n">MultiClassLabels</span><span class="p">()</span>
         <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">indicator</span><span class="p">)))</span>
         <span class="c1"># if index is None:</span>
         <span class="c1">#     index = pd.Series(np.arange(n_samples), name=&#39;index&#39;)</span>
         <span class="n">indicator_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">indicator</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">indicator_df</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s1">&#39;states in the same task must be mutually exclusive&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
+            <span class="n">indicator_df</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+        <span class="p">),</span> <span class="s1">&#39;states in the same task must be mutually exclusive&#39;</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">indicator_df</span> <span class="o">=</span> <span class="n">indicator_df</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">class_names</span> <span class="o">=</span> <span class="n">indicator_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">encoded_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-            <span class="n">indicator_df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">task_name</span><span class="p">],</span>
-            <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+            <span class="n">indicator_df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">task_name</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">task_name</span> <span class="o">=</span> <span class="n">task_name</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
@@ -1429,8 +1655,10 @@
         <span class="k">return</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">multiclass</span><span class="o">.</span><span class="n">type_of_target</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">y_enc</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MultiClassLabels.one_vs_rest_task_names"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiClassLabels.one_vs_rest_task_names">[docs]</a>    <span class="k">def</span> <span class="nf">one_vs_rest_task_names</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">labels</span><span class="o">.</span><span class="n">task_name</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="n">labels</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-v-rest)&#39;</span>
-                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">n_classes</span><span class="p">)]</span></div>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">labels</span><span class="o">.</span><span class="n">task_name</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="n">labels</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-v-rest)&#39;</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">n_classes</span><span class="p">)</span>
+        <span class="p">]</span></div>
 
 <div class="viewcode-block" id="MultiClassLabels.gen_one_vs_rest_labels"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiClassLabels.gen_one_vs_rest_labels">[docs]</a>    <span class="k">def</span> <span class="nf">gen_one_vs_rest_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1471,9 +1699,7 @@
             <span class="c1">#     )</span>
             <span class="c1"># else:</span>
             <span class="n">sublabel</span><span class="o">.</span><span class="n">encoded_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-                <span class="n">indicator_df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">task_name</span><span class="p">],</span>
-                <span class="n">index</span><span class="o">=</span><span class="n">index</span>
+                <span class="n">indicator_df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">task_name</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span>
             <span class="p">)</span>
             <span class="n">sublabel</span><span class="o">.</span><span class="n">task_name</span> <span class="o">=</span> <span class="n">task_name</span>
             <span class="n">sublabel</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
@@ -1507,8 +1733,7 @@
 
 <div class="viewcode-block" id="MultiClassLabels.make_histogram"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiClassLabels.make_histogram">[docs]</a>    <span class="k">def</span> <span class="nf">make_histogram</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
         <span class="n">class_idx_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">y_enc</span><span class="p">)</span>
-        <span class="n">class_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">idx</span><span class="p">:</span> <span class="n">labels</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">class_idx_hist</span><span class="p">)</span>
+        <span class="n">class_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span><span class="k">lambda</span> <span class="n">idx</span><span class="p">:</span> <span class="n">labels</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">class_idx_hist</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">class_hist</span></div>
 
 <div class="viewcode-block" id="MultiClassLabels.print_info"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.MultiClassLabels.print_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_info</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
@@ -1531,6 +1756,7 @@
 
 <div class="viewcode-block" id="IrisProblem.setup"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.clf_helpers.IrisProblem.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">pblm</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">sklearn.datasets</span>
+
         <span class="n">iris</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">load_iris</span><span class="p">()</span>
 
         <span class="n">pblm</span><span class="o">.</span><span class="n">primary_task_key</span> <span class="o">=</span> <span class="s1">&#39;iris&#39;</span>
@@ -1540,8 +1766,12 @@
         <span class="n">X_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">iris</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
         <span class="n">samples</span> <span class="o">=</span> <span class="n">MultiTaskSamples</span><span class="p">(</span><span class="n">X_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
         <span class="n">samples</span><span class="o">.</span><span class="n">apply_indicators</span><span class="p">(</span>
-            <span class="p">{</span><span class="s1">&#39;iris&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">iris</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="n">idx</span>
-                      <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">target_names</span><span class="p">)}})</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;iris&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="n">name</span><span class="p">:</span> <span class="n">iris</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">target_names</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
         <span class="n">samples</span><span class="o">.</span><span class="n">X_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;learn(all)&#39;</span><span class="p">:</span> <span class="n">X_df</span><span class="p">}</span>
 
         <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span>
@@ -1555,18 +1785,37 @@
 <span class="sd">        python -m wbia.algo.verif.samples --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1574,59 +1823,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../verif.html">wbia.algo.verif</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

@@ -1,36 +1,155 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.nx_edge_augmentation &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.algo.graph.nx_edge_augmentation &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
 
-  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+
+      <li>wbia.algo.graph.nx_edge_augmentation</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.algo.graph.nx_edge_augmentation</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -62,6 +181,7 @@
 <span class="c1"># Patch</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_edge_kcomponents</span> <span class="k">as</span> <span class="n">nx_ec</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># __all__ = [</span>
@@ -251,22 +371,26 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;k must be a positive integer, not </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">(</span>
-                <span class="p">(</span><span class="s1">&#39;impossible to </span><span class="si">{}</span><span class="s1"> connect in graph with less than </span><span class="si">{}</span><span class="s1"> &#39;</span>
-                 <span class="s1">&#39;nodes&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="p">(</span><span class="s1">&#39;impossible to </span><span class="si">{}</span><span class="s1"> connect in graph with less than </span><span class="si">{}</span><span class="s1"> &#39;</span> <span class="s1">&#39;nodes&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">k</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">avail</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">avail</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">is_k_edge_connected</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">(</span><span class="s1">&#39;no available edges&#39;</span><span class="p">)</span>
             <span class="n">aug_edges</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">elif</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">aug_edges</span> <span class="o">=</span> <span class="n">one_edge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span>
-                                              <span class="n">partial</span><span class="o">=</span><span class="n">partial</span><span class="p">)</span>
+            <span class="n">aug_edges</span> <span class="o">=</span> <span class="n">one_edge_augmentation</span><span class="p">(</span>
+                <span class="n">G</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="n">partial</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">aug_edges</span> <span class="o">=</span> <span class="n">bridge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># raise NotImplementedError(</span>
             <span class="c1">#    &#39;not implemented for k&gt;2. k={}&#39;.format(k))</span>
             <span class="n">aug_edges</span> <span class="o">=</span> <span class="n">greedy_k_edge_augmentation</span><span class="p">(</span>
-                <span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span>
+            <span class="p">)</span>
         <span class="c1"># Do eager evaulation so we can catch any exceptions</span>
         <span class="c1"># Before executing partial code.</span>
         <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">aug_edges</span><span class="p">):</span>
@@ -279,8 +403,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># If we cant k-edge-connect the entire graph, try to</span>
                 <span class="c1"># k-edge-connect as much as possible</span>
-                <span class="n">aug_edges</span> <span class="o">=</span> <span class="n">partial_k_edge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span>
-                                                        <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">)</span>
+                <span class="n">aug_edges</span> <span class="o">=</span> <span class="n">partial_k_edge_augmentation</span><span class="p">(</span>
+                    <span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span>
+                <span class="p">)</span>
             <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">aug_edges</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">edge</span>
         <span class="k">else</span><span class="p">:</span>
@@ -308,6 +433,7 @@
 <span class="sd">    &gt;&gt;&gt; sorted(partial_k_edge_augmentation(G, k=2, avail=avail))</span>
 <span class="sd">    [(1, 5), (1, 8)]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">_edges_between_disjoint</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">only1</span><span class="p">,</span> <span class="n">only2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; finds edges between disjoint nodes &quot;&quot;&quot;</span>
         <span class="n">only1_adj</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">only1</span><span class="p">}</span>
@@ -322,8 +448,8 @@
     <span class="c1"># Find which parts of the graph can be k-edge-connected</span>
     <span class="n">H</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">H</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
-        <span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">w</span><span class="p">,</span> <span class="s1">&#39;generator&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)})</span>
-         <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">avail</span><span class="p">,</span> <span class="n">avail_w</span><span class="p">)))</span>
+        <span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">w</span><span class="p">,</span> <span class="s1">&#39;generator&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)})</span> <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">avail</span><span class="p">,</span> <span class="n">avail_w</span><span class="p">))</span>
+    <span class="p">)</span>
     <span class="n">k_edge_subgraphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx_ec</span><span class="o">.</span><span class="n">k_edge_subgraphs</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">))</span>
 
     <span class="c1"># Generate edges to k-edge-connect internal components</span>
@@ -368,8 +494,9 @@
     <span class="k">if</span> <span class="n">avail</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">unconstrained_one_edge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">weighted_one_edge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span>
-                                              <span class="n">partial</span><span class="o">=</span><span class="n">partial</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">weighted_one_edge_augmentation</span><span class="p">(</span>
+            <span class="n">G</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="n">partial</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="bridge_augmentation"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_edge_augmentation.bridge_augmentation">[docs]</a><span class="nd">@not_implemented_for</span><span class="p">(</span><span class="s1">&#39;multigraph&#39;</span><span class="p">)</span>
@@ -389,8 +516,7 @@
 <span class="sd">    :func:`weighted_bridge_augmentation`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">(</span>
-            <span class="s1">&#39;impossible to bridge connect less than 3 nodes&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">(</span><span class="s1">&#39;impossible to bridge connect less than 3 nodes&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">avail</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">unconstrained_bridge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -398,6 +524,7 @@
 
 
 <span class="c1"># --- Algorithms and Helpers ---</span>
+
 
 <span class="k">def</span> <span class="nf">_ordered</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="k">else</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span>
@@ -411,14 +538,15 @@
         <span class="n">avail_uv</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">avail</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">avail_w</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">avail</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
+
         <span class="k">def</span> <span class="nf">_try_getitem</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">weight</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">d</span>
+
         <span class="n">avail_uv</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">avail</span><span class="p">]</span>
-        <span class="n">avail_w</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">_try_getitem</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-                   <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">avail</span><span class="p">]</span>
+        <span class="n">avail_w</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">_try_getitem</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">avail</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">G</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Edges already in the graph are filtered</span>
@@ -537,14 +665,12 @@
     <span class="n">candidate_mapping</span> <span class="o">=</span> <span class="n">_lightest_meta_edges</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="n">avail_uv</span><span class="p">,</span> <span class="n">avail_w</span><span class="p">)</span>
     <span class="c1"># nx.set_edge_attributes(C, name=&#39;weight&#39;, values=0)</span>
     <span class="n">C</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">mv</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">w</span><span class="p">,</span> <span class="s1">&#39;generator&#39;</span><span class="p">:</span> <span class="n">uv</span><span class="p">})</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">mv</span><span class="p">),</span> <span class="n">uv</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">candidate_mapping</span>
+        <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">mv</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">w</span><span class="p">,</span> <span class="s1">&#39;generator&#39;</span><span class="p">:</span> <span class="n">uv</span><span class="p">})</span> <span class="k">for</span> <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">mv</span><span class="p">),</span> <span class="n">uv</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">candidate_mapping</span>
     <span class="p">)</span>
     <span class="c1"># Find MST of the meta graph</span>
     <span class="n">meta_mst</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">partial</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_connected</span><span class="p">(</span><span class="n">meta_mst</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">(</span>
-            <span class="s1">&#39;Not possible to connect G with available edges&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">(</span><span class="s1">&#39;Not possible to connect G with available edges&#39;</span><span class="p">)</span>
     <span class="c1"># Yield the edge that generated the meta-edge</span>
     <span class="k">for</span> <span class="n">mu</span><span class="p">,</span> <span class="n">mv</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">meta_mst</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="s1">&#39;generator&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
@@ -634,9 +760,9 @@
     <span class="c1"># Choose pairs of distinct leaf nodes in each tree. If this is not</span>
     <span class="c1"># possible then make a pair using the single isolated node in the tree.</span>
     <span class="n">vset1</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="nb">tuple</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>   <span class="c1"># case1: an isolated node</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span>
-        <span class="nb">sorted</span><span class="p">(</span><span class="n">cc</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">degree</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># case2: pair of leaf nodes</span>
+        <span class="nb">tuple</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>  <span class="c1"># case1: an isolated node</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">else</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cc</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">degree</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># case2: pair of leaf nodes</span>
         <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vset1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -674,8 +800,10 @@
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">C</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;mapping&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">inverse</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
     <span class="c1"># sort so we choose minimum degree nodes first</span>
-    <span class="n">inverse</span> <span class="o">=</span> <span class="p">{</span><span class="n">mu</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">mapped</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">u</span><span class="p">))</span>
-               <span class="k">for</span> <span class="n">mu</span><span class="p">,</span> <span class="n">mapped</span> <span class="ow">in</span> <span class="n">inverse</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">inverse</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">mu</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">mapped</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">u</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">mu</span><span class="p">,</span> <span class="n">mapped</span> <span class="ow">in</span> <span class="n">inverse</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
 
     <span class="c1"># For each meta-edge, map back to an arbitrary pair in the original graph</span>
     <span class="n">G2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -815,7 +943,8 @@
         <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">lca_gen</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">tree_all_pairs_lowest_common_ancestor</span><span class="p">(</span>
-            <span class="n">TR</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">,</span> <span class="n">pairs</span><span class="o">=</span><span class="n">meta_to_wuv</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">TR</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">,</span> <span class="n">pairs</span><span class="o">=</span><span class="n">meta_to_wuv</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">)</span>
 
     <span class="k">for</span> <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">mv</span><span class="p">),</span> <span class="n">lca</span> <span class="ow">in</span> <span class="n">lca_gen</span><span class="p">:</span>
         <span class="n">w</span><span class="p">,</span> <span class="n">uv</span> <span class="o">=</span> <span class="n">meta_to_wuv</span><span class="p">[(</span><span class="n">mu</span><span class="p">,</span> <span class="n">mv</span><span class="p">)]</span>
@@ -889,10 +1018,7 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">common</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">lca</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">lca</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">shortest_path_length</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">c</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">common</span>
-        <span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">lca</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">nx</span><span class="o">.</span><span class="n">shortest_path_length</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">common</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">lca</span>
 
 
@@ -945,8 +1071,9 @@
     <span class="n">remaining</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grouped_nodes</span><span class="p">):</span>
         <span class="n">group</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">remaining</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span><span class="n">group</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s1">&#39;grouped nodes must exist in G and be disjoint&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">remaining</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span>
+            <span class="n">group</span>
+        <span class="p">),</span> <span class="s1">&#39;grouped nodes must exist in G and be disjoint&#39;</span>
         <span class="n">remaining</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
         <span class="n">members</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span>
         <span class="n">mapping</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">group</span><span class="p">)</span>
@@ -957,8 +1084,9 @@
         <span class="n">mapping</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">group</span><span class="p">)</span>
     <span class="n">number_of_groups</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">C</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">number_of_groups</span><span class="p">))</span>
-    <span class="n">C</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">((</span><span class="n">mapping</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">mapping</span><span class="p">[</span><span class="n">v</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
-                     <span class="k">if</span> <span class="n">mapping</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="o">!=</span> <span class="n">mapping</span><span class="p">[</span><span class="n">v</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">mapping</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">mapping</span><span class="p">[</span><span class="n">v</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span> <span class="k">if</span> <span class="n">mapping</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="o">!=</span> <span class="n">mapping</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+    <span class="p">)</span>
     <span class="c1"># Add a list of members (ie original nodes) to each node (ie scc) in C.</span>
     <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;members&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">members</span><span class="p">)</span>
     <span class="c1"># Add mapping dict as graph attribute</span>
@@ -994,6 +1122,7 @@
 
 
 <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+
     <span class="k">def</span> <span class="nf">compat_shuffle</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        python2 workaround so shuffle works the same as python3</span>
@@ -1002,8 +1131,9 @@
 <span class="sd">        ----------</span>
 <span class="sd">        https://stackoverflow.com/questions/38943038/diff-shuffle-py2-py3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">def</span> <span class="nf">_randbelow</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-            <span class="s2">&quot;Return a random int in the range [0,n). Raises ValueError if n==0.&quot;</span>
+            <span class="s1">&#39;Return a random int in the range [0,n). Raises ValueError if n==0.&#39;</span>
             <span class="n">getrandbits</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">getrandbits</span>
             <span class="n">k</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">bit_length</span><span class="p">()</span>  <span class="c1"># don&#39;t use (n-1) here because n can be 1</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">getrandbits</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>  <span class="c1"># 0 &lt;= r &lt; 2**k</span>
@@ -1015,7 +1145,10 @@
             <span class="c1"># pick an element in input[:i+1] with which to exchange input[i]</span>
             <span class="n">j</span> <span class="o">=</span> <span class="n">_randbelow</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
             <span class="nb">input</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">input</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="nb">input</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+
 <span class="k">else</span><span class="p">:</span>
+
 <div class="viewcode-block" id="compat_shuffle"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_edge_augmentation.compat_shuffle">[docs]</a>    <span class="k">def</span> <span class="nf">compat_shuffle</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
         <span class="n">rng</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span></div>
 
@@ -1086,8 +1219,7 @@
 
     <span class="c1"># Check for feasibility</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">(</span>
-            <span class="s1">&#39;not able to k-edge-connect with available edges&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">nx</span><span class="o">.</span><span class="n">NetworkXUnfeasible</span><span class="p">(</span><span class="s1">&#39;not able to k-edge-connect with available edges&#39;</span><span class="p">)</span>
 
     <span class="c1"># Randomized attempt to reduce the size of the solution</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
@@ -1109,13 +1241,30 @@
         <span class="k">yield</span> <span class="n">edge</span></div>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1123,59 +1272,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../../index.html">Module code</a><ul>
-  <li><a href="../../../wbia.html">wbia</a><ul>
-  <li><a href="../../algo.html">wbia.algo</a><ul>
-  <li><a href="../graph.html">wbia.algo.graph</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

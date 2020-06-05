@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.plottool.abstract_interaction &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.plottool.abstract_interaction &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+
+      <li>wbia.plottool.abstract_interaction</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.plottool.abstract_interaction</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -45,13 +162,14 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
 <span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[abstract_iteract]&#39;</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">fig_presenter</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>  <span class="c1"># NOQA</span>
 
-<span class="c1">#(print, print_, printDBG, rrr, profile) = utool.inject(__name__,</span>
+<span class="c1"># (print, print_, printDBG, rrr, profile) = utool.inject(__name__,</span>
 <span class="c1">#&#39;[abstract_iteract]&#39;)</span>
 
 <span class="n">DEBUG</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--debug-interact&#39;</span><span class="p">)</span>
@@ -68,7 +186,10 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] Registering intearction: self=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
     <span class="n">__REGISTERED_INTERACTIONS__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] There are now </span><span class="si">%d</span><span class="s1"> registered interactions&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">__REGISTERED_INTERACTIONS__</span><span class="p">)))</span></div>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;[pt] There are now </span><span class="si">%d</span><span class="s1"> registered interactions&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">__REGISTERED_INTERACTIONS__</span><span class="p">))</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="unregister_interaction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.unregister_interaction">[docs]</a><span class="k">def</span> <span class="nf">unregister_interaction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -80,7 +201,10 @@
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">pass</span>
     <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] There are now </span><span class="si">%d</span><span class="s1"> registered interactions&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">__REGISTERED_INTERACTIONS__</span><span class="p">)))</span></div>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;[pt] There are now </span><span class="si">%d</span><span class="s1"> registered interactions&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">__REGISTERED_INTERACTIONS__</span><span class="p">))</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="AbstractInteraction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction">[docs]</a><span class="k">class</span> <span class="nc">AbstractInteraction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -106,8 +230,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.a] create interaction&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fnum&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>  <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>  <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interaction_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interaction_name&#39;</span><span class="p">,</span> <span class="s1">&#39;AbstractInteraction&#39;</span><span class="p">)</span>
         <span class="c1"># Careful this might cause memory leaks</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># for keeping those widgets alive!</span>
@@ -140,15 +264,17 @@
 
 <div class="viewcode-block" id="AbstractInteraction.enable_pan"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.enable_pan">[docs]</a>    <span class="k">def</span> <span class="nf">enable_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="k">import</span> <span class="n">PanEvents</span>
+
         <span class="n">pan</span> <span class="o">=</span> <span class="n">PanEvents</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pan_event_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pan</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbstractInteraction.enable_zoom"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.enable_zoom">[docs]</a>    <span class="k">def</span> <span class="nf">enable_zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="k">import</span> <span class="n">zoom_factory</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">zoom_event_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zoom_factory</span><span class="p">(</span><span class="n">ax</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_start_interaction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)</span>
+        <span class="c1"># self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;close_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_close</span><span class="p">)</span>
         <span class="n">register_interaction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -205,6 +331,7 @@
 
 <div class="viewcode-block" id="AbstractInteraction.bring_to_front"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.bring_to_front">[docs]</a>    <span class="k">def</span> <span class="nf">bring_to_front</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">utool</span>
+
         <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
             <span class="n">fig_presenter</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">)</span></div>
 
@@ -226,7 +353,7 @@
 <div class="viewcode-block" id="AbstractInteraction.update"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.a] update&#39;</span><span class="p">)</span>
-        <span class="c1">#fig_presenter.update()</span>
+        <span class="c1"># fig_presenter.update()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">flush_events</span><span class="p">()</span></div>
 
@@ -258,7 +385,7 @@
 
         <span class="k">for</span> <span class="n">pan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pan_event_list</span><span class="p">:</span>
             <span class="n">pan</span><span class="o">.</span><span class="n">pan_on_motion</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
-        <span class="c1">#print(&#39;event = %r&#39; % (event.__dict__,))</span>
+        <span class="c1"># print(&#39;event = %r&#39; % (event.__dict__,))</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="AbstractInteraction.on_drag"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.on_drag">[docs]</a>    <span class="k">def</span> <span class="nf">on_drag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -267,7 +394,7 @@
         <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">on_drag_inside</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
         <span class="c1"># Make sure BLIT (bit block transfer) is used for updates</span>
-        <span class="c1">#self.fig.canvas.blit(self.fig.ax.bbox)</span>
+        <span class="c1"># self.fig.canvas.blit(self.fig.ax.bbox)</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="AbstractInteraction.on_drag_inside"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.on_drag_inside">[docs]</a>    <span class="k">def</span> <span class="nf">on_drag_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -287,23 +414,23 @@
 <div class="viewcode-block" id="AbstractInteraction.on_key_press"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.on_key_press">[docs]</a>    <span class="k">def</span> <span class="nf">on_key_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.a] on_key_press&#39;</span><span class="p">)</span>
-        <span class="c1">#self.print_status()</span>
+        <span class="c1"># self.print_status()</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="AbstractInteraction.on_click"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.on_click">[docs]</a>    <span class="k">def</span> <span class="nf">on_click</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.a] on_click&#39;</span><span class="p">)</span>
-            <span class="c1">#print(&#39;[pt.a] on_click. event=%r&#39; % (ut.repr2(event.__dict__)))</span>
-        <span class="c1">#raise NotImplementedError(&#39;implement yourself&#39;)</span>
+            <span class="c1"># print(&#39;[pt.a] on_click. event=%r&#39; % (ut.repr2(event.__dict__)))</span>
+        <span class="c1"># raise NotImplementedError(&#39;implement yourself&#39;)</span>
         <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">button</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">MOUSE_BUTTONS</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">MOUSE_BUTTONS</span><span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">]</span> <span class="o">==</span> <span class="n">button</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">is_down</span><span class="p">[</span><span class="n">button</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="c1">#if event.button == self.LEFT_BUTTON:</span>
+        <span class="c1"># if event.button == self.LEFT_BUTTON:</span>
         <span class="c1">#    self.is_down[&#39;left&#39;] = True</span>
-        <span class="c1">#if event.button == self.RIGHT_BUTTON:</span>
+        <span class="c1"># if event.button == self.RIGHT_BUTTON:</span>
         <span class="c1">#    self.is_down[&#39;right&#39;] = True</span>
-        <span class="c1">#if event.button == self.MIDDLE_BUTTON:</span>
+        <span class="c1"># if event.button == self.MIDDLE_BUTTON:</span>
         <span class="c1">#    self.is_down[&#39;middle&#39;] = True</span>
         <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
             <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
@@ -318,19 +445,22 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.a] on_release&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">button</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">MOUSE_BUTTONS</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="n">flag</span> <span class="o">=</span> <span class="p">(</span><span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="ow">is</span> <span class="kc">None</span>
-                    <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">MOUSE_BUTTONS</span><span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">]</span> <span class="o">==</span> <span class="n">button</span><span class="p">)</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">MOUSE_BUTTONS</span><span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">]</span> <span class="o">==</span> <span class="n">button</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">flag</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">is_down</span><span class="p">[</span><span class="n">button</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_drag</span><span class="p">[</span><span class="n">button</span><span class="p">]:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">is_drag</span><span class="p">[</span><span class="n">button</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">on_drag_stop</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
-        <span class="c1">#if event.button == self.LEFT_BUTTON:</span>
+        <span class="c1"># if event.button == self.LEFT_BUTTON:</span>
         <span class="c1">#    self.is_down[&#39;left&#39;] = False</span>
         <span class="c1">#    self.is_drag[&#39;left&#39;] = False</span>
-        <span class="c1">#if event.button == self.RIGHT_BUTTON:</span>
+        <span class="c1"># if event.button == self.RIGHT_BUTTON:</span>
         <span class="c1">#    self.is_down[&#39;right&#39;] = False</span>
-        <span class="c1">#if event.button == self.MIDDLE_BUTTON:</span>
+        <span class="c1"># if event.button == self.MIDDLE_BUTTON:</span>
         <span class="c1">#    self.is_down[&#39;middle&#39;] = False</span>
         <span class="k">for</span> <span class="n">pan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pan_event_list</span><span class="p">:</span>
             <span class="n">pan</span><span class="o">.</span><span class="n">pan_on_release</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
@@ -346,6 +476,7 @@
 <span class="sd">        context menu</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+
         <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
         <span class="n">qpoint</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">newQPoint</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
         <span class="n">qwin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span>
@@ -377,8 +508,17 @@
         <span class="sd">&quot;&quot;&quot; Removes any widgets saved in the interaction scope &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="p">[]</span></div>
 
-<div class="viewcode-block" id="AbstractInteraction.append_button"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.append_button">[docs]</a>    <span class="k">def</span> <span class="nf">append_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">divider</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">size</span><span class="o">=</span><span class="s1">&#39;9%&#39;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractInteraction.append_button"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.append_button">[docs]</a>    <span class="k">def</span> <span class="nf">append_button</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">text</span><span class="p">,</span>
+        <span class="n">divider</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">rect</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="o">=</span><span class="s1">&#39;9%&#39;</span><span class="p">,</span>
+        <span class="n">location</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Adds a button to the current page &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">rect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -388,20 +528,19 @@
                 <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
             <span class="n">divider</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">ensure_divider</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">divider</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">new_ax</span> <span class="o">=</span> <span class="n">divider</span><span class="o">.</span><span class="n">append_axes</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">pad</span><span class="o">=.</span><span class="mi">05</span><span class="p">)</span>
+            <span class="n">new_ax</span> <span class="o">=</span> <span class="n">divider</span><span class="o">.</span><span class="n">append_axes</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">color</span><span class="p">,</span> <span class="n">hovercolor</span> <span class="o">=</span> <span class="sa">u</span><span class="s1">&#39;.85&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;.95&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">color</span><span class="p">,</span> <span class="n">hovercolor</span> <span class="o">=</span> <span class="sa">u</span><span class="s1">&#39;.88&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;.88&#39;</span>
-            <span class="c1">#color, hovercolor = u&#39;.45&#39;, u&#39;.45&#39;</span>
-        <span class="c1">#if isinstance(text, six.text_type):</span>
-        <span class="n">new_but</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
-            <span class="n">new_ax</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">hovercolor</span><span class="o">=</span><span class="n">hovercolor</span><span class="p">)</span>
-        <span class="c1">#elif isinstance(text, (list, tuple)):</span>
+            <span class="c1"># color, hovercolor = u&#39;.45&#39;, u&#39;.45&#39;</span>
+        <span class="c1"># if isinstance(text, six.text_type):</span>
+        <span class="n">new_but</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">hovercolor</span><span class="o">=</span><span class="n">hovercolor</span><span class="p">)</span>
+        <span class="c1"># elif isinstance(text, (list, tuple)):</span>
         <span class="c1">#    labels = [False] * len(text)</span>
         <span class="c1">#    labels[0] = True</span>
         <span class="c1">#    new_but = mpl.widgets.CheckButtons(new_ax, text, labels)</span>
-        <span class="c1">#else:</span>
+        <span class="c1"># else:</span>
         <span class="c1">#    raise ValueError(&#39;bad input&#39;)</span>
 
         <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -409,10 +548,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">button_text</span> <span class="o">=</span> <span class="n">new_but</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">button_text</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;.6&#39;</span><span class="p">)</span>
-            <span class="c1">#button_text.set_color(&#39;r&#39;)</span>
-            <span class="c1">#ut.embed()</span>
-            <span class="c1">#print(&#39;new_but.color = %r&#39; % (new_but.color,))</span>
-        <span class="c1">#else:</span>
+            <span class="c1"># button_text.set_color(&#39;r&#39;)</span>
+            <span class="c1"># ut.embed()</span>
+            <span class="c1"># print(&#39;new_but.color = %r&#39; % (new_but.color,))</span>
+        <span class="c1"># else:</span>
         <span class="c1"># TODO: figure ou how to gray out these buttons</span>
         <span class="c1">#    new_but.color = u&#39;.1&#39;</span>
         <span class="c1">#    new_but.hovercolor = u&#39;.1&#39;</span>
@@ -420,7 +559,7 @@
         <span class="c1">#    print(&#39;new_but.color = %r&#39; % (new_but.color,))</span>
         <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;button&#39;</span><span class="p">)</span>
         <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
-        <span class="c1">#ph.set_plotdat(new_ax, &#39;parent_axes&#39;, ax)</span>
+        <span class="c1"># ph.set_plotdat(new_ax, &#39;parent_axes&#39;, ax)</span>
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">child_axes</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;child_axes&#39;</span><span class="p">,</span> <span class="p">[])</span>
             <span class="n">child_axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_ax</span><span class="p">)</span>
@@ -434,48 +573,50 @@
 
 
 <div class="viewcode-block" id="AbstractPagedInteraction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractPagedInteraction">[docs]</a><span class="k">class</span> <span class="nc">AbstractPagedInteraction</span><span class="p">(</span><span class="n">AbstractInteraction</span><span class="p">):</span>
-
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nPages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">draw_hud</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">assert</span> <span class="n">nPages</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nPages</span> <span class="o">=</span> <span class="n">nPages</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">draw_hud</span> <span class="o">=</span> <span class="n">draw_hud</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">NEXT_PAGE_HOTKEYS</span>  <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;pagedown&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">PREV_PAGE_HOTKEYS</span>  <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;pageup&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NEXT_PAGE_HOTKEYS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;pagedown&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PREV_PAGE_HOTKEYS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;pageup&#39;</span><span class="p">]</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AbstractPagedInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AbstractPagedInteraction.next_page"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractPagedInteraction.next_page">[docs]</a>    <span class="k">def</span> <span class="nf">next_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="c1">#print(&#39;next&#39;)</span>
+        <span class="c1"># print(&#39;next&#39;)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="AbstractPagedInteraction.prev_page"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractPagedInteraction.prev_page">[docs]</a>    <span class="k">def</span> <span class="nf">prev_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span>
-        <span class="c1">#print(&#39;prev&#39;)</span>
+        <span class="c1"># print(&#39;prev&#39;)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="AbstractPagedInteraction.make_hud"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractPagedInteraction.make_hud">[docs]</a>    <span class="k">def</span> <span class="nf">make_hud</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Creates heads up display &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_hud</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="c1"># Button positioning</span>
-        <span class="c1">#w, h = .08, .04</span>
-        <span class="c1">#w, h = .14, .08</span>
-        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="o">.</span><span class="mi">14</span><span class="p">,</span> <span class="o">.</span><span class="mi">07</span>
-        <span class="n">hl_slot</span><span class="p">,</span> <span class="n">hr_slot</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_bbox_positioners</span><span class="p">(</span><span class="n">y</span><span class="o">=.</span><span class="mi">02</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
-                                                    <span class="n">xpad</span><span class="o">=.</span><span class="mi">05</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                                                    <span class="n">stopx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># w, h = .08, .04</span>
+        <span class="c1"># w, h = .14, .08</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">0.14</span><span class="p">,</span> <span class="mf">0.07</span>
+        <span class="n">hl_slot</span><span class="p">,</span> <span class="n">hr_slot</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_bbox_positioners</span><span class="p">(</span>
+            <span class="n">y</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="n">xpad</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stopx</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
         <span class="n">prev_rect</span> <span class="o">=</span> <span class="n">hl_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">next_rect</span> <span class="o">=</span> <span class="n">hr_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="c1">#print(&#39;prev_rect = %r&#39; % (prev_rect,))</span>
-        <span class="c1">#print(&#39;next_rect = %r&#39; % (next_rect,))</span>
+        <span class="c1"># print(&#39;prev_rect = %r&#39; % (prev_rect,))</span>
+        <span class="c1"># print(&#39;next_rect = %r&#39; % (next_rect,))</span>
 
         <span class="c1"># Create buttons</span>
         <span class="n">prev_callback</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_page</span>
-        <span class="n">next_callback</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nPages</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_page</span>
+        <span class="n">next_callback</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nPages</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_page</span>
+        <span class="p">)</span>
         <span class="n">prev_text</span> <span class="o">=</span> <span class="s1">&#39;prev</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">pretty_hotkey_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PREV_PAGE_HOTKEYS</span><span class="p">)</span>
         <span class="n">next_text</span> <span class="o">=</span> <span class="s1">&#39;next</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">pretty_hotkey_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NEXT_PAGE_HOTKEYS</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">prev_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">prev_callback</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">prev_rect</span><span class="p">)</span>
@@ -483,14 +624,17 @@
 
 <div class="viewcode-block" id="AbstractPagedInteraction.prepare_page"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractPagedInteraction.prepare_page">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fulldraw</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
         <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">)</span>
         <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_release_event&#39;</span><span class="p">)</span>
         <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;key_press_event&#39;</span><span class="p">)</span>
         <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;motion_notify_event&#39;</span><span class="p">)</span>
 
-        <span class="n">figkw</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fnum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span>
-                 <span class="s1">&#39;doclf&#39;</span><span class="p">:</span> <span class="n">fulldraw</span><span class="p">,</span>
-                 <span class="s1">&#39;docla&#39;</span><span class="p">:</span> <span class="n">fulldraw</span><span class="p">,</span> <span class="p">}</span>
+        <span class="n">figkw</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;fnum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span>
+            <span class="s1">&#39;doclf&#39;</span><span class="p">:</span> <span class="n">fulldraw</span><span class="p">,</span>
+            <span class="s1">&#39;docla&#39;</span><span class="p">:</span> <span class="n">fulldraw</span><span class="p">,</span>
+        <span class="p">}</span>
         <span class="k">if</span> <span class="n">fulldraw</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="o">**</span><span class="n">figkw</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">make_hud</span><span class="p">()</span>
@@ -510,7 +654,7 @@
 
 
 <span class="c1"># moved to interactions.py</span>
-<span class="c1">#def zoom_factory(ax, zoomable_list, base_scale=1.1):</span>
+<span class="c1"># def zoom_factory(ax, zoomable_list, base_scale=1.1):</span>
 <span class="c1">#    &quot;&quot;&quot;</span>
 <span class="c1">#    TODO: make into interaction</span>
 
@@ -575,18 +719,35 @@
 
 <div class="viewcode-block" id="matches_hotkey"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.matches_hotkey">[docs]</a><span class="k">def</span> <span class="nf">matches_hotkey</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">hotkeys</span><span class="p">):</span>
     <span class="n">hotkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">hotkeys</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hotkeys</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">hotkeys</span>
-    <span class="c1">#flags = [re.match(hk, &#39;^&#39; + key + &#39;$&#39;) for hk in hotkeys]</span>
-    <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">hk</span><span class="p">,</span>  <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">hk</span> <span class="ow">in</span> <span class="n">hotkeys</span><span class="p">]</span>
+    <span class="c1"># flags = [re.match(hk, &#39;^&#39; + key + &#39;$&#39;) for hk in hotkeys]</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">hk</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">hk</span> <span class="ow">in</span> <span class="n">hotkeys</span><span class="p">]</span>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span></div>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -594,57 +755,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../plottool.html">wbia.plottool</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

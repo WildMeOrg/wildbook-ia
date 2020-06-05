@@ -1,45 +1,163 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.expt.old_storage &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.expt.old_storage &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../expt.html">wbia.expt</a> &raquo;</li>
+
+      <li>wbia.expt.old_storage</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.expt.old_storage</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="c1">#import six</span>
+
+<span class="c1"># import six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span>
-    <span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[expt_harn]&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[expt_harn]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ResultMetadata"><a class="viewcode-back" href="../../../wbia.expt.html#wbia.expt.old_storage.ResultMetadata">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
@@ -58,6 +176,7 @@
 
 <div class="viewcode-block" id="ResultMetadata.connect"><a class="viewcode-back" href="../../../wbia.expt.html#wbia.expt.old_storage.ResultMetadata.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">shelve</span>
+
         <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">fpath</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;dictstore&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">:</span>
             <span class="n">dictstore</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">AutoVivification</span><span class="p">()</span>
@@ -111,12 +230,15 @@
             <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">qaid2_cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">]</span>
         <span class="n">qaids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid2_cols</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">cols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">cols</span> <span class="ow">in</span> <span class="n">qaid2_cols</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
-        <span class="c1">#col_name_list = [&#39;qx2_scoreexpdiff&#39;, &#39;qx2_gt_aid&#39;]</span>
-        <span class="c1">#colname2_colvals = [None for colname in col_name_list]</span>
+        <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">cols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">cols</span> <span class="ow">in</span> <span class="n">qaid2_cols</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+        <span class="p">)</span>
+        <span class="c1"># col_name_list = [&#39;qx2_scoreexpdiff&#39;, &#39;qx2_gt_aid&#39;]</span>
+        <span class="c1"># colname2_colvals = [None for colname in col_name_list]</span>
         <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">[</span><span class="n">colvals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">colvals</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_cols</span><span class="p">)]</span>
-            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span>
+        <span class="p">]</span>
         <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;qaids&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_name_list</span>
         <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaids</span><span class="p">]</span> <span class="o">+</span> <span class="n">column_list</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;depth_profile(column_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">column_list</span><span class="p">),))</span>
@@ -164,19 +286,25 @@
                 <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">connect_signals_and_slots</span><span class="p">(</span><span class="n">wgt</span><span class="p">):</span>
-            <span class="c1">#wgt.view.clicked.connect(wgt._on_click)</span>
+            <span class="c1"># wgt.view.clicked.connect(wgt._on_click)</span>
             <span class="n">wgt</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">doubleClicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">wgt</span><span class="o">.</span><span class="n">_on_doubleclick</span><span class="p">)</span>
-            <span class="c1">#wgt.view.pressed.connect(wgt._on_pressed)</span>
-            <span class="c1">#wgt.view.activated.connect(wgt._on_activated)</span>
+            <span class="c1"># wgt.view.pressed.connect(wgt._on_pressed)</span>
+            <span class="c1"># wgt.view.activated.connect(wgt._on_activated)</span>
 
     <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
-    <span class="c1">#cfgstr_list = metadata</span>
+    <span class="c1"># cfgstr_list = metadata</span>
     <span class="n">col_name_list</span><span class="p">,</span> <span class="n">column_list</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get_square_data</span><span class="p">()</span>
 
     <span class="c1"># Priority of column names</span>
-    <span class="n">colname_priority</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;qaids&#39;</span><span class="p">,</span> <span class="s1">&#39;qx2_gt_rank&#39;</span><span class="p">,</span> <span class="s1">&#39;qx2_gt_timedelta&#39;</span><span class="p">,</span>
-                        <span class="s1">&#39;qx2_gf_timedelta&#39;</span><span class="p">,</span>  <span class="s1">&#39;analysis_fpath&#39;</span><span class="p">,</span>
-                        <span class="s1">&#39;qx2_gt_raw_score&#39;</span><span class="p">,</span> <span class="s1">&#39;qx2_gf_raw_score&#39;</span><span class="p">]</span>
+    <span class="n">colname_priority</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;qaids&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;qx2_gt_rank&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;qx2_gt_timedelta&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;qx2_gf_timedelta&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;analysis_fpath&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;qx2_gt_raw_score&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;qx2_gf_raw_score&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="n">colname_priority</span> <span class="o">+=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">colname_priority</span><span class="p">))</span>
     <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">priority_argsort</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">colname_priority</span><span class="p">)</span>
     <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
@@ -194,26 +322,36 @@
     <span class="n">col_ider_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">col_setter_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">col_nice_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;qx2_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">}</span>
-    <span class="n">col_nice_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-        <span class="s1">&#39;qx2_gt_timedelta&#39;</span><span class="p">:</span> <span class="s1">&#39;GT TimeDelta&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;qx2_gf_timedelta&#39;</span><span class="p">:</span> <span class="s1">&#39;GF TimeDelta&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;qx2_gt_rank&#39;</span><span class="p">:</span> <span class="s1">&#39;GT Rank&#39;</span><span class="p">,</span>
-    <span class="p">})</span>
+    <span class="n">col_nice_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;qx2_gt_timedelta&#39;</span><span class="p">:</span> <span class="s1">&#39;GT TimeDelta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;qx2_gf_timedelta&#39;</span><span class="p">:</span> <span class="s1">&#39;GF TimeDelta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;qx2_gt_rank&#39;</span><span class="p">:</span> <span class="s1">&#39;GT Rank&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
     <span class="n">editable_colnames</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sortby</span> <span class="o">=</span> <span class="s1">&#39;qaids&#39;</span>
+
     <span class="k">def</span> <span class="nf">get_thumb_size</span><span class="p">():</span>
         <span class="k">return</span> <span class="mi">128</span>
+
     <span class="n">col_width_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">custom_api</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
-        <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getter_dict</span><span class="p">,</span>
-        <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
-        <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">get_thumb_size</span><span class="p">,</span>
+        <span class="n">col_name_list</span><span class="p">,</span>
+        <span class="n">col_types_dict</span><span class="p">,</span>
+        <span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="n">col_bgrole_dict</span><span class="p">,</span>
+        <span class="n">col_ider_dict</span><span class="p">,</span>
+        <span class="n">col_setter_dict</span><span class="p">,</span>
+        <span class="n">editable_colnames</span><span class="p">,</span>
+        <span class="n">sortby</span><span class="p">,</span>
+        <span class="n">get_thumb_size</span><span class="p">,</span>
         <span class="n">sort_reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">col_width_dict</span><span class="o">=</span><span class="n">col_width_dict</span><span class="p">,</span>
-        <span class="n">col_nice_dict</span><span class="o">=</span><span class="n">col_nice_dict</span>
+        <span class="n">col_nice_dict</span><span class="o">=</span><span class="n">col_nice_dict</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="c1">#headers = custom_api.make_headers(tblnice=&#39;results&#39;)</span>
-    <span class="c1">#print(ut.repr2(headers))</span>
+    <span class="c1"># headers = custom_api.make_headers(tblnice=&#39;results&#39;)</span>
+    <span class="c1"># print(ut.repr2(headers))</span>
     <span class="n">wgt</span> <span class="o">=</span> <span class="n">MetadataViewer</span><span class="p">()</span>
     <span class="n">wgt</span><span class="o">.</span><span class="n">connect_api</span><span class="p">(</span><span class="n">custom_api</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wgt</span></div>
@@ -221,6 +359,7 @@
 
 <div class="viewcode-block" id="make_test_result_custom_api"><a class="viewcode-back" href="../../../wbia.expt.html#wbia.expt.old_storage.make_test_result_custom_api">[docs]</a><span class="k">def</span> <span class="nf">make_test_result_custom_api</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">wbia.guitool</span>
+
     <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
     <span class="n">cfgx</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">cfgres_info</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">cfgx2_cmsinfo</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
@@ -247,16 +386,27 @@
     <span class="n">col_setter_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">editable_colnames</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sortby</span> <span class="o">=</span> <span class="s1">&#39;qaids&#39;</span>
+
     <span class="k">def</span> <span class="nf">get_thumb_size</span><span class="p">():</span>
         <span class="k">return</span> <span class="mi">128</span>
+
     <span class="n">col_width_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="n">custom_api</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
-        <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getter_dict</span><span class="p">,</span>
-        <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
-        <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">get_thumb_size</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">col_width_dict</span><span class="p">)</span>
-    <span class="c1">#headers = custom_api.make_headers(tblnice=&#39;results&#39;)</span>
-    <span class="c1">#print(ut.repr2(headers))</span>
+        <span class="n">col_name_list</span><span class="p">,</span>
+        <span class="n">col_types_dict</span><span class="p">,</span>
+        <span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="n">col_bgrole_dict</span><span class="p">,</span>
+        <span class="n">col_ider_dict</span><span class="p">,</span>
+        <span class="n">col_setter_dict</span><span class="p">,</span>
+        <span class="n">editable_colnames</span><span class="p">,</span>
+        <span class="n">sortby</span><span class="p">,</span>
+        <span class="n">get_thumb_size</span><span class="p">,</span>
+        <span class="kc">True</span><span class="p">,</span>
+        <span class="n">col_width_dict</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># headers = custom_api.make_headers(tblnice=&#39;results&#39;)</span>
+    <span class="c1"># print(ut.repr2(headers))</span>
     <span class="n">wgt</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="p">()</span>
     <span class="n">wgt</span><span class="o">.</span><span class="n">connect_api</span><span class="p">(</span><span class="n">custom_api</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wgt</span></div>
@@ -312,23 +462,24 @@
 
     <span class="n">figdir_suffix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--fig-dname&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+
     <span class="k">if</span> <span class="n">figdir_suffix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">figdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">figdir_suffix</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
-    <span class="c1">#gx2_gt_timedelta</span>
+    <span class="c1"># gx2_gt_timedelta</span>
     <span class="c1">#    cfgres_info[&#39;qx2_gf_timedelta&#39;] = qx2_gf_timedelta</span>
 
     <span class="n">metadata_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s1">&#39;result_metadata.shelf&#39;</span><span class="p">)</span>
     <span class="n">metadata</span> <span class="o">=</span> <span class="n">ResultMetadata</span><span class="p">(</span><span class="n">metadata_fpath</span><span class="p">)</span>
-    <span class="c1">#metadata.rrr()</span>
+    <span class="c1"># metadata.rrr()</span>
     <span class="n">metadata</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
     <span class="n">metadata</span><span class="o">.</span><span class="n">sync_test_results</span><span class="p">(</span><span class="n">testres</span><span class="p">)</span>
-    <span class="c1">#cfgstr = qreq_.get_cfgstr()</span>
-    <span class="c1">#cfg_metadata = ensure_item(metadata, cfgstr, {})</span>
-    <span class="c1">#avuuids = ibs.get_annot_visual_uuids(qaids)</span>
-    <span class="c1">#avuuid2_ax = ensure_item(cfg_metadata, &#39;avuuid2_ax&#39;, {})</span>
-    <span class="c1">#cfg_columns = ensure_item(cfg_metadata, &#39;columns&#39;, {})</span>
-    <span class="c1">#import wbia.guitool</span>
+    <span class="c1"># cfgstr = qreq_.get_cfgstr()</span>
+    <span class="c1"># cfg_metadata = ensure_item(metadata, cfgstr, {})</span>
+    <span class="c1"># avuuids = ibs.get_annot_visual_uuids(qaids)</span>
+    <span class="c1"># avuuid2_ax = ensure_item(cfg_metadata, &#39;avuuid2_ax&#39;, {})</span>
+    <span class="c1"># cfg_columns = ensure_item(cfg_metadata, &#39;columns&#39;, {})</span>
+    <span class="c1"># import wbia.guitool</span>
 
     <span class="c1"># ut.argv_flag_dec(draw_rank_cmc)(ibs, testres)</span>
 
@@ -339,8 +490,9 @@
     <span class="n">metadata</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--guiview&#39;</span><span class="p">,</span> <span class="s1">&#39;--gv&#39;</span><span class="p">)):</span>
         <span class="kn">import</span> <span class="nn">wbia.guitool</span>
+
         <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
-        <span class="c1">#wgt = make_test_result_custom_api(ibs, testres)</span>
+        <span class="c1"># wgt = make_test_result_custom_api(ibs, testres)</span>
         <span class="n">wgt</span> <span class="o">=</span> <span class="n">make_metadata_custom_api</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
         <span class="n">wgt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="n">wgt</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
@@ -358,18 +510,37 @@
 <span class="sd">        python -m wbia.expt.old_storage --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -377,57 +548,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../expt.html">wbia.expt</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

@@ -1,36 +1,151 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.job_engine &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.web.job_engine &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+      <li>wbia.web.job_engine</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.web.job_engine</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -86,7 +201,8 @@
 <span class="sd">        python -m wbia.web.job_engine job_engine_tester --fg</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="c1">#if False:</span>
+
+<span class="c1"># if False:</span>
 <span class="c1">#    import os</span>
 <span class="c1">#    os.environ[&#39;UTOOL_NOCNN&#39;] = &#39;True&#39;</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
@@ -103,19 +219,23 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
 <span class="kn">import</span> <span class="nn">threading</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">))</span>
-<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">ctx</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">Context</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
 
 <span class="c1"># FIXME: needs to use correct number of ports</span>
 <span class="n">URL</span> <span class="o">=</span> <span class="s1">&#39;tcp://127.0.0.1&#39;</span>
 <span class="n">NUM_ENGINES</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">VERBOSE_JOBS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--bg&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--fg&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verbose-jobs&#39;</span><span class="p">)</span>
+<span class="n">VERBOSE_JOBS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--bg&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--fg&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verbose-jobs&#39;</span><span class="p">)</span>
+<span class="p">)</span>
 
 
 <span class="n">GLOBAL_SHELVE_LOCK</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
@@ -131,6 +251,7 @@
 <div class="viewcode-block" id="update_proctitle"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.update_proctitle">[docs]</a><span class="k">def</span> <span class="nf">update_proctitle</span><span class="p">(</span><span class="n">procname</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">setproctitle</span>
+
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CHANGING PROCESS TITLE&#39;</span><span class="p">)</span>
         <span class="n">old_title</span> <span class="o">=</span> <span class="n">setproctitle</span><span class="o">.</span><span class="n">getproctitle</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;old_title = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_title</span><span class="p">,))</span>
@@ -138,7 +259,7 @@
         <span class="c1"># new_title = procname + &#39; &#39; + old_title</span>
         <span class="c1"># new_title = &#39;wbia_zmq_loop&#39;</span>
         <span class="n">hostname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span>
-        <span class="n">new_title</span> <span class="o">=</span> <span class="s1">&#39;IBEIS_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">procname</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">new_title</span> <span class="o">=</span> <span class="s1">&#39;IBEIS_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">procname</span><span class="p">,)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new_title = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_title</span><span class="p">,))</span>
         <span class="n">setproctitle</span><span class="o">.</span><span class="n">setproctitle</span><span class="p">(</span><span class="n">new_title</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -216,17 +337,18 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">reciever</span> <span class="o">=</span> <span class="n">JobBackend</span><span class="p">(</span><span class="n">use_static_ports</span><span class="o">=</span><span class="n">use_static_ports</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">reciever</span><span class="o">.</span><span class="n">initialize_background_processes</span><span class="p">(</span>
-            <span class="n">dbdir</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span>
-            <span class="n">containerized</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,</span>
+            <span class="n">dbdir</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="n">containerized</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="c1"># Delete any leftover locks from before</span>
     <span class="n">lock_filepath_list</span> <span class="o">=</span> <span class="n">_get_engine_lock_paths</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Deleting </span><span class="si">%d</span><span class="s1"> leftover engine locks&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lock_filepath_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Deleting </span><span class="si">%d</span><span class="s1"> leftover engine locks&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lock_filepath_list</span><span class="p">),))</span>
     <span class="k">for</span> <span class="n">lock_filepath</span> <span class="ow">in</span> <span class="n">lock_filepath_list</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">lock_filepath</span><span class="p">)</span>
 
-    <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span> <span class="o">=</span> <span class="n">JobInterface</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">reciever</span><span class="o">.</span><span class="n">port_dict</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span> <span class="o">=</span> <span class="n">JobInterface</span><span class="p">(</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">reciever</span><span class="o">.</span><span class="n">port_dict</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span>
+    <span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">initialize_client_thread</span><span class="p">()</span>
     <span class="c1"># Wait until the collector becomes live</span>
     <span class="k">while</span> <span class="mi">0</span> <span class="ow">and</span> <span class="kc">True</span><span class="p">:</span>
@@ -289,7 +411,9 @@
 
 
 <div class="viewcode-block" id="get_job_status"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.get_job_status">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/status/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/api/engine/job/status/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
 <span class="k">def</span> <span class="nf">get_job_status</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Web call that returns the status of a job</span>
@@ -332,7 +456,9 @@
 
 
 <div class="viewcode-block" id="get_job_metadata"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.get_job_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/api/engine/job/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
 <span class="k">def</span> <span class="nf">get_job_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Web call that returns the metadata of a job</span>
@@ -375,7 +501,7 @@
 
 <div class="viewcode-block" id="wait_for_job_result"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.wait_for_job_result">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/result/wait/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">wait_for_job_result</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">freq</span><span class="o">=.</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">wait_for_job_result</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">wait_for_job_result</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_unpacked_result</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span></div>
@@ -410,9 +536,11 @@
     <span class="n">reciever</span> <span class="o">=</span> <span class="n">JobBackend</span><span class="p">(</span><span class="n">use_static_ports</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">jobiface</span> <span class="o">=</span> <span class="n">JobInterface</span><span class="p">(</span><span class="n">client_id</span><span class="p">,</span> <span class="n">reciever</span><span class="o">.</span><span class="n">port_dict</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">sysres</span>
+
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--bg&#39;</span><span class="p">):</span>
-        <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                      <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span>
+            <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span>
+        <span class="p">)</span>
         <span class="n">reciever</span><span class="o">.</span><span class="n">initialize_background_processes</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[testzmq] parent process is looping forever&#39;</span><span class="p">)</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -420,8 +548,9 @@
     <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--fg&#39;</span><span class="p">):</span>
         <span class="n">jobiface</span><span class="o">.</span><span class="n">initialize_client_thread</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                      <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span>
+            <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span>
+        <span class="p">)</span>
         <span class="n">reciever</span><span class="o">.</span><span class="n">initialize_background_processes</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
         <span class="n">jobiface</span><span class="o">.</span><span class="n">initialize_client_thread</span><span class="p">()</span>
 
@@ -429,22 +558,21 @@
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... waiting for jobs&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--cmd&#39;</span><span class="p">):</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
-        <span class="c1">#jobiface.queue_job()</span>
+        <span class="c1"># jobiface.queue_job()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[test] ... emit test1&#39;</span><span class="p">)</span>
         <span class="n">callback_url</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">callback_method</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
-        <span class="n">jobid1</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;helloworld&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span>
-                                    <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">jobid1</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;helloworld&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="n">jobiface</span><span class="o">.</span><span class="n">wait_for_job_result</span><span class="p">(</span><span class="n">jobid1</span><span class="p">)</span>
         <span class="n">jobid_list</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="n">args</span> <span class="o">=</span> <span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
-        <span class="n">identify_jobid</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;query_chips_simple_dict&#39;</span><span class="p">,</span>
-                                            <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span>
-                                            <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">identify_jobid</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+            <span class="s1">&#39;query_chips_simple_dict&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">jobid</span> <span class="ow">in</span> <span class="n">jobid_list</span><span class="p">:</span>
             <span class="n">jobiface</span><span class="o">.</span><span class="n">wait_for_job_result</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
 
@@ -454,7 +582,7 @@
 
 <div class="viewcode-block" id="JobBackend"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.JobBackend">[docs]</a><span class="k">class</span> <span class="nc">JobBackend</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1">#self.num_engines = 3</span>
+        <span class="c1"># self.num_engines = 3</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_engines</span> <span class="o">=</span> <span class="n">NUM_ENGINES</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">engine_queue_proc</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">engine_procs</span> <span class="o">=</span> <span class="kc">None</span>
@@ -509,14 +637,14 @@
         <span class="c1"># Assign ports</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">key_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">port_list</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">port_dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">key</span> <span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">port</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">port_list</span><span class="p">))</span>
+            <span class="n">key</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">port</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">port_list</span><span class="p">))</span>
         <span class="p">}</span>
 
-<div class="viewcode-block" id="JobBackend.initialize_background_processes"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.JobBackend.initialize_background_processes">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_background_processes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">containerized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                        <span class="n">thread</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="JobBackend.initialize_background_processes"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.JobBackend.initialize_background_processes">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_background_processes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">containerized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">thread</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
         <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;fuchsia&#39;</span><span class="p">)</span>
-        <span class="c1">#if VERBOSE_JOBS:</span>
+        <span class="c1"># if VERBOSE_JOBS:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Initialize Background Processes&#39;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">_spawner</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -536,7 +664,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">collect_queue_proc</span> <span class="o">=</span> <span class="n">_spawner</span><span class="p">(</span><span class="n">collect_queue_loop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port_dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn_collector</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">collect_proc</span> <span class="o">=</span> <span class="n">_spawner</span><span class="p">(</span><span class="n">collector_loop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port_dict</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,</span> <span class="n">containerized</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">collect_proc</span> <span class="o">=</span> <span class="n">_spawner</span><span class="p">(</span>
+                <span class="n">collector_loop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port_dict</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,</span> <span class="n">containerized</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn_engine</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fg_engine</span><span class="p">:</span>
@@ -567,7 +697,7 @@
 
 
 <div class="viewcode-block" id="get_shelve_lock_filepath"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.get_shelve_lock_filepath">[docs]</a><span class="k">def</span> <span class="nf">get_shelve_lock_filepath</span><span class="p">(</span><span class="n">shelve_filepath</span><span class="p">):</span>
-    <span class="n">shelve_lock_filepath</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.lock&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shelve_filepath</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">shelve_lock_filepath</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.lock&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shelve_filepath</span><span class="p">,)</span>
     <span class="k">return</span> <span class="n">shelve_lock_filepath</span></div>
 
 
@@ -595,7 +725,7 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">elapsed</span><span class="p">)</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Waiting for </span><span class="si">%0.02f</span><span class="s1"> seconds for lock so far&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">elapsed</span><span class="p">,</span> <span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Waiting for </span><span class="si">%0.02f</span><span class="s1"> seconds for lock so far&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">elapsed</span><span class="p">,))</span>
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
@@ -632,8 +762,8 @@
 
 <div class="viewcode-block" id="get_shelve_filepaths"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.get_shelve_filepaths">[docs]</a><span class="k">def</span> <span class="nf">get_shelve_filepaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
     <span class="n">shelve_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_shelves_path</span><span class="p">()</span>
-    <span class="n">shelve_input_filepath</span>  <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.input.shelve&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">)))</span>
-    <span class="n">shelve_output_filepath</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.output.shelve&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">)))</span>
+    <span class="n">shelve_input_filepath</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.input.shelve&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,)))</span>
+    <span class="n">shelve_output_filepath</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.output.shelve&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,)))</span>
     <span class="k">return</span> <span class="n">shelve_input_filepath</span><span class="p">,</span> <span class="n">shelve_output_filepath</span></div>
 
 
@@ -660,17 +790,17 @@
         <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Initializing JobInterface&#39;</span><span class="p">)</span>
         <span class="n">jobiface</span><span class="o">.</span><span class="n">engine_deal_sock</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">DEALER</span><span class="p">)</span>
-        <span class="n">jobiface</span><span class="o">.</span><span class="n">engine_deal_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span>
-                                                    <span class="s1">&#39;client</span><span class="si">%s</span><span class="s1">.engine.DEALER&#39;</span> <span class="o">%</span>
-                                                    <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">id_</span><span class="p">,))</span>
+        <span class="n">jobiface</span><span class="o">.</span><span class="n">engine_deal_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span>
+            <span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;client</span><span class="si">%s</span><span class="s1">.engine.DEALER&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">id_</span><span class="p">,)</span>
+        <span class="p">)</span>
         <span class="n">jobiface</span><span class="o">.</span><span class="n">engine_deal_sock</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">port_dict</span><span class="p">[</span><span class="s1">&#39;engine_url1&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;connect engine_url1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">port_dict</span><span class="p">[</span><span class="s1">&#39;engine_url1&#39;</span><span class="p">],))</span>
 
         <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">DEALER</span><span class="p">)</span>
-        <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span>
-                                                     <span class="s1">&#39;client</span><span class="si">%s</span><span class="s1">.collect.DEALER&#39;</span>
-                                                     <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">id_</span><span class="p">,))</span>
+        <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span>
+            <span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;client</span><span class="si">%s</span><span class="s1">.collect.DEALER&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">id_</span><span class="p">,)</span>
+        <span class="p">)</span>
         <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">port_dict</span><span class="p">[</span><span class="s1">&#39;collect_url1&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;connect collect_url1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">port_dict</span><span class="p">[</span><span class="s1">&#39;collect_url1&#39;</span><span class="p">],))</span></div>
@@ -697,18 +827,18 @@
 
             <span class="n">shelve_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_shelves_path</span><span class="p">()</span>
             <span class="n">shelve_path</span> <span class="o">=</span> <span class="n">shelve_path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-            <span class="n">shelve_archive_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_ARCHIVE&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">shelve_archive_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_ARCHIVE&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shelve_path</span><span class="p">,)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">shelve_archive_path</span><span class="p">)</span>
 
             <span class="n">record_filepath_list</span> <span class="o">=</span> <span class="n">_get_engine_job_paths</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
 
             <span class="n">restart_jobcounter_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">restart_jobid_list</span>      <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">restart_request_list</span>    <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">restart_jobid_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">restart_request_list</span> <span class="o">=</span> <span class="p">[]</span>
 
             <span class="n">completed_jobcounter</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">num_registered</span><span class="p">,</span> <span class="n">num_archived</span><span class="p">,</span> <span class="n">num_suppressed</span><span class="p">,</span> <span class="n">num_corrupted</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reloading </span><span class="si">%d</span><span class="s1"> engine jobs...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">record_filepath_list</span><span class="p">),</span> <span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reloading </span><span class="si">%d</span><span class="s1"> engine jobs...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">record_filepath_list</span><span class="p">),))</span>
             <span class="k">for</span> <span class="n">record_filepath</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">record_filepath_list</span><span class="p">):</span>
                 <span class="n">jobid</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">record_filepath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -716,16 +846,18 @@
                 <span class="n">record</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">record_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
                 <span class="c1"># Load the record info</span>
-                <span class="n">engine_request</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">,</span>   <span class="kc">None</span><span class="p">)</span>
-                <span class="n">attempts</span>       <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;attempts&#39;</span><span class="p">,</span>  <span class="mi">0</span><span class="p">)</span>
-                <span class="n">completed</span>      <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">engine_request</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">attempts</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;attempts&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">completed</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
                 <span class="c1"># Check status</span>
-                <span class="n">suppressed</span>     <span class="o">=</span> <span class="n">attempts</span> <span class="o">&gt;=</span> <span class="n">MAX_ATTEMPTS</span>
-                <span class="n">corrupted</span>      <span class="o">=</span> <span class="n">engine_request</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="n">suppressed</span> <span class="o">=</span> <span class="n">attempts</span> <span class="o">&gt;=</span> <span class="n">MAX_ATTEMPTS</span>
+                <span class="n">corrupted</span> <span class="o">=</span> <span class="n">engine_request</span> <span class="ow">is</span> <span class="kc">None</span>
 
                 <span class="c1"># Load metadata</span>
-                <span class="n">shelve_input_filepath</span><span class="p">,</span> <span class="n">shelve_output_filepath</span> <span class="o">=</span> <span class="n">get_shelve_filepaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">)</span>
+                <span class="n">shelve_input_filepath</span><span class="p">,</span> <span class="n">shelve_output_filepath</span> <span class="o">=</span> <span class="n">get_shelve_filepaths</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span>
+                <span class="p">)</span>
                 <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_shelve_value</span><span class="p">(</span><span class="n">shelve_input_filepath</span><span class="p">,</span> <span class="s1">&#39;metadata&#39;</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -746,22 +878,38 @@
                         <span class="n">completed_timestamp</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">completed_timestamp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                             <span class="k">try</span><span class="p">:</span>
-                                <span class="n">archive_elapsed</span> <span class="o">=</span> <span class="n">calculate_timedelta</span><span class="p">(</span><span class="n">completed_timestamp</span><span class="p">,</span> <span class="n">archive_timestamp</span><span class="p">)</span>
+                                <span class="n">archive_elapsed</span> <span class="o">=</span> <span class="n">calculate_timedelta</span><span class="p">(</span>
+                                    <span class="n">completed_timestamp</span><span class="p">,</span> <span class="n">archive_timestamp</span>
+                                <span class="p">)</span>
                                 <span class="n">job_age</span> <span class="o">=</span> <span class="n">archive_elapsed</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                                 <span class="n">archive_flag</span> <span class="o">=</span> <span class="n">job_age</span> <span class="o">&gt;</span> <span class="mi">0</span>
                             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">completed_timestamp</span><span class="p">,</span> <span class="n">archive_timestamp</span><span class="p">,</span> <span class="p">)</span>
-                                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[job_engine] Could not determine archive status!</span><span class="se">\n\t</span><span class="s1">Completed: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Archive: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+                                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                                    <span class="n">completed_timestamp</span><span class="p">,</span>
+                                    <span class="n">archive_timestamp</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="nb">print</span><span class="p">(</span>
+                                    <span class="s1">&#39;[job_engine] Could not determine archive status!</span><span class="se">\n\t</span><span class="s1">Completed: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Archive: </span><span class="si">%r</span><span class="s1">&#39;</span>
+                                    <span class="o">%</span> <span class="n">args</span>
+                                <span class="p">)</span>
 
                         <span class="k">if</span> <span class="n">archive_flag</span><span class="p">:</span>
                             <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[client </span><span class="si">%d</span><span class="s1">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">id_</span><span class="p">)):</span>
                                 <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;brightmagenta&#39;</span>
                                 <span class="n">print_</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
-                                <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;ARCHIVING JOB (AGE: </span><span class="si">%d</span><span class="s1"> SECONDS)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">job_age</span><span class="p">,</span> <span class="p">))</span>
-                                <span class="n">job_scr_filepath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">*&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">))))</span>
+                                <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;ARCHIVING JOB (AGE: </span><span class="si">%d</span><span class="s1"> SECONDS)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">job_age</span><span class="p">,))</span>
+                                <span class="n">job_scr_filepath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                                    <span class="n">ut</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">*&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,)))</span>
+                                <span class="p">)</span>
                                 <span class="k">for</span> <span class="n">job_scr_filepath</span> <span class="ow">in</span> <span class="n">job_scr_filepath_list</span><span class="p">:</span>
-                                    <span class="n">job_dst_filepath</span> <span class="o">=</span> <span class="n">job_scr_filepath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="n">shelve_archive_path</span><span class="p">)</span>
-                                    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">job_scr_filepath</span><span class="p">,</span> <span class="n">job_dst_filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># ut.copy allows for overwrite, ut.move does not</span>
+                                    <span class="n">job_dst_filepath</span> <span class="o">=</span> <span class="n">job_scr_filepath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                                        <span class="n">shelve_path</span><span class="p">,</span> <span class="n">shelve_archive_path</span>
+                                    <span class="p">)</span>
+                                    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                                        <span class="n">job_scr_filepath</span><span class="p">,</span>
+                                        <span class="n">job_dst_filepath</span><span class="p">,</span>
+                                        <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                    <span class="p">)</span>  <span class="c1"># ut.copy allows for overwrite, ut.move does not</span>
                                     <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">job_scr_filepath</span><span class="p">)</span>
                             <span class="n">num_archived</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -770,7 +918,10 @@
                         <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;brightblue&#39;</span> <span class="k">if</span> <span class="n">attempts</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;brightred&#39;</span>
                         <span class="n">print_</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
 
-                        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;RESTARTING FAILED JOB FROM RESTART (ATTEMPT </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attempts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">))</span>
+                        <span class="n">print_</span><span class="p">(</span>
+                            <span class="s1">&#39;RESTARTING FAILED JOB FROM RESTART (ATTEMPT </span><span class="si">%d</span><span class="s1">)&#39;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">attempts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,)</span>
+                        <span class="p">)</span>
                         <span class="n">print_</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">record_filepath</span><span class="p">))</span>
                         <span class="c1"># print_(ut.repr3(record))</span>
 
@@ -814,25 +965,27 @@
                         <span class="n">completed_jobcounter</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">completed_jobcounter</span><span class="p">,</span> <span class="n">jobcounter</span><span class="p">)</span>
                     <span class="n">num_registered</span> <span class="o">+=</span> <span class="mi">1</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Registered </span><span class="si">%d</span><span class="s1"> jobs...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_registered</span><span class="p">,</span> <span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> suppressed jobs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_suppressed</span><span class="p">,</span> <span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> corrupted jobs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_corrupted</span><span class="p">,</span> <span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Archived </span><span class="si">%d</span><span class="s1"> jobs...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_archived</span><span class="p">,</span> <span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Registered </span><span class="si">%d</span><span class="s1"> jobs...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_registered</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> suppressed jobs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_suppressed</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> corrupted jobs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_corrupted</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Archived </span><span class="si">%d</span><span class="s1"> jobs...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_archived</span><span class="p">,))</span>
 
             <span class="c1"># Update the jobcounter to be up to date</span>
             <span class="n">update_notify</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">&#39;__set_jobcounter__&#39;</span><span class="p">:</span> <span class="n">completed_jobcounter</span><span class="p">,</span>
             <span class="p">}</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating completed job counter: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">update_notify</span><span class="p">,</span> <span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating completed job counter: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">update_notify</span><span class="p">,))</span>
             <span class="n">jobiface</span><span class="o">.</span><span class="n">engine_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">update_notify</span><span class="p">)</span>
             <span class="n">reply</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">engine_deal_sock</span><span class="o">.</span><span class="n">recv_json</span><span class="p">()</span>
             <span class="n">jobcounter_</span> <span class="o">=</span> <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobcounter&#39;</span><span class="p">]</span>
             <span class="k">assert</span> <span class="n">jobcounter_</span> <span class="o">==</span> <span class="n">completed_jobcounter</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Re-sending </span><span class="si">%d</span><span class="s1"> engine jobs...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">restart_jobcounter_list</span><span class="p">),</span> <span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Re-sending </span><span class="si">%d</span><span class="s1"> engine jobs...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">restart_jobcounter_list</span><span class="p">),))</span>
 
             <span class="n">index_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">restart_jobcounter_list</span><span class="p">)</span>
-            <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">restart_jobcounter_list</span><span class="p">,</span> <span class="n">restart_jobid_list</span><span class="p">,</span> <span class="n">restart_request_list</span><span class="p">))</span>
+            <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">zip</span><span class="p">(</span><span class="n">restart_jobcounter_list</span><span class="p">,</span> <span class="n">restart_jobid_list</span><span class="p">,</span> <span class="n">restart_request_list</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">zipped</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">zipped</span><span class="p">,</span> <span class="n">index_list</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">jobcounter</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">engine_request</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">zipped</span><span class="p">):</span>
@@ -843,7 +996,9 @@
                 <span class="k">assert</span> <span class="n">jobcounter_</span> <span class="o">==</span> <span class="n">jobcounter</span>
                 <span class="k">assert</span> <span class="n">jobid_</span> <span class="o">==</span> <span class="n">jobid</span></div>
 
-<div class="viewcode-block" id="JobInterface.queue_job"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.JobInterface.queue_job">[docs]</a>    <span class="k">def</span> <span class="nf">queue_job</span><span class="p">(</span><span class="n">jobiface</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="JobInterface.queue_job"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.JobInterface.queue_job">[docs]</a>    <span class="k">def</span> <span class="nf">queue_job</span><span class="p">(</span>
+        <span class="n">jobiface</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        IBEIS:</span>
 <span class="sd">            This is just a function that lives in the main thread and ships off</span>
@@ -870,21 +1025,21 @@
                     <span class="n">request</span> <span class="o">=</span> <span class="p">{</span>
                         <span class="s1">&#39;endpoint&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
                         <span class="s1">&#39;function&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">endpoint</span><span class="p">,</span>
-                        <span class="s1">&#39;input&#39;</span>   <span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">processed</span><span class="p">,</span>
+                        <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">processed</span><span class="p">,</span>
                     <span class="p">}</span>
             <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
                 <span class="k">pass</span>
 
             <span class="n">engine_request</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;action&#39;</span>             <span class="p">:</span> <span class="n">action</span><span class="p">,</span>
-                <span class="s1">&#39;args&#39;</span>               <span class="p">:</span> <span class="n">args</span><span class="p">,</span>
-                <span class="s1">&#39;kwargs&#39;</span>             <span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span>
-                <span class="s1">&#39;callback_url&#39;</span>       <span class="p">:</span> <span class="n">callback_url</span><span class="p">,</span>
-                <span class="s1">&#39;callback_method&#39;</span>    <span class="p">:</span> <span class="n">callback_method</span><span class="p">,</span>
-                <span class="s1">&#39;request&#39;</span>            <span class="p">:</span> <span class="n">request</span><span class="p">,</span>
-                <span class="s1">&#39;restart_jobid&#39;</span>      <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;restart_jobcounter&#39;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;restart_received&#39;</span>   <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">action</span><span class="p">,</span>
+                <span class="s1">&#39;args&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span>
+                <span class="s1">&#39;kwargs&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span>
+                <span class="s1">&#39;callback_url&#39;</span><span class="p">:</span> <span class="n">callback_url</span><span class="p">,</span>
+                <span class="s1">&#39;callback_method&#39;</span><span class="p">:</span> <span class="n">callback_method</span><span class="p">,</span>
+                <span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
+                <span class="s1">&#39;restart_jobid&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;restart_jobcounter&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;restart_received&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">}</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Queue job: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_request</span><span class="p">))</span>
@@ -899,23 +1054,23 @@
                 <span class="n">shelve_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_shelves_path</span><span class="p">()</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">)</span>
 
-                <span class="n">record_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">)</span>
+                <span class="n">record_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,)</span>
                 <span class="n">record_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="n">record_filename</span><span class="p">)</span>
                 <span class="n">record</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s1">&#39;request&#39;</span><span class="p">:</span>   <span class="n">engine_request</span><span class="p">,</span>
-                    <span class="s1">&#39;attempts&#39;</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+                    <span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">engine_request</span><span class="p">,</span>
+                    <span class="s1">&#39;attempts&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                     <span class="s1">&#39;completed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="p">}</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">save_cPkl</span><span class="p">(</span><span class="n">record_filepath</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
             <span class="c1"># Release memor</span>
-            <span class="n">action</span>          <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">args</span>            <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">kwargs</span>          <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">callback_url</span>    <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">callback_url</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">callback_method</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">request</span>         <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">engine_request</span>  <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">engine_request</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="k">return</span> <span class="n">jobid</span></div>
 
@@ -994,7 +1149,7 @@
         <span class="n">json_result</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
-<div class="viewcode-block" id="JobInterface.wait_for_job_result"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.JobInterface.wait_for_job_result">[docs]</a>    <span class="k">def</span> <span class="nf">wait_for_job_result</span><span class="p">(</span><span class="n">jobiface</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">freq</span><span class="o">=.</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="JobInterface.wait_for_job_result"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.JobInterface.wait_for_job_result">[docs]</a>    <span class="k">def</span> <span class="nf">wait_for_job_result</span><span class="p">(</span><span class="n">jobiface</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">t</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -1003,7 +1158,7 @@
                 <span class="k">return</span>
             <span class="k">elif</span> <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobstatus&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;exception&#39;</span><span class="p">:</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">get_unpacked_result</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
-                <span class="c1">#raise Exception(result)</span>
+                <span class="c1"># raise Exception(result)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exception occured in engine&#39;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">result</span>
             <span class="k">elif</span> <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobstatus&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;working&#39;</span><span class="p">:</span>
@@ -1028,6 +1183,7 @@
     <span class="k">assert</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;must name queue&#39;</span>
     <span class="n">queue_name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_queue&#39;</span>
     <span class="n">loop_name</span> <span class="o">=</span> <span class="n">queue_name</span> <span class="o">+</span> <span class="s1">&#39;_loop&#39;</span>
+
     <span class="k">def</span> <span class="nf">queue_loop</span><span class="p">(</span><span class="n">port_dict</span><span class="p">):</span>
         <span class="n">iface1</span><span class="p">,</span> <span class="n">iface2</span> <span class="o">=</span> <span class="n">port_dict</span><span class="p">[</span><span class="s1">&#39;collect_url1&#39;</span><span class="p">],</span> <span class="n">port_dict</span><span class="p">[</span><span class="s1">&#39;collect_url2&#39;</span><span class="p">]</span>
         <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">)</span>
@@ -1079,6 +1235,7 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Caught ctrl+c in collector loop. Gracefully exiting&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exiting </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">loop_name</span><span class="p">,))</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">queue_loop</span><span class="p">,</span> <span class="n">loop_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">queue_loop</span></div>
 
@@ -1106,14 +1263,18 @@
 
         <span class="c1"># bind the client dealer to the queue router</span>
         <span class="n">rout_sock</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">ROUTER</span><span class="p">)</span>
-        <span class="n">rout_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;special_queue.&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;ROUTER&#39;</span><span class="p">)</span>
+        <span class="n">rout_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span>
+            <span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;special_queue.&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;ROUTER&#39;</span>
+        <span class="p">)</span>
         <span class="n">rout_sock</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">iface1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">iface1</span><span class="p">,))</span>
 
         <span class="c1"># bind the server router to the queue dealer</span>
         <span class="n">deal_sock</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">DEALER</span><span class="p">)</span>
-        <span class="n">deal_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;special_queue.&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;DEALER&#39;</span><span class="p">)</span>
+        <span class="n">deal_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span>
+            <span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;special_queue.&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;DEALER&#39;</span>
+        <span class="p">)</span>
         <span class="n">deal_sock</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">iface2</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">iface2</span><span class="p">,))</span>
@@ -1137,7 +1298,9 @@
                 <span class="n">evts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">poller</span><span class="o">.</span><span class="n">poll</span><span class="p">())</span>
                 <span class="k">if</span> <span class="n">rout_sock</span> <span class="ow">in</span> <span class="n">evts</span><span class="p">:</span>
                     <span class="c1"># CALLER: job_client</span>
-                    <span class="n">idents</span><span class="p">,</span> <span class="n">engine_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span><span class="n">rout_sock</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
+                    <span class="n">idents</span><span class="p">,</span> <span class="n">engine_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span>
+                        <span class="n">rout_sock</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="nb">print</span>
+                    <span class="p">)</span>
 
                     <span class="n">set_jobcounter</span> <span class="o">=</span> <span class="n">engine_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__set_jobcounter__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">set_jobcounter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1145,35 +1308,44 @@
                         <span class="n">reply_notify</span> <span class="o">=</span> <span class="p">{</span>
                             <span class="s1">&#39;jobcounter&#39;</span><span class="p">:</span> <span class="n">global_jobcounter</span><span class="p">,</span>
                         <span class="p">}</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... notifying client that jobcounter was updated to </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">global_jobcounter</span><span class="p">,</span> <span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="s1">&#39;... notifying client that jobcounter was updated to </span><span class="si">%d</span><span class="s1">&#39;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">global_jobcounter</span><span class="p">,)</span>
+                        <span class="p">)</span>
                         <span class="c1"># RETURNS: job_client_return</span>
                         <span class="n">send_multipart_json</span><span class="p">(</span><span class="n">rout_sock</span><span class="p">,</span> <span class="n">idents</span><span class="p">,</span> <span class="n">reply_notify</span><span class="p">)</span>
                         <span class="k">continue</span>
 
                     <span class="c1"># jobid = &#39;jobid-%04d&#39; % (jobcounter,)</span>
-                    <span class="n">jobid</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">(),</span> <span class="p">)</span>
+                    <span class="n">jobid</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">(),)</span>
                     <span class="n">jobcounter</span> <span class="o">=</span> <span class="n">global_jobcounter</span> <span class="o">+</span> <span class="mi">1</span>
                     <span class="n">received</span> <span class="o">=</span> <span class="n">_timestamp</span><span class="p">()</span>
 
-                    <span class="n">action</span>             <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
-                    <span class="n">args</span>               <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]</span>
-                    <span class="n">kwargs</span>             <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;kwargs&#39;</span><span class="p">]</span>
-                    <span class="n">callback_url</span>       <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_url&#39;</span><span class="p">]</span>
-                    <span class="n">callback_method</span>    <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_method&#39;</span><span class="p">]</span>
-                    <span class="n">request</span>            <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span>
-                    <span class="n">restart_jobid</span>      <span class="o">=</span> <span class="n">engine_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;restart_jobid&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="n">action</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]</span>
+                    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;kwargs&#39;</span><span class="p">]</span>
+                    <span class="n">callback_url</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_url&#39;</span><span class="p">]</span>
+                    <span class="n">callback_method</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_method&#39;</span><span class="p">]</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span>
+                    <span class="n">restart_jobid</span> <span class="o">=</span> <span class="n">engine_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;restart_jobid&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                     <span class="n">restart_jobcounter</span> <span class="o">=</span> <span class="n">engine_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;restart_jobcounter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="n">restart_received</span>   <span class="o">=</span> <span class="n">engine_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;restart_received&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="n">restart_received</span> <span class="o">=</span> <span class="n">engine_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;restart_received&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
                     <span class="k">if</span> <span class="n">restart_jobid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="s1">&#39;[RESTARTING] Replacing jobid=</span><span class="si">%s</span><span class="s1"> with previous restart_jobid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">restart_jobid</span><span class="p">,</span> <span class="p">)</span>
+                        <span class="s1">&#39;[RESTARTING] Replacing jobid=</span><span class="si">%s</span><span class="s1"> with previous restart_jobid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">jobid</span><span class="p">,</span>
+                            <span class="n">restart_jobid</span><span class="p">,</span>
+                        <span class="p">)</span>
                         <span class="n">jobid</span> <span class="o">=</span> <span class="n">restart_jobid</span>
 
                     <span class="k">if</span> <span class="n">restart_jobcounter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="s1">&#39;[RESTARTING] Replacing jobcounter=</span><span class="si">%s</span><span class="s1"> with previous restart_jobcounter=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobcounter</span><span class="p">,</span> <span class="n">restart_jobcounter</span><span class="p">,</span> <span class="p">)</span>
+                        <span class="s1">&#39;[RESTARTING] Replacing jobcounter=</span><span class="si">%s</span><span class="s1"> with previous restart_jobcounter=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">jobcounter</span><span class="p">,</span>
+                            <span class="n">restart_jobcounter</span><span class="p">,</span>
+                        <span class="p">)</span>
                         <span class="n">jobcounter</span> <span class="o">=</span> <span class="n">restart_jobcounter</span>
 
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating jobid </span><span class="si">%r</span><span class="s1"> (counter </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">jobcounter</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating jobid </span><span class="si">%r</span><span class="s1"> (counter </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">jobcounter</span><span class="p">,))</span>
 
                     <span class="k">if</span> <span class="n">restart_received</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">received</span> <span class="o">=</span> <span class="n">restart_received</span>
@@ -1182,10 +1354,10 @@
                     <span class="c1"># Status: Received (Notify Collector)</span>
                     <span class="c1"># Reply immediately with a new jobid</span>
                     <span class="n">reply_notify</span> <span class="o">=</span> <span class="p">{</span>
-                        <span class="s1">&#39;jobid&#39;</span>      <span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
-                        <span class="s1">&#39;jobcounter&#39;</span> <span class="p">:</span> <span class="n">jobcounter</span><span class="p">,</span>
-                        <span class="s1">&#39;status&#39;</span>     <span class="p">:</span> <span class="s1">&#39;received&#39;</span><span class="p">,</span>
-                        <span class="s1">&#39;action&#39;</span>     <span class="p">:</span> <span class="s1">&#39;notification&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
+                        <span class="s1">&#39;jobcounter&#39;</span><span class="p">:</span> <span class="n">jobcounter</span><span class="p">,</span>
+                        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;received&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;notification&#39;</span><span class="p">,</span>
                     <span class="p">}</span>
 
                     <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
@@ -1207,23 +1379,23 @@
                     <span class="n">metadata_notify</span> <span class="o">=</span> <span class="p">{</span>
                         <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
                         <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{</span>
-                            <span class="s1">&#39;jobcounter&#39;</span>         <span class="p">:</span> <span class="n">jobcounter</span><span class="p">,</span>
-                            <span class="s1">&#39;action&#39;</span>             <span class="p">:</span> <span class="n">action</span><span class="p">,</span>
-                            <span class="s1">&#39;args&#39;</span>               <span class="p">:</span> <span class="n">args</span><span class="p">,</span>
-                            <span class="s1">&#39;kwargs&#39;</span>             <span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span>
-                            <span class="s1">&#39;callback_url&#39;</span>       <span class="p">:</span> <span class="n">callback_url</span><span class="p">,</span>
-                            <span class="s1">&#39;callback_method&#39;</span>    <span class="p">:</span> <span class="n">callback_method</span><span class="p">,</span>
-                            <span class="s1">&#39;request&#39;</span>            <span class="p">:</span> <span class="n">request</span><span class="p">,</span>
-                            <span class="s1">&#39;times&#39;</span>              <span class="p">:</span> <span class="p">{</span>
-                                <span class="s1">&#39;received&#39;</span>       <span class="p">:</span> <span class="n">received</span><span class="p">,</span>
-                                <span class="s1">&#39;started&#39;</span>        <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                                <span class="s1">&#39;updated&#39;</span>        <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                                <span class="s1">&#39;completed&#39;</span>      <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                                <span class="s1">&#39;runtime&#39;</span>        <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                                <span class="s1">&#39;turnaround&#39;</span>     <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                                <span class="s1">&#39;runtime_sec&#39;</span>    <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                                <span class="s1">&#39;turnaround_sec&#39;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                            <span class="p">}</span>
+                            <span class="s1">&#39;jobcounter&#39;</span><span class="p">:</span> <span class="n">jobcounter</span><span class="p">,</span>
+                            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">action</span><span class="p">,</span>
+                            <span class="s1">&#39;args&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span>
+                            <span class="s1">&#39;kwargs&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span>
+                            <span class="s1">&#39;callback_url&#39;</span><span class="p">:</span> <span class="n">callback_url</span><span class="p">,</span>
+                            <span class="s1">&#39;callback_method&#39;</span><span class="p">:</span> <span class="n">callback_method</span><span class="p">,</span>
+                            <span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
+                            <span class="s1">&#39;times&#39;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="s1">&#39;received&#39;</span><span class="p">:</span> <span class="n">received</span><span class="p">,</span>
+                                <span class="s1">&#39;started&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                <span class="s1">&#39;updated&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                <span class="s1">&#39;completed&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                <span class="s1">&#39;runtime&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                <span class="s1">&#39;turnaround&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                <span class="s1">&#39;runtime_sec&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                <span class="s1">&#39;turnaround_sec&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="p">},</span>
                         <span class="p">},</span>
                         <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;metadata&#39;</span><span class="p">,</span>
                     <span class="p">}</span>
@@ -1300,7 +1472,8 @@
     <span class="c1"># NAME: engine_</span>
     <span class="c1"># CALLED_FROM: engine_queue</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
-    <span class="c1">#base_print = print  # NOQA</span>
+
+    <span class="c1"># base_print = print  # NOQA</span>
     <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[engine </span><span class="si">%d</span><span class="s1">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">id_</span><span class="p">)):</span>
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
@@ -1328,8 +1501,8 @@
                 <span class="n">idents</span><span class="p">,</span> <span class="n">engine_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span><span class="n">engine_rout_sock</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
 
                 <span class="n">action</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
-                <span class="n">jobid</span>  <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
-                <span class="n">args</span>   <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]</span>
+                <span class="n">jobid</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]</span>
                 <span class="n">kwargs</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;kwargs&#39;</span><span class="p">]</span>
                 <span class="n">callback_url</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_url&#39;</span><span class="p">]</span>
                 <span class="n">callback_method</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_method&#39;</span><span class="p">]</span>
@@ -1363,7 +1536,9 @@
                     <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="c1"># if VERBOSE_JOBS:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...done working. pushing result to collector for jobid </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s1">&#39;...done working. pushing result to collector for jobid </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,)</span>
+                <span class="p">)</span>
 
                 <span class="c1"># CALLS: collector_store</span>
                 <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">collect_request</span><span class="p">)</span>
@@ -1387,6 +1562,7 @@
                 <span class="c1"># Explicitly try to release GPU memory</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="kn">import</span> <span class="nn">torch</span>
+
                     <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="k">pass</span>
@@ -1394,6 +1570,7 @@
                 <span class="c1"># Explicitly release Python memory</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="kn">import</span> <span class="nn">gc</span>
+
                     <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="k">pass</span>
@@ -1412,10 +1589,12 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;starting job=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
     <span class="c1"># Map actions to IBEISController calls here</span>
     <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;helloworld&#39;</span><span class="p">:</span>
+
         <span class="k">def</span> <span class="nf">helloworld</span><span class="p">(</span><span class="n">time_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">time_</span><span class="p">)</span>
             <span class="n">retval</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;HELLO time_=</span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time_</span><span class="p">,))</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">((</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">retval</span>
+
         <span class="n">action_func</span> <span class="o">=</span> <span class="n">helloworld</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># check for ibs func</span>
@@ -1434,11 +1613,7 @@
         <span class="n">exec_status</span> <span class="o">=</span> <span class="s1">&#39;exception&#39;</span>
     <span class="n">json_result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
     <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Clear any used memory</span>
-    <span class="n">engine_result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">exec_status</span><span class="o">=</span><span class="n">exec_status</span><span class="p">,</span>
-        <span class="n">json_result</span><span class="o">=</span><span class="n">json_result</span><span class="p">,</span>
-        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">engine_result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">exec_status</span><span class="o">=</span><span class="n">exec_status</span><span class="p">,</span> <span class="n">json_result</span><span class="o">=</span><span class="n">json_result</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,)</span>
     <span class="k">return</span> <span class="n">engine_result</span></div>
 
 
@@ -1447,6 +1622,7 @@
 <span class="sd">    Service that stores completed algorithm results</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[collect] &#39;</span><span class="p">):</span>
         <span class="n">collect_rout_sock</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">ROUTER</span><span class="p">)</span>
@@ -1471,12 +1647,20 @@
                 <span class="c1"># CALLER: collector_request_status</span>
                 <span class="c1"># CALLER: collector_request_metadata</span>
                 <span class="c1"># CALLER: collector_request_result</span>
-                <span class="n">idents</span><span class="p">,</span> <span class="n">collect_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span><span class="n">collect_rout_sock</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
+                <span class="n">idents</span><span class="p">,</span> <span class="n">collect_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span>
+                    <span class="n">collect_rout_sock</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="nb">print</span>
+                <span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">reply</span> <span class="o">=</span> <span class="n">on_collect_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">collect_request</span><span class="p">,</span> <span class="n">collector_data</span><span class="p">,</span>
-                                               <span class="n">shelve_path</span><span class="p">,</span> <span class="n">containerized</span><span class="o">=</span><span class="n">containerized</span><span class="p">)</span>
+                    <span class="n">reply</span> <span class="o">=</span> <span class="n">on_collect_request</span><span class="p">(</span>
+                        <span class="n">ibs</span><span class="p">,</span>
+                        <span class="n">collect_request</span><span class="p">,</span>
+                        <span class="n">collector_data</span><span class="p">,</span>
+                        <span class="n">shelve_path</span><span class="p">,</span>
+                        <span class="n">containerized</span><span class="o">=</span><span class="n">containerized</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                     <span class="kn">import</span> <span class="nn">traceback</span>
+
                     <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">collect_request</span><span class="p">))</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;ERROR in collection&#39;</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
@@ -1489,6 +1673,7 @@
                 <span class="c1"># Explicitly release Python memory</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="kn">import</span> <span class="nn">gc</span>
+
                     <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="k">pass</span>
@@ -1513,7 +1698,7 @@
 <div class="viewcode-block" id="get_collector_shelve_filepaths"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.get_collector_shelve_filepaths">[docs]</a><span class="k">def</span> <span class="nf">get_collector_shelve_filepaths</span><span class="p">(</span><span class="n">collector_data</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">jobid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-    <span class="n">shelve_input_filepath</span>  <span class="o">=</span> <span class="n">collector_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">shelve_input_filepath</span> <span class="o">=</span> <span class="n">collector_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">shelve_output_filepath</span> <span class="o">=</span> <span class="n">collector_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">shelve_input_filepath</span><span class="p">,</span> <span class="n">shelve_output_filepath</span></div>
 
@@ -1542,13 +1727,14 @@
     <span class="k">return</span> <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">total_seconds</span></div>
 
 
-<div class="viewcode-block" id="on_collect_request"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.on_collect_request">[docs]</a><span class="k">def</span> <span class="nf">on_collect_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">collect_request</span><span class="p">,</span> <span class="n">collector_data</span><span class="p">,</span>
-                       <span class="n">shelve_path</span><span class="p">,</span> <span class="n">containerized</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="on_collect_request"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.on_collect_request">[docs]</a><span class="k">def</span> <span class="nf">on_collect_request</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">collect_request</span><span class="p">,</span> <span class="n">collector_data</span><span class="p">,</span> <span class="n">shelve_path</span><span class="p">,</span> <span class="n">containerized</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Run whenever the collector recieves a message &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">requests</span>
 
     <span class="n">action</span> <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="n">jobid</span>  <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobid&#39;</span><span class="p">,</span>  <span class="kc">None</span><span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobid&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="n">reply</span> <span class="o">=</span> <span class="p">{</span>
@@ -1560,11 +1746,11 @@
     <span class="k">if</span> <span class="n">jobid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">jobid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">collector_data</span><span class="p">:</span>
             <span class="n">collector_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;input&#39;</span>  <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;output&#39;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">}</span>
-        <span class="n">runtime_lock_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.lock&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">runtime_lock_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.lock&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">runtime_lock_filepath</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1587,7 +1773,7 @@
                 <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">runtime_lock_filepath</span><span class="p">)</span>
 
             <span class="c1"># Mark the engine request as finished</span>
-            <span class="n">record_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">record_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,)</span>
             <span class="n">record_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="n">record_filename</span><span class="p">)</span>
             <span class="n">record</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">record_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">record</span><span class="p">[</span><span class="s1">&#39;completed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1607,21 +1793,35 @@
                 <span class="n">times</span><span class="p">[</span><span class="s1">&#39;completed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_timestamp</span><span class="p">()</span>
 
             <span class="c1"># Calculate runtime</span>
-            <span class="n">received</span>   <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;received&#39;</span><span class="p">,</span>   <span class="kc">None</span><span class="p">)</span>
-            <span class="n">started</span>    <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;started&#39;</span><span class="p">,</span>    <span class="kc">None</span><span class="p">)</span>
-            <span class="n">completed</span>  <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span>  <span class="kc">None</span><span class="p">)</span>
-            <span class="n">runtime</span>    <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">,</span>    <span class="kc">None</span><span class="p">)</span>
+            <span class="n">received</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;received&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">started</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;started&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">completed</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">runtime</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">turnaround</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;turnaround&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">started</span><span class="p">,</span> <span class="n">completed</span><span class="p">]</span> <span class="ow">and</span> <span class="n">runtime</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">total_seconds</span> <span class="o">=</span> <span class="n">calculate_timedelta</span><span class="p">(</span><span class="n">started</span><span class="p">,</span> <span class="n">completed</span><span class="p">)</span>
-                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">total_seconds</span><span class="p">,</span> <span class="p">)</span>
+                <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">total_seconds</span> <span class="o">=</span> <span class="n">calculate_timedelta</span><span class="p">(</span>
+                    <span class="n">started</span><span class="p">,</span> <span class="n">completed</span>
+                <span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">hours</span><span class="p">,</span>
+                    <span class="n">minutes</span><span class="p">,</span>
+                    <span class="n">seconds</span><span class="p">,</span>
+                    <span class="n">total_seconds</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">times</span><span class="p">[</span><span class="s1">&#39;runtime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> hours </span><span class="si">%d</span><span class="s1"> min. </span><span class="si">%s</span><span class="s1"> sec. (total: </span><span class="si">%d</span><span class="s1"> sec.)&#39;</span> <span class="o">%</span> <span class="n">args</span>
                 <span class="n">times</span><span class="p">[</span><span class="s1">&#39;runtime_sec&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_seconds</span>
 
             <span class="k">if</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">received</span><span class="p">,</span> <span class="n">completed</span><span class="p">]</span> <span class="ow">and</span> <span class="n">turnaround</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">total_seconds</span> <span class="o">=</span> <span class="n">calculate_timedelta</span><span class="p">(</span><span class="n">received</span><span class="p">,</span> <span class="n">completed</span><span class="p">)</span>
-                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">total_seconds</span><span class="p">,</span> <span class="p">)</span>
+                <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">total_seconds</span> <span class="o">=</span> <span class="n">calculate_timedelta</span><span class="p">(</span>
+                    <span class="n">received</span><span class="p">,</span> <span class="n">completed</span>
+                <span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">hours</span><span class="p">,</span>
+                    <span class="n">minutes</span><span class="p">,</span>
+                    <span class="n">seconds</span><span class="p">,</span>
+                    <span class="n">total_seconds</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">times</span><span class="p">[</span><span class="s1">&#39;turnaround&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> hours </span><span class="si">%d</span><span class="s1"> min. </span><span class="si">%s</span><span class="s1"> sec. (total: </span><span class="si">%d</span><span class="s1"> sec.)&#39;</span> <span class="o">%</span> <span class="n">args</span>
                 <span class="n">times</span><span class="p">[</span><span class="s1">&#39;turnaround_sec&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_seconds</span>
 
@@ -1645,9 +1845,9 @@
                 <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;corrupted&#39;</span>
 
         <span class="n">collector_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="n">status</span><span class="p">,</span>
-            <span class="s1">&#39;input&#39;</span>  <span class="p">:</span> <span class="n">shelve_input_filepath</span><span class="p">,</span>
-            <span class="s1">&#39;output&#39;</span> <span class="p">:</span> <span class="n">shelve_output_filepath</span><span class="p">,</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+            <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="n">shelve_input_filepath</span><span class="p">,</span>
+            <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">shelve_output_filepath</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Register </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">collector_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]))</span>
 
@@ -1672,8 +1872,8 @@
         <span class="n">invalidate_global_cache</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
 
         <span class="c1"># From the Engine</span>
-        <span class="n">engine_result</span>   <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;engine_result&#39;</span><span class="p">,</span>   <span class="kc">None</span><span class="p">)</span>
-        <span class="n">callback_url</span>    <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;callback_url&#39;</span><span class="p">,</span>    <span class="kc">None</span><span class="p">)</span>
+        <span class="n">engine_result</span> <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;engine_result&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">callback_url</span> <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;callback_url&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">callback_method</span> <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;callback_method&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="c1"># Get the engine result jobid</span>
@@ -1697,13 +1897,20 @@
                 <span class="n">callback_method</span> <span class="o">=</span> <span class="s1">&#39;POST&#39;</span>
 
             <span class="n">callback_method</span> <span class="o">=</span> <span class="n">callback_method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;callback_method </span><span class="si">%r</span><span class="s1"> unsupported&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">callback_method</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;callback_method </span><span class="si">%r</span><span class="s1"> unsupported&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">callback_method</span><span class="p">,)</span>
             <span class="k">assert</span> <span class="n">callback_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;PUT&#39;</span><span class="p">],</span> <span class="n">message</span>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">}</span>
-                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Attempting job completion callback to </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">HTTP Method: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Data Payload: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">callback_url</span><span class="p">,</span>
+                    <span class="n">callback_method</span><span class="p">,</span>
+                    <span class="n">data_dict</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s1">&#39;Attempting job completion callback to </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">HTTP Method: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Data Payload: </span><span class="si">%r</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="n">args</span>
+                <span class="p">)</span>
 
                 <span class="c1"># Perform callback</span>
                 <span class="k">if</span> <span class="n">callback_method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
@@ -1721,7 +1928,10 @@
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="n">text</span> <span class="o">=</span> <span class="kc">None</span>
 
-                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">response</span><span class="p">,</span>
+                    <span class="n">text</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Callback completed...</span><span class="se">\n\t</span><span class="s1">Response: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Text: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Callback FAILED!&#39;</span><span class="p">)</span>
@@ -1739,7 +1949,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">status</span> <span class="o">=</span> <span class="n">collector_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span>
 
-                <span class="n">shelve_input_filepath</span><span class="p">,</span> <span class="n">shelve_output_filepath</span> <span class="o">=</span> <span class="n">get_shelve_filepaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">)</span>
+                <span class="n">shelve_input_filepath</span><span class="p">,</span> <span class="n">shelve_output_filepath</span> <span class="o">=</span> <span class="n">get_shelve_filepaths</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span>
+                <span class="p">)</span>
                 <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_shelve_value</span><span class="p">(</span><span class="n">shelve_input_filepath</span><span class="p">,</span> <span class="s1">&#39;metadata&#39;</span><span class="p">)</span>
 
                 <span class="n">cache</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1765,22 +1977,22 @@
                     <span class="n">request</span> <span class="o">=</span> <span class="p">{}</span>
 
                 <span class="n">job_status_data</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s1">&#39;status&#39;</span>              <span class="p">:</span> <span class="n">status</span><span class="p">,</span>
-                    <span class="s1">&#39;jobcounter&#39;</span>          <span class="p">:</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobcounter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;action&#39;</span>              <span class="p">:</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;endpoint&#39;</span>            <span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endpoint&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;function&#39;</span>            <span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;time_received&#39;</span>       <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;received&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;time_started&#39;</span>        <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;started&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;time_runtime&#39;</span>        <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;time_updated&#39;</span>        <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;updated&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;time_completed&#39;</span>      <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;time_turnaround&#39;</span>     <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;turnaround&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;time_runtime_sec&#39;</span>    <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime_sec&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="s1">&#39;time_turnaround_sec&#39;</span> <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;turnaround_sec&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+                    <span class="s1">&#39;jobcounter&#39;</span><span class="p">:</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobcounter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;endpoint&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endpoint&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;function&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;time_received&#39;</span><span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;received&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;time_started&#39;</span><span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;started&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;time_runtime&#39;</span><span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;time_updated&#39;</span><span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;updated&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;time_completed&#39;</span><span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;time_turnaround&#39;</span><span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;turnaround&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;time_runtime_sec&#39;</span><span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime_sec&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="s1">&#39;time_turnaround_sec&#39;</span><span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;turnaround_sec&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
                 <span class="p">}</span>
                 <span class="k">if</span> <span class="n">cache</span><span class="p">:</span>
-                    <span class="n">JOB_STATUS_CACHE</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>  <span class="o">=</span> <span class="n">job_status_data</span>
+                    <span class="n">JOB_STATUS_CACHE</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="n">job_status_data</span>
 
             <span class="n">json_result</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="n">job_status_data</span>
 
@@ -1870,12 +2082,15 @@
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[wbia.zmq] Caught ctrl+c&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[wbia.zmq] sys.exit(0)&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">sys</span>
+
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_init_signals</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">signal</span>
+
     <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">_on_ctrl_c</span><span class="p">)</span>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1885,18 +2100,37 @@
 <span class="sd">        python -m wbia.web.job_engine --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1904,55 +2138,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>

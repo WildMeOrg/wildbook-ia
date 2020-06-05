@@ -1,36 +1,153 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.manual_name_funcs &#8212; wbia 2.2.4 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>wbia.control.manual_name_funcs &mdash; wbia 2.2.4 documentation</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
 
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <div class="wy-grid-for-nav">
 
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
 
 
-          <div class="body" role="main">
+
+            <a href="../../../index.html" class="icon icon-home"> wbia
+
+
+
+          </a>
+
+
+
+
+              <div class="version">
+                2.2.4
+              </div>
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia package</a></li>
+</ul>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wbia</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+
+          <li><a href="../../wbia.html">wbia</a> &raquo;</li>
+
+          <li><a href="../control.html">wbia.control</a> &raquo;</li>
+
+      <li>wbia.control.manual_name_funcs</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
 
   <h1>Source code for wbia.control.manual_name_funcs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
@@ -41,11 +158,13 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+
 <span class="c1"># TODO: Fix this name it is too special case</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
-<span class="c1">#from six.moves import range</span>
+
+<span class="c1"># from six.moves import range</span>
 <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -54,29 +173,31 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
 <span class="kn">import</span> <span class="nn">os</span>
+
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">ANNOT_ROWID</span>         <span class="o">=</span> <span class="s1">&#39;annot_rowid&#39;</span>
+<span class="n">ANNOT_ROWID</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid&#39;</span>
 <span class="n">ANNOT_SEMANTIC_UUID</span> <span class="o">=</span> <span class="s1">&#39;annot_semantic_uuid&#39;</span>
-<span class="n">NAME_ROWID</span>          <span class="o">=</span> <span class="s1">&#39;name_rowid&#39;</span>
+<span class="n">NAME_ROWID</span> <span class="o">=</span> <span class="s1">&#39;name_rowid&#39;</span>
 
-<span class="n">NAME_UUID</span>       <span class="o">=</span> <span class="s1">&#39;name_uuid&#39;</span>
-<span class="n">NAME_TEXT</span>       <span class="o">=</span> <span class="s1">&#39;name_text&#39;</span>
+<span class="n">NAME_UUID</span> <span class="o">=</span> <span class="s1">&#39;name_uuid&#39;</span>
+<span class="n">NAME_TEXT</span> <span class="o">=</span> <span class="s1">&#39;name_text&#39;</span>
 <span class="n">NAME_ALIAS_TEXT</span> <span class="o">=</span> <span class="s1">&#39;name_alias_text&#39;</span>
-<span class="n">NAME_NOTE</span>       <span class="o">=</span> <span class="s1">&#39;name_note&#39;</span>
-<span class="n">NAME_SEX</span>         <span class="o">=</span> <span class="s1">&#39;name_sex&#39;</span>
-<span class="n">NAME_TEMP_FLAG</span>  <span class="o">=</span> <span class="s1">&#39;name_temp_flag&#39;</span>
+<span class="n">NAME_NOTE</span> <span class="o">=</span> <span class="s1">&#39;name_note&#39;</span>
+<span class="n">NAME_SEX</span> <span class="o">=</span> <span class="s1">&#39;name_sex&#39;</span>
+<span class="n">NAME_TEMP_FLAG</span> <span class="o">=</span> <span class="s1">&#39;name_temp_flag&#39;</span>
 
 
 <div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
     <span class="n">config2_</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># qreq_.qparams</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span></div>
@@ -90,7 +211,7 @@
 <span class="sd">        list_ (list): all nids of known animals</span>
 <span class="sd">        (does not include unknown names)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)</span>
+    <span class="c1"># all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)</span>
     <span class="n">all_known_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">all_known_nids</span>
 
@@ -103,7 +224,7 @@
 <span class="sd">        list_ (list): all nids of known animals</span>
 <span class="sd">        (does not include unknown names)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)</span>
+    <span class="c1"># all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)</span>
     <span class="n">all_known_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">all_known_nids</span>
 
@@ -135,25 +256,28 @@
     <span class="c1"># Get random uuids</span>
     <span class="k">if</span> <span class="n">name_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">name_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">))]</span>
-    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
     <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">NAME_UUID</span><span class="p">,</span> <span class="n">NAME_TEXT</span><span class="p">,</span> <span class="n">NAME_NOTE</span><span class="p">]</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">name_uuid_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">name_note_list</span><span class="p">))</span>
-    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
-                                             <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">)</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">name_rowid_list</span></div>
     <span class="c1"># OLD WAY</span>
     <span class="c1"># # nid_list_ = [namenid_dict[name] for name in name_list_]</span>
-    <span class="c1">#name_text_list_ = ibs.sanitize_name_texts(name_text_list)</span>
+    <span class="c1"># name_text_list_ = ibs.sanitize_name_texts(name_text_list)</span>
     <span class="c1"># # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot</span>
-    <span class="c1">#lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]</span>
-    <span class="c1">#lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)</span>
-    <span class="c1">#nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)</span>
+    <span class="c1"># lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]</span>
+    <span class="c1"># lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)</span>
+    <span class="c1"># nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)</span>
     <span class="c1">##nid_list = [const.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]</span>
-    <span class="c1">#return nid_list</span>
+    <span class="c1"># return nid_list</span>
 
 
-<span class="c1">#def init_default_speciesvalue():</span>
+<span class="c1"># def init_default_speciesvalue():</span>
 <span class="c1">#    #const.KEY_DEFAULTS[const.SPECIES_KEY]</span>
 <span class="c1">#    note_list = [&#39;default value&#39;]</span>
 <span class="c1">#    # Get random uuids</span>
@@ -178,10 +302,9 @@
 <span class="sd">        URL:    /api/name/sanitize</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_names</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
-    <span class="n">name_text_list_</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span>
-                       <span class="k">if</span> <span class="n">name_text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
-                       <span class="k">else</span> <span class="n">name_text</span>
-                       <span class="k">for</span> <span class="n">name_text</span> <span class="ow">in</span> <span class="n">name_text_list</span><span class="p">]</span>
+    <span class="n">name_text_list_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="n">name_text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">name_text</span> <span class="k">for</span> <span class="n">name_text</span> <span class="ow">in</span> <span class="n">name_text_list</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">name_text_list_</span></div>
 
 
@@ -222,17 +345,20 @@
         <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s1">&#39;should not be any annots belonging to a deleted name&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">),</span> <span class="s1">&#39;should not be any annots belonging to a deleted name&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> annots that belonged to those names&#39;</span> <span class="o">%</span>
-                      <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> annots that belonged to those names&#39;</span>
+                    <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span></div>
-    <span class="c1">#return len(name_rowid_list)</span>
-    <span class="c1">#ibs.delete_lblannots(nid_list)</span>
+    <span class="c1"># return len(name_rowid_list)</span>
+    <span class="c1"># ibs.delete_lblannots(nid_list)</span>
 
 
 <div class="viewcode-block" id="get_empty_nids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_empty_nids">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -271,7 +397,7 @@
         <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_known_name_rowids</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">),</span> <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">),)</span>
     <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">CHECKING </span><span class="si">%d</span><span class="s1"> NIDS FOR EMPTY (RECURSIVE)&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -290,15 +416,21 @@
     <span class="n">alias_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_alias_texts</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">)</span>
     <span class="n">alias_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">alias_text_list</span><span class="p">)</span>
     <span class="c1"># Find the empty aliases, recursively</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">),</span> <span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs without an alias&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_alias_nid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">),))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs without an alias&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_alias_nid_list</span><span class="p">),))</span>
     <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39; checking these recursively&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs with an alias...</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">),</span> <span class="n">message</span><span class="p">,</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs with an alias...</span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">),</span> <span class="n">message</span><span class="p">,)</span>
+    <span class="p">)</span>
     <span class="n">empty_alias_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_empty_nids</span><span class="p">(</span><span class="n">_nid_list</span><span class="o">=</span><span class="n">alias_nid_list</span><span class="p">)</span>
     <span class="c1"># Compile the full list of nids without any associated annotations</span>
     <span class="n">empty_nid_list</span> <span class="o">=</span> <span class="n">empty_nid_list</span> <span class="o">+</span> <span class="n">no_alias_nid_list</span> <span class="o">+</span> <span class="n">empty_alias_nid_list</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs with an alias that is recursively empty&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">empty_alias_nid_list</span><span class="p">),</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs with an alias that is recursively empty&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">empty_alias_nid_list</span><span class="p">),)</span>
+        <span class="p">)</span>
     <span class="n">empty_nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">))</span>
     <span class="c1"># Sanity check</span>
     <span class="n">nRois_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_num_annotations</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">)</span>
@@ -495,7 +627,7 @@
     <span class="c1"># ADD A LOCAL CACHE TO FIX THIS SPEED</span>
     <span class="c1"># ALSO FIX GET_IMAGE_AIDS</span>
     <span class="c1"># really a getter for the annotation table not the name table</span>
-    <span class="c1">#return [[] for nid in nid_list]</span>
+    <span class="c1"># return [[] for nid in nid_list]</span>
     <span class="c1"># TODO: should a query of the UNKNOWN_NAME_ROWID return anything?</span>
     <span class="c1"># TODO: don&#39;t even run negative aids as queries</span>
     <span class="n">nid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
@@ -505,46 +637,55 @@
     <span class="k">if</span> <span class="n">NEW_INDEX_HACK</span><span class="p">:</span>
         <span class="c1"># FIXME: This index should when the database is defined.</span>
         <span class="c1"># Ensure that an index exists on the image column of the annotation table</span>
-        <span class="c1">#print(len(nid_list_))</span>
+        <span class="c1"># print(len(nid_list_))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-            <span class="sd">&#39;&#39;&#39;</span>
+            <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);</span>
-<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
-                               <span class="n">nid_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_ROWID</span><span class="p">,</span>
-                               <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
+            <span class="n">nid_list_</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_ROWID</span><span class="p">,</span>
+            <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="c1">#%timeit ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)</span>
         <span class="c1"># The index maxes the following query very efficient</span>
     <span class="k">elif</span> <span class="n">USE_GROUPING_HACK</span><span class="p">:</span>
         <span class="c1"># This code doesn&#39;t work because it doesn&#39;t respect empty names</span>
         <span class="n">input_list</span><span class="p">,</span> <span class="n">inverse_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">input_str</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">input_list</span><span class="p">)))</span>
-        <span class="n">opstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        SELECT annot_rowid, name_rowid</span>
-<span class="s1">        FROM </span><span class="si">{ANNOTATION_TABLE}</span><span class="s1"></span>
-<span class="s1">        WHERE name_rowid IN</span>
-<span class="s1">            (</span><span class="si">{input_str}</span><span class="s1">)</span>
-<span class="s1">            ORDER BY name_rowid ASC, annot_rowid ASC</span>
-<span class="s1">        &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_str</span><span class="o">=</span><span class="n">input_str</span><span class="p">,</span> <span class="n">ANNOTATION_TABLE</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+        <span class="n">opstr</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        SELECT annot_rowid, name_rowid</span>
+<span class="s2">        FROM </span><span class="si">{ANNOTATION_TABLE}</span><span class="s2"></span>
+<span class="s2">        WHERE name_rowid IN</span>
+<span class="s2">            (</span><span class="si">{input_str}</span><span class="s2">)</span>
+<span class="s2">            ORDER BY name_rowid ASC, annot_rowid ASC</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">input_str</span><span class="o">=</span><span class="n">input_str</span><span class="p">,</span> <span class="n">ANNOTATION_TABLE</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span>
+        <span class="p">)</span>
         <span class="n">pair_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">opstr</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
         <span class="n">aidscol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">pair_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
         <span class="n">nidscol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">pair_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">nidscol</span><span class="p">)</span>
         <span class="n">grouped_aids_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aidscol</span><span class="p">,</span> <span class="n">groupx</span><span class="p">)</span>
-        <span class="c1">#aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]</span>
+        <span class="c1"># aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]</span>
         <span class="n">structured_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">grouped_aids_</span><span class="p">]</span>
         <span class="n">aids_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">structured_aids_list</span><span class="p">)[</span><span class="n">inverse_unique</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="c1">#USE_NUMPY_IMPL = False</span>
+        <span class="c1"># USE_NUMPY_IMPL = False</span>
         <span class="c1"># Use qt if getting one at a time otherwise perform bulk operation</span>
         <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
-        <span class="c1">#USE_NUMPY_IMPL = len(nid_list_) &gt; 10</span>
+        <span class="c1"># USE_NUMPY_IMPL = len(nid_list_) &gt; 10</span>
         <span class="k">if</span> <span class="n">USE_NUMPY_IMPL</span><span class="p">:</span>
             <span class="c1"># This seems to be 30x faster for bigger inputs</span>
             <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">())</span>
-            <span class="n">valid_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_col_rows</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">NAME_ROWID</span><span class="p">))</span>
-            <span class="c1">#np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))</span>
+            <span class="n">valid_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_col_rows</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">NAME_ROWID</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="c1"># np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))</span>
 
             <span class="c1"># MEMORY HOG LIKE A SON OF A BITCH</span>
             <span class="c1"># aids_list = [</span>
@@ -553,7 +694,7 @@
             <span class="c1">#     for nid in nid_list_</span>
             <span class="c1"># ]</span>
 
-            <span class="n">temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">),</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">),),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
             <span class="n">aids_dict</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">nid_list_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list_unique</span><span class="p">:</span>
@@ -566,18 +707,24 @@
             <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">aids_dict</span><span class="p">,</span> <span class="n">nid_list_</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># SQL IMPL</span>
-            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
-                                   <span class="n">nid_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_ROWID</span><span class="p">,</span>
-                                   <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
+                <span class="n">nid_list_</span><span class="p">,</span>
+                <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_ROWID</span><span class="p">,</span>
+                <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
     <span class="k">if</span> <span class="n">enable_unknown_fix</span><span class="p">:</span>
-        <span class="c1">#enable_unknown_fix == distinguish_unknowns</span>
+        <span class="c1"># enable_unknown_fix == distinguish_unknowns</span>
         <span class="c1"># negative name rowids correspond to unknown annoations wherex annot_rowid = -name_rowid</span>
-        <span class="c1">#aids_list = [None if nid is None else ([-nid] if nid &lt; 0 else aids)</span>
+        <span class="c1"># aids_list = [None if nid is None else ([-nid] if nid &lt; 0 else aids)</span>
         <span class="c1">#             for nid, aids in zip(nid_list, aids_list)]</span>
         <span class="c1"># Not sure if this should fail or return empty list on None nid</span>
-        <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">([</span><span class="o">-</span><span class="n">nid</span><span class="p">]</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">aids</span><span class="p">)</span>
-                     <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)]</span>
-        <span class="c1">#aids_list = [[-nid] if nid &lt; 0 else aids</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[]</span> <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">([</span><span class="o">-</span><span class="n">nid</span><span class="p">]</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">aids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># aids_list = [[-nid] if nid &lt; 0 else aids</span>
         <span class="c1">#             for nid, aids in zip(nid_list, aids_list)]</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annotation_set</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="n">is_staged</span><span class="p">)</span>
@@ -591,10 +738,7 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/annot/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">get_name_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">annot_uuids_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span>
-    <span class="p">]</span>
+    <span class="n">annot_uuids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">annot_uuids_list</span></div>
 
 
@@ -630,8 +774,9 @@
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="c1"># Flag any annots that are not exemplar and remove them</span>
     <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
-    <span class="n">exemplar_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">flags</span> <span class="ow">in</span>
-                          <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)]</span>
+    <span class="n">exemplar_aids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">flags</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">exemplar_aids_list</span></div>
 
 
@@ -640,10 +785,7 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/annot/uuid/exemplar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">get_name_exemplar_name_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_exemplar_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">annot_uuids_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span>
-    <span class="p">]</span>
+    <span class="n">annot_uuids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">annot_uuids_list</span></div>
 
 
@@ -692,10 +834,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO: Optimize</span>
     <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_gids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-    <span class="n">image_uuids_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">gids_list</span>
-    <span class="p">]</span>
+    <span class="n">image_uuids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">gids_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">image_uuids_list</span></div>
 
 
@@ -712,7 +851,7 @@
 <span class="sd">        URL:    /api/name/uuid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">uuids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_UUID</span><span class="p">,),</span> <span class="n">nid_list</span><span class="p">)</span>
-    <span class="c1">#notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="c1"># notes_list = ibs.get_lblannot_notes(nid_list)</span>
     <span class="k">return</span> <span class="n">uuids_list</span></div>
 
 
@@ -729,7 +868,7 @@
 <span class="sd">        URL:    /api/name/note/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_NOTE</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
-    <span class="c1">#notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="c1"># notes_list = ibs.get_lblannot_notes(nid_list)</span>
     <span class="k">return</span> <span class="n">notes_list</span></div>
 
 
@@ -745,7 +884,9 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/name/metadata/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;name_metadata_json&#39;</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;name_metadata_json&#39;</span><span class="p">,),</span> <span class="n">name_rowid_list</span>
+    <span class="p">)</span>
     <span class="n">metadata_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
@@ -838,13 +979,21 @@
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">name_rowid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_TEMP_FLAG</span><span class="p">,)</span>
     <span class="n">name_temp_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">name_temp_flag_list</span></div>
 
 
 <div class="viewcode-block" id="set_name_temp_flag"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_temp_flag">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/temp/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">set_name_temp_flag</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_temp_flag_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">set_name_temp_flag</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_temp_flag_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    name_temp_flag_list -&gt; name.name_temp_flag[name_rowid_list]</span>
 
@@ -863,8 +1012,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">name_rowid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_TEMP_FLAG</span><span class="p">,)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">name_temp_flag_list</span><span class="p">,</span>
-               <span class="n">id_iter</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="n">duplicate_behavior</span><span class="p">)</span></div>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">name_temp_flag_list</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">duplicate_behavior</span><span class="o">=</span><span class="n">duplicate_behavior</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_name_alias_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_alias_texts">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -899,12 +1053,16 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [None, None, None, None, None, None, None]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">name_alias_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ALIAS_TEXT</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="n">name_alias_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ALIAS_TEXT</span><span class="p">,),</span> <span class="n">name_rowid_list</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">name_alias_text_list</span></div>
 
 
 <div class="viewcode-block" id="set_name_alias_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_alias_texts">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="n">ANNOT_SEMANTIC_UUID</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_invalidator</span><span class="p">(</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="n">ANNOT_SEMANTIC_UUID</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">)</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/alias/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">set_name_alias_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_alias_text_list</span><span class="p">):</span>
@@ -919,7 +1077,7 @@
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/name/alias/text/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#ibsfuncs.assert_valid_names(name_alias_text_list)</span>
+    <span class="c1"># ibsfuncs.assert_valid_names(name_alias_text_list)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">name_alias_text_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ALIAS_TEXT</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span></div>
     <span class="c1"># TODO: ibs.update_annot_semantic_uuids(aid_list)</span>
@@ -955,8 +1113,8 @@
     <span class="c1"># TODO:</span>
     <span class="c1"># Change the temporary negative indexes back to the unknown NID for the</span>
     <span class="c1"># SQL query. Then augment the lblannot list to distinguish unknown lblannots</span>
-    <span class="c1">#name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)</span>
-    <span class="c1">#name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)</span>
+    <span class="c1"># name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)</span>
+    <span class="c1"># name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)</span>
     <span class="n">name_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_TEXT</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">apply_fix</span><span class="p">:</span>
         <span class="n">name_text_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -1072,10 +1230,13 @@
 <span class="sd">        [None, 1, None, 0, None, None, 3]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">name_text_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sanitize_name_texts</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
-    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span>
-                                 <span class="n">name_text_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_TEXT</span><span class="p">)</span>
-    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
-                           <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list_</span><span class="p">)]</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span> <span class="n">name_text_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_TEXT</span>
+    <span class="p">)</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
+        <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list_</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">name_rowid_list</span></div>
 
 
@@ -1091,8 +1252,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        name_rowid_list (list):</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span>
-                                 <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_UUID</span><span class="p">)</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_UUID</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="n">nid_hack</span><span class="p">:</span>
         <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">name_uuid</span> <span class="k">if</span> <span class="n">name_rowid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">name_rowid</span>
@@ -1110,10 +1272,7 @@
     <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_gids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
 
     <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
-    <span class="n">combined_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">name</span> <span class="p">:</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">zipped</span>
-    <span class="p">}</span>
+    <span class="n">combined_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">combined_dict</span></div>
 
 
@@ -1135,7 +1294,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_nids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
     <span class="c1"># HACK FOR UNKNOWN. Makes things crash</span>
-    <span class="c1">#_nid_list += [0]</span>
+    <span class="c1"># _nid_list += [0]</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">_nid_list</span>
 
     <span class="k">if</span> <span class="n">filter_empty</span><span class="p">:</span>
@@ -1159,8 +1318,8 @@
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/name/note/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])</span>
-    <span class="c1">#ibs.set_lblannot_notes(nid_list, notes_list)</span>
+    <span class="c1"># ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])</span>
+    <span class="c1"># ibs.set_lblannot_notes(nid_list, notes_list)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">notes_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_NOTE</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span></div>
 
@@ -1189,9 +1348,15 @@
 <div class="viewcode-block" id="set_name_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_texts">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">set_name_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                   <span class="n">notify_wildbook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">assert_wildbook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                   <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">set_name_texts</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">name_rowid_list</span><span class="p">,</span>
+    <span class="n">name_text_list</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">notify_wildbook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">assert_wildbook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Changes the name text. Does not affect the animals of this name.</span>
 <span class="sd">    Effectively just changes the TEXT UUID</span>
@@ -1214,6 +1379,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
+
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] setting </span><span class="si">%d</span><span class="s1"> name texts&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">),))</span>
     <span class="k">if</span> <span class="n">notify_wildbook</span> <span class="ow">and</span> <span class="n">wbia</span><span class="o">.</span><span class="n">ENABLE_WILDBOOK_SIGNAL</span><span class="p">:</span>
@@ -1224,23 +1390,27 @@
         <span class="k">if</span> <span class="n">assert_wildbook</span> <span class="ow">and</span> <span class="n">wb_signaled</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">status_list</span><span class="p">,</span> <span class="s1">&#39;The request to WB failed&#39;</span>
             <span class="n">failed_nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ifilterfalse_items</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">status_list</span><span class="p">))</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_nid_list</span><span class="p">),</span> <span class="n">failed_nid_list</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">failed_nid_list</span><span class="p">),</span>
+                <span class="n">failed_nid_list</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Failed to update </span><span class="si">%d</span><span class="s1"> WB names, nid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">msg</span>
     <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_names</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
     <span class="n">old_name_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
-    <span class="c1">#sanitize_name_texts(ibs, name_text_list):</span>
-    <span class="c1">#ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])</span>
-    <span class="c1">#ibs.set_lblannot_values(nid_list, name_list)</span>
+    <span class="c1"># sanitize_name_texts(ibs, name_text_list):</span>
+    <span class="c1"># ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])</span>
+    <span class="c1"># ibs.set_lblannot_values(nid_list, name_list)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">name_text_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_TEXT</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
     <span class="c1"># Database updated, log name changes</span>
     <span class="k">if</span> <span class="n">update_json_log</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">time</span>
+
         <span class="n">json_log_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_logdir_local</span><span class="p">()</span>
         <span class="n">json_log_filename</span> <span class="o">=</span> <span class="s1">&#39;names.updates.json&#39;</span>
         <span class="n">json_log_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">json_log_path</span><span class="p">,</span> <span class="n">json_log_filename</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Logging name changes to: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Logging name changes to: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,))</span>
         <span class="c1"># Log has never been made, create one</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">):</span>
             <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -1258,14 +1428,16 @@
         <span class="c1"># Zip all the updates together and write to updates list in dictionary</span>
         <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">old_name_text_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name_rowid</span><span class="p">,</span> <span class="n">old_name_text</span><span class="p">,</span> <span class="n">new_name_text</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
-            <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;updates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                <span class="s1">&#39;time_unixtime&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
-                <span class="s1">&#39;db_name&#39;</span><span class="p">:</span> <span class="n">db_name</span><span class="p">,</span>
-                <span class="s1">&#39;db_init_uuid&#39;</span><span class="p">:</span> <span class="n">db_init_uuid</span><span class="p">,</span>
-                <span class="s1">&#39;name_rowid&#39;</span><span class="p">:</span> <span class="n">name_rowid</span><span class="p">,</span>
-                <span class="s1">&#39;name_old_text&#39;</span><span class="p">:</span> <span class="n">old_name_text</span><span class="p">,</span>
-                <span class="s1">&#39;name_new_text&#39;</span><span class="p">:</span> <span class="n">new_name_text</span><span class="p">,</span>
-            <span class="p">})</span>
+            <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;updates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;time_unixtime&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
+                    <span class="s1">&#39;db_name&#39;</span><span class="p">:</span> <span class="n">db_name</span><span class="p">,</span>
+                    <span class="s1">&#39;db_init_uuid&#39;</span><span class="p">:</span> <span class="n">db_init_uuid</span><span class="p">,</span>
+                    <span class="s1">&#39;name_rowid&#39;</span><span class="p">:</span> <span class="n">name_rowid</span><span class="p">,</span>
+                    <span class="s1">&#39;name_old_text&#39;</span><span class="p">:</span> <span class="n">old_name_text</span><span class="p">,</span>
+                    <span class="s1">&#39;name_new_text&#39;</span><span class="p">:</span> <span class="n">new_name_text</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
         <span class="c1"># Write new log state</span>
         <span class="n">json_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_log_file</span><span class="p">:</span>
@@ -1307,7 +1479,13 @@
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">name_rowid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_SEX</span><span class="p">,)</span>
     <span class="n">name_sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">name_sex_list</span></div>
 
 
@@ -1333,8 +1511,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">name_rowid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_SEX</span><span class="p">,)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">name_sex_list</span><span class="p">,</span>
-               <span class="n">id_iter</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="n">duplicate_behavior</span><span class="p">)</span></div>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">name_sex_list</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">duplicate_behavior</span><span class="o">=</span><span class="n">duplicate_behavior</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_name_sex_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_sex_text">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -1376,7 +1559,7 @@
 <span class="sd">        URL:    /api/name/age/months/min/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
-    <span class="n">age_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span> <span class="p">]</span>
+    <span class="n">age_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">age_list</span></div>
 
 
@@ -1390,7 +1573,7 @@
 <span class="sd">        URL:    /api/name/age/months/max/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
-    <span class="n">age_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span> <span class="p">]</span>
+    <span class="n">age_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">age_list</span></div>
 
 
@@ -1404,12 +1587,13 @@
 <span class="sd">        URL:    /api/name/imageset/rowid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
     <span class="n">name_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-    <span class="n">name_aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_aids_list</span><span class="p">)</span>
-    <span class="n">name_gid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">)</span>
+    <span class="n">name_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_aids_list</span><span class="p">)</span>
+    <span class="n">name_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">)</span>
     <span class="n">name_imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">name_gid_list</span><span class="p">)</span>
-    <span class="n">name_imgsetid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_imgsetids_list</span><span class="p">)</span>
-    <span class="n">name_imgsetids</span>      <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_imgsetid_list</span><span class="p">))</span>
+    <span class="n">name_imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_imgsetids_list</span><span class="p">)</span>
+    <span class="n">name_imgsetids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_imgsetid_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">name_imgsetids</span></div>
 
 
@@ -1423,13 +1607,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">name_imgsetids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_imgsetids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
     <span class="n">name_uuids_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuids</span><span class="p">(</span><span class="n">name_imgsetid</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">name_imgsetid</span> <span class="ow">in</span> <span class="n">name_imgsetids</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuids</span><span class="p">(</span><span class="n">name_imgsetid</span><span class="p">)</span> <span class="k">for</span> <span class="n">name_imgsetid</span> <span class="ow">in</span> <span class="n">name_imgsetids</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="n">name_uuids_list</span></div>
 
 
-<span class="c1">#def get_imageset_nids(ibs,</span>
+<span class="c1"># def get_imageset_nids(ibs,</span>
 
 
 <div class="viewcode-block" id="get_name_has_split"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_has_split">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -1450,17 +1633,21 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-    <span class="c1">#ibs.check_name_mapping_consistency(aids_list_)</span>
+    <span class="c1"># ibs.check_name_mapping_consistency(aids_list_)</span>
     <span class="k">def</span> <span class="nf">get_valid_aids_clique_annotmatch_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">itertools</span>
+
         <span class="n">aid_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
         <span class="n">aids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">am_ids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
         <span class="n">am_ids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">am_ids</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">am_ids</span>
+
     <span class="n">amids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_valid_aids_clique_annotmatch_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span><span class="p">]</span>
-    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_prop</span><span class="p">,</span> <span class="s1">&#39;SplitCase&#39;</span><span class="p">),</span> <span class="n">amids_list</span><span class="p">)</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_prop</span><span class="p">,</span> <span class="s1">&#39;SplitCase&#39;</span><span class="p">),</span> <span class="n">amids_list</span>
+    <span class="p">)</span>
     <span class="n">has_splits</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">any</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">has_splits</span></div>
 
@@ -1482,9 +1669,9 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-    <span class="c1">#ibs.check_name_mapping_consistency(aids_list_)</span>
-    <span class="c1">#aids_list = [(aids) for aids in aids_list_]</span>
-    <span class="c1">#speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)</span>
+    <span class="c1"># ibs.check_name_mapping_consistency(aids_list_)</span>
+    <span class="c1"># aids_list = [(aids) for aids in aids_list_]</span>
+    <span class="c1"># speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)</span>
     <span class="n">speeds_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_unflat_annots_speeds_list2</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">speeds_list</span></div>
 
@@ -1507,7 +1694,7 @@
 <span class="sd">        &gt;&gt;&gt; print(hourdiffs_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-    <span class="c1">#ibs.check_name_mapping_consistency(aids_list_)</span>
+    <span class="c1"># ibs.check_name_mapping_consistency(aids_list_)</span>
     <span class="c1"># HACK FILTERING SHOULD NOT OCCUR HERE</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span><span class="p">]</span>
     <span class="n">hourdiffs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_unflat_annots_hourdists_list</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
@@ -1518,7 +1705,9 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter</span>
 <span class="k">def</span> <span class="nf">get_name_max_hourdiff</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
     <span class="n">hourdiffs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_hourdiffs</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-    <span class="n">maxhourdiff_list_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vt</span><span class="o">.</span><span class="n">safe_max</span><span class="p">(</span><span class="n">hourdiff</span><span class="p">,</span> <span class="n">nans</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">hourdiff</span> <span class="ow">in</span> <span class="n">hourdiffs_list</span><span class="p">])</span>
+    <span class="n">maxhourdiff_list_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">safe_max</span><span class="p">(</span><span class="n">hourdiff</span><span class="p">,</span> <span class="n">nans</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">hourdiff</span> <span class="ow">in</span> <span class="n">hourdiffs_list</span><span class="p">]</span>
+    <span class="p">)</span>
     <span class="n">maxhourdiff_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">maxhourdiff_list_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">maxhourdiff_list</span></div>
 
@@ -1575,16 +1764,21 @@
         <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">aids_list_</span><span class="p">,</span> <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span><span class="p">]</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span>
+    <span class="p">]</span>
     <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
     <span class="n">gpss_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
 
-    <span class="n">isvalids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">gps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="ow">or</span> <span class="n">gps</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">for</span> <span class="n">gps</span> <span class="ow">in</span> <span class="n">gpss</span><span class="p">]</span>
-                     <span class="k">for</span> <span class="n">gpss</span> <span class="ow">in</span> <span class="n">gpss_list</span><span class="p">]</span>
-    <span class="n">gps_track_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gpss</span><span class="p">,</span> <span class="n">isvalids</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpss</span><span class="p">,</span> <span class="n">isvalids</span> <span class="ow">in</span>
-                      <span class="nb">zip</span><span class="p">(</span><span class="n">gpss_list</span><span class="p">,</span> <span class="n">isvalids_list</span><span class="p">)]</span>
-    <span class="n">aid_track_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span> <span class="ow">in</span>
-                       <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">isvalids_list</span><span class="p">)]</span>
+    <span class="n">isvalids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">gps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="ow">or</span> <span class="n">gps</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">for</span> <span class="n">gps</span> <span class="ow">in</span> <span class="n">gpss</span><span class="p">]</span> <span class="k">for</span> <span class="n">gpss</span> <span class="ow">in</span> <span class="n">gpss_list</span>
+    <span class="p">]</span>
+    <span class="n">gps_track_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gpss</span><span class="p">,</span> <span class="n">isvalids</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpss</span><span class="p">,</span> <span class="n">isvalids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpss_list</span><span class="p">,</span> <span class="n">isvalids_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">aid_track_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">isvalids_list</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">gps_track_list</span><span class="p">,</span> <span class="n">aid_track_list</span></div>
 
 
@@ -1597,18 +1791,37 @@
 <span class="sd">        python -m wbia.control.manual_name_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
+           </div>
+
           </div>
+          <footer>
+
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
 
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../contents.html">wbia</a></h1>
+
+    </section>
+
+  </div>
 
 
 
@@ -1616,57 +1829,22 @@
 
 
 
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../contents.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  <li><a href="../../wbia.html">wbia</a><ul>
-  <li><a href="../control.html">wbia.control</a><ul>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
 
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, Wild Me.
-
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
-    </div>
-
-
-
-
-  </body>
+</body>
 </html>
