@@ -1,14 +1,20 @@
+# -*- coding: utf-8 -*-
 import requests
 import sys
 
 config = {
-    'protocol' : 'http',
-    'server'   : 'localhost',
-    'port'     :  5000,
-    'endpoint' : '/api/test/heartbeat/',
+    'protocol': 'http',
+    'server': 'localhost',
+    'port': 5000,
+    'endpoint': '/api/test/heartbeat/',
 }
 
-args = (config['protocol'], config['server'], config['port'], config['endpoint'], )
+args = (
+    config['protocol'],
+    config['server'],
+    config['port'],
+    config['endpoint'],
+)
 url = '%s://%s:%s%s' % args
 
 try:

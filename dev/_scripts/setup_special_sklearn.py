@@ -30,6 +30,7 @@ TODO:
 from __future__ import print_function, division, absolute_import, unicode_literals
 from os.path import join
 import utool as ut
+
 # import git
 # import os
 
@@ -53,7 +54,9 @@ def main():
         # repo.issue('pip install -e .')
 
     # Make sure remotes are properly setup
-    repo._ensure_remote_exists('source', 'https://github.com/scikit-learn/scikit-learn.git')
+    repo._ensure_remote_exists(
+        'source', 'https://github.com/scikit-learn/scikit-learn.git'
+    )
     repo._ensure_remote_exists('raghavrv', 'https://github.com/raghavrv/scikit-learn.git')
 
     # Master should point to the scikit-learn official repo

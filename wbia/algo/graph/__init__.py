@@ -3,6 +3,7 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool
+
 print, rrr, profile = utool.inject2(__name__)
 
 
@@ -12,10 +13,12 @@ def reassign_submodule_attributes(verbose=1):
     in the submodules.
     """
     import sys
+
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
     import wbia.algo.graph
+
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
@@ -40,17 +43,21 @@ def reload_subs(verbose=1):
     if verbose:
         print('Reloading wbia.algo.graph submodules')
     rrr(verbose > 1)
+
     def wrap_fbrrr(mod):
         def fbrrr(*args, **kwargs):
             """ fallback reload """
             if verbose > 0:
                 print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
+
         return fbrrr
+
     def get_rrr(mod):
         if hasattr(mod, 'rrr'):
             return mod.rrr
         else:
             return wrap_fbrrr(mod)
+
     def get_reload_subs(mod):
         return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
 
@@ -60,11 +67,11 @@ def reload_subs(verbose=1):
         reassign_submodule_attributes(verbose=verbose)
     except Exception as ex:
         print(ex)
+
+
 rrrr = reload_subs
 
-IMPORT_TUPLES = [
-
-]
+IMPORT_TUPLES = []
 """
 Regen Command:
     cd /home/joncrall/code/wbia/wbia/algo/graph

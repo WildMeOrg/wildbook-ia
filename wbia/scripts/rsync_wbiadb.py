@@ -11,8 +11,7 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22,
-                 dryrun=False):
+def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=False):
     """
     syncs an wbiadb without syncing the cache or the chip directory
     (or the top level image directory because it shouldnt exist unlese
@@ -23,10 +22,10 @@ def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22,
     print('  * remote_uri=%r' % (remote_uri,))
     print('  * mode=%r' % (mode))
     import wbia
+
     assert dbname is not None, 'must specify a database name'
     # Excluded temporary and cached data
-    exclude_dirs = list(map(ut.ensure_unixslash,
-                            wbia.const.EXCLUDE_COPY_REL_DIRS))
+    exclude_dirs = list(map(ut.ensure_unixslash, wbia.const.EXCLUDE_COPY_REL_DIRS))
     # Specify local workdir
     if workdir is None:
         workdir = wbia.sysres.get_workdir()
@@ -53,6 +52,7 @@ def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22,
 
 def rsync_ibsdb_main():
     import sys
+
     default_user = ut.get_user_name()
     # default_db = 'MUGU_Master'
     default_db = None
@@ -66,11 +66,12 @@ def rsync_ibsdb_main():
     valid_modes = ['push', 'pull', 'list']
 
     if len(cmdline_varags) < 1:
-        print('Usage: '
-              # 'python -m wbia.scripts.rsync_wbiadb'
-              'python -m wbia rsync'
-              '%s --db <db=%s> --user <user=%s>' %
-              (valid_modes, default_db, default_user,))
+        print(
+            'Usage: '
+            # 'python -m wbia.scripts.rsync_wbiadb'
+            'python -m wbia rsync'
+            '%s --db <db=%s> --user <user=%s>' % (valid_modes, default_db, default_user,)
+        )
         sys.exit(1)
 
     varargs_dict = dict(enumerate(cmdline_varags))
@@ -80,25 +81,24 @@ def rsync_ibsdb_main():
 
     user = ut.get_argval('--user', type_=str, default=default_user)
     port = ut.get_argval('--port', type_=int, default=22)
-    dbnames = ut.get_argval(('--db', '--dbs', '--dbname'), type_=str,
-                            default=default_db)
+    dbnames = ut.get_argval(('--db', '--dbs', '--dbname'), type_=str, default=default_db)
     dbnames = ut.smart_cast(dbnames, list)
-    workdir = ut.get_argval(('--workdir'), type_=str,
-                            default=None, help_='local work dir override')
+    workdir = ut.get_argval(
+        ('--workdir'), type_=str, default=None, help_='local work dir override'
+    )
     dry_run = ut.get_argflag(('--dryrun', '--dry-run', '--dry'))
 
-    assert mode in valid_modes, 'mode=%r must be in %r' % (
-        mode, valid_modes)
+    assert mode in valid_modes, 'mode=%r must be in %r' % (mode, valid_modes)
     remote_key = ut.get_argval('--remote', type_=str, default='hyrule')
     remote_map = {
-        'hyrule'  : 'hyrule.cs.rpi.edu',
-        'pachy'   : 'pachy.cs.uic.edu',
-        'lewa'    : '41.203.223.178',
+        'hyrule': 'hyrule.cs.rpi.edu',
+        'pachy': 'pachy.cs.uic.edu',
+        'lewa': '41.203.223.178',
     }
     remote_workdir_map = {
-        'hyrule'  : '/raid/work',
-        'pachy'   : '/home/shared_wbia/data/work',
-        'lewa'    : '/data/wbia',
+        'hyrule': '/raid/work',
+        'pachy': '/home/shared_wbia/data/work',
+        'lewa': '/data/wbia',
     }
     if ':' in remote_key:
         remote_key_, remote_workdir = remote_key.split(':')
@@ -106,6 +106,7 @@ def rsync_ibsdb_main():
         remote_key_ = remote_key
         if remote_key not in remote_workdir_map:
             import warnings
+
             warnings.warn('Workdir not specified for remote')
         remote_workdir = remote_workdir_map.get(remote_key, '')
 

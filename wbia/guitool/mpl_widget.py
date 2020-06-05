@@ -8,6 +8,7 @@ from wbia.guitool.__PYQT__ import QtCore, QtWidgets, QtGui  # NOQA
 from matplotlib.backend_bases import MouseEvent, KeyEvent, PickEvent
 
 from wbia.guitool import __PYQT__
+
 if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
     import matplotlib.backends.backend_qt4agg as backend_qt
 else:
@@ -22,6 +23,7 @@ class MatplotlibWidget(gt.GuitoolWidget):
     References:
         http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
     """
+
     click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
     key_press_signal = QtCore.pyqtSignal(KeyEvent)
     pick_event_signal = QtCore.pyqtSignal(PickEvent)
@@ -67,6 +69,7 @@ class MatplotlibWidget(gt.GuitoolWidget):
     def reset_ax(self):
         # from wbia.plottool.interactions import zoom_factory, pan_factory
         import wbia.plottool as pt
+
         self.ax = self.fig.add_subplot(1, 1, 1)
         pt.adjust_subplots(left=0, right=1, top=1, bottom=0, fig=self.fig)
         # self.pan_events = pan_factory(self.ax)
@@ -75,6 +78,7 @@ class MatplotlibWidget(gt.GuitoolWidget):
 
     def _emit_button_press(self, event):
         from wbia.plottool import interact_helpers as ih
+
         if ih.clicked_inside_axis(event):
             self.click_inside_signal.emit(event, event.inaxes)
 
@@ -86,6 +90,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.mpl_widget --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

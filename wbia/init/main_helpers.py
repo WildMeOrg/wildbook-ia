@@ -9,13 +9,14 @@ TODO: standardize function signatures
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
-#from wbia.init import old_main_helpers
+
+# from wbia.init import old_main_helpers
 (print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
 
 
 # DEPRICATE
-#get_test_daids = old_main_helpers.get_test_daids
-#get_test_qaids = old_main_helpers.get_test_qaids
+# get_test_daids = old_main_helpers.get_test_daids
+# get_test_qaids = old_main_helpers.get_test_qaids
 
 VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
 VERYVERB_MAIN_HELPERS = VERYVERB_TESTDATA
@@ -24,6 +25,7 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 
 def testdata_filtcfg(default=None):
     from wbia.expt import cfghelpers
+
     print('[main_helpers] testdata_filtcfg')
     if default is None:
         default = ['']
@@ -31,12 +33,20 @@ def testdata_filtcfg(default=None):
     return filt_cfg
 
 
-def testdata_expts(defaultdb='testdb1',
-                   default_acfgstr_name_list=['default:qindex=0:10:4,dindex=0:20'],
-                   default_test_cfg_name_list=['default'], a=None, t=None,
-                   p=None, qaid_override=None, daid_override=None,
-                   initial_aids=None, use_cache=None,
-                   dbdir=None, ibs=None):
+def testdata_expts(
+    defaultdb='testdb1',
+    default_acfgstr_name_list=['default:qindex=0:10:4,dindex=0:20'],
+    default_test_cfg_name_list=['default'],
+    a=None,
+    t=None,
+    p=None,
+    qaid_override=None,
+    daid_override=None,
+    initial_aids=None,
+    use_cache=None,
+    dbdir=None,
+    ibs=None,
+):
     r"""
     Use this if you want data from an experiment.
     Command line interface to quickly get testdata for test_results.
@@ -62,6 +72,7 @@ def testdata_expts(defaultdb='testdb1',
         print('[main_helpers] testdata_expts')
     import wbia
     from wbia.expt import harness
+
     if a is not None:
         default_acfgstr_name_list = a
     if t is not None and p is None:
@@ -74,16 +85,25 @@ def testdata_expts(defaultdb='testdb1',
     if isinstance(default_test_cfg_name_list, six.string_types):
         default_test_cfg_name_list = [default_test_cfg_name_list]
 
-    #from wbia.expt import experiment_helpers
+    # from wbia.expt import experiment_helpers
     if dbdir is not None:
         dbdir = ut.truepath(dbdir)
     if ibs is None:
         ibs = wbia.opendb(defaultdb=defaultdb, dbdir=dbdir)
-    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
-                                   default=default_acfgstr_name_list)
-    test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=default_test_cfg_name_list)
-    daid_override = ut.get_argval(('--daid-override', '--daids-override'), type_=list, default=daid_override)
-    qaid_override = ut.get_argval(('--qaid', '--qaids-override', '--qaid-override'), type_=list, default=qaid_override)
+    acfg_name_list = ut.get_argval(
+        ('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list
+    )
+    test_cfg_name_list = ut.get_argval(
+        ('-t', '-p'), type_=list, default=default_test_cfg_name_list
+    )
+    daid_override = ut.get_argval(
+        ('--daid-override', '--daids-override'), type_=list, default=daid_override
+    )
+    qaid_override = ut.get_argval(
+        ('--qaid', '--qaids-override', '--qaid-override'),
+        type_=list,
+        default=qaid_override,
+    )
 
     # Hack a cache here
     use_bulk_cache = not ut.get_argflag(('--nocache', '--nocache-hs'))
@@ -91,9 +111,10 @@ def testdata_expts(defaultdb='testdb1',
     if use_cache is not None:
         use_bulk_cache &= use_cache
     use_bulk_cache &= False
-    #use_bulk_cache = True
+    # use_bulk_cache = True
     if use_bulk_cache:
         from os.path import dirname
+
         cache_dir = ut.ensuredir((dirname(ut.get_module_dir(wbia)), 'BULK_TESTRES'))
         _cache_wrp = ut.cached_func('testreslist', cache_dir=cache_dir)
         _load_testres = _cache_wrp(harness.run_expt)
@@ -101,19 +122,31 @@ def testdata_expts(defaultdb='testdb1',
         _load_testres = harness.run_expt
 
     testres = _load_testres(
-        ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override,
-        daid_override=daid_override, initial_aids=initial_aids,
-        use_cache=use_cache)
-    #testres = test_result.combine_testres_list(ibs, testres_list)
+        ibs,
+        acfg_name_list,
+        test_cfg_name_list,
+        qaid_override=qaid_override,
+        daid_override=daid_override,
+        initial_aids=initial_aids,
+        use_cache=use_cache,
+    )
+    # testres = test_result.combine_testres_list(ibs, testres_list)
 
     if ut.VERBOSE:
         print(testres)
     return ibs, testres
 
 
-def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
-                  return_acfg=False, verbose=None, default_aids=None,
-                  default_set='qcfg'):
+def testdata_aids(
+    defaultdb=None,
+    a=None,
+    adefault='default',
+    ibs=None,
+    return_acfg=False,
+    verbose=None,
+    default_aids=None,
+    default_set='qcfg',
+):
     r"""
     Grabs default testdata for functions, but is command line overrideable
 
@@ -147,34 +180,44 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
         print('[main_helpers] testdata_aids')
     if a is None:
         a = adefault
-    a, _specified_a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str,
-                                    default=a, return_was_specified=True)
+    a, _specified_a = ut.get_argval(
+        ('--aidcfg', '--acfg', '-a'), type_=str, default=a, return_was_specified=True
+    )
     return_ibs = False
     if ibs is None:
         return_ibs = True
         if defaultdb is None:
             defaultdb = 'testdb1'
         ibs = wbia.opendb(defaultdb=defaultdb)
-    named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
-                                       annotation_configs.TEST_NAMES)
+    named_defaults_dict = ut.dict_take(
+        annotation_configs.__dict__, annotation_configs.TEST_NAMES
+    )
 
-    named_acfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
-                                   ut.get_list_column(named_defaults_dict,
-                                                      default_set)))
+    named_acfg_defaults = dict(
+        zip(
+            annotation_configs.TEST_NAMES,
+            ut.get_list_column(named_defaults_dict, default_set),
+        )
+    )
     # Allow command line override
-    aids, _specified_aids = ut.get_argval(('--aid', '--aids'), type_=list,
-                                          default=default_aids,
-                                          return_was_specified=True)
+    aids, _specified_aids = ut.get_argval(
+        ('--aid', '--aids'), type_=list, default=default_aids, return_was_specified=True
+    )
 
     aidcfg = None
     have_aids = aids is not None
     need_expand = (not have_aids) or (_specified_a and not _specified_aids)
-    #(not aid) or (sa and (not said))
+    # (not aid) or (sa and (not said))
     if need_expand:
-        #base_cfg = annotation_configs.single_default
+        # base_cfg = annotation_configs.single_default
         aidcfg_combo_list = cfghelpers.parse_cfgstr_list2(
-            [a], named_acfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS,
-            expand_nested=False, is_nestedcfgtype=False)
+            [a],
+            named_acfg_defaults,
+            'acfg',
+            annotation_configs.ALIAS_KEYS,
+            expand_nested=False,
+            is_nestedcfgtype=False,
+        )
         aidcfg_combo = aidcfg_combo_list[0]
         if len(aidcfg_combo_list) != 1:
             raise AssertionError('Error: combinations not handled for single cfg setting')
@@ -222,8 +265,10 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
         p = ['default']
 
     from wbia.expt import experiment_helpers
-    test_cfg_name_list, _spec = ut.get_argval(('-t', '-p'), type_=list, default=p,
-                                              return_was_specified=True)
+
+    test_cfg_name_list, _spec = ut.get_argval(
+        ('-t', '-p'), type_=list, default=p, return_was_specified=True
+    )
     if not _spec and isinstance(p, dict):
         # allow explict default spec
         return p
@@ -233,11 +278,18 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
     return pcfgdict
 
 
-def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
-                           default_qaids=None, default_daids=None,
-                           qaid_override=None, daid_override=None,
-                           return_annot_info=False, verbose=None,
-                           use_cache=None):
+def testdata_expanded_aids(
+    defaultdb=None,
+    a=None,
+    ibs=None,
+    default_qaids=None,
+    default_daids=None,
+    qaid_override=None,
+    daid_override=None,
+    return_annot_info=False,
+    verbose=None,
+    use_cache=None,
+):
     r"""
     Args:
         default_qaids (list): (default = [1])
@@ -276,29 +328,31 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
     if verbose:
         print('[main_helpers] testdata_expanded_aids')
 
-    default_qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list,
-                                  default=default_qaids)
+    default_qaids = ut.get_argval(
+        ('--qaid', '--qaid-override'), type_=list, default=default_qaids
+    )
     if default_qaids is None:
         default_qaids = [1]
 
     if defaultdb is None:
         defaultdb = 'testdb1'
     import wbia
+
     if ibs is None:
         ibs = wbia.opendb(defaultdb=defaultdb)
 
     # TODO: rectify command line with function arguments
     from wbia.expt import experiment_helpers
+
     _specified2 = True
     if a is None:
         _specified2 = False
         a = ['default']
     if isinstance(a, six.string_types):
         a = [a]
-    aidcfg_name_list, _specified = ut.get_argval(('--aidcfg', '--acfg', '-a'),
-                                                 type_=list,
-                                                 default=a,
-                                                 return_specified=True)
+    aidcfg_name_list, _specified = ut.get_argval(
+        ('--aidcfg', '--acfg', '-a'), type_=list, default=a, return_specified=True
+    )
 
     if not _specified:
         # Allow a to be specified an explicit default
@@ -311,15 +365,19 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
                     return ibs, qaids, daids
 
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
-        ibs, aidcfg_name_list, qaid_override=qaid_override,
+        ibs,
+        aidcfg_name_list,
+        qaid_override=qaid_override,
         use_cache=use_cache,
-        daid_override=daid_override, verbose=max(0, verbose - 1))
+        daid_override=daid_override,
+        verbose=max(0, verbose - 1),
+    )
 
-    #aidcfg = old_main_helpers.get_commandline_aidcfg()
+    # aidcfg = old_main_helpers.get_commandline_aidcfg()
     assert len(acfg_list) == 1, (
-        ('multiple acfgs specified, but this function'
-         'is built to return only 1. len(acfg_list)=%r') %
-        (len(acfg_list),))
+        'multiple acfgs specified, but this function'
+        'is built to return only 1. len(acfg_list)=%r'
+    ) % (len(acfg_list),)
     aidcfg = acfg_list[0]
 
     qaid_list, daid_list = expanded_aids_list[0]
@@ -333,16 +391,23 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
 
     if ut.VERYVERBOSE:
         ibs.print_annotconfig_stats(qaid_list, daid_list)
-        #wbia.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)
+        # wbia.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)
     if return_annot_info:
         return ibs, qaid_list, daid_list, aidcfg
     else:
         return ibs, qaid_list, daid_list
 
 
-def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
-                   default_daids=None, custom_nid_lookup=None, verbose=None,
-                   **kwargs):
+def testdata_qreq_(
+    p=None,
+    a=None,
+    t=None,
+    default_qaids=None,
+    default_daids=None,
+    custom_nid_lookup=None,
+    verbose=None,
+    **kwargs,
+):
     r"""
     Args:
         p (None): (default = None)
@@ -377,42 +442,64 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
     if p is None:
         p = ['default']
 
-    ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True,
-                                                     default_qaids=default_qaids,
-                                                     default_daids=default_daids,
-                                                     verbose=verbose,
-                                                     **kwargs)
+    ibs, qaids, daids, acfg = testdata_expanded_aids(
+        a=a,
+        return_annot_info=True,
+        default_qaids=default_qaids,
+        default_daids=default_daids,
+        verbose=verbose,
+        **kwargs,
+    )
     pcfgdict = testdata_pipecfg(t=p, ibs=ibs, verbose=verbose)
-    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict,
-                                  custom_nid_lookup=custom_nid_lookup,
-                                  verbose=verbose)
+    qreq_ = ibs.new_query_request(
+        qaids,
+        daids,
+        cfgdict=pcfgdict,
+        custom_nid_lookup=custom_nid_lookup,
+        verbose=verbose,
+    )
     # Maintain regen command info: TODO: generalize and integrate
     if acfg is not None:
         qreq_._regen_info = {
             '_acfgstr': acfg['qcfg']['_cfgstr'],
             '_pcfgstr': pcfgdict['_cfgstr'],
-            'dbname': ibs.get_dbname()
+            'dbname': ibs.get_dbname(),
         }
     else:
         qreq_._regen_info = None
     return qreq_
 
 
-def testdata_cmlist(defaultdb=None, default_qaids=None, default_daids=None,
-                    t=None, p=None, a=None, verbose=None):
+def testdata_cmlist(
+    defaultdb=None,
+    default_qaids=None,
+    default_daids=None,
+    t=None,
+    p=None,
+    a=None,
+    verbose=None,
+):
     """
     Returns:
         list, wbia.QueryRequest: cm_list, qreq_
     """
     if verbose is None or verbose >= 1:
         print('[main_helpers] testdata_cmlist')
-    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids,
-                           default_daids=default_daids, t=t, p=p, a=a)
+    qreq_ = testdata_qreq_(
+        defaultdb=defaultdb,
+        default_qaids=default_qaids,
+        default_daids=default_daids,
+        t=t,
+        p=p,
+        a=a,
+    )
     cm_list = qreq_.execute()
     return cm_list, qreq_
 
 
-def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, p=None, a=None):
+def testdata_cm(
+    defaultdb=None, default_qaids=None, default_daids=None, t=None, p=None, a=None
+):
     r"""
     CommandLine:
         python -m wbia.init.main_helpers --test-testdata_cm
@@ -428,10 +515,14 @@ def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, 
         >>> ut.show_if_requested()
     """
     print('[main_helpers] testdata_cm')
-    cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb,
-                                     default_daids=default_daids,
-                                     default_qaids=default_qaids, t=t, p=p,
-                                     a=a)
+    cm_list, qreq_ = testdata_cmlist(
+        defaultdb=defaultdb,
+        default_daids=default_daids,
+        default_qaids=default_qaids,
+        t=t,
+        p=p,
+        a=a,
+    )
     qaids = qreq_.qaids
     print('qaids = %r' % (qaids,))
     assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
@@ -460,6 +551,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     from wbia.algo.preproc.occurrence_blackbox import cluster_timespace_sec
     import numpy as np
     import datetime
+
     if len(aids) == 0:
         return
     annots = ibs.annots(sorted(set(aids)))
@@ -476,8 +568,9 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
         print('Computing occurrences for monkey patch for %d aids' % (len(aids)))
         posixtimes = annots.image_unixtimes_asfloat
         latlons = annots.gps
-        data = cluster_timespace_sec(posixtimes, latlons,
-                                     thresh_sec=thresh_sec, km_per_sec=.002)
+        data = cluster_timespace_sec(
+            posixtimes, latlons, thresh_sec=thresh_sec, km_per_sec=0.002
+        )
         cacher.save(data)
     occurrence_ids = data
     if occurrence_ids is None:
@@ -487,8 +580,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
 
     ndec = int(np.ceil(np.log10(max(occurrence_ids))))
     suffmt = '-monkey-occur%0' + str(ndec) + 'd'
-    encounter_labels = [n + suffmt % (o,)
-                        for o, n in zip(occurrence_ids, annots.names)]
+    encounter_labels = [n + suffmt % (o,) for o, n in zip(occurrence_ids, annots.names)]
     occurrence_labels = [suffmt[1:] % (o,) for o in occurrence_ids]
     enc_lookup = ut.dzip(annots.aids, encounter_labels)
     occur_lookup = ut.dzip(annots.aids, occurrence_labels)
@@ -508,20 +600,27 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     # monkey patch to override encounter info
     def _monkey_get_annot_occurrence_text(ibs, aids):
         return ut.dict_take(occur_lookup, aids)
+
     def _monkey_get_annot_encounter_text(ibs, aids):
         return ut.dict_take(enc_lookup, aids)
-    ut.inject_func_as_method(ibs, _monkey_get_annot_encounter_text,
-                             'get_annot_encounter_text', force=True)
-    ut.inject_func_as_method(ibs, _monkey_get_annot_occurrence_text,
-                             'get_annot_occurrence_text', force=True)
+
+    ut.inject_func_as_method(
+        ibs, _monkey_get_annot_encounter_text, 'get_annot_encounter_text', force=True
+    )
+    ut.inject_func_as_method(
+        ibs, _monkey_get_annot_occurrence_text, 'get_annot_occurrence_text', force=True
+    )
 
 
 def unmonkeypatch_encounters(ibs):
     from wbia.other import ibsfuncs
-    ut.inject_func_as_method(ibs, ibsfuncs.get_annot_encounter_text,
-                             'get_annot_encounter_text', force=True)
-    ut.inject_func_as_method(ibs, ibsfuncs.get_annot_occurrence_text,
-                             'get_annot_occurrence_text', force=True)
+
+    ut.inject_func_as_method(
+        ibs, ibsfuncs.get_annot_encounter_text, 'get_annot_encounter_text', force=True
+    )
+    ut.inject_func_as_method(
+        ibs, ibsfuncs.get_annot_occurrence_text, 'get_annot_occurrence_text', force=True
+    )
 
 
 if __name__ == '__main__':
@@ -532,6 +631,8 @@ if __name__ == '__main__':
         python -m wbia.init.main_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

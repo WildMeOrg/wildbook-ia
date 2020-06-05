@@ -11,7 +11,7 @@
 		<height>600</height>
 		<depth>3</depth>
 	</size>
-	<segmented>0</segmented>	
+	<segmented>0</segmented>
 	<object>
 		<name>elephant</name>
 		<pose>Unspecified</pose>
@@ -23,7 +23,7 @@
 			<ymax>389</ymax>
 			<ymin>252</ymin>
 		</bndbox>
-	</object>	
+	</object>
 	<object>
 		<name>elephant</name>
 		<pose>Unspecified</pose>
@@ -35,7 +35,7 @@
 			<ymax>395</ymax>
 			<ymin>284</ymin>
 		</bndbox>
-	</object>	
+	</object>
 	<object>
 		<name>elephant</name>
 		<pose>Unspecified</pose>
@@ -47,7 +47,7 @@
 			<ymax>409</ymax>
 			<ymin>318</ymin>
 		</bndbox>
-	</object>	
+	</object>
 	<object>
 		<name>elephant</name>
 		<pose>Unspecified</pose>
@@ -59,7 +59,7 @@
 			<ymax>401</ymax>
 			<ymin>286</ymin>
 		</bndbox>
-	</object>	
+	</object>
 	<object>
 		<name>elephant</name>
 		<pose>Unspecified</pose>

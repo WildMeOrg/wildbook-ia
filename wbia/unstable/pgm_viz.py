@@ -5,6 +5,7 @@ import six  # NOQA
 import utool as ut
 import numpy as np
 from six.moves import zip
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -16,8 +17,10 @@ def print_ascii_graph(model_):
     """
     from PIL import Image  # NOQA
     from six.moves import StringIO
-    #import networkx as nx
+
+    # import networkx as nx
     import copy
+
     model = copy.deepcopy(model_)
     assert model is not model_
     # model.graph.setdefault('graph', {})['size'] = '".4,.4"'
@@ -30,7 +33,7 @@ def print_ascii_graph(model_):
     sio.seek(0)
     pil_img = Image.open(sio)  # NOQA
     print('pil_img.size = %r' % (pil_img.size,))
-    #def print_ascii_image(pil_img):
+    # def print_ascii_image(pil_img):
     #    img2txt = ut.import_module_from_fpath('/home/joncrall/venv/bin/img2txt.py')
     #    import sys
     #    pixel = pil_img.load()
@@ -44,18 +47,19 @@ def print_ascii_graph(model_):
     #    img_ansii_str = img2txt.generate_ANSI_from_pixels(pixel, width, height, bgcolor)
     #    sys.stdout.write(img_ansii_str)
     def print_ascii_image(pil_img):
-        #https://gist.github.com/cdiener/10491632
+        # https://gist.github.com/cdiener/10491632
         SC = 1.0
         GCF = 1.0
         WCF = 1.0
         img = pil_img
         S = (int(round(img.size[0] * SC * WCF * 3)), int(round(img.size[1] * SC)))
-        img = np.sum( np.asarray( img.resize(S) ), axis=2)
+        img = np.sum(np.asarray(img.resize(S)), axis=2)
         print('img.shape = %r' % (img.shape,))
         img -= img.min()
         chars = np.asarray(list(' .,:;irsXA253hMHGS#9B&@'))
         img = (1.0 - img / img.max()) ** GCF * (chars.size - 1)
-        print( "\n".join( ("".join(r) for r in chars[img.astype(int)]) ) )
+        print('\n'.join((''.join(r) for r in chars[img.astype(int)])))
+
     print_ascii_image(pil_img)
     pil_img.close()
     pass
@@ -64,7 +68,7 @@ def print_ascii_graph(model_):
 def _debug_repr_model(model):
     cpd_code_list = [_debug_repr_cpd(cpd) for cpd in model.cpds]
     code_fmt = ut.codeblock(
-        '''
+        """
         import numpy as np
         import pgmpy
         import pgmpy.inference
@@ -78,7 +82,8 @@ def _debug_repr_model(model):
         model = pgmpy.models.BayesianModel(input_graph)
         model.add_cpds(*cpd_list)
         infr = pgmpy.inference.BeliefPropagation(model)
-        ''')
+        """
+    )
 
     code = code_fmt.format(
         cpds='\n'.join(cpd_code_list),
@@ -92,8 +97,9 @@ def _debug_repr_model(model):
 def _debug_repr_cpd(cpd):
     import re
     import utool as ut
+
     code_fmt = ut.codeblock(
-        '''
+        """
         {variable} = pgmpy.factors.TabularCPD(
             variable={variable_repr},
             variable_card={variable_card_repr},
@@ -101,7 +107,8 @@ def _debug_repr_cpd(cpd):
             evidence={evidence_repr},
             evidence_card={evidence_card_repr},
         )
-        ''')
+        """
+    )
     keys = ['variable', 'variable_card', 'values', 'evidence', 'evidence_card']
     dict_ = ut.odict(zip(keys, [getattr(cpd, key) for key in keys]))
     # HACK
@@ -134,11 +141,15 @@ def make_factor_text(factor, name):
     else:
         values = factor.values
         try:
-            rowstrs = ['p(%s)=%.3f' % (','.join(n), v,)
-                       for n, v in zip(zip(*factor.statenames), values)]
+            rowstrs = [
+                'p(%s)=%.3f' % (','.join(n), v,)
+                for n, v in zip(zip(*factor.statenames), values)
+            ]
         except Exception:
-            rowstrs = ['p(%s)=%.3f' % (','.join(n), v,)
-                       for n, v in zip(factor._row_labels(False), values)]
+            rowstrs = [
+                'p(%s)=%.3f' % (','.join(n), v,)
+                for n, v in zip(factor._row_labels(False), values)
+            ]
         idxs = ut.list_argmaxima(values)
         for idx in idxs:
             rowstrs[idx] += '*'
@@ -146,7 +157,7 @@ def make_factor_text(factor, name):
         always_sort = True
         if len(rowstrs) > thresh:
             sortx = factor.values.argsort()[::-1]
-            rowstrs = ut.take(rowstrs, sortx[0:(thresh - 1)])
+            rowstrs = ut.take(rowstrs, sortx[0 : (thresh - 1)])
             rowstrs += ['... %d more' % ((len(values) - len(rowstrs)),)]
         elif always_sort:
             sortx = factor.values.argsort()[::-1]
@@ -161,6 +172,7 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
     """
     import pygraphviz
     import networkx as nx
+
     # Add "invisible" edges to induce an ordering
     # Hack for layout (ordering of top level nodes)
     netx_graph2 = model.copy()
@@ -185,7 +197,7 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
 
     args = ''
     agraph.layout(prog=prog, args=args)
-    #agraph.draw('example.png', prog='dot')
+    # agraph.draw('example.png', prog='dot')
     node_pos = {}
     for n in model:
         node_ = pygraphviz.Node(agraph, n)
@@ -200,29 +212,37 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
 
 def draw_map_histogram(top_assignments, fnum=None, pnum=(1, 1, 1)):
     import wbia.plottool as pt
+
     bin_labels = ut.get_list_column(top_assignments, 0)
-    bin_vals =  ut.get_list_column(top_assignments, 1)
+    bin_vals = ut.get_list_column(top_assignments, 1)
     fnum = pt.ensure_fnum(fnum)
     # bin_labels = ['\n'.join(ut.textwrap.wrap(_lbl, width=30)) for _lbl in bin_labels]
-    pt.draw_histogram(bin_labels, bin_vals, fnum=fnum, pnum=pnum,
-                      transpose=True,
-                      use_darkbackground=False,
-                      #xtick_rotation=-10,
-                      ylabel='Prob', xlabel='assignment')
+    pt.draw_histogram(
+        bin_labels,
+        bin_vals,
+        fnum=fnum,
+        pnum=pnum,
+        transpose=True,
+        use_darkbackground=False,
+        # xtick_rotation=-10,
+        ylabel='Prob',
+        xlabel='assignment',
+    )
     pt.set_title('Assignment probabilities')
 
 
-def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
-                       ttype_colors, **kwargs):
+def get_node_viz_attrs(
+    model, evidence, soft_evidence, factor_list, ttype_colors, **kwargs
+):
     import wbia.plottool as pt
 
     var2_post = {f.variables[0]: f for f in factor_list}
 
     pos_dict = get_bayesnet_layout(model)
 
-    #pos_dict = nx.pygraphviz_layout(netx_graph)
-    #pos_dict = nx.pydot_layout(netx_graph, prog='dot')
-    #pos_dict = nx.graphviz_layout(netx_graph)
+    # pos_dict = nx.pygraphviz_layout(netx_graph)
+    # pos_dict = nx.pydot_layout(netx_graph, prog='dot')
+    # pos_dict = nx.graphviz_layout(netx_graph)
 
     netx_nodes = model.nodes(data=True)
     node_key_list = ut.get_list_column(netx_nodes, 0)
@@ -241,15 +261,17 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
         show_prior = False
     else:
         ignore_prior_with_ttype = []
-        #show_prior = True
+        # show_prior = True
         show_prior = False
 
     dpy = 5
     dbx, dby = (20, 20)
-    takw1 = {'bbox_align': (.5, 0), 'pos_offset': [0, dpy],
-             'bbox_offset': [dbx, dby]}
-    takw2 = {'bbox_align': (.5, 1), 'pos_offset': [0, -dpy],
-             'bbox_offset': [-dbx, -dby]}
+    takw1 = {'bbox_align': (0.5, 0), 'pos_offset': [0, dpy], 'bbox_offset': [dbx, dby]}
+    takw2 = {
+        'bbox_align': (0.5, 1),
+        'pos_offset': [0, -dpy],
+        'bbox_offset': [-dbx, -dby],
+    }
 
     def get_name_color(phi):
         order = phi.values.argsort()[::-1]
@@ -257,9 +279,9 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
             dist_next = phi.values[order[0]]
         else:
             dist_next = phi.values[order[0]] - phi.values[order[1]]
-        dist_total = (phi.values[order[0]])
+        dist_total = phi.values[order[0]]
         confidence = (dist_total * dist_next) ** (2.5 / 4)
-        #print('confidence = %r' % (confidence,))
+        # print('confidence = %r' % (confidence,))
         color = ttype_colors['name'][order[0]]
         color = pt.color_funcs.desaturate_rgb(color, 1 - confidence)
         color = np.array(color)
@@ -268,8 +290,9 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
     for node, pos in zip(netx_nodes, pos_list):
         variable = node[0]
         cpd = model.var2_cpd[variable]
-        prior_marg = (cpd if cpd.evidence is None else
-                      cpd.marginalize(cpd.evidence, inplace=False))
+        prior_marg = (
+            cpd if cpd.evidence is None else cpd.marginalize(cpd.evidence, inplace=False)
+        )
 
         show_evidence = variable in evidence
         show_prior = cpd.ttype not in ignore_prior_with_ttype
@@ -285,7 +308,7 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
 
         if variable in evidence:
             if cpd.ttype == 'score':
-                color = ttype_colors['score'][evidence[variable] ]
+                color = ttype_colors['score'][evidence[variable]]
                 color = np.array(color)
                 node_color.append(color)
             elif cpd.ttype == 'name':
@@ -295,7 +318,7 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
             else:
                 color = pt.FALSE_RED
                 node_color.append(color)
-        #elif variable in soft_evidence:
+        # elif variable in soft_evidence:
         #    color = pt.LIGHT_PINK
         #    show_prior = True
         #    color = get_name_color(prior_marg)
@@ -312,7 +335,7 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
                 color = pt.LIGHT_PINK
                 node_color.append(color)
             else:
-                #color = pt.WHITE
+                # color = pt.WHITE
                 color = pt.NEUTRAL
                 node_color.append(color)
 
@@ -360,6 +383,7 @@ def make_colorcodes(model):
         python -m wbia --tf demo_bayesnet --ev :nA=4,nS=3,Na=n0,rand_scores=True --show --verbose
     """
     import wbia.plottool as pt
+
     ttype_colors = {}
     ttype_scalars = {}
 
@@ -375,40 +399,50 @@ def make_colorcodes(model):
     if 'score' in model.ttype2_template:
         cmap_, mn, mx = 'plasma', 0.15, 1.0
         _cmap = pt.plt.get_cmap(cmap_)
+
         def cmap(x):
             return _cmap((x * mx) + mn)
+
         basis = model.ttype2_template['score'].basis
         scalars = np.linspace(0, 1, len(basis))
         # scalars = np.linspace(0, 1, 100)
-        colors = pt.scores_to_color(scalars, cmap_=cmap_, reverse_cmap=False,
-                                    cmap_range=(mn, mx))
-        colors = [pt.lighten_rgb(c, .4) for c in colors]
+        colors = pt.scores_to_color(
+            scalars, cmap_=cmap_, reverse_cmap=False, cmap_range=(mn, mx)
+        )
+        colors = [pt.lighten_rgb(c, 0.4) for c in colors]
         ttype_scalars['score'] = scalars
         ttype_colors['score'] = colors
 
     return ttype_colors, ttype_scalars
 
 
-def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
-                        pnum=None, **kwargs):
+def draw_bayesian_model(
+    model, evidence={}, soft_evidence={}, fnum=None, pnum=None, **kwargs
+):
 
     from pgmpy.models import BayesianModel
+
     if not isinstance(model, BayesianModel):
         model = model.to_bayesian_model()
 
     import wbia.plottool as pt
     import networkx as nx
+
     kwargs = kwargs.copy()
     factor_list = kwargs.pop('factor_list', [])
 
     ttype_colors, ttype_scalars = make_colorcodes(model)
 
     textprops = {
-        'horizontalalignment': 'left', 'family': 'monospace', 'size': 8, }
+        'horizontalalignment': 'left',
+        'family': 'monospace',
+        'size': 8,
+    }
 
     # build graph attrs
     tup = get_node_viz_attrs(
-        model, evidence, soft_evidence, factor_list, ttype_colors, **kwargs)
+        model, evidence, soft_evidence, factor_list, ttype_colors, **kwargs
+    )
     node_color, pos_list, pos_dict, takws = tup
 
     # draw graph
@@ -417,8 +451,9 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
     if False:
         fig = pt.figure(fnum=fnum, pnum=pnum, doclf=True)  # NOQA
         ax = pt.gca()
-        drawkw = dict(pos=pos_dict, ax=ax, with_labels=True, node_size=1100,
-                      node_color=node_color)
+        drawkw = dict(
+            pos=pos_dict, ax=ax, with_labels=True, node_size=1100, node_color=node_color
+        )
         nx.draw(model, **drawkw)
     else:
         # BE VERY CAREFUL
@@ -426,7 +461,7 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
             graph = model.copy()
             graph.__class__ = nx.DiGraph
             graph.graph['groupattrs'] = ut.ddict(dict)
-            #graph = model.
+            # graph = model.
             if getattr(graph, 'ttype2_cpds', None) is not None:
                 # Add invis edges and ttype groups
                 for ttype in model.ttype2_cpds.keys():
@@ -436,8 +471,16 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
                     # ttype_nodes = sorted(ttype_nodes)
                     invis_edges = list(ut.itertwo(ttype_nodes))
                     graph.add_edges_from(invis_edges)
-                    nx.set_edge_attributes(graph, name='style', values={edge: 'invis' for edge in invis_edges})
-                    nx.set_node_attributes(graph, name='groupid', values={node: ttype for node in ttype_nodes})
+                    nx.set_edge_attributes(
+                        graph,
+                        name='style',
+                        values={edge: 'invis' for edge in invis_edges},
+                    )
+                    nx.set_node_attributes(
+                        graph,
+                        name='groupid',
+                        values={node: ttype for node in ttype_nodes},
+                    )
                     graph.graph['groupattrs'][ttype]['rank'] = 'same'
                     graph.graph['groupattrs'][ttype]['cluster'] = False
         else:
@@ -447,8 +490,9 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
         fig = pt.gcf()
         ax = pt.gca()
         pass
-    hacks = [pt.draw_text_annotations(textprops=textprops, **takw)
-             for takw in takws if takw]
+    hacks = [
+        pt.draw_text_annotations(textprops=textprops, **takw) for takw in takws if takw
+    ]
 
     xmin, ymin = np.array(pos_list).min(axis=0)
     xmax, ymax = np.array(pos_list).max(axis=0)
@@ -497,16 +541,17 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
                 # scalars =
                 colors = ttype_colors[key]
                 scalars = ttype_scalars[key]
-                pt.colorbar(scalars, colors, lbl=key, ticklabels=basis,
-                            ticklocation=loc)
+                pt.colorbar(scalars, colors, lbl=key, ticklabels=basis, ticklocation=loc)
 
 
 def draw_markov_model(model, fnum=None, **kwargs):
     import wbia.plottool as pt
+
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, doclf=True)
     ax = pt.gca()
     from pgmpy.models import MarkovModel
+
     if isinstance(model, MarkovModel):
         markovmodel = model
     else:
@@ -525,8 +570,9 @@ def draw_markov_model(model, fnum=None, **kwargs):
     # markovmodel.graph.setdefault('edge', {})['splines'] = 'curved'
 
     node_color = [pt.NEUTRAL] * len(pos)
-    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,  # NOQA
-                  node_size=1100)
+    drawkw = dict(
+        pos=pos, ax=ax, with_labels=True, node_color=node_color, node_size=1100  # NOQA
+    )
 
     from matplotlib.patches import FancyArrowPatch, Circle
     import numpy as np
@@ -549,17 +595,23 @@ def draw_markov_model(model, fnum=None, **kwargs):
             alpha = 0.5
             color = 'k'
 
-            e = FancyArrowPatch(n1.center, n2.center, patchA=n1, patchB=n2,
-                                # arrowstyle='-|>',
-                                arrowstyle='-',
-                                connectionstyle='arc3,rad=%s' % rad,
-                                mutation_scale=10.0,
-                                lw=2,
-                                alpha=alpha,
-                                color=color)
+            e = FancyArrowPatch(
+                n1.center,
+                n2.center,
+                patchA=n1,
+                patchB=n2,
+                # arrowstyle='-|>',
+                arrowstyle='-',
+                connectionstyle='arc3,rad=%s' % rad,
+                mutation_scale=10.0,
+                lw=2,
+                alpha=alpha,
+                color=color,
+            )
             seen[(u, v)] = rad
             ax.add_patch(e)
         return e
+
     # nx.draw(markovmodel, **drawkw)
     draw_network(markovmodel, pos, ax)
     ax.autoscale()
@@ -572,10 +624,12 @@ def draw_markov_model(model, fnum=None, **kwargs):
 
 def draw_junction_tree(model, fnum=None, **kwargs):
     import wbia.plottool as pt
+
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum)
     ax = pt.gca()
     from pgmpy.models import JunctionTree
+
     if not isinstance(model, JunctionTree):
         netx_graph = model.to_junction_tree()
     else:
@@ -586,19 +640,19 @@ def draw_junction_tree(model, fnum=None, **kwargs):
             ', '.join(k) if isinstance(k, tuple) else k: fixtupkeys(v)
             for k, v in dict_.items()
         }
+
     n = fixtupkeys(netx_graph.nodes)
     e = fixtupkeys(netx_graph.edge)
     a = fixtupkeys(netx_graph.adj)
     netx_graph.nodes = n
     netx_graph.edge = e
     netx_graph.adj = a
-    #netx_graph = model.to_markov_model()
-    #pos = nx.nx_agraph.pygraphviz_layout(netx_graph)
-    #pos = nx.nx_agraph.graphviz_layout(netx_graph)
+    # netx_graph = model.to_markov_model()
+    # pos = nx.nx_agraph.pygraphviz_layout(netx_graph)
+    # pos = nx.nx_agraph.graphviz_layout(netx_graph)
     pos = nx.pydot_layout(netx_graph)
     node_color = [pt.NEUTRAL] * len(pos)
-    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,
-                  node_size=2000)
+    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color, node_size=2000)
     nx.draw(netx_graph, **drawkw)
     if kwargs.get('show_title', True):
         pt.set_figtitle('Junction / Clique Tree / Cluster Graph')
@@ -659,6 +713,7 @@ def show_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None, **kwarg
         >>> ut.show_if_requested()
     """
     import wbia.plottool as pt
+
     fnum = pt.ensure_fnum(fnum)
     top_assignments = kwargs.get('top_assignments', None)
     if evidence and top_assignments and 'factor_list' in kwargs:
@@ -679,6 +734,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.pgm_viz --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -13,9 +13,10 @@ import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
@@ -94,15 +95,17 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
     # TODO: Return confidence here as well
     depc = ibs.depc_image
     config = {
-        'algo'        : 'rf',
-        'species'     : species,
-        'sensitivity' : 0.2,
-        'nms'         : True,
-        'nms_thresh'  : 0.4,
+        'algo': 'rf',
+        'species': species,
+        'sensitivity': 0.2,
+        'nms': True,
+        'nms_thresh': 0.4,
     }
     results_list = depc.get_property('localizations', gid_list, None, config=config)
     if commit:
-        aids_list = ibs.commit_localization_results(gid_list, results_list, note='pyrfdetect')
+        aids_list = ibs.commit_localization_results(
+            gid_list, results_list, note='pyrfdetect'
+        )
         return aids_list
 
     # results_list = depc.get_property('detections', gid_list, None, config=config)
@@ -112,8 +115,13 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
 
 
 @register_route('/test/review/detect/cnn/yolo/', methods=['GET'])
-def review_detection_test(image_uuid=None, result_list=None, callback_url=None,
-                          callback_method='POST', **kwargs):
+def review_detection_test(
+    image_uuid=None,
+    result_list=None,
+    callback_url=None,
+    callback_method='POST',
+    **kwargs,
+):
     ibs = current_app.ibs
     if image_uuid is None or result_list is None:
         results_dict = ibs.detection_yolo_test()
@@ -123,11 +131,15 @@ def review_detection_test(image_uuid=None, result_list=None, callback_url=None,
         callback_url = request.args.get('callback_url', url_for('process_detection_html'))
     if callback_method is None:
         callback_method = request.args.get('callback_method', 'POST')
-    template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
-    template_html = '''
+    template_html = review_detection_html(
+        ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True
+    )
+    template_html = """
         <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
         %s
-    ''' % (template_html, )
+    """ % (
+        template_html,
+    )
     return template_html
 
 
@@ -135,6 +147,7 @@ def review_detection_test(image_uuid=None, result_list=None, callback_url=None,
 @register_api('/test/detect/cnn/yolo/', methods=['GET'])
 def detection_yolo_test(ibs, config={}):
     from random import shuffle  # NOQA
+
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)
     gid_list = gid_list[:3]
@@ -146,6 +159,7 @@ def detection_yolo_test(ibs, config={}):
 @register_api('/test/detect/cnn/lightnet/', methods=['GET'])
 def detection_lightnet_test(ibs, config={}):
     from random import shuffle  # NOQA
+
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)
     gid_list = gid_list[:3]
@@ -154,7 +168,15 @@ def detection_lightnet_test(ibs, config={}):
 
 
 @register_api('/api/review/detect/cnn/yolo/', methods=['GET'])
-def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method='POST', include_jquery=False, config=None):
+def review_detection_html(
+    ibs,
+    image_uuid,
+    result_list,
+    callback_url,
+    callback_method='POST',
+    include_jquery=False,
+    config=None,
+):
     """
     Return the detection review interface for a particular image UUID and a list of results for that image.
 
@@ -180,22 +202,22 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
         return 'INVALID IMAGE UUID'
 
     default_config = {
-        'autointerest'            : False,
-        'interest_bypass'         : False,
-        'metadata'                : True,
-        'metadata_viewpoint'      : False,
-        'metadata_quality'        : False,
-        'metadata_flags'          : True,
-        'metadata_flags_aoi'      : True,
-        'metadata_flags_multiple' : False,
-        'metadata_species'        : True,
-        'metadata_label'          : True,
-        'metadata_quickhelp'      : True,
-        'parts'                   : False,
-        'modes_rectangle'         : True,
-        'modes_diagonal'          : True,
-        'modes_diagonal2'         : True,
-        'staged'                  : False,
+        'autointerest': False,
+        'interest_bypass': False,
+        'metadata': True,
+        'metadata_viewpoint': False,
+        'metadata_quality': False,
+        'metadata_flags': True,
+        'metadata_flags_aoi': True,
+        'metadata_flags_multiple': False,
+        'metadata_species': True,
+        'metadata_label': True,
+        'metadata_quickhelp': True,
+        'parts': False,
+        'modes_rectangle': True,
+        'modes_diagonal': True,
+        'modes_diagonal2': True,
+        'staged': False,
     }
 
     if config is not None:
@@ -207,8 +229,14 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
     width, height = ibs.get_image_sizes(gid)
 
     if width <= 0 or width is None or height <= 0 or height is None:
-        vals = (image_uuid, width, height, )
-        raise IOError('Image %r for review has either no width or no height (w = %s, h = %s)' % vals)
+        vals = (
+            image_uuid,
+            width,
+            height,
+        )
+        raise IOError(
+            'Image %r for review has either no width or no height (w = %s, h = %s)' % vals
+        )
 
     annotation_list = []
     for result in result_list:
@@ -226,23 +254,27 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
 
         if viewpoint1 is None and viewpoint2 is None and viewpoint3 is None:
             viewpoint = result.get('viewpoint', None)
-            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
+            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(
+                viewpoint
+            )
 
-        annotation_list.append({
-            'id'      : result.get('id', None),
-            'left'    : 100.0 * (result.get('left', result['xtl']) / width),
-            'top'     : 100.0 * (result.get('top', result['ytl']) / height),
-            'width'   : 100.0 * (result['width'] / width),
-            'height'  : 100.0 * (result['height'] / height),
-            'species' : result.get('species', result['class']),
-            'theta'   : result.get('theta', 0.0),
-            'viewpoint1' : viewpoint1,
-            'viewpoint2' : viewpoint2,
-            'viewpoint3' : viewpoint3,
-            'quality'    : quality,
-            'multiple'   : 'true' if result.get('multiple', None) == 1 else 'false',
-            'interest'   : 'true' if result.get('interest', None) == 1 else 'false',
-        })
+        annotation_list.append(
+            {
+                'id': result.get('id', None),
+                'left': 100.0 * (result.get('left', result['xtl']) / width),
+                'top': 100.0 * (result.get('top', result['ytl']) / height),
+                'width': 100.0 * (result['width'] / width),
+                'height': 100.0 * (result['height'] / height),
+                'species': result.get('species', result['class']),
+                'theta': result.get('theta', 0.0),
+                'viewpoint1': viewpoint1,
+                'viewpoint2': viewpoint2,
+                'viewpoint3': viewpoint3,
+                'quality': quality,
+                'multiple': 'true' if result.get('multiple', None) == 1 else 'false',
+                'interest': 'true' if result.get('interest', None) == 1 else 'false',
+            }
+        )
 
     species = KEY_DEFAULTS[SPECIES_KEY]
 
@@ -261,35 +293,35 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
     ]
 
     if include_jquery:
-        json_file_list = [
-            ['javascript', 'jquery.min.js'],
-        ] + json_file_list
+        json_file_list = [['javascript', 'jquery.min.js'],] + json_file_list
 
     EMBEDDED_CSS = ''
     EMBEDDED_JAVASCRIPT = ''
 
     css_template_fmtstr = '<style type="text/css" ia-dependency="css">%s</style>\n'
-    json_template_fmtstr = '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    json_template_fmtstr = (
+        '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    )
     for css_file in css_file_list:
         css_filepath_list = [root_path, 'static'] + css_file
         with open(join(*css_filepath_list)) as css_file:
-            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(), )
+            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(),)
 
     for json_file in json_file_list:
         json_filepath_list = [root_path, 'static'] + json_file
         with open(join(*json_filepath_list)) as json_file:
-            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
+            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(),)
 
     species_rowids = ibs._get_all_species_rowids()
     species_nice_list = ibs.get_species_nice(species_rowids)
 
     combined_list = sorted(zip(species_nice_list, species_rowids))
-    species_nice_list = [ combined[0] for combined in combined_list ]
-    species_rowids = [ combined[1] for combined in combined_list ]
+    species_nice_list = [combined[0] for combined in combined_list]
+    species_rowids = [combined[1] for combined in combined_list]
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_list = list(zip(species_nice_list, species_text_list))
-    species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
+    species_list = [('Unspecified', const.UNKNOWN)] + species_list
 
     # Collect mapping of species to parts
     aid_list = ibs.get_valid_aids()
@@ -299,9 +331,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
     part_types_list = map(ibs.get_part_types, part_rowids_list)
 
     zipped = list(zip(part_species_text_list, part_types_list))
-    species_part_dict = {
-        const.UNKNOWN: set([])
-    }
+    species_part_dict = {const.UNKNOWN: set([])}
     for part_species_text, part_type_list in zipped:
         if part_species_text not in species_part_dict:
             species_part_dict[part_species_text] = set([const.UNKNOWN])
@@ -334,21 +364,24 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
         for (settings_key, settings_default) in settings_key_list
     }
 
-    return appf.template('turk', 'detection_insert',
-                         gid=gid,
-                         refer_aid=None,
-                         species=species,
-                         image_path=gpath,
-                         image_src=image_src,
-                         config=default_config,
-                         settings=settings,
-                         annotation_list=annotation_list,
-                         species_list=species_list,
-                         species_part_dict_json=species_part_dict_json,
-                         callback_url=callback_url,
-                         callback_method=callback_method,
-                         EMBEDDED_CSS=EMBEDDED_CSS,
-                         EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT)
+    return appf.template(
+        'turk',
+        'detection_insert',
+        gid=gid,
+        refer_aid=None,
+        species=species,
+        image_path=gpath,
+        image_src=image_src,
+        config=default_config,
+        settings=settings,
+        annotation_list=annotation_list,
+        species_list=species_list,
+        species_part_dict_json=species_part_dict_json,
+        callback_url=callback_url,
+        callback_method=callback_method,
+        EMBEDDED_CSS=EMBEDDED_CSS,
+        EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT,
+    )
 
 
 @register_api('/api/review/detect/cnn/yolo/', methods=['POST'])
@@ -370,45 +403,41 @@ def process_detection_html(ibs, **kwargs):
     annotation_list = json.loads(request.form['ia-detection-data'])
 
     viewpoint1_list = [
-        int(annot['metadata'].get('viewpoint1', -1))
-        for annot in annotation_list
+        int(annot['metadata'].get('viewpoint1', -1)) for annot in annotation_list
     ]
     viewpoint2_list = [
-        int(annot['metadata'].get('viewpoint2', -1))
-        for annot in annotation_list
+        int(annot['metadata'].get('viewpoint2', -1)) for annot in annotation_list
     ]
     viewpoint3_list = [
-        int(annot['metadata'].get('viewpoint3', -1))
-        for annot in annotation_list
+        int(annot['metadata'].get('viewpoint3', -1)) for annot in annotation_list
     ]
     zipped = list(zip(viewpoint1_list, viewpoint2_list, viewpoint3_list))
-    viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
+    viewpoint_list = [appf.convert_tuple_to_viewpoint(tup) for tup in zipped]
 
     result_list = [
         {
-            'id'         : annot['label'],
-            'xtl'        : int( width  * (annot['percent']['left']   / 100.0) ),
-            'ytl'        : int( height * (annot['percent']['top']    / 100.0) ),
-            'left'       : int( width  * (annot['percent']['left']   / 100.0) ),
-            'top'        : int( height * (annot['percent']['top']    / 100.0) ),
-            'width'      : int( width  * (annot['percent']['width']  / 100.0) ),
-            'height'     : int( height * (annot['percent']['height'] / 100.0) ),
-            'theta'      : float(annot['angles']['theta']),
-            'confidence' : 1.0,
-            'class'      : annot['label'],
-            'species'    : annot['label'],
-            'viewpoint'  : viewpoint,
-            'quality'    : annot['metadata']['quality'],
-            'multiple'   : annot['metadata']['multiple'],
-            'interest'   : annot['highlighted'],
-
+            'id': annot['label'],
+            'xtl': int(width * (annot['percent']['left'] / 100.0)),
+            'ytl': int(height * (annot['percent']['top'] / 100.0)),
+            'left': int(width * (annot['percent']['left'] / 100.0)),
+            'top': int(height * (annot['percent']['top'] / 100.0)),
+            'width': int(width * (annot['percent']['width'] / 100.0)),
+            'height': int(height * (annot['percent']['height'] / 100.0)),
+            'theta': float(annot['angles']['theta']),
+            'confidence': 1.0,
+            'class': annot['label'],
+            'species': annot['label'],
+            'viewpoint': viewpoint,
+            'quality': annot['metadata']['quality'],
+            'multiple': annot['metadata']['multiple'],
+            'interest': annot['highlighted'],
         }
         for annot, viewpoint in list(zip(annotation_list, viewpoint_list))
     ]
     result_dict = {
-        'image_uuid_list' : [image_uuid],
-        'results_list'    : [result_list],
-        'score_list'      : [1.0],
+        'image_uuid_list': [image_uuid],
+        'results_list': [result_list],
+        'score_list': [1.0],
     }
     return result_dict
 
@@ -446,22 +475,22 @@ def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
     results_list = [
         [
             {
-                'id'         : aid,
-                'uuid'       : ibs.get_annot_uuids(aid),
-                'xtl'        : ibs.get_annot_bboxes(aid)[0],
-                'ytl'        : ibs.get_annot_bboxes(aid)[1],
-                'left'       : ibs.get_annot_bboxes(aid)[0],
-                'top'        : ibs.get_annot_bboxes(aid)[1],
-                'width'      : ibs.get_annot_bboxes(aid)[2],
-                'height'     : ibs.get_annot_bboxes(aid)[3],
-                'theta'      : round(ibs.get_annot_thetas(aid), 4),
-                'confidence' : round(ibs.get_annot_detect_confidence(aid), 4),
-                'class'      : ibs.get_annot_species_texts(aid),
-                'species'    : ibs.get_annot_species_texts(aid),
-                'viewpoint'  : ibs.get_annot_viewpoints(aid),
-                'quality'    : ibs.get_annot_qualities(aid),
-                'multiple'   : ibs.get_annot_multiple(aid),
-                'interest'   : ibs.get_annot_interest(aid),
+                'id': aid,
+                'uuid': ibs.get_annot_uuids(aid),
+                'xtl': ibs.get_annot_bboxes(aid)[0],
+                'ytl': ibs.get_annot_bboxes(aid)[1],
+                'left': ibs.get_annot_bboxes(aid)[0],
+                'top': ibs.get_annot_bboxes(aid)[1],
+                'width': ibs.get_annot_bboxes(aid)[2],
+                'height': ibs.get_annot_bboxes(aid)[3],
+                'theta': round(ibs.get_annot_thetas(aid), 4),
+                'confidence': round(ibs.get_annot_detect_confidence(aid), 4),
+                'class': ibs.get_annot_species_texts(aid),
+                'species': ibs.get_annot_species_texts(aid),
+                'viewpoint': ibs.get_annot_viewpoints(aid),
+                'quality': ibs.get_annot_qualities(aid),
+                'multiple': ibs.get_annot_multiple(aid),
+                'interest': ibs.get_annot_interest(aid),
             }
             for aid in aid_list
         ]
@@ -470,9 +499,9 @@ def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
     score_list = [0.0] * len(gid_list)
     # Wrap up results with other information
     results_dict = {
-        'image_uuid_list' : image_uuid_list,
-        'results_list'    : results_list,
-        'score_list'      : score_list,
+        'image_uuid_list': image_uuid_list,
+        'results_list': results_list,
+        'score_list': score_list,
     }
     return results_dict
 
@@ -503,16 +532,16 @@ def detect_cnn_json_wrapper(ibs, image_uuid_list, detect_func, **kwargs):
 @accessor_decors.default_decorator
 @register_api('/api/detect/cnn/yolo/json/', methods=['POST'])
 def detect_cnn_yolo_json_wrapper(ibs, image_uuid_list, **kwargs):
-    return detect_cnn_json_wrapper(ibs, image_uuid_list, ibs.detect_cnn_yolo_json,
-                                   **kwargs)
+    return detect_cnn_json_wrapper(
+        ibs, image_uuid_list, ibs.detect_cnn_yolo_json, **kwargs
+    )
 
 
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
-    return detect_cnn_json(ibs, gid_list, ibs.detect_cnn_yolo,
-                           config=config, **kwargs)
+    return detect_cnn_json(ibs, gid_list, ibs.detect_cnn_yolo, config=config, **kwargs)
 
 
 @register_ibs_method
@@ -556,11 +585,11 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, *
     # TODO: Return confidence here as well
     depc = ibs.depc_image
     config = {
-        'grid'        : False,
-        'algo'        : 'yolo',
-        'sensitivity' : 0.2,
-        'nms'         : True,
-        'nms_thresh'  : 0.4,
+        'grid': False,
+        'algo': 'yolo',
+        'sensitivity': 0.2,
+        'nms': True,
+        'nms_thresh': 0.4,
     }
     if model_tag is not None:
         config['config_filepath'] = model_tag
@@ -577,9 +606,9 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, *
     results_list = depc.get_property('localizations', gid_list, None, config=config)
 
     if commit:
-        aids_list = ibs.commit_localization_results(gid_list, results_list,
-                                                    note='cnnyolodetect',
-                                                    **kwargs)
+        aids_list = ibs.commit_localization_results(
+            gid_list, results_list, note='cnnyolodetect', **kwargs
+        )
         return aids_list
     else:
         return results_list
@@ -591,7 +620,11 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, *
 
 
 @register_ibs_method
-@register_api('/api/models/cnn/lightnet/', methods=['PUT', 'GET', 'POST'], __api_plural_check__=False)
+@register_api(
+    '/api/models/cnn/lightnet/',
+    methods=['PUT', 'GET', 'POST'],
+    __api_plural_check__=False,
+)
 def models_cnn_lightnet(ibs, **kwargs):
     """
     Return the models (and their labels) for the YOLO CNN detector
@@ -600,16 +633,20 @@ def models_cnn_lightnet(ibs, **kwargs):
         Method: PUT, GET
         URL:    /api/labels/cnn/lightnet/
     """
+
     def identity(x):
         return x
 
     from wbia.algo.detect.lightnet import CONFIG_URL_DICT, _parse_class_list
+
     model_dict = ibs.models_cnn(CONFIG_URL_DICT, identity, _parse_class_list, **kwargs)
     return model_dict
 
 
 @register_ibs_method
-@register_api('/api/models/cnn/yolo/', methods=['PUT', 'GET', 'POST'], __api_plural_check__=False)
+@register_api(
+    '/api/models/cnn/yolo/', methods=['PUT', 'GET', 'POST'], __api_plural_check__=False
+)
 def models_cnn_yolo(ibs, **kwargs):
     """
     Return the models (and their labels) for the YOLO CNN detector
@@ -618,14 +655,28 @@ def models_cnn_yolo(ibs, **kwargs):
         Method: PUT, GET
         URL:    /api/labels/cnn/yolo/
     """
-    from pydarknet._pydarknet import CONFIG_URL_DICT, _parse_classes_from_cfg, _parse_class_list
-    model_dict = ibs.models_cnn(CONFIG_URL_DICT, _parse_classes_from_cfg, _parse_class_list, **kwargs)
+    from pydarknet._pydarknet import (
+        CONFIG_URL_DICT,
+        _parse_classes_from_cfg,
+        _parse_class_list,
+    )
+
+    model_dict = ibs.models_cnn(
+        CONFIG_URL_DICT, _parse_classes_from_cfg, _parse_class_list, **kwargs
+    )
     return model_dict
 
 
 @register_ibs_method
-def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash=False,
-               hidden_models=[], **kwargs):
+def models_cnn(
+    ibs,
+    config_dict,
+    parse_classes_func,
+    parse_line_func,
+    check_hash=False,
+    hidden_models=[],
+    **kwargs,
+):
     import urllib
 
     model_dict = {}
@@ -637,8 +688,9 @@ def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash
             config_url = config_dict[config_tag]
             classes_url = parse_classes_func(config_url)
             try:
-                classes_filepath = ut.grab_file_url(classes_url, appname='wbia',
-                                                    check_hash=check_hash)
+                classes_filepath = ut.grab_file_url(
+                    classes_url, appname='wbia', check_hash=check_hash
+                )
                 assert exists(classes_filepath)
             except (urllib.error.HTTPError, AssertionError):
                 continue
@@ -656,7 +708,9 @@ def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/labeler/cnn/', methods=['PUT', 'GET', 'POST'])
-def labeler_cnn(ibs, aid_list, testing=False, algo='pipeline', model_tag='candidacy', **kwargs):
+def labeler_cnn(
+    ibs, aid_list, testing=False, algo='pipeline', model_tag='candidacy', **kwargs
+):
     depc = ibs.depc_annot
     config = {}
 
@@ -673,11 +727,9 @@ def labeler_cnn(ibs, aid_list, testing=False, algo='pipeline', model_tag='candid
     output_list = []
     for result in result_list:
         score, species, viewpoint, quality, orientation, probs = result
-        output_list.append({
-            'score': score,
-            'species': species,
-            'viewpoint': viewpoint,
-        })
+        output_list.append(
+            {'score': score, 'species': species, 'viewpoint': viewpoint,}
+        )
 
     return output_list
 
@@ -701,10 +753,9 @@ def aoi_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
     output_list = []
     for result in result_list:
         score, class_ = result
-        output_list.append({
-            'score': score,
-            'class': class_,
-        })
+        output_list.append(
+            {'score': score, 'class': class_,}
+        )
 
     return output_list
 
@@ -746,14 +797,16 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
     """
     depc = ibs.depc_image
     config = {
-        'algo'        : 'yolo',
-        'sensitivity' : 0.2,
-        'nms'         : True,
-        'nms_thresh'  : 0.4,
+        'algo': 'yolo',
+        'sensitivity': 0.2,
+        'nms': True,
+        'nms_thresh': 0.4,
     }
-    score_list = depc.get_property('localizations', gid_list, 'score', ensure=False, config=config)
+    score_list = depc.get_property(
+        'localizations', gid_list, 'score', ensure=False, config=config
+    )
     # score_list = depc.get_property('detections', gid_list, 'score', ensure=False, config=config)
-    flag_list = [ score is not None for score in score_list ]
+    flag_list = [score is not None for score in score_list]
     return flag_list
 
 
@@ -761,23 +814,27 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
 @accessor_decors.default_decorator
 @register_api('/api/detect/cnn/lightnet/json/', methods=['POST'])
 def detect_cnn_lightnet_json_wrapper(ibs, image_uuid_list, **kwargs):
-    return detect_cnn_json_wrapper(ibs, image_uuid_list, ibs.detect_cnn_lightnet_json,
-                                   **kwargs)
+    return detect_cnn_json_wrapper(
+        ibs, image_uuid_list, ibs.detect_cnn_lightnet_json, **kwargs
+    )
 
 
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 def detect_cnn_lightnet_json(ibs, gid_list, config={}, **kwargs):
-    return detect_cnn_json(ibs, gid_list, ibs.detect_cnn_lightnet,
-                           config=config, **kwargs)
+    return detect_cnn_json(
+        ibs, gid_list, ibs.detect_cnn_lightnet, config=config, **kwargs
+    )
 
 
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/lightnet/', methods=['PUT', 'GET', 'POST'])
-def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs):
+def detect_cnn_lightnet(
+    ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs
+):
     """
     Run animal detection in each image. Adds annotations to the database as they are found.
 
@@ -814,11 +871,11 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
     # TODO: Return confidence here as well
     depc = ibs.depc_image
     config = {
-        'algo'        : 'lightnet',
-        'sensitivity' : 0.75,
-        'nms'         : True,
-        'nms_thresh'  : 0.4,
-        'nms_aware'   : None,
+        'algo': 'lightnet',
+        'sensitivity': 0.75,
+        'nms': True,
+        'nms_thresh': 0.4,
+        'nms_aware': None,
     }
 
     if model_tag is not None:
@@ -836,25 +893,33 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
     results_list = depc.get_property('localizations', gid_list, None, config=config)
 
     if commit:
-        aids_list = ibs.commit_localization_results(gid_list, results_list,
-                                                    note='cnnlightnetdetect',
-                                                    **kwargs)
+        aids_list = ibs.commit_localization_results(
+            gid_list, results_list, note='cnnlightnetdetect', **kwargs
+        )
         return aids_list
     else:
         return results_list
 
 
 @register_ibs_method
-def commit_localization_results(ibs, gid_list, results_list, note=None,
-                                labeler_algo='pipeline', labeler_model_tag=None,
-                                use_labeler_species=False,
-                                orienter_algo=None, orienter_model_tag=None,
-                                update_json_log=True, **kwargs):
-    global_gid_list   = []
-    global_bbox_list  = []
+def commit_localization_results(
+    ibs,
+    gid_list,
+    results_list,
+    note=None,
+    labeler_algo='pipeline',
+    labeler_model_tag=None,
+    use_labeler_species=False,
+    orienter_algo=None,
+    orienter_model_tag=None,
+    update_json_log=True,
+    **kwargs,
+):
+    global_gid_list = []
+    global_bbox_list = []
     global_theta_list = []
     global_class_list = []
-    global_conf_list  = []
+    global_conf_list = []
     global_notes_list = []
 
     zipped_list = list(zip(gid_list, results_list))
@@ -865,11 +930,11 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
         gid_list_ = [gid] * num
         notes_list = [note] * num
 
-        global_gid_list   += list(gid_list_)
-        global_bbox_list  += list(bbox_list)
+        global_gid_list += list(gid_list_)
+        global_bbox_list += list(bbox_list)
         global_theta_list += list(theta_list)
         global_class_list += list(class_list)
-        global_conf_list  += list(conf_list)
+        global_conf_list += list(conf_list)
         global_notes_list += list(notes_list)
 
     assert len(global_gid_list) == len(global_bbox_list)
@@ -886,18 +951,13 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
         detect_confidence_list=global_conf_list,
         notes_list=global_notes_list,
         quiet_delete_thumbs=True,
-        skip_cleaning=True
+        skip_cleaning=True,
     )
 
     global_aid_set = set(global_aid_list)
     aids_list = ibs.get_image_aids(gid_list)
     aids_list = [
-        [
-            aid
-            for aid in aid_list_
-            if aid in global_aid_set
-        ]
-        for aid_list_ in aids_list
+        [aid for aid in aid_list_ if aid in global_aid_set] for aid_list_ in aids_list
     ]
     aid_list = ut.flatten(aids_list)
 
@@ -905,22 +965,28 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
         labeler_config = {}
         labeler_config['labeler_algo'] = labeler_algo
         labeler_config['labeler_weight_filepath'] = labeler_model_tag
-        viewpoint_list = ibs.depc_annot.get_property('labeler', aid_list, 'viewpoint', config=labeler_config)
+        viewpoint_list = ibs.depc_annot.get_property(
+            'labeler', aid_list, 'viewpoint', config=labeler_config
+        )
         ibs.set_annot_viewpoints(aid_list, viewpoint_list)
         if use_labeler_species:
-            species_list   = ibs.depc_annot.get_property('labeler', aid_list, 'species', config=labeler_config)
+            species_list = ibs.depc_annot.get_property(
+                'labeler', aid_list, 'species', config=labeler_config
+            )
             ibs.set_annot_species(aid_list, species_list)
 
     if orienter_algo is not None:
         orienter_config = {}
         orienter_config['orienter_algo'] = orienter_algo
         orienter_config['orienter_weight_filepath'] = orienter_model_tag
-        result_list = ibs.depc_annot.get_property('orienter', aid_list, None, config=orienter_config)
-        xtl_list    = list(map(int, map(np.around, ut.take_column(result_list, 0))))
-        ytl_list    = list(map(int, map(np.around, ut.take_column(result_list, 1))))
-        w_list      = list(map(int, map(np.around, ut.take_column(result_list, 2))))
-        h_list      = list(map(int, map(np.around, ut.take_column(result_list, 3))))
-        theta_list  = ut.take_column(result_list, 4)
+        result_list = ibs.depc_annot.get_property(
+            'orienter', aid_list, None, config=orienter_config
+        )
+        xtl_list = list(map(int, map(np.around, ut.take_column(result_list, 0))))
+        ytl_list = list(map(int, map(np.around, ut.take_column(result_list, 1))))
+        w_list = list(map(int, map(np.around, ut.take_column(result_list, 2))))
+        h_list = list(map(int, map(np.around, ut.take_column(result_list, 3))))
+        theta_list = ut.take_column(result_list, 4)
         bbox_list = list(zip(xtl_list, ytl_list, w_list, h_list))
         assert len(aid_list) == len(bbox_list)
         assert len(aid_list) == len(theta_list)
@@ -935,11 +1001,15 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
 
 
 @register_ibs_method
-def commit_detection_results(ibs, gid_list, results_list, note=None,
-                             update_json_log=True):
+def commit_detection_results(
+    ibs, gid_list, results_list, note=None, update_json_log=True
+):
     zipped_list = list(zip(gid_list, results_list))
     aids_list = []
-    for gid, (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list) in zipped_list:
+    for (
+        gid,
+        (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list),
+    ) in zipped_list:
         num = len(bbox_list)
         notes_list = None if note is None else [note] * num
         aid_list = ibs.add_annots(
@@ -950,7 +1020,7 @@ def commit_detection_results(ibs, gid_list, results_list, note=None,
             detect_confidence_list=conf_list,
             notes_list=notes_list,
             quiet_delete_thumbs=True,
-            skip_cleaning=True
+            skip_cleaning=True,
         )
         ibs.set_annot_viewpoints(aid_list, viewpoint_list)
         # TODO ibs.set_annot_viewpoint_code(aid_list, viewpoint_list)
@@ -963,16 +1033,26 @@ def commit_detection_results(ibs, gid_list, results_list, note=None,
 
 
 @register_ibs_method
-def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None,
-                                      filter_viewpoint_list=None, note=None,
-                                      update_json_log=True):
+def commit_detection_results_filtered(
+    ibs,
+    gid_list,
+    filter_species_list=None,
+    filter_viewpoint_list=None,
+    note=None,
+    update_json_log=True,
+):
     depc = ibs.depc_image
     results_list = depc.get_property('detections', gid_list, None)
     zipped_list = list(zip(gid_list, results_list))
     aids_list = []
-    for gid, (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list) in zipped_list:
+    for (
+        gid,
+        (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list),
+    ) in zipped_list:
         aid_list = []
-        result_list = list(zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list))
+        result_list = list(
+            zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list)
+        )
         for bbox, theta, species, viewpoint, conf in result_list:
             if not (filter_species_list is None or species in filter_species_list):
                 continue
@@ -987,7 +1067,7 @@ def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None,
                 detect_confidence_list=[conf],
                 notes_list=note_,
                 quiet_delete_thumbs=True,
-                skip_cleaning=True
+                skip_cleaning=True,
             )
             aid = temp_list[0]
             ibs.set_annot_viewpoints([aid], [viewpoint])
@@ -1005,10 +1085,11 @@ def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None,
 def log_detections(ibs, aid_list, fallback=True):
     import time
     import os
+
     json_log_path = ibs.get_logdir_local()
     json_log_filename = 'detections.json'
     json_log_filepath = os.path.join(json_log_path, json_log_filename)
-    print('Logging detections added to: %r' % (json_log_filepath, ))
+    print('Logging detections added to: %r' % (json_log_filepath,))
 
     try:
         # Log has never been made, create one
@@ -1032,15 +1113,17 @@ def log_detections(ibs, aid_list, fallback=True):
         theta_list = ibs.get_annot_thetas(aid_list)
         zipped = list(zip(aid_list, gid_list, bbox_list, theta_list))
         for aid, gid, bbox, theta in zipped:
-            json_dict['updates'].append({
-                'time_unixtime': time.time(),
-                'db_name': db_name,
-                'db_init_uuid': db_init_uuid,
-                'image_rowid': gid,
-                'annot_rowid': aid,
-                'annot_bbox': bbox,
-                'annot_theta': theta,
-            })
+            json_dict['updates'].append(
+                {
+                    'time_unixtime': time.time(),
+                    'db_name': db_name,
+                    'db_init_uuid': db_init_uuid,
+                    'image_rowid': gid,
+                    'annot_rowid': aid,
+                    'annot_bbox': bbox,
+                    'annot_theta': theta,
+                }
+            )
         # Write new log state
         json_str = ut.to_json(json_dict, pretty=True)
         with open(json_log_filepath, 'w') as json_log_file:
@@ -1127,8 +1210,10 @@ def detect_ws_injury(ibs, gid_list):
 
     """
     from wbia.scripts import labelShark
+
     labels = labelShark.classifyShark(ibs, gid_list)
     return labels
+
 
 if __name__ == '__main__':
     """
@@ -1138,6 +1223,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

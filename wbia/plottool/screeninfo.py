@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import six
 from six.moves import range
 import sys
 import utool as ut
 import numpy as np
+
 try:
     import wbia.guitool as gt
     from wbia.guitool.__PYQT__ import QtWidgets
@@ -20,7 +22,7 @@ except ImportError:
     except ImportError:
         pass
     print('Warning: guitool did not import correctly')
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[screeninfo]', DEBUG=True)
+# (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[screeninfo]', DEBUG=True)
 ut.noinject(__name__, '[screeninfo]')
 
 
@@ -29,22 +31,22 @@ DEFAULT_MAX_ROWS = 3
 
 # Win7 Areo
 WIN7_SIZES = {
-    'os_border_x':   20,
-    'os_border_y':   35,
-    'os_border_h':   30,
-    'win_border_x':  17,
-    'win_border_y':  10,
+    'os_border_x': 20,
+    'os_border_y': 35,
+    'os_border_h': 30,
+    'win_border_x': 17,
+    'win_border_y': 10,
     'mpl_toolbar_y': 10,
 }
 
 # Ubuntu (Medeterrainian Dark)
 GNOME3_SIZES = {
-    'os_border_x':    0,
-    'os_border_y':   35,  # for gnome3 title bar
-    'os_border_h':    0,
-    'win_border_x':   5,
-    'win_border_y':  30,
-    'mpl_toolbar_y':  0,
+    'os_border_x': 0,
+    'os_border_y': 35,  # for gnome3 title bar
+    'os_border_h': 0,
+    'win_border_x': 5,
+    'win_border_y': 30,
+    'mpl_toolbar_y': 0,
 }
 
 for key in GNOME3_SIZES:
@@ -76,21 +78,26 @@ def infer_monitor_specs(res_w, res_h, inches_diag):
     #inches_w = inches_diag * res_w/sqrt(res_h**2 + res_w**2)
     """
     import sympy
+
     # Build a system of equations and solve it
-    inches_w, inches_h = sympy.symbols('inches_w inches_h'.split(), real=True, positive=True)
+    inches_w, inches_h = sympy.symbols(
+        'inches_w inches_h'.split(), real=True, positive=True
+    )
     res_w, res_h = sympy.symbols('res_w res_h'.split(), real=True, positive=True)
-    inches_diag, = sympy.symbols('inches_diag'.split(), real=True, positive=True)
+    (inches_diag,) = sympy.symbols('inches_diag'.split(), real=True, positive=True)
     equations = [
-        sympy.Eq(inches_diag, (inches_w ** 2 + inches_h ** 2) ** .5),
+        sympy.Eq(inches_diag, (inches_w ** 2 + inches_h ** 2) ** 0.5),
         sympy.Eq(res_w / res_h, inches_w / inches_h),
     ]
     print('Possible solutions:')
     query_vars = [inches_w, inches_h]
     for solution in sympy.solve(equations, query_vars):
         print('Solution:')
-        reprstr = ut.repr3(ut.odict(zip(query_vars, solution)), explicit=True, nobr=1, with_comma=False)
+        reprstr = ut.repr3(
+            ut.odict(zip(query_vars, solution)), explicit=True, nobr=1, with_comma=False
+        )
         print(ut.indent(ut.autopep8_format(reprstr)))
-    #(inches_diag*res_w/sqrt(res_h**2 + res_w**2), inches_diag*res_h/sqrt(res_h**2 + res_w**2))
+    # (inches_diag*res_w/sqrt(res_h**2 + res_w**2), inches_diag*res_h/sqrt(res_h**2 + res_w**2))
 
 
 def get_resolution_info(monitor_num=0):
@@ -115,6 +122,7 @@ def get_resolution_info(monitor_num=0):
         >>>     print('monitor(%d).info = %s' % (monitor_num, ut.repr3(info, precision=3)))
     """
     import wbia.guitool as gt
+
     app = gt.ensure_qtapp()[0]  # NOQA
     # screen_resolution = app.desktop().screenGeometry()
     # width, height = screen_resolution.width(), screen_resolution.height()
@@ -199,9 +207,9 @@ def get_resolution_info(monitor_num=0):
     off_y = rect.y()
     # pt.x(), pt.y()
 
-    inches_w = (pixels_w / dpi_x)
-    inches_h = (pixels_h / dpi_y)
-    inches_diag = (inches_w ** 2 + inches_h ** 2) ** .5
+    inches_w = pixels_w / dpi_x
+    inches_h = pixels_h / dpi_y
+    inches_diag = (inches_w ** 2 + inches_h ** 2) ** 0.5
 
     mm_w = inches_w * ut.MM_PER_INCH
     mm_h = inches_h * ut.MM_PER_INCH
@@ -209,26 +217,28 @@ def get_resolution_info(monitor_num=0):
 
     ratio = min(mm_w, mm_h) / max(mm_w, mm_h)
 
-    #pixel_density = dpi_x / ppi_x
-    info = ut.odict([
-        ('monitor_num', monitor_num),
-        ('off_x', off_x),
-        ('off_y', off_y),
-        ('ratio', ratio),
-        ('ppi_x', ppi_x),
-        ('ppi_y', ppi_y),
-        ('dpi_x', dpi_x),
-        ('dpi_y', dpi_y),
-        #'pixel_density', pixel_density),
-        ('inches_w', inches_w),
-        ('inches_h', inches_h),
-        ('inches_diag', inches_diag),
-        ('mm_w', mm_w),
-        ('mm_h', mm_h),
-        ('mm_diag', mm_diag),
-        ('pixels_w', pixels_w),
-        ('pixels_h', pixels_h),
-    ])
+    # pixel_density = dpi_x / ppi_x
+    info = ut.odict(
+        [
+            ('monitor_num', monitor_num),
+            ('off_x', off_x),
+            ('off_y', off_y),
+            ('ratio', ratio),
+            ('ppi_x', ppi_x),
+            ('ppi_y', ppi_y),
+            ('dpi_x', dpi_x),
+            ('dpi_y', dpi_y),
+            #'pixel_density', pixel_density),
+            ('inches_w', inches_w),
+            ('inches_h', inches_h),
+            ('inches_diag', inches_diag),
+            ('mm_w', mm_w),
+            ('mm_h', mm_h),
+            ('mm_diag', mm_diag),
+            ('pixels_w', pixels_w),
+            ('pixels_h', pixels_h),
+        ]
+    )
     return info
 
 
@@ -295,11 +305,11 @@ def get_stdpxls():
 
 def get_xywh_pads():
     stdpxls = get_stdpxls()
-    w_pad =  stdpxls['win_border_x']
-    y_pad =  stdpxls['win_border_y'] + stdpxls['mpl_toolbar_y']
+    w_pad = stdpxls['win_border_x']
+    y_pad = stdpxls['win_border_y'] + stdpxls['mpl_toolbar_y']
     # Pads are applied to all windows
-    x_pad =  stdpxls['os_border_x']
-    y_pad =  stdpxls['os_border_y']
+    x_pad = stdpxls['os_border_x']
+    y_pad = stdpxls['os_border_y']
     return (x_pad, y_pad, w_pad, y_pad)
 
 
@@ -312,16 +322,23 @@ def get_avail_geom(monitor_num=None, percent_w=1.0, percent_h=1.0):
         (startx, starty, availw, availh) = monitor_geometries[monitor_num]
     except KeyError:
         (startx, starty, availw, availh) = six.itervalues(monitor_geometries).next()
-    available_geom = (startx,
-                      starty,
-                      availw * percent_w,
-                      (availh - stdpxls['os_border_h']) * percent_h)
+    available_geom = (
+        startx,
+        starty,
+        availw * percent_w,
+        (availh - stdpxls['os_border_h']) * percent_h,
+    )
     return available_geom
 
 
-def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
-                            monitor_num=None, percent_w=1.0,
-                            percent_h=1.0):
+def get_valid_fig_positions(
+    num_wins,
+    max_rows=None,
+    row_first=True,
+    monitor_num=None,
+    percent_w=1.0,
+    percent_h=1.0,
+):
     """
     Returns a list of bounding boxes where figures can be placed on the screen
     """
@@ -340,7 +357,7 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
     nCols = int(np.ceil(num_wins / nRows))
 
     win_height = avail_height / nRows
-    win_width  = avail_width  / nCols
+    win_width = avail_width / nCols
 
     (x_pad, y_pad, w_pad, h_pad) = get_xywh_pads()
 
@@ -354,13 +371,14 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
             rowx = ix % nRows
             colx = int(ix // nRows)
         else:
-            colx = (ix % nCols)
+            colx = ix % nCols
             rowx = int(ix // nCols)
-        w = win_width  - w_pad
+        w = win_width - w_pad
         h = win_height - h_pad
-        x = startx + colx * (win_width)  + x_pad
+        x = startx + colx * (win_width) + x_pad
         y = starty + rowx * (win_height) + y_pad
         return (x, y, w, h)
+
     valid_positions = [get_position_ix(ix) for ix in range(num_wins)]
     return valid_positions
 
@@ -372,6 +390,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.screeninfo --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

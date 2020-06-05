@@ -36,20 +36,20 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-#INTEGER_TYPE = np.int32
-#INDEX_TYPE = np.int32
-#INDEX_TYPE = np.int64
+# INTEGER_TYPE = np.int32
+# INDEX_TYPE = np.int32
+# INDEX_TYPE = np.int64
 # The index type should be the native sytem int, otherwise np.take will fail
 # due to the safe constraint.
 INDEX_TYPE = np.int_
 
-#INTEGER_TYPE = np.int64
-#INTEGER_TYPE = np.int32
+# INTEGER_TYPE = np.int64
+# INTEGER_TYPE = np.int32
 INTEGER_TYPE = np.int64
 
-#FLOAT_TYPE = np.float64
+# FLOAT_TYPE = np.float64
 FLOAT_TYPE = np.float64
-#FLOAT_TYPE = np.float32
+# FLOAT_TYPE = np.float32
 
 VEC_DIM = 128
 
@@ -87,7 +87,7 @@ SeeAlso:
 
 
 RVEC_TYPE = np.int8
-#RVEC_TYPE = np.float16
+# RVEC_TYPE = np.float16
 if RVEC_TYPE == np.int8:
     # Unfortunatley int8 cannot represent NaN, maybe used a masked array
     RVEC_INFO = np.iinfo(RVEC_TYPE)
@@ -109,12 +109,12 @@ else:
 
 
 # Feature Match datatype
-FM_DTYPE  = INTEGER_TYPE
+FM_DTYPE = INTEGER_TYPE
 # Feature Score datatype
-FS_DTYPE  = FLOAT_TYPE
+FS_DTYPE = FLOAT_TYPE
 # Feature Rank datatype
-#FK_DTYPE  = np.int16
-FK_DTYPE  = np.int8
+# FK_DTYPE  = np.int16
+FK_DTYPE = np.int8
 
 
 class FiltKeys(object):
@@ -125,6 +125,7 @@ class FiltKeys(object):
     BARL2 = 'bar_l2'
     LNBNN = 'lnbnn'
     HOMOGERR = 'homogerr'
+
 
 # Denote which scores should be  used as weights
 # the others are used as scores
@@ -143,6 +144,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.hstypes --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

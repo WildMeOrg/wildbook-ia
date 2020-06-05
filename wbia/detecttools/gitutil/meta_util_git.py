@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from os.path import expanduser, normpath, realpath, join
 import os
@@ -11,7 +12,7 @@ PERMITTED_REPOS = []
 
 format_dict = {
     'https': ('.com/', 'https://'),
-    'ssh':   ('.com:', 'git@'),
+    'ssh': ('.com:', 'git@'),
 }
 
 
@@ -32,13 +33,11 @@ def get_repo_dname(repo_url):
         pos = slashpos
     else:
         pos = colonpos
-    repodir = repo_url[pos + 1:].replace('.git', '')
+    repodir = repo_url[pos + 1 :].replace('.git', '')
     return repodir
 
 
-def set_userid(userid=None,
-               owned_computers={},
-               permitted_repos=[]):
+def set_userid(userid=None, owned_computers={}, permitted_repos=[]):
     # Check to see if you are on one of Jons Computers
     global IS_USER
     global USER_ID
@@ -82,13 +81,12 @@ def repo_list(repo_urls, checkout_dir):
 def can_push(repo_url):
     owned_repo = USER_ID is not None and repo_url.find(USER_ID) != -1
     has_permit = get_repo_dname(repo_url) in PERMITTED_REPOS
-    return  owned_repo or has_permit
+    return owned_repo or has_permit
 
 
 def url_list(repo_urls):
     if IS_USER:
-        repo_urls = [ensure_ssh_url(url) if can_push(url) else url
-                     for url in repo_urls]
+        repo_urls = [ensure_ssh_url(url) if can_push(url) else url for url in repo_urls]
     return map(unixpath, repo_urls)
 
 
@@ -97,7 +95,7 @@ def cmd(command):
     os.system(command)
 
 
-#def url_list2(*args):
+# def url_list2(*args):
 #    """ Output is gaurenteed to be a list of paths """
 #    url_list = args
 #    if len(args) == 1:
@@ -121,7 +119,7 @@ def cmd(command):
 #    return map(unixpath, url_list)
 
 
-#def repo_list2(*args):
+# def repo_list2(*args):
 #    if len(args) < 1:
 #        return url_list(*args)
 #    elif len(args) == 2:

@@ -2,6 +2,7 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 import utool
+
 (print, rrr, profile) = utool.inject2(__name__, '[web]')
 
 from wbia.web import apis_detect
@@ -21,6 +22,6 @@ from wbia.web import routes
 
 
 from wbia.control import controller_inject
+
 if controller_inject.MICROSOFT_API_ENABLED:
     from wbia.web import apis_microsoft
-

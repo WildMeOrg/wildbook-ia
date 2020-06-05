@@ -8,21 +8,22 @@ import numpy as np
 import utool as ut
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 def make_dummy_infr(annots_per_name):
     import wbia
-    nids = [val for val, num in enumerate(annots_per_name, start=1)
-            for _ in range(num)]
+
+    nids = [val for val, num in enumerate(annots_per_name, start=1) for _ in range(num)]
     aids = range(len(nids))
-    infr = wbia.AnnotInference(None, aids, nids=nids, autoinit=True,
-                                verbose=1)
+    infr = wbia.AnnotInference(None, aids, nids=nids, autoinit=True, verbose=1)
     return infr
 
 
 def demodata_mtest_infr(state='empty'):
     import wbia
+
     ibs = wbia.opendb(db='PZ_MTEST')
     annots = ibs.annots()
     names = list(annots.group_items(annots.nids).values())
@@ -36,19 +37,19 @@ def demodata_mtest_infr(state='empty'):
 def demodata_infr2(defaultdb='PZ_MTEST'):
     defaultdb = 'PZ_MTEST'
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     annots = ibs.annots()
     names = list(annots.group_items(annots.nids).values())[0:20]
+
     def dummy_phi(c, n):
         x = np.arange(n)
         phi = c * x / (c * x + 1)
         phi = phi / phi.sum()
         phi = np.diff(phi)
         return phi
-    phis = {
-        c: dummy_phi(c, 30)
-        for c in range(1, 4)
-    }
+
+    phis = {c: dummy_phi(c, 30) for c in range(1, 4)}
     aids = ut.flatten(names)
     infr = wbia.AnnotInference(ibs, aids, autoinit=True)
     infr.init_termination_criteria(phis)
@@ -81,6 +82,7 @@ def demo2():
 
     from wbia.scripts.thesis import TMP_RC
     import matplotlib as mpl
+
     mpl.rcParams.update(TMP_RC)
 
     # ---- Synthetic data params
@@ -91,7 +93,7 @@ def demo2():
     # oracle_accuracy = .98
     # oracle_accuracy = .90
     # oracle_accuracy = (.8, 1.0)
-    oracle_accuracy = (.85, 1.0)
+    oracle_accuracy = (0.85, 1.0)
     # oracle_accuracy = 1.0
 
     # --- draw params
@@ -186,13 +188,12 @@ def demo2():
                 fontsize = 8
 
         if True:
-            pt.adjust_subplots(top=.95, left=0, right=1, bottom=.45,
-                               fig=fig)
+            pt.adjust_subplots(top=0.95, left=0, right=1, bottom=0.45, fig=fig)
             ax.set_xlabel('\n' + latest)
             xlabel = ax.get_xaxis().get_label()
             xlabel.set_horizontalalignment('left')
             # xlabel.set_x(.025)
-            xlabel.set_x(-.6)
+            xlabel.set_x(-0.6)
             # xlabel.set_fontname('CMU Typewriter Text')
             xlabel.set_fontname('Inconsolata')
             xlabel.set_fontsize(fontsize)
@@ -203,9 +204,12 @@ def demo2():
         from os.path import join
 
         fpath = join(dpath, 'demo_{:04d}.png'.format(next(fig_counter)))
-        fig.savefig(fpath, dpi=300,
-                    # transparent=True,
-                    edgecolor='none')
+        fig.savefig(
+            fpath,
+            dpi=300,
+            # transparent=True,
+            edgecolor='none',
+        )
 
         # pt.save_figure(dpath=dpath, dpi=300)
         infr.latest_logs()
@@ -244,7 +248,7 @@ def demo2():
     infr.params.update(**params)
     infr.refresh_candidate_edges()
 
-    VIZ_ALL = (VISUALIZE and TARGET_REVIEW is None and START is None)
+    VIZ_ALL = VISUALIZE and TARGET_REVIEW is None and START is None
     print('VIZ_ALL = %r' % (VIZ_ALL,))
 
     if VIZ_ALL or TARGET_REVIEW == 0:
@@ -285,7 +289,9 @@ def demo2():
         if SHOW_CANDIATE_POP and (VIZ_ALL or AT_TARGET):
             # import utool
             # utool.embed()
-            infr.print(ut.repr2(infr.task_probs['match_state'][edge], precision=4, si=True))
+            infr.print(
+                ut.repr2(infr.task_probs['match_state'][edge], precision=4, si=True)
+            )
             infr.print('len(queue) = %r' % (len(infr.queue)))
             # Show edge selection
             infr.print('Oracle will predict: ' + feedback['evidence_decision'])
@@ -336,7 +342,7 @@ def demo2():
 
     if not getattr(infr, 'EMBEDME', False):
         if ut.get_computer_name().lower() in ['hyrule', 'ooo']:
-            pt.all_figures_tile(monitor_num=0, percent_w=.5)
+            pt.all_figures_tile(monitor_num=0, percent_w=0.5)
         else:
             pt.all_figures_tile()
         ut.show_if_requested()
@@ -369,10 +375,11 @@ def get_edge_truth(infr, n1, n2):
 
 
 def apply_dummy_viewpoints(infr):
-    transition_rate = .5
+    transition_rate = 0.5
     transition_rate = 0
     valid_views = ['L', 'F', 'R', 'B']
     rng = np.random.RandomState(42)
+
     class MarkovView(object):
         def __init__(self):
             self.dir_ = +1
@@ -389,9 +396,11 @@ def apply_dummy_viewpoints(infr):
             if rng.rand() < transition_rate:
                 self.state += self.dir_
             return valid_views[self.state]
+
     mkv = MarkovView()
-    nid_to_aids = ut.group_pairs([
-        (n, d['name_label']) for n, d in infr.graph.nodes(data=True)])
+    nid_to_aids = ut.group_pairs(
+        [(n, d['name_label']) for n, d in infr.graph.nodes(data=True)]
+    )
     grouped_nodes = list(nid_to_aids.values())
     node_to_view = {node: mkv() for nodes in grouped_nodes for node in nodes}
     infr.set_node_attrs('viewpoint', node_to_view)
@@ -499,8 +508,9 @@ def demodata_infr(**kwargs):
     counter = 1
 
     if pcc_sizes is None:
-        pcc_sizes = [int(randn(size_mean, size_std, rng=rng, a_min=1))
-                     for _ in range(num_pccs)]
+        pcc_sizes = [
+            int(randn(size_mean, size_std, rng=rng, a_min=1)) for _ in range(num_pccs)
+        ]
     else:
         num_pccs = len(pcc_sizes)
 
@@ -513,16 +523,16 @@ def demodata_infr(**kwargs):
 
     new_ccs = []
     pcc_iter = list(enumerate(pcc_sizes))
-    pcc_iter = ut.ProgIter(pcc_iter, enabled=num_pccs > 20,
-                           label='make pos-demo')
+    pcc_iter = ut.ProgIter(pcc_iter, enabled=num_pccs > 20, label='make pos-demo')
     for i, size in pcc_iter:
-        p = .1
+        p = 0.1
         want_connectivity = rng.choice(pos_redun)
         want_connectivity = min(size - 1, want_connectivity)
 
         # Create basic graph of positive edges with desired connectivity
         g = nx_utils.random_k_edge_connected_graph(
-            size, k=want_connectivity, p=p, rng=rng)
+            size, k=want_connectivity, p=p, rng=rng
+        )
         nx.set_edge_attributes(g, name='evidence_decision', values=POSTV)
         nx.set_edge_attributes(g, name='truth', values=POSTV)
         # nx.set_node_attributes(g, name='orig_name_label', values=i)
@@ -533,20 +543,18 @@ def demodata_infr(**kwargs):
             g = nx.relabel_nodes(g, dict(enumerate(kwargs['ccs'][i])))
         else:
             # Make sure nodes do not conflict with others
-            g = nx.relabel_nodes(g, dict(
-                enumerate(range(counter, len(g) + counter + 1))))
+            g = nx.relabel_nodes(g, dict(enumerate(range(counter, len(g) + counter + 1))))
             counter += len(g)
 
         # The probability any edge is inconsistent is `p_incon`
         # This is 1 - P(all edges consistent)
         # which means p(edge is consistent) = (1 - p_incon) / N
-        complement_edges = ut.estarmap(nx_utils.e_,
-                                       nx_utils.complement_edges(g))
+        complement_edges = ut.estarmap(nx_utils.e_, nx_utils.complement_edges(g))
         if len(complement_edges) > 0:
             # compute probability that any particular edge is inconsistent
             # to achieve probability the PCC is inconsistent
             p_edge_inconn = 1 - (1 - p_pcc_incon) ** (1 / len(complement_edges))
-            p_edge_unrev = .1
+            p_edge_unrev = 0.1
             p_edge_notcomp = 1 - (1 - p_pcc_incomp) ** (1 / len(complement_edges))
             probs = np.array([p_edge_inconn, p_edge_unrev, p_edge_notcomp])
             # if the total probability is greater than 1 the parameters
@@ -606,22 +614,21 @@ def demodata_infr(**kwargs):
         }
 
         # These are the probabilities that one edge has this state
-        p_pair_neg = kwalias('p_pair_neg', .4)
-        p_pair_incmp = kwalias('p_pair_incmp', .2)
+        p_pair_neg = kwalias('p_pair_neg', 0.4)
+        p_pair_incmp = kwalias('p_pair_incmp', 0.2)
         p_pair_unrev = kwalias('p_pair_unrev', 0)
 
         # p_pair_neg = 1
-        cc_combos = ((list(g1.nodes()), list(g2.nodes()))
-                     for (g1, g2) in it.combinations(new_ccs, 2))
-        valid_cc_combos = [
-            (cc1, cc2)
-            for cc1, cc2 in cc_combos if len(cc1) and len(cc2)
-        ]
+        cc_combos = (
+            (list(g1.nodes()), list(g2.nodes()))
+            for (g1, g2) in it.combinations(new_ccs, 2)
+        )
+        valid_cc_combos = [(cc1, cc2) for cc1, cc2 in cc_combos if len(cc1) and len(cc2)]
         for cc1, cc2 in ut.ProgIter(valid_cc_combos, label='make neg-demo'):
             possible_edges = ut.estarmap(nx_utils.e_, it.product(cc1, cc2))
             # probability that any edge between these PCCs is negative
             n_edges = len(possible_edges)
-            p_edge_neg   = 1 - (1 - p_pair_neg)   ** (1 / n_edges)
+            p_edge_neg = 1 - (1 - p_pair_neg) ** (1 / n_edges)
             p_edge_incmp = 1 - (1 - p_pair_incmp) ** (1 / n_edges)
             p_edge_unrev = 1 - (1 - p_pair_unrev) ** (1 / n_edges)
 
@@ -648,6 +655,7 @@ def demodata_infr(**kwargs):
         print('ignoring pairs')
 
     import wbia
+
     G = wbia.AnnotInference._graph_cls()
     G.add_nodes_from(pos_g.nodes(data=True))
     G.add_edges_from(pos_g.edges(data=True))
@@ -711,12 +719,13 @@ class DummyVerif(object):
         >>> infr.dummy_verif.predict_edges([(1, 21)])
         >>> assert len(infr.dummy_verif.infr.task_probs['match_state']) == 2
     """
+
     def __init__(verif, infr):
         verif.rng = np.random.RandomState(4033913)
         verif.dummy_params = {
-            NEGTV: {'mean': .2, 'std': .25},
-            POSTV: {'mean': .85, 'std': .2},
-            INCMP: {'mean': .15, 'std': .1},
+            NEGTV: {'mean': 0.2, 'std': 0.25},
+            POSTV: {'mean': 0.85, 'std': 0.2},
+            INCMP: {'mean': 0.15, 'std': 0.1},
         }
         verif.score_dist = randn
 
@@ -741,13 +750,15 @@ class DummyVerif(object):
             >>> ut.show_if_requested()
         """
         import wbia.plottool as pt
+
         dist = verif.score_dist
         n = 100000
         for key in verif.dummy_params.keys():
-            probs = dist(shape=[n], rng=verif.rng, a_max=1, a_min=0,
-                          **verif.dummy_params[key])
+            probs = dist(
+                shape=[n], rng=verif.rng, a_max=1, a_min=0, **verif.dummy_params[key]
+            )
             color = verif.infr._get_truth_colors()[key]
-            pt.plt.hist(probs, bins=100, label=key, alpha=.8, color=color)
+            pt.plt.hist(probs, bins=100, label=key, alpha=0.8, color=color)
         pt.legend()
 
     def dummy_ranker(verif, u, K=10):
@@ -846,14 +857,18 @@ class DummyVerif(object):
         if np.any(is_miss):
             miss_edges = ut.compress(edges, is_miss)
             miss_truths = [verif._get_truth(edge) for edge in miss_edges]
-            grouped_edges = ut.group_items(miss_edges, miss_truths,
-                                           sorted_=False)
+            grouped_edges = ut.group_items(miss_edges, miss_truths, sorted_=False)
             # Need to make this determenistic too
             states = [POSTV, NEGTV, INCMP]
             for key in sorted(grouped_edges.keys()):
                 group = grouped_edges[key]
-                probs0 = randn(shape=[len(group)], rng=verif.rng, a_max=1, a_min=0,
-                               **verif.dummy_params[key])
+                probs0 = randn(
+                    shape=[len(group)],
+                    rng=verif.rng,
+                    a_max=1,
+                    a_min=0,
+                    **verif.dummy_params[key],
+                )
                 # Just randomly assign other probs
                 probs1 = verif.rng.rand(len(group)) * (1 - probs0)
                 probs2 = 1 - (probs0 + probs1)
@@ -862,15 +877,17 @@ class DummyVerif(object):
 
         from wbia.algo.graph import nx_utils as nxu
         import pandas as pd
+
         probs = pd.DataFrame(
             ut.take(prob_cache, edges),
-            index=nxu.ensure_multi_index(edges, ('aid1', 'aid2'))
+            index=nxu.ensure_multi_index(edges, ('aid1', 'aid2')),
         )
         return probs
 
     def predict_edges(verif, edges):
         pos_scores = verif.predict_proba_df(edges)[POSTV]
         return pos_scores
+
 
 if __name__ == '__main__':
     r"""
@@ -882,6 +899,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.demo --allexamples --show
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # DEPRICATE?
 from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtCore, QtGui
@@ -7,17 +8,19 @@ from wbia.guitool.guitool_delegates import ComboDelegate, ButtonDelegate
 from wbia.guitool import qtype
 from six.moves import range, map
 import utool
+
 (print, rrr, profile) = utool.inject2(__name__)
 
 
 class ColumnListTableView(QtWidgets.QTableView):
     """ Table View for an AbstractItemModel """
+
     def __init__(view, *args, **kwargs):
         super(ColumnListTableView, view).__init__(*args, **kwargs)
         view.setSortingEnabled(True)
         view.vertical_header = view.verticalHeader()
         view.vertical_header.setVisible(True)
-        #view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        # view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         view.resizeColumnsToContents()
 
     @QtCore.pyqtSlot()
@@ -32,22 +35,42 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
     #
     # Non-Qt Init Functions
 
-    def __init__(model, col_data_list=None, col_name_list=None, niceheader_list=None,
-                 col_type_list=None, col_edit_list=None,
-                 display_indices=False, col_sort_index=None,
-                 parent=None, *args):
+    def __init__(
+        model,
+        col_data_list=None,
+        col_name_list=None,
+        niceheader_list=None,
+        col_type_list=None,
+        col_edit_list=None,
+        display_indices=False,
+        col_sort_index=None,
+        parent=None,
+        *args,
+    ):
         super(ColumnListItemModel, model).__init__()
         model.sortcolumn = None
         model.sortreverse = False
         model.display_indices = False  # FIXME: Broken
-        model._change_data(col_data_list, col_name_list, niceheader_list,
-                           col_type_list, col_edit_list, display_indices,
-                           col_sort_index)
+        model._change_data(
+            col_data_list,
+            col_name_list,
+            niceheader_list,
+            col_type_list,
+            col_edit_list,
+            display_indices,
+            col_sort_index,
+        )
 
-    def _change_data(model, col_data_list=None, col_name_list=None,
-                     niceheader_list=None, col_type_list=None,
-                     col_edit_list=None, display_indices=False,
-                     col_sort_index=None):
+    def _change_data(
+        model,
+        col_data_list=None,
+        col_name_list=None,
+        niceheader_list=None,
+        col_type_list=None,
+        col_edit_list=None,
+        display_indices=False,
+        col_sort_index=None,
+    ):
         model.layoutAboutToBeChanged.emit()
         if col_name_list is None:
             col_name_list = []
@@ -55,7 +78,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             col_data_list = []
         if len(col_data_list) > 0:
             model.sortcolumn = 0
-        #print('[model] Changing data')
+        # print('[model] Changing data')
         # Set the data to display (list of lists)
         model._change_columns(col_data_list, col_type_list)
         # Set the headers
@@ -74,9 +97,10 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         if col_edit_list is None:
             model.column_editable = [False] * len(model.col_data_list)
         else:
-            model.column_editable = [header in col_edit_list for header in
-                                     model.col_name_list]
-        #print('[model] new column_editable = %r' % (model.column_editable,))
+            model.column_editable = [
+                header in col_edit_list for header in model.col_name_list
+            ]
+        # print('[model] new column_editable = %r' % (model.column_editable,))
 
     def _change_headers(model, col_name_list, niceheader_list=None):
         """ Internal header names """
@@ -86,7 +110,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             model.niceheader_list = col_name_list
         else:
             model.niceheader_list = niceheader_list
-        #print('[model] new col_name_list = %r' % (model.col_name_list,))
+        # print('[model] new col_name_list = %r' % (model.col_name_list,))
 
     def _change_columns(model, col_data_list, col_type_list=None):
         model.col_data_list = col_data_list
@@ -94,7 +118,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             model.col_type_list = col_type_list
         else:
             model.col_type_list = qtype.infer_coltype(model.col_data_list)
-        #print('[model] new col_type_list = %r' % (model.col_type_list,))
+        # print('[model] new col_type_list = %r' % (model.col_type_list,))
 
     def _change_row_indices(model):
         """  Non-Qt Helper """
@@ -102,19 +126,20 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             print('using: sortcolumn=%r' % model.sortcolumn)
             column_data = model.col_data_list[model.sortcolumn]
             indices = list(range(len(column_data)))
-            model.row_sortx = utool.sortedby(indices, column_data,
-                                             reverse=model.sortreverse)
+            model.row_sortx = utool.sortedby(
+                indices, column_data, reverse=model.sortreverse
+            )
         elif len(model.col_data_list) > 0:
             model.row_sortx = list(range(len(model.col_data_list[0])))
         else:
             model.row_sortx = []
-        #print('[model] new len(row_sortx) = %r' % (len(model.row_sortx),))
+        # print('[model] new len(row_sortx) = %r' % (len(model.row_sortx),))
 
     def _assert_feasibility(model):
         assert len(model.col_name_list) == len(model.col_data_list)
         nrows = list(map(len, model.col_data_list))
         assert all([nrows[0] == num for num in nrows]), 'inconsistent data'
-        #print('[model] is feasible')
+        # print('[model] is feasible')
 
     #
     #
@@ -129,11 +154,13 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         return data
 
     def set_sorting(model, col_sort_index=None, order=Qt.DescendingOrder):
-        model.sortreverse = (order == Qt.DescendingOrder)
+        model.sortreverse = order == Qt.DescendingOrder
         if col_sort_index is not None:
             if utool.is_str(col_sort_index):
                 col_sort_index = model.col_name_list.index(col_sort_index)
-            assert utool.is_int(col_sort_index), 'sort by an index not %r' % type(col_sort_index)
+            assert utool.is_int(col_sort_index), 'sort by an index not %r' % type(
+                col_sort_index
+            )
             model.sortcolumn = col_sort_index
             assert model.sortcolumn < len(model.col_name_list), 'outofbounds'
             print('sortcolumn: %r' % model.sortcolumn)
@@ -152,8 +179,8 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
     def get_header_data(model, header, row):
         """ Non-Qt Helper """
         column = model.col_name_list.index(header)
-        index  = model.index(row, column)
-        data   = model.get_data(index)
+        index = model.index(row, column)
+        data = model.get_data(index)
         return data
 
     def get_coltype(model, column):
@@ -197,8 +224,9 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         flags = model.flags(index)
         if role == Qt.TextAlignmentRole:
             return model.get_column_alignment(index.column())
-        if role == Qt.BackgroundRole and (flags & Qt.ItemIsEditable or
-                                          flags & Qt.ItemIsUserCheckable):
+        if role == Qt.BackgroundRole and (
+            flags & Qt.ItemIsEditable or flags & Qt.ItemIsUserCheckable
+        ):
             return QtCore.QVariant(QtGui.QColor(250, 240, 240))
         if role == Qt.DisplayRole or role == Qt.CheckStateRole:
             data = model.get_data(index)
@@ -235,10 +263,9 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             return True
         except Exception as ex:
             var_ = str(var.toString())  # NOQA
-            utool.printex(ex, 'ignoring setData', '[model]',
-                          key_list=['var_'])
-            #raise
-            #print(' * ignoring setData: %r' % locals().get('var', None))
+            utool.printex(ex, 'ignoring setData', '[model]', key_list=['var_'])
+            # raise
+            # print(' * ignoring setData: %r' % locals().get('var', None))
             return False
 
     def headerData(model, section, orientation, role=Qt.DisplayRole):
@@ -257,7 +284,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
 
     def flags(model, index):
         """ Qt Override """
-        #return Qt.ItemFlag(0)
+        # return Qt.ItemFlag(0)
         column = index.column()
         if not model.get_editable(column):
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -269,10 +296,18 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
 
 class ColumnListTableWidget(QtWidgets.QWidget):
     """ ColumnList Table Main Widget """
-    def __init__(cltw, col_data_list=None, col_name_list=None,
-                 niceheader_list=None, col_type_list=None,
-                 col_edit_list=None, display_indices=False,
-                 col_sort_index=None, parent=None):
+
+    def __init__(
+        cltw,
+        col_data_list=None,
+        col_name_list=None,
+        niceheader_list=None,
+        col_type_list=None,
+        col_edit_list=None,
+        display_indices=False,
+        col_sort_index=None,
+        parent=None,
+    ):
         super(ColumnListTableWidget, cltw).__init__(parent)
         # QtWidgets.QWidget.__init__(cltw, parent)
         # Create vertical layout for the table to go into
@@ -284,15 +319,27 @@ class ColumnListTableWidget(QtWidgets.QWidget):
         cltw.view.setModel(cltw.model)
         cltw.vert_layout.addWidget(cltw.view)
         # Make sure we don't call a childs method
-        ColumnListTableWidget.change_data(cltw, col_data_list, col_name_list,
-                                          niceheader_list, col_type_list,
-                                          col_edit_list, display_indices,
-                                          col_sort_index)
+        ColumnListTableWidget.change_data(
+            cltw,
+            col_data_list,
+            col_name_list,
+            niceheader_list,
+            col_type_list,
+            col_edit_list,
+            display_indices,
+            col_sort_index,
+        )
 
-    def change_data(cltw, col_data_list=None, col_name_list=None,
-                    niceheader_list=None, col_type_list=None,
-                    col_edit_list=None, display_indices=False,
-                    col_sort_index=None):
+    def change_data(
+        cltw,
+        col_data_list=None,
+        col_name_list=None,
+        niceheader_list=None,
+        col_type_list=None,
+        col_edit_list=None,
+        display_indices=False,
+        col_sort_index=None,
+    ):
         """
         Checks for deligates
         """
@@ -308,9 +355,15 @@ class ColumnListTableWidget(QtWidgets.QWidget):
                         marked_columns.append(column)
         else:
             print('cltw.change_data: None')
-        cltw.model._change_data(col_data_list, col_name_list, niceheader_list,
-                                col_type_list, col_edit_list,
-                                display_indices, col_sort_index)
+        cltw.model._change_data(
+            col_data_list,
+            col_name_list,
+            niceheader_list,
+            col_type_list,
+            col_edit_list,
+            display_indices,
+            col_sort_index,
+        )
         # Set persistant editability after data is changed
         for column in marked_columns:
             cltw.set_column_persistant_editor(column)
@@ -332,7 +385,7 @@ class ColumnListTableWidget(QtWidgets.QWidget):
         num_rows = cltw.model.rowCount()
         print('cltw.set_persistant: %r rows' % num_rows)
         for row in range(num_rows):
-            index  = cltw.model.index(row, column)
+            index = cltw.model.index(row, column)
             cltw.view.openPersistentEditor(index)
 
     def is_index_clickable(cltw, index):
@@ -345,22 +398,29 @@ class ColumnListTableWidget(QtWidgets.QWidget):
         return model.get_header_data(header, index.row())
 
 
-def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
-                          show=True, raise_=True, on_click=None):
-    widget = ColumnListTableWidget(col_data_list, col_name_list,
-                                   col_edit_list=col_edit_list)
+def make_listtable_widget(
+    col_data_list,
+    col_name_list,
+    col_edit_list=None,
+    show=True,
+    raise_=True,
+    on_click=None,
+):
+    widget = ColumnListTableWidget(
+        col_data_list, col_name_list, col_edit_list=col_edit_list
+    )
 
     def on_doubleclick(index):
         # This is actually a release
-        #print('DoubleClicked: ' + str(qtype.qindexinfo(index)))
+        # print('DoubleClicked: ' + str(qtype.qindexinfo(index)))
         pass
 
     def on_pressed(index):
-        #print('Pressed: ' + str(qtype.qindexinfo(index)))
+        # print('Pressed: ' + str(qtype.qindexinfo(index)))
         pass
 
     def on_activated(index):
-        #print('Activated: ' + str(qtype.qindexinfo(index)))
+        # print('Activated: ' + str(qtype.qindexinfo(index)))
         pass
 
     if on_click is not None:
@@ -376,13 +436,14 @@ def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
         widget.raise_()
     return widget
 
-#if __name__ == '__main__':
-    #import sys
-    #app = guitoo.ensure_qtapp()
-    #widget = DummyWidget()
-    #widget.show()
-    #widget.raise_()
-    #sys.exit(app.exec_())
+
+# if __name__ == '__main__':
+# import sys
+# app = guitoo.ensure_qtapp()
+# widget = DummyWidget()
+# widget.show()
+# widget.raise_()
+# sys.exit(app.exec_())
 
 
 if __name__ == '__main__':
@@ -392,6 +453,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.guitool_tables --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

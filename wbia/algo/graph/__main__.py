@@ -8,6 +8,7 @@ import utool as ut
 
 def main():
     import ubelt as ub
+
     ub.doctest_package('wbia.algo.graph', ignore_patterns=['*_grave*'])
 
     # import utool as ut
@@ -30,6 +31,7 @@ if __name__ == '__main__':
         python -m wbia.algo.graph --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     main()
 

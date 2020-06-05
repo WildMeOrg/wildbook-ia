@@ -8,29 +8,47 @@ import utool as ut
 from os.path import exists
 from wbia.algo.hots import chip_match
 from wbia.algo.hots import pipeline
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 # TODO: Move to params
 USE_HOTSPOTTER_CACHE = pipeline.USE_HOTSPOTTER_CACHE
-USE_CACHE      = not ut.get_argflag(('--nocache-query', '--noqcache'))  and USE_HOTSPOTTER_CACHE
-USE_BIGCACHE   = not ut.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache')) and ut.USE_CACHE
-USE_SUPERCACHE = not ut.get_argflag(('--nocache-super', '--no-supercache-query', '--noqcache', '--nosupercache')) and ut.USE_CACHE
-SAVE_CACHE     = not ut.get_argflag('--nocache-save')
-#MIN_BIGCACHE_BUNDLE = 20
-#MIN_BIGCACHE_BUNDLE = 150
+USE_CACHE = not ut.get_argflag(('--nocache-query', '--noqcache')) and USE_HOTSPOTTER_CACHE
+USE_BIGCACHE = (
+    not ut.get_argflag(
+        ('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache')
+    )
+    and ut.USE_CACHE
+)
+USE_SUPERCACHE = (
+    not ut.get_argflag(
+        ('--nocache-super', '--no-supercache-query', '--noqcache', '--nosupercache')
+    )
+    and ut.USE_CACHE
+)
+SAVE_CACHE = not ut.get_argflag('--nocache-save')
+# MIN_BIGCACHE_BUNDLE = 20
+# MIN_BIGCACHE_BUNDLE = 150
 MIN_BIGCACHE_BUNDLE = 64
 HOTS_BATCH_SIZE = ut.get_argval('--hots-batch-size', type_=int, default=None)
 
 
-#----------------------
+# ----------------------
 # Main Query Logic
-#----------------------
+# ----------------------
+
 
 @profile
-def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
-                         verbose=None, save_qcache=None, use_supercache=None,
-                         invalidate_supercache=None):
+def submit_query_request(
+    qreq_,
+    use_cache=None,
+    use_bigcache=None,
+    verbose=None,
+    save_qcache=None,
+    use_supercache=None,
+    invalidate_supercache=None,
+):
     """
     Called from qreq_.execute
 
@@ -66,7 +84,7 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
         use_supercache = USE_SUPERCACHE
     # Create new query request object to store temporary state
     if verbose:
-        #print('[mc4] --- Submit QueryRequest_ --- ')
+        # print('[mc4] --- Submit QueryRequest_ --- ')
         print(ub.color_text('[mc4] --- Submit QueryRequest_ --- ', 'darkyellow'))
     assert qreq_ is not None, 'query request must be prebuilt'
 
@@ -75,8 +93,12 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
         assert len(qreq_.daids) > 0, 'there are no database chips'
         assert len(qreq_.qaids) > 0, 'there are no query chips'
     except AssertionError as ex:
-        ut.printex(ex, 'Impossible query request', iswarning=True,
-                   keys=['qreq_.qaids', 'qreq_.daids'])
+        ut.printex(
+            ex,
+            'Impossible query request',
+            iswarning=True,
+            keys=['qreq_.qaids', 'qreq_.daids'],
+        )
         if ut.SUPER_STRICT:
             raise
         cm_list = [None for qaid in qreq_.qaids]
@@ -84,8 +106,8 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
         # --- BIG CACHE ---
         # Do not use bigcache single queries
         is_big = len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE
-        use_bigcache_ = (use_bigcache and use_cache and is_big)
-        if (use_bigcache_ or save_qcache):
+        use_bigcache_ = use_bigcache and use_cache and is_big
+        if use_bigcache_ or save_qcache:
             cacher = qreq_.get_big_cacher()
             if use_bigcache_:
                 try:
@@ -97,10 +119,14 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
                     return cm_list
         # ------------
         # Execute query request
-        qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache,
-                                             verbose=verbose,
-                                             use_supercache=use_supercache,
-                                             invalidate_supercache=invalidate_supercache)
+        qaid2_cm = execute_query_and_save_L1(
+            qreq_,
+            use_cache,
+            save_qcache,
+            verbose=verbose,
+            use_supercache=use_supercache,
+            invalidate_supercache=invalidate_supercache,
+        )
         # ------------
         if save_qcache and is_big:
             cacher.save(qaid2_cm)
@@ -110,9 +136,15 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
 
 
 @profile
-def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
-                              batch_size=None, use_supercache=False,
-                              invalidate_supercache=False):
+def execute_query_and_save_L1(
+    qreq_,
+    use_cache,
+    save_qcache,
+    verbose=True,
+    batch_size=None,
+    use_supercache=False,
+    invalidate_supercache=False,
+):
     """
     Args:
         qreq_ (wbia.QueryRequest):
@@ -211,7 +243,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
     """
     if invalidate_supercache:
         dpath = qreq_.get_qresdir()
-        fpath_list = ut.glob('%s/*_cm_supercache_*' % (dpath, ))
+        fpath_list = ut.glob('%s/*_cm_supercache_*' % (dpath,))
         for fpath in fpath_list:
             ut.delete(fpath)
 
@@ -223,26 +255,39 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
         external_qaids = qreq_.qaids
-        fpath_list = list(qreq_.get_chipmatch_fpaths(external_qaids, super_qres_cache=use_supercache))
+        fpath_list = list(
+            qreq_.get_chipmatch_fpaths(external_qaids, super_qres_cache=use_supercache)
+        )
         exists_flags = [exists(fpath) for fpath in fpath_list]
         qaids_hit = ut.compress(external_qaids, exists_flags)
         fpaths_hit = ut.compress(fpath_list, exists_flags)
         fpath_iter = ut.ProgIter(
-            fpaths_hit, length=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
-            label='loading cache hits', adjust=True, freq=1)
+            fpaths_hit,
+            length=len(fpaths_hit),
+            enabled=len(fpaths_hit) > 1,
+            label='loading cache hits',
+            adjust=True,
+            freq=1,
+        )
         try:
             cm_hit_list = [
                 chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
                 for fpath in fpath_iter
             ]
-            assert all([qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]), (
-                'inconsistent qaid and cm.qaid')
+            assert all(
+                [qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]
+            ), 'inconsistent qaid and cm.qaid'
             qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
         except chip_match.NeedRecomputeError:
             print('NeedRecomputeError: Some cached chips need to recompute')
             fpath_iter = ut.ProgIter(
-                fpaths_hit, length=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
-                label='checking chipmatch cache', adjust=True, freq=1)
+                fpaths_hit,
+                length=len(fpaths_hit),
+                enabled=len(fpaths_hit) > 1,
+                label='checking chipmatch cache',
+                adjust=True,
+                freq=1,
+            )
             # Recompute those that fail loading
             qaid2_cm_hit = {}
             for fpath in fpath_iter:
@@ -252,14 +297,18 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
                     pass
                 else:
                     qaid2_cm_hit[cm.qaid] = cm
-            print('%d / %d cached matches need to be recomputed' % (
-                len(qaids_hit) - len(qaid2_cm_hit), len(qaids_hit)))
+            print(
+                '%d / %d cached matches need to be recomputed'
+                % (len(qaids_hit) - len(qaid2_cm_hit), len(qaids_hit))
+            )
         if len(qaid2_cm_hit) == len(external_qaids):
             return qaid2_cm_hit
         else:
             if len(qaid2_cm_hit) > 0 and not ut.QUIET:
-                print('... partial cm cache hit %d/%d' % (
-                    len(qaid2_cm_hit), len(external_qaids)))
+                print(
+                    '... partial cm cache hit %d/%d'
+                    % (len(qaid2_cm_hit), len(external_qaids))
+                )
         cachehit_qaids = list(qaid2_cm_hit.keys())
         # mask queries that have already been executed
         qreq_.set_external_qaid_mask(cachehit_qaids)
@@ -282,7 +331,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
     to process "more efficiently" and safer as well.
     """
     if qreq_.prog_hook is not None:
-        preload_hook, query_hook = qreq_.prog_hook.subdivide(spacing=[0, .15, .8])
+        preload_hook, query_hook = qreq_.prog_hook.subdivide(spacing=[0, 0.15, 0.8])
         preload_hook(0, lbl='preloading')
         qreq_.prog_hook = query_hook
     else:
@@ -297,7 +346,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
     if batch_size is None:
         if HOTS_BATCH_SIZE is None:
             hots_batch_size = qreq_.ibs.cfg.other_cfg.hots_batch_size
-            #hots_batch_size = 256
+            # hots_batch_size = 256
         else:
             hots_batch_size = HOTS_BATCH_SIZE
     else:
@@ -308,22 +357,37 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
     n_total_chunks = ut.get_num_chunks(len(all_qaids), chunksize)
     qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
     _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
-    sub_qreq_iter = ut.ProgIter(_qreq_iter, length=n_total_chunks, freq=1,
-                                label='[mc4] query chunk: ',
-                                prog_hook=qreq_.prog_hook)
+    sub_qreq_iter = ut.ProgIter(
+        _qreq_iter,
+        length=n_total_chunks,
+        freq=1,
+        label='[mc4] query chunk: ',
+        prog_hook=qreq_.prog_hook,
+    )
     for sub_qreq_ in sub_qreq_iter:
         if ut.VERBOSE:
             print('Generating vsmany chunk')
-        sub_cm_list = pipeline.request_wbia_query_L0(qreq_.ibs, sub_qreq_,
-                                                      verbose=verbose)
+        sub_cm_list = pipeline.request_wbia_query_L0(
+            qreq_.ibs, sub_qreq_, verbose=verbose
+        )
         assert len(sub_qreq_.qaids) == len(sub_cm_list), 'not aligned'
-        assert all([qaid == cm.qaid for qaid, cm in
-                    zip(sub_qreq_.qaids, sub_cm_list)]), 'not corresonding'
+        assert all(
+            [qaid == cm.qaid for qaid, cm in zip(sub_qreq_.qaids, sub_cm_list)]
+        ), 'not corresonding'
         if save_qcache:
-            fpath_list = list(qreq_.get_chipmatch_fpaths(sub_qreq_.qaids, super_qres_cache=use_supercache))
+            fpath_list = list(
+                qreq_.get_chipmatch_fpaths(
+                    sub_qreq_.qaids, super_qres_cache=use_supercache
+                )
+            )
             _iter = zip(sub_cm_list, fpath_list)
-            _iter = ut.ProgIter(_iter, length=len(sub_cm_list),
-                                label='saving chip matches', adjust=True, freq=1)
+            _iter = ut.ProgIter(
+                _iter,
+                length=len(sub_cm_list),
+                label='saving chip matches',
+                adjust=True,
+                freq=1,
+            )
             for cm, fpath in _iter:
                 cm.save_to_fpath(fpath, verbose=False)
         else:
@@ -339,5 +403,6 @@ if __name__ == '__main__':
     python -m wbia.algo.hots.match_chips4 --allexamples --testslow
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     ut.doctest_funcs()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#def fix_command_tuple(command_tuple, sudo=False, shell=False, win32=ut.WIN32):
+# def fix_command_tuple(command_tuple, sudo=False, shell=False, win32=ut.WIN32):
 #    r"""
 #    Args:
 #        command_tuple (?):
@@ -61,7 +61,7 @@
 #    return args
 
 
-#def system_command(command_tuple, detatch=False, sudo=False, shell=False, verbose=True):
+# def system_command(command_tuple, detatch=False, sudo=False, shell=False, verbose=True):
 #    """
 #    Version 2 of util_cplat.cmd, hopefully it will work
 #

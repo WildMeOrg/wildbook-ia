@@ -39,6 +39,7 @@ from functools import partial
 from os.path import join
 from wbia import constants as const
 from wbia.init import sysres
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -62,32 +63,34 @@ def compare_score_pdfs(testres):
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    #from wbia.init import main_helpers
+    # from wbia.init import main_helpers
     import utool as ut
-    #import wbia.plottool as pt
+
+    # import wbia.plottool as pt
     ut.ensureqt()
 
     testres.draw_annot_scoresep(f='fail=False')
-    #pt.adjust_subplots(bottom=.25, top=.8)
+    # pt.adjust_subplots(bottom=.25, top=.8)
     encoder = testres.draw_feat_scoresep(f='fail=False', disttype=None)
-    #pt.adjust_subplots(bottom=.25, top=.8)
-    #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn'])
-    #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['ratio'])
-    #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['L2_sift'])
+    # pt.adjust_subplots(bottom=.25, top=.8)
+    # encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn'])
+    # encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['ratio'])
+    # encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['L2_sift'])
     encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn', 'fg'])
-    #pt.adjust_subplots(bottom=.25, top=.8)
+    # pt.adjust_subplots(bottom=.25, top=.8)
 
-    #ibs, testres = main_helpers.testdata_expts(
+    # ibs, testres = main_helpers.testdata_expts(
     #    defaultdb=defaultdb, a=['timectrl'], t=['best:lnbnn_on=False,ratio_thresh=1.0'])
-    #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['ratio'])
-    #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn'])
-    #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['L2_sift'])
+    # encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['ratio'])
+    # encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn'])
+    # encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['L2_sift'])
     # TODO:
     return encoder
 
 
 def draw_annot_scoresep(testres, f=None):
     from wbia.expt import experiment_drawing
+
     experiment_drawing.draw_annot_scoresep(testres.ibs, testres, f=f)
 
 
@@ -142,28 +145,31 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
     def load_feat_scores(qreq_, qaids):
         import wbia  # NOQA
         from os.path import dirname, join  # NOQA
+
         # HACKY CACHE
         cfgstr = qreq_.get_cfgstr(with_input=True)
         cache_dir = join(dirname(dirname(wbia.__file__)), 'TMP_FEATSCORE_CACHE')
         namemode = ut.get_argval('--namemode', default=True)
-        fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',
-                             default=slice(None, None, None))
+        fsvx = ut.get_argval(
+            '--fsvx', type_='fuzzy_subset', default=slice(None, None, None)
+        )
         threshx = ut.get_argval('--threshx', type_=int, default=None)
-        thresh = ut.get_argval('--thresh', type_=float, default=.9)
+        thresh = ut.get_argval('--thresh', type_=float, default=0.9)
         num = ut.get_argval('--num', type_=int, default=1)
         cfg_components = [cfgstr, disttype, namemode, fsvx, threshx, thresh, f, num]
         cache_cfgstr = ','.join(ut.lmap(six.text_type, cfg_components))
         cache_hashid = ut.hashstr27(cache_cfgstr + '_v1')
-        cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
-        @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
-                        use_cache=True)
+        cache_name = 'get_cfgx_feat_scores_' + cache_hashid
+
+        @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[], use_cache=True)
         def get_cfgx_feat_scores(qreq_, qaids):
             from wbia.algo.hots import scorenorm
+
             cm_list = qreq_.execute(qaids)
             # print('Done loading cached chipmatches')
-            tup = scorenorm.get_training_featscores(qreq_, cm_list, disttype,
-                                                    namemode, fsvx, threshx,
-                                                    thresh, num=num)
+            tup = scorenorm.get_training_featscores(
+                qreq_, cm_list, disttype, namemode, fsvx, threshx, thresh, num=num
+            )
             # print(ut.depth_profile(tup))
             tp_scores, tn_scores, scorecfg = tup
             return tp_scores, tn_scores, scorecfg
@@ -212,25 +218,26 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         vizkw = {}
         sephack = ut.get_argflag('--sephack')
         if not sephack:
-            vizkw['target_tpr'] = .95
+            vizkw['target_tpr'] = 0.95
             vizkw['score_range'] = (0, 1.0)
 
         encoder.visualize(
-            figtitle=figtitle, fnum=fnum,
+            figtitle=figtitle,
+            fnum=fnum,
             with_scores=False,
-            #with_prebayes=True,
+            # with_prebayes=True,
             with_prebayes=False,
             with_roc=True,
             with_postbayes=False,
-            #with_postbayes=True,
-            **vizkw
+            # with_postbayes=True,
+            **vizkw,
         )
         icon = testres.ibs.get_database_icon()
         if icon is not None:
             pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
 
         if ut.get_argflag('--contextadjust'):
-            pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+            pt.adjust_subplots(left=0.1, bottom=0.25, wspace=0.2, hspace=0.2)
             pt.adjust_subplots(use_argv=True)
     return encoder
 
@@ -260,8 +267,7 @@ def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         >>> print(result)
         scorenorm/zebra_grevys
     """
-    scorenorm_cachedir = join(ibs.get_wbia_resource_dir(),
-                              const.PATH_NAMES.scorenormdir)
+    scorenorm_cachedir = join(ibs.get_wbia_resource_dir(), const.PATH_NAMES.scorenormdir)
     species_cachedir = join(scorenorm_cachedir, species_text)
     if ensure:
         ut.ensurepath(scorenorm_cachedir)
@@ -272,8 +278,7 @@ def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
 def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
     """
     """
-    scorenorm_cachedir = join(ibs.get_cachedir(),
-                              const.PATH_NAMES.scorenormdir)
+    scorenorm_cachedir = join(ibs.get_cachedir(), const.PATH_NAMES.scorenormdir)
     species_cachedir = join(scorenorm_cachedir, species_text)
     if ensure:
         ut.ensuredir(scorenorm_cachedir)
@@ -303,11 +308,11 @@ class NormFeatScoreConfig(dtool.Config):
         ut.ParamInfo('disttype', None),
         ut.ParamInfo('namemode', True),
         ut.ParamInfo('fsvx', None, type_='fuzzy_subset', hideif=None),
-        ut.ParamInfo('threshx',  None, hideif=None),
-        ut.ParamInfo('thresh', .9, hideif=lambda cfg: cfg['threshx'] is None),
+        ut.ParamInfo('threshx', None, hideif=None),
+        ut.ParamInfo('thresh', 0.9, hideif=lambda cfg: cfg['threshx'] is None),
         ut.ParamInfo('num', 5),
         # ut.ParamInfo('top_percent', None, hideif=None),
-        ut.ParamInfo('top_percent', .5, hideif=None),
+        ut.ParamInfo('top_percent', 0.5, hideif=None),
     ]
 
 
@@ -369,10 +374,12 @@ def compare_featscores():
     """
     import wbia.plottool as pt
     import wbia
+
     nfs_cfg_list = NormFeatScoreConfig.from_argv_cfgs()
     learnkw = {}
     ibs, testres = wbia.testdata_expts(
-        defaultdb='PZ_MTEST', a=['default'], p=['default:K=1'])
+        defaultdb='PZ_MTEST', a=['default'], p=['default:K=1']
+    )
     print('nfs_cfg_list = ' + ut.repr3(nfs_cfg_list))
 
     encoder_list = []
@@ -380,9 +387,9 @@ def compare_featscores():
 
     varied_nfs_lbls = ut.get_varied_cfg_lbls(nfs_cfg_list)
     varied_qreq_lbls = ut.get_varied_cfg_lbls(testres.cfgdict_list)
-    #varies_qreq_lbls
+    # varies_qreq_lbls
 
-    #func = ut.cached_func(cache_dir='.')(learn_featscore_normalizer)
+    # func = ut.cached_func(cache_dir='.')(learn_featscore_normalizer)
     for datakw, nlbl in zip(nfs_cfg_list, varied_nfs_lbls):
         for qreq_, qlbl in zip(testres.cfgx2_qreq_, varied_qreq_lbls):
             lbl = qlbl + ' ' + nlbl
@@ -406,10 +413,12 @@ def compare_featscores():
         iconsize = 64
 
     icon = qreq_.ibs.get_database_icon(max_dsize=(None, iconsize), aid=qreq_.qaids[0])
-    score_range = (0, .6)
+    score_range = (0, 0.6)
     for encoder, lbl in zip(encoder_list, lbl_list):
-        #encoder.visualize(figtitle=encoder.get_cfgstr(), with_prebayes=False, with_postbayes=False)
-        encoder._plot_score_support_hist(fnum, pnum=next_pnum(), titlesuf='\n' + lbl, score_range=score_range)
+        # encoder.visualize(figtitle=encoder.get_cfgstr(), with_prebayes=False, with_postbayes=False)
+        encoder._plot_score_support_hist(
+            fnum, pnum=next_pnum(), titlesuf='\n' + lbl, score_range=score_range
+        )
         encoder._plot_prebayes(fnum, pnum=next_pnum())
         encoder._plot_roc(fnum, pnum=next_pnum())
         if icon is not None:
@@ -419,7 +428,7 @@ def compare_featscores():
     figtitle = qreq_.__str__() + '\n' + nonvaried_lbl
 
     pt.set_figtitle(figtitle)
-    pt.adjust_subplots(hspace=.5, top=.92, bottom=.08, left=.1, right=.9)
+    pt.adjust_subplots(hspace=0.5, top=0.92, bottom=0.08, left=0.1, right=0.9)
     pt.update_figsize()
     pt.plt.tight_layout()
     # pt.adjust_subplots(top=.95)
@@ -456,8 +465,7 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
         0: {'aid_pairs': good_tn_aidnid_pairs},
         1: {'aid_pairs': good_tp_aidnid_pairs},
     }
-    scores, labels, attrs = vt.flatten_scores(tp_scores, tn_scores,
-                                              part_attrs)
+    scores, labels, attrs = vt.flatten_scores(tp_scores, tn_scores, part_attrs)
     _learnkw = {'monotonize': True}
     _learnkw.update(learnkw)
     # timestamp = ut.get_timestamp()
@@ -529,18 +537,18 @@ def train_featscore_normalizer():
         >>> ut.show_if_requested()
     """
     import wbia
+
     # TODO: training / loading / general external models
-    qreq_ = wbia.testdata_qreq_(
-        defaultdb='PZ_MTEST', a=['default'], p=['default'])
+    qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a=['default'], p=['default'])
     datakw = NormFeatScoreConfig.from_argv_dict()
-    #datakw = dict(
+    # datakw = dict(
     #    disttype=None,
     #    namemode=ut.get_argval('--namemode', default=True),
     #    fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
     #                         default=slice(None, None, None)),
     #    threshx=ut.get_argval('--threshx', type_=int, default=None),
     #    thresh=ut.get_argval('--thresh', type_=float, default=.9),
-    #)
+    # )
     encoder = learn_featscore_normalizer(qreq_, datakw=datakw)
     encoder.save()
     return encoder
@@ -592,8 +600,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
     cm_list = qreq_.execute()
     print('learning scorenorm')
     print('datakw = %s' % ut.repr3(datakw))
-    tp_scores, tn_scores, scorecfg = get_training_featscores(
-        qreq_, cm_list, **datakw)
+    tp_scores, tn_scores, scorecfg = get_training_featscores(qreq_, cm_list, **datakw)
     _learnkw = dict(monotonize=True, adjust=2)
     _learnkw.update(learnkw)
     encoder = vt.ScoreNormalizer(**_learnkw)
@@ -618,8 +625,10 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
     scorecfg_safe = re.sub('[' + re.escape('+*<>[]') + ']', '_', scorecfg_safe)
 
     hashid = ut.hashstr27(ut.to_json(encoder._regen_info))
-    naidinfo = ('q%s_d%s' % (len(qreq_.qaids), len(qreq_.daids)))
-    cfgstr = 'featscore_{}_{}_{}_{}'.format(scorecfg_safe, qreq_.ibs.get_dbname(), naidinfo, hashid)
+    naidinfo = 'q%s_d%s' % (len(qreq_.qaids), len(qreq_.daids))
+    cfgstr = 'featscore_{}_{}_{}_{}'.format(
+        scorecfg_safe, qreq_.ibs.get_dbname(), naidinfo, hashid
+    )
     encoder.cfgstr = cfgstr
     return encoder
 
@@ -636,8 +645,9 @@ def get_training_annotscores(qreq_, cm_list):
 
     ibs = qreq_.ibs
 
-    trainable = [ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list)
-                 for cm in cm_list]
+    trainable = [
+        ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list) for cm in cm_list
+    ]
     cm_list_ = ut.compress(cm_list, trainable)
 
     for cm in cm_list_:
@@ -649,7 +659,7 @@ def get_training_annotscores(qreq_, cm_list):
 
         sorted_ndiff = -np.diff(sorted_nscores.tolist())
         sorted_nids = np.array(sorted_nids)
-        is_positive  = sorted_nids == qnid
+        is_positive = sorted_nids == qnid
         is_negative = np.logical_and(~is_positive, sorted_nids > 0)
         # Only take data from results with positive and negative examples
         if not np.any(is_positive) or not np.any(is_negative):
@@ -668,9 +678,17 @@ def get_training_annotscores(qreq_, cm_list):
     return tp_scores, tn_scores, good_tn_aidnid_pairs, good_tp_aidnid_pairs
 
 
-def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
-                            fsvx=slice(None, None, None), threshx=None,
-                            thresh=.9, num=None, top_percent=None):
+def get_training_featscores(
+    qreq_,
+    cm_list,
+    disttype=None,
+    namemode=True,
+    fsvx=slice(None, None, None),
+    threshx=None,
+    thresh=0.9,
+    num=None,
+    top_percent=None,
+):
     """
     Returns the flattened set of feature scores between each query and the
     correct groundtruth annotations as well as the top scoring false
@@ -719,11 +737,11 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
     tp_fsvs_list = []
     tn_fsvs_list = []
 
-    #cm_list = [ cm_list[key] for key in sorted(cm_list.keys()) ]
+    # cm_list = [ cm_list[key] for key in sorted(cm_list.keys()) ]
     # Train on only positive examples
     trainable = [
-        qreq_.ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list) and
-        cm.get_top_nids()[0] == cm.qnid
+        qreq_.ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list)
+        and cm.get_top_nids()[0] == cm.qnid
         for cm in cm_list
     ]
     cm_list_ = ut.compress(cm_list, trainable)
@@ -736,18 +754,23 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
         fsv_col_lbls = ut.ensure_iterable(disttype)
         # annots = {}  # Hack for cached vector lookups
         ibs = qreq_.ibs
-        data_annots = ut.KeyedDefaultDict(ibs.get_annot_lazy_dict, config2_=qreq_.data_config2_)
-        query_annots = ut.KeyedDefaultDict(ibs.get_annot_lazy_dict, config2_=qreq_.query_config2_)
-        train_getter = partial(get_training_desc_dist,
-                               fsv_col_lbls=fsv_col_lbls, qreq_=qreq_,
-                               data_annots=data_annots,
-                               query_annots=query_annots)
+        data_annots = ut.KeyedDefaultDict(
+            ibs.get_annot_lazy_dict, config2_=qreq_.data_config2_
+        )
+        query_annots = ut.KeyedDefaultDict(
+            ibs.get_annot_lazy_dict, config2_=qreq_.query_config2_
+        )
+        train_getter = partial(
+            get_training_desc_dist,
+            fsv_col_lbls=fsv_col_lbls,
+            qreq_=qreq_,
+            data_annots=data_annots,
+            query_annots=query_annots,
+        )
 
-    for cm in ut.ProgIter(cm_list_, lbl='building train featscores',
-                          adjust=True, freq=1):
+    for cm in ut.ProgIter(cm_list_, lbl='building train featscores', adjust=True, freq=1):
         try:
-            tp_fsv, tn_fsv = train_getter(
-                cm, namemode=namemode, top_percent=top_percent)
+            tp_fsv, tn_fsv = train_getter(cm, namemode=namemode, top_percent=top_percent)
             tp_fsvs_list.extend(tp_fsv)
             tn_fsvs_list.extend(tn_fsv)
         except UnbalancedExampleException:
@@ -762,7 +785,7 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
     if threshx is not None:
         tp_scores = fsv_tp_[fsv_tp.T[threshx] > thresh].prod(axis=1)
         tn_scores = fsv_tn_[fsv_tn.T[threshx] > thresh].prod(axis=1)
-        threshpart = ('[' + fsv_col_lbls[threshx] + ' > ' + str(thresh) + ']')
+        threshpart = '[' + fsv_col_lbls[threshx] + ' > ' + str(thresh) + ']'
         scorecfg = '(%s)%s' % ('*'.join(fsv_col_lbls_), threshpart)
     else:
         tp_scores = fsv_tp_.prod(axis=1)
@@ -809,16 +832,16 @@ def get_topannot_training_idxs(cm, num=2):
     mask = sorted_nids == cm.qnid
     tp_idxs_ = np.where(mask)[0]
     if len(tp_idxs_) == 0:
-        #if ut.STRICT:
+        # if ut.STRICT:
         #    raise Exception('tp_idxs_=0')
-        #else:
-            raise UnbalancedExampleException('tp_idxs_=0')
+        # else:
+        raise UnbalancedExampleException('tp_idxs_=0')
     tn_idxs_ = np.where(~mask)[0]
     if len(tn_idxs_) == 0:
-        #if ut.STRICT:
+        # if ut.STRICT:
         #    raise Exception('tn_idxs_=0')
-        #else:
-            raise UnbalancedExampleException('tn_idxs_=0')
+        # else:
+        raise UnbalancedExampleException('tn_idxs_=0')
     tp_idxs = tp_idxs_[0:num]
     tn_idxs = tn_idxs_[0:num]
     return tp_idxs, tn_idxs
@@ -866,20 +889,21 @@ def get_topname_training_idxs(cm, num=5):
     # name ranks of the groundtrue name
     tp_ranks = np.where(sorted_nids == cm.qnid)[0]
     if len(tp_ranks) == 0:
-        #if ut.STRICT:
+        # if ut.STRICT:
         #    raise Exception('tp_ranks=0')
-        #else:
-            raise UnbalancedExampleException('tp_ranks=0')
+        # else:
+        raise UnbalancedExampleException('tp_ranks=0')
 
     # name ranks of the top groundfalse names
     tp_rank = tp_ranks[0]
-    tn_ranks = [rank for rank in range(num + 1)
-                if rank != tp_rank and rank < len(sorted_groupxs)]
+    tn_ranks = [
+        rank for rank in range(num + 1) if rank != tp_rank and rank < len(sorted_groupxs)
+    ]
     if len(tn_ranks) == 0:
-        #if ut.STRICT:
+        # if ut.STRICT:
         #    raise Exception('tn_ranks=0')
-        #else:
-            raise UnbalancedExampleException('tn_ranks=0')
+        # else:
+        raise UnbalancedExampleException('tn_ranks=0')
     # annot idxs of the examples
     tp_idxs = sorted_groupxs[tp_rank]
     tn_idxs = ut.flatten(ut.take(sorted_groupxs, tn_ranks))
@@ -910,7 +934,7 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
     # top_percent = None
     if top_percent is not None:
         cm_orig = cm
-        #cm_orig.assert_self(qreq_)
+        # cm_orig.assert_self(qreq_)
 
         tophalf_indicies = [
             ut.take_percentile(fs.argsort()[::-1], top_percent)
@@ -920,7 +944,7 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
 
         assert np.all(cm_orig.daid_list.take(tp_idxs) == cm.daid_list.take(tp_idxs))
         assert np.all(cm_orig.daid_list.take(tn_idxs) == cm.daid_list.take(tn_idxs))
-        #cm.assert_self(qreq_)
+        # cm.assert_self(qreq_)
 
     tp_fsv = np.vstack(ut.take(cm.fsv_list, tp_idxs))
     tn_fsv = np.vstack(ut.take(cm.fsv_list, tn_idxs))
@@ -928,9 +952,16 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
 
 
 @profile
-def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
-                           top_percent=None, data_annots=None,
-                           query_annots=None, num=None):
+def get_training_desc_dist(
+    cm,
+    qreq_,
+    fsv_col_lbls=[],
+    namemode=True,
+    top_percent=None,
+    data_annots=None,
+    query_annots=None,
+    num=None,
+):
     r"""
     computes custom distances on prematched descriptors
 
@@ -1004,7 +1035,9 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
     ibs = qreq_.ibs
     query_config2_ = qreq_.extern_query_config2
     data_config2_ = qreq_.extern_data_config2
-    special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg', 'ratio', 'lnbnn', 'normdist'])
+    special_xs, dist_xs = vt.index_partition(
+        fsv_col_lbls, ['fg', 'ratio', 'lnbnn', 'normdist']
+    )
     dist_lbls = ut.take(fsv_col_lbls, dist_xs)
     special_lbls = ut.take(fsv_col_lbls, special_xs)
 
@@ -1019,68 +1052,85 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         qfxs_list = ut.take(cm.qfxs_list, idxs)
         dfxs_list = ut.take(cm.dfxs_list, idxs)
 
-        need_norm = len(ut.setintersect_ordered(['ratio', 'lnbnn', 'normdist'], special_lbls)) > 0
-        #need_norm |= 'parzen' in special_lbls
-        #need_norm |= 'norm_parzen' in special_lbls
+        need_norm = (
+            len(ut.setintersect_ordered(['ratio', 'lnbnn', 'normdist'], special_lbls)) > 0
+        )
+        # need_norm |= 'parzen' in special_lbls
+        # need_norm |= 'norm_parzen' in special_lbls
         need_dists = len(dist_xs) > 0
 
         if need_dists or need_norm:
             qaid_list = [qaid] * len(qfxs_list)
-            qvecs_flat_m = np.vstack(ibs.get_annot_vecs_subset(qaid_list, qfxs_list, config2_=query_config2_))
-            dvecs_flat_m = np.vstack(ibs.get_annot_vecs_subset(daid_list, dfxs_list, config2_=data_config2_))
+            qvecs_flat_m = np.vstack(
+                ibs.get_annot_vecs_subset(qaid_list, qfxs_list, config2_=query_config2_)
+            )
+            dvecs_flat_m = np.vstack(
+                ibs.get_annot_vecs_subset(daid_list, dfxs_list, config2_=data_config2_)
+            )
 
         if need_norm:
-            assert any(x is not None for x in  cm.filtnorm_aids), 'no normalizer known'
+            assert any(x is not None for x in cm.filtnorm_aids), 'no normalizer known'
             naids_list = ut.take(cm.naids_list, idxs)
-            nfxs_list  = ut.take(cm.nfxs_list, idxs)
-            nvecs_flat = ibs.lookup_annot_vecs_subset(naids_list, nfxs_list, config2_=data_config2_,
-                                                      annots=data_annots)
-            #import utool
-            #with utool.embed_on_exception_context:
-            #nvecs_flat_m = np.vstack(ut.compress(nvecs_flat, nvecs_flat))
+            nfxs_list = ut.take(cm.nfxs_list, idxs)
+            nvecs_flat = ibs.lookup_annot_vecs_subset(
+                naids_list, nfxs_list, config2_=data_config2_, annots=data_annots
+            )
+            # import utool
+            # with utool.embed_on_exception_context:
+            # nvecs_flat_m = np.vstack(ut.compress(nvecs_flat, nvecs_flat))
             _nvecs_flat_m = ut.compress(nvecs_flat, nvecs_flat)
-            nvecs_flat_m = vt.safe_vstack(_nvecs_flat_m, qvecs_flat_m.shape, qvecs_flat_m.dtype)
+            nvecs_flat_m = vt.safe_vstack(
+                _nvecs_flat_m, qvecs_flat_m.shape, qvecs_flat_m.dtype
+            )
 
             vdist = vt.L2_sift(qvecs_flat_m, dvecs_flat_m)
             ndist = vt.L2_sift(qvecs_flat_m, nvecs_flat_m)
 
-            #assert np.all(vdist <= ndist)
-            #import utool
-            #utool.embed()
+            # assert np.all(vdist <= ndist)
+            # import utool
+            # utool.embed()
 
-            #vdist = vt.L2_sift_sqrd(qvecs_flat_m, dvecs_flat_m)
-            #ndist = vt.L2_sift_sqrd(qvecs_flat_m, nvecs_flat_m)
+            # vdist = vt.L2_sift_sqrd(qvecs_flat_m, dvecs_flat_m)
+            # ndist = vt.L2_sift_sqrd(qvecs_flat_m, nvecs_flat_m)
 
-            #vdist = vt.L2_root_sift(qvecs_flat_m, dvecs_flat_m)
-            #ndist = vt.L2_root_sift(qvecs_flat_m, nvecs_flat_m)
+            # vdist = vt.L2_root_sift(qvecs_flat_m, dvecs_flat_m)
+            # ndist = vt.L2_root_sift(qvecs_flat_m, nvecs_flat_m)
 
-            #x = cm.fsv_list[0][0:5].T[0]
-            #y = (ndist - vdist)[0:5]
+            # x = cm.fsv_list[0][0:5].T[0]
+            # y = (ndist - vdist)[0:5]
 
         if len(special_xs) > 0:
             special_dist_list = []
             # assert special_lbls[0] == 'fg'
             if 'fg' in special_lbls:
                 # hack for fgweights (could get them directly from fsv)
-                qfgweights_flat_m = np.hstack(ibs.get_annot_fgweights_subset([qaid] * len(qfxs_list), qfxs_list, config2_=query_config2_))
-                dfgweights_flat_m = np.hstack(ibs.get_annot_fgweights_subset(daid_list, dfxs_list, config2_=data_config2_))
+                qfgweights_flat_m = np.hstack(
+                    ibs.get_annot_fgweights_subset(
+                        [qaid] * len(qfxs_list), qfxs_list, config2_=query_config2_
+                    )
+                )
+                dfgweights_flat_m = np.hstack(
+                    ibs.get_annot_fgweights_subset(
+                        daid_list, dfxs_list, config2_=data_config2_
+                    )
+                )
                 fgweights = np.sqrt(qfgweights_flat_m * dfgweights_flat_m)
                 special_dist_list.append(fgweights)
 
             if 'ratio' in special_lbls:
                 # Integrating ratio test
-                ratio_dist = (vdist / ndist)
+                ratio_dist = vdist / ndist
                 special_dist_list.append(ratio_dist)
 
             if 'lnbnn' in special_lbls:
                 lnbnn_dist = ndist - vdist
                 special_dist_list.append(lnbnn_dist)
 
-            #if 'parzen' in special_lbls:
+            # if 'parzen' in special_lbls:
             #    parzen = vt.gauss_parzen_est(vdist, sigma=.38)
             #    special_dist_list.append(parzen)
 
-            #if 'norm_parzen' in special_lbls:
+            # if 'norm_parzen' in special_lbls:
             #    parzen = vt.gauss_parzen_est(ndist, sigma=.38)
             #    special_dist_list.append(parzen)
 
@@ -1099,8 +1149,7 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         else:
             dists = np.empty((0, 0))
 
-        fsv = vt.rebuild_partition(special_dists.T, dists.T,
-                                      special_xs, dist_xs)
+        fsv = vt.rebuild_partition(special_dists.T, dists.T, special_xs, dist_xs)
         fsv = np.array(fsv).T
         fsv_list.append(fsv)
     tp_fsv, tn_fsv = fsv_list
@@ -1115,6 +1164,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.scorenorm --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

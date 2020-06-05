@@ -4,12 +4,12 @@ import collections
 import utool as ut
 from wbia.algo.hots import hstypes
 from wbia.algo import Config
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 # This object will behave like a dictionary with ** capability
 class QueryParams(collections.Mapping):
-
     @profile
     def __init__(qparams, query_cfg=None, cfgdict=None):
         """
@@ -56,31 +56,34 @@ class QueryParams(collections.Mapping):
         param_list = Config.parse_config_items(query_cfg)
         # Assert that there are no config conflicts
         duplicate_keys = ut.find_duplicate_items(ut.get_list_column(param_list, 0))
-        assert len(duplicate_keys) == 0, 'Configs have duplicate names: %r' % duplicate_keys
+        assert len(duplicate_keys) == 0, (
+            'Configs have duplicate names: %r' % duplicate_keys
+        )
         # Set nexted config attributes as flat qparam properties
         for key, val in param_list:
             setattr(qparams, key, val)
         # Add params not implicitly represented in Config object
-        pipeline_root              = query_cfg.pipeline_root
-        qparams.chip_cfg_dict      = query_cfg._featweight_cfg._feat_cfg._chip_cfg.to_dict()
-        qparams.flann_params       = query_cfg.flann_cfg.get_flann_params()
-        qparams.hesaff_params      = query_cfg._featweight_cfg._feat_cfg.get_hesaff_params()
-        qparams.pipeline_root      = pipeline_root
-        qparams.vsmany             = pipeline_root == 'vsmany'
-        qparams.vsone              = pipeline_root == 'vsone'
+        pipeline_root = query_cfg.pipeline_root
+        qparams.chip_cfg_dict = query_cfg._featweight_cfg._feat_cfg._chip_cfg.to_dict()
+        qparams.flann_params = query_cfg.flann_cfg.get_flann_params()
+        qparams.hesaff_params = query_cfg._featweight_cfg._feat_cfg.get_hesaff_params()
+        qparams.pipeline_root = pipeline_root
+        qparams.vsmany = pipeline_root == 'vsmany'
+        qparams.vsone = pipeline_root == 'vsone'
         # Add custom strings to the mix as well
         # TODO; Find better way to specify config strings
         # FIXME: probchip is not in here
-        qparams.probchip_cfgstr   = query_cfg._featweight_cfg.get_cfgstr(
-            use_feat=False, use_chip=False)
+        qparams.probchip_cfgstr = query_cfg._featweight_cfg.get_cfgstr(
+            use_feat=False, use_chip=False
+        )
         qparams.featweight_cfgstr = query_cfg._featweight_cfg.get_cfgstr()
-        qparams.chip_cfgstr       = query_cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr()
-        qparams.feat_cfgstr       = query_cfg._featweight_cfg._feat_cfg.get_cfgstr()
-        qparams.nn_cfgstr         = query_cfg.nn_cfg.get_cfgstr()
-        qparams.nnweight_cfgstr   = query_cfg.nnweight_cfg.get_cfgstr()
-        qparams.sv_cfgstr         = query_cfg.sv_cfg.get_cfgstr()
-        qparams.flann_cfgstr      = query_cfg.flann_cfg.get_cfgstr()
-        qparams.query_cfgstr      = query_cfg.get_cfgstr()
+        qparams.chip_cfgstr = query_cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr()
+        qparams.feat_cfgstr = query_cfg._featweight_cfg._feat_cfg.get_cfgstr()
+        qparams.nn_cfgstr = query_cfg.nn_cfg.get_cfgstr()
+        qparams.nnweight_cfgstr = query_cfg.nnweight_cfg.get_cfgstr()
+        qparams.sv_cfgstr = query_cfg.sv_cfg.get_cfgstr()
+        qparams.flann_cfgstr = query_cfg.flann_cfg.get_cfgstr()
+        qparams.query_cfgstr = query_cfg.get_cfgstr()
 
     def hack_lnbnn_config_trail(qparams):
         query_cfg = Config.QueryConfig()
@@ -156,6 +159,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.query_params --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -12,9 +12,10 @@ import ubelt as ub
 from six.moves import input, zip, map
 from wbia import constants as const
 from wbia import params
+
 (print, rrr, profile) = ut.inject2(__name__)
 
-WORKDIR_CACHEID   = 'work_directory_cache_id'
+WORKDIR_CACHEID = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
 LOGDIR_CACHEID = ut.logdir_cacheid
 __APPNAME__ = 'wbia'
@@ -44,6 +45,7 @@ def _wbia_cache_read(key, **kwargs):
 
 
 # Specific cache getters / setters
+
 
 def set_default_dbdir(dbdir):
     if ut.DEBUG2:
@@ -128,6 +130,7 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
 
 def set_logdir(log_dir):
     from os.path import realpath, expanduser
+
     log_dir = realpath(expanduser(log_dir))
     ut.ensuredir(log_dir, verbose=True)
     ut.stop_logging()
@@ -149,6 +152,7 @@ def get_rawdir():
 def guiselect_workdir():
     """ Prompts the user to specify a work directory """
     import wbia.guitool
+
     guitool.ensure_qtapp()
     # Gui selection
     work_dir = guitool.select_directory('Select a work directory')
@@ -160,7 +164,8 @@ def guiselect_workdir():
             msg='Directory %r does not exist.' % work_dir,
             title='get work dir failed',
             options=['Try Again'],
-            use_cache=False)
+            use_cache=False,
+        )
         if try_again == 'Try Again':
             return guiselect_workdir()
     return work_dir
@@ -171,35 +176,32 @@ def get_dbalias_dict():
     dbalias_dict = {}
     if ut.is_developer():
         # For jon's convinience
-        dbalias_dict.update({
-            'NAUTS':            'NAUT_Dan',
-            'WD':               'WD_Siva',
-            'LF':               'LF_all',
-            'GZ':               'GZ_ALL',
-            'MOTHERS':          'PZ_MOTHERS',
-            'FROGS':            'Frogs',
-            'TOADS':            'WY_Toads',
-            'SEALS_SPOTTED':    'Seals',
-
-            'OXFORD':           'Oxford_Buildings',
-            'PARIS':            'Paris_Buildings',
-
-            'JAG_KELLY':        'JAG_Kelly',
-            'JAG_KIERYN':       'JAG_Kieryn',
-            'WILDEBEAST':       'Wildebeast',
-            'WDOGS':            'WD_Siva',
-
-            'PZ':               'PZ_FlankHack',
-            'PZ2':              'PZ-Sweatwater',
-            'PZ_MARIANNE':      'PZ_Marianne',
-            'PZ_DANEXT_TEST':   'PZ_DanExt_Test',
-            'PZ_DANEXT_ALL':    'PZ_DanExt_All',
-
-            'LF_ALL':           'LF_all',
-            'WS_HARD':          'WS_hard',
-            'SONOGRAMS':        'sonograms',
-
-        })
+        dbalias_dict.update(
+            {
+                'NAUTS': 'NAUT_Dan',
+                'WD': 'WD_Siva',
+                'LF': 'LF_all',
+                'GZ': 'GZ_ALL',
+                'MOTHERS': 'PZ_MOTHERS',
+                'FROGS': 'Frogs',
+                'TOADS': 'WY_Toads',
+                'SEALS_SPOTTED': 'Seals',
+                'OXFORD': 'Oxford_Buildings',
+                'PARIS': 'Paris_Buildings',
+                'JAG_KELLY': 'JAG_Kelly',
+                'JAG_KIERYN': 'JAG_Kieryn',
+                'WILDEBEAST': 'Wildebeast',
+                'WDOGS': 'WD_Siva',
+                'PZ': 'PZ_FlankHack',
+                'PZ2': 'PZ-Sweatwater',
+                'PZ_MARIANNE': 'PZ_Marianne',
+                'PZ_DANEXT_TEST': 'PZ_DanExt_Test',
+                'PZ_DANEXT_ALL': 'PZ_DanExt_All',
+                'LF_ALL': 'LF_all',
+                'WS_HARD': 'WS_hard',
+                'SONOGRAMS': 'sonograms',
+            }
+        )
         dbalias_dict['JAG'] = dbalias_dict['JAG_KELLY']
     return dbalias_dict
 
@@ -233,15 +235,14 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
             break
 
     # Create the database if newdbs are allowed in the workdir
-    #print('allow_newdir=%r' % allow_newdir)
+    # print('allow_newdir=%r' % allow_newdir)
     if allow_newdir:
         ut.ensuredir(dbdir, verbose=True)
 
     # Complain if the implicit dbdir does not exist
     if not exists(dbdir):
         print('!!!')
-        print('[sysres] WARNING: db=%r not found in work_dir=%r' %
-              (db, work_dir))
+        print('[sysres] WARNING: db=%r not found in work_dir=%r' % (db, work_dir))
         fname_list = os.listdir(work_dir)
         lower_list = [fname.lower() for fname in fname_list]
         index = ut.listfind(lower_list, db.lower())
@@ -257,8 +258,10 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
             msg = '[sysres!] ERROR: Database does not exist and allow_newdir=False'
             print('<!!!>')
             print(msg)
-            print('[sysres!] Here is a list of valid dbs: ' +
-                  ut.indentjoin(sorted(fname_list), '\n  * '))
+            print(
+                '[sysres!] Here is a list of valid dbs: '
+                + ut.indentjoin(sorted(fname_list), '\n  * ')
+            )
             print('[sysres!] dbdir=%r' % dbdir)
             print('[sysres!] db=%r' % db)
             print('[sysres!] work_dir=%r' % work_dir)
@@ -327,8 +330,8 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
     dbdir_arg = params.args.dbdir
     db_arg = params.args.db
     # TODO: use these instead of params
-    #ut.get_argval('--dbdir', return_was_specified=True))
-    #ut.get_argval('--db', return_was_specified=True)
+    # ut.get_argval('--dbdir', return_was_specified=True))
+    # ut.get_argval('--db', return_was_specified=True)
     # Check command line passed args
     dbdir2 = _db_arg_priorty(dbdir_arg, db_arg)
     if dbdir2 is not None:
@@ -373,12 +376,13 @@ def get_ibsdb_list(workdir=None):
         >>> print(result)
     """
     import numpy as np
+
     if workdir is None:
         workdir = get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
     is_ibs_list = np.array(list(map(is_wbiadb, dbpath_list)))
-    ibsdb_list  = dbpath_list[is_ibs_list].tolist()
+    ibsdb_list = dbpath_list[is_ibs_list].tolist()
     return ibsdb_list
 
 
@@ -410,12 +414,14 @@ def ensure_pz_mtest():
     """
     print('ensure_pz_mtest')
     from wbia import sysres
+
     workdir = sysres.get_workdir()
     mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
     mtest_dir = ut.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
     import wbia
+
     ibs = wbia.opendb('PZ_MTEST')
     print('cleaning up old database and ensureing everything is properly computed')
     ibs.db.vacuum()
@@ -436,9 +442,44 @@ def ensure_pz_mtest():
     ibs.set_exemplars_from_quality_and_viewpoint()
     ibs.update_all_image_special_imageset()
 
-    occurrence_gids = [2, 9, 12, 16, 25, 26, 29, 30, 32, 33, 35, 46, 47, 52,
-                       57, 61, 66, 70, 71, 73, 74, 76, 77, 78, 79, 87, 88, 90,
-                       96, 97, 103, 106, 108, 110, 112, 113]
+    occurrence_gids = [
+        2,
+        9,
+        12,
+        16,
+        25,
+        26,
+        29,
+        30,
+        32,
+        33,
+        35,
+        46,
+        47,
+        52,
+        57,
+        61,
+        66,
+        70,
+        71,
+        73,
+        74,
+        76,
+        77,
+        78,
+        79,
+        87,
+        88,
+        90,
+        96,
+        97,
+        103,
+        106,
+        108,
+        110,
+        112,
+        113,
+    ]
 
     other_gids = ut.setdiff(ibs.get_valid_gids(), occurrence_gids)
     other_gids1 = other_gids[0::2]
@@ -449,8 +490,32 @@ def ensure_pz_mtest():
 
     # hack in some tags
     print('Hacking in some tags')
-    foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74,
-                 80, 83, 91, 97, 103, 107, 109, 119]
+    foal_aids = [
+        4,
+        8,
+        15,
+        21,
+        28,
+        34,
+        38,
+        41,
+        45,
+        49,
+        51,
+        56,
+        60,
+        66,
+        69,
+        74,
+        80,
+        83,
+        91,
+        97,
+        103,
+        107,
+        109,
+        119,
+    ]
     mother_aids = [9, 16, 35, 42, 52, 57, 61, 67, 75, 84, 98, 104, 108, 114]
     ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
     ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
@@ -475,6 +540,7 @@ def reset_mtest_graph():
     if True:
         # Delete the graph databases to and set them up for tests
         import wbia
+
         ibs = wbia.opendb('PZ_MTEST')
         annotmatch = ibs.db['annotmatch']
         staging = ibs.staging['reviews']
@@ -513,6 +579,7 @@ def reset_mtest_graph():
 
     # Make some small PCCs k-positive-redundant
     from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+
     cand = list(infr.find_pos_redun_candidate_edges())
     for edge in cand[0:2]:
         infr.add_feedback(edge, evidence_decision=POSTV, user_id='user:setup4')
@@ -541,24 +608,36 @@ def copy_wbiadb(source_dbdir, dest_dbdir):
     # TODO: rectify with rsync, script, and merge script.
     from os.path import normpath
     import wbia
-    exclude_dirs_ = (wbia.const.EXCLUDE_COPY_REL_DIRS +
-                     ['_hsdb', '.hs_internals'])
-    exclude_dirs = [ut.ensure_unixslash(normpath(rel))
-                    for rel in exclude_dirs_]
 
-    rel_tocopy = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs,
-                         recursive=True, with_files=True, with_dirs=False,
-                         fullpath=False)
-    rel_tocopy_dirs = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs,
-                              recursive=True, with_files=False, with_dirs=True,
-                              fullpath=False)
+    exclude_dirs_ = wbia.const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']
+    exclude_dirs = [ut.ensure_unixslash(normpath(rel)) for rel in exclude_dirs_]
+
+    rel_tocopy = ut.glob(
+        source_dbdir,
+        '*',
+        exclude_dirs=exclude_dirs,
+        recursive=True,
+        with_files=True,
+        with_dirs=False,
+        fullpath=False,
+    )
+    rel_tocopy_dirs = ut.glob(
+        source_dbdir,
+        '*',
+        exclude_dirs=exclude_dirs,
+        recursive=True,
+        with_files=False,
+        with_dirs=True,
+        fullpath=False,
+    )
 
     src_list = [join(source_dbdir, relpath) for relpath in rel_tocopy]
     dst_list = [join(dest_dbdir, relpath) for relpath in rel_tocopy]
 
     # ensure directories exist
-    rel_tocopy_dirs = [dest_dbdir] + [join(dest_dbdir, dpath_)
-                                      for dpath_ in rel_tocopy_dirs]
+    rel_tocopy_dirs = [dest_dbdir] + [
+        join(dest_dbdir, dpath_) for dpath_ in rel_tocopy_dirs
+    ]
     for dpath in rel_tocopy_dirs:
         ut.ensuredir(dpath)
     # copy files
@@ -578,6 +657,7 @@ def ensure_pz_mtest_batchworkflow_test():
         >>> ensure_pz_mtest_batchworkflow_test()
     """
     import wbia
+
     wbia.ensure_pz_mtest()
     workdir = wbia.sysres.get_workdir()
     mtest_dbpath = join(workdir, 'PZ_MTEST')
@@ -615,7 +695,7 @@ def ensure_pz_mtest_batchworkflow_test():
     imageset_idx = 0
 
     for hourdiffs, aids in zip(hourdiffs_list, aids_list):
-        #import scipy.spatial.distance as spdist
+        # import scipy.spatial.distance as spdist
         if len(aids) == 1:
             imageset_aids_list[imageset_idx].extend(aids)
             imageset_idx = (imageset_idx + 1) % len(imageset_aids_list)
@@ -624,27 +704,27 @@ def ensure_pz_mtest_batchworkflow_test():
                 imageset_aids_list[imageset_idx].extend(chunk)
                 imageset_idx = (imageset_idx + 1) % len(imageset_aids_list)
 
-            #import vtool as vt
-            #import networkx as netx
-            #nodes = list(range(len(aids)))
-            #edges_pairs = vt.pdist_argsort(hourdiffs)
-            #edge_weights = -hourdiffs[hourdiffs.argsort()]
-            #netx_graph = make_netx_graph(edges_pairs, nodes, edge_weights)
-            #cut_edges = netx.minimum_edge_cut(netx_graph)
-            #netx_graph.remove_edges_from(cut_edges)
-            #components = list(netx.connected_components(netx_graph))
-            #components = ut.sortedby(components, list(map(len, components)), reverse=True)
-            #print(components)
-            #imageset_aids_list[0].extend(components[0])
-            #for component in components:
+            # import vtool as vt
+            # import networkx as netx
+            # nodes = list(range(len(aids)))
+            # edges_pairs = vt.pdist_argsort(hourdiffs)
+            # edge_weights = -hourdiffs[hourdiffs.argsort()]
+            # netx_graph = make_netx_graph(edges_pairs, nodes, edge_weights)
+            # cut_edges = netx.minimum_edge_cut(netx_graph)
+            # netx_graph.remove_edges_from(cut_edges)
+            # components = list(netx.connected_components(netx_graph))
+            # components = ut.sortedby(components, list(map(len, components)), reverse=True)
+            # print(components)
+            # imageset_aids_list[0].extend(components[0])
+            # for component in components:
 
             # TODO do max-nway cut
-        #day_diffs = spdist.squareform(hourdiffs) / 24.0
-        #print(ut.repr2(day_diffs, precision=2, suppress_small=True))
-        #import itertools
-        #compare_idxs = [(r, c) for r, c in itertools.product(range(len(aids)), range(len(aids))) if (c > r)]
-        #print(len(aids))
-    #def make_netx_graph(edges_pairs, nodes=None, edge_weights=None):
+        # day_diffs = spdist.squareform(hourdiffs) / 24.0
+        # print(ut.repr2(day_diffs, precision=2, suppress_small=True))
+        # import itertools
+        # compare_idxs = [(r, c) for r, c in itertools.product(range(len(aids)), range(len(aids))) if (c > r)]
+        # print(len(aids))
+    # def make_netx_graph(edges_pairs, nodes=None, edge_weights=None):
     #    import networkx as netx
     #    node_lbls = [('id_', 'int')]
 
@@ -684,6 +764,7 @@ def ensure_pz_mtest_mergesplit_test():
         >>> ensure_pz_mtest_mergesplit_test()
     """
     import wbia
+
     wbia.ensure_pz_mtest()
     workdir = wbia.sysres.get_workdir()
     mtest_dbpath = join(workdir, 'PZ_MTEST')
@@ -718,30 +799,32 @@ def ensure_pz_mtest_mergesplit_test():
 
     total_names = num_merge_names + num_split_names + num_combo_names
 
-    modify_aids = list(ub.take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names]))
+    modify_aids = list(
+        ub.take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names])
+    )
 
     merge_nids1 = ibs.make_next_nids(num_merge, location_text='XMERGE')
     merge_nids2 = ibs.make_next_nids(num_merge, location_text='XMERGE')
-    split_nid  = ibs.make_next_nids(num_split, location_text='XSPLIT')[0]
+    split_nid = ibs.make_next_nids(num_split, location_text='XSPLIT')[0]
     combo_nids = ibs.make_next_nids(num_combo * 2, location_text='XCOMBO')
 
     # the first 3 become merge cases
-    #left = 0
-    #right = left + num_merge
+    # left = 0
+    # right = left + num_merge
     for aids, nid1, nid2 in zip(modify_aids[0:3], merge_nids1, merge_nids2):
-        #ibs.get_annot_nids(aids)
+        # ibs.get_annot_nids(aids)
         aids_ = aids[::2]
         ibs.set_annot_name_rowids(aids_, [nid1] * len(aids_))
         ibs.set_annot_name_rowids(aids_, [nid2] * len(aids_))
 
     # the next 2 become split cases
-    #left = right
-    #right = left + num_split_names
+    # left = right
+    # right = left + num_split_names
     for aids in modify_aids[3:5]:
         ibs.set_annot_name_rowids(aids, [split_nid] * len(aids))
 
-    #left = right
-    #right = left + num_combo_names
+    # left = right
+    # right = left + num_combo_names
     # The final 3 are a combination case
     for aids in modify_aids[5:8]:
         aids_even = aids[::2]
@@ -787,8 +870,11 @@ def ensure_testdb_kaggle7():
 def ensure_db_from_url(zipped_db_url):
     """ SeeAlso wbia.init.sysres """
     from wbia import sysres
+
     workdir = sysres.get_workdir()
-    dbdir = ut.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
+    dbdir = ut.grab_zipped_url(
+        zipped_url=zipped_db_url, ensure=True, download_dir=workdir
+    )
     print('have %s=%r' % (zipped_db_url, dbdir,))
     return dbdir
 
@@ -808,4 +894,5 @@ if __name__ == '__main__':
         xdoctest -m wbia.init.sysres
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

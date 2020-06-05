@@ -4,14 +4,14 @@ import utool as ut
 import networkx as nx
 import itertools as it
 from wbia.algo.graph.nx_utils import edges_inside, e_
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 class GraphHelperMixin(ut.NiceRepr):
     def __nice__(self):
         return 'nNodes={}, nEdges={}'.format(
-            self.number_of_nodes(),
-            self.number_of_edges(),
+            self.number_of_nodes(), self.number_of_edges(),
         )
 
     def has_nodes(self, nodes):
@@ -166,6 +166,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
 
     # todo: check if nodes exist when adding
     """
+
     def __init__(self, *args, **kwargs):
         # raise NotImplementedError('unfinished')
         self._ccs = {}
@@ -179,9 +180,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
 
     def __nice__(self):
         return 'nNodes={}, nEdges={}, nCCs={}'.format(
-            self.number_of_nodes(),
-            self.number_of_edges(),
-            self.number_of_components(),
+            self.number_of_nodes(), self.number_of_edges(), self.number_of_components(),
         )
 
     def number_of_components(self):
@@ -397,6 +396,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.nx_dynamic_graph --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

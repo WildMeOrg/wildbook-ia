@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 class Exponential(object):
     """
     Decay learning rate by a factor of `decay_rate` every `lr_decay_epoch`
@@ -12,6 +12,7 @@ class Exponential(object):
         >>> target = np.array([1E-3, 1E-3, 1E-5, 1E-5, 1E-7, 1E-7])
         >>> assert all(list(np.isclose(target, rates)))
     """
+
     def __init__(self, init_lr=0.001, decay_rate=0.01, lr_decay_epoch=100):
         self.init_lr = init_lr
         self.decay_rate = 0.01

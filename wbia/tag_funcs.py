@@ -6,12 +6,14 @@ import numpy as np
 import vtool as vt
 import utool as ut
 from wbia.control import controller_inject
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
-    __name__)
+    __name__
+)
 
 
 # TODO : make a annot_tags file
@@ -29,28 +31,21 @@ ANNOTMATCH_PROPS_OTHER = [
     'Photobomb',
     'Hard',
     'NonDistinct',
-
     'Occlusion',
     'Viewpoint',
     'MildViewpoint',
     'Pose',
     'Lighting',
     'Quality',  # quality causes failure
-
     'Orientation',  # orientation caused failure
-
     'EdgeMatch',  # descriptors on the edge of the naimal produce strong matches
-    'Interesting',   # flag a case as interesting
-
+    'Interesting',  # flag a case as interesting
     'JoinCase',  # case should actually be marked as correct
     'SplitCase',  # case should actually be marked as correct
-
     'random',  # gf case has random matches, the gt is to blame
-
     'BadShoulder',  # gf is a bad shoulder match
     'BadTail',  # gf is a bad tail match
     'TimeDeltaError',
-
     # These annots have almost the same information
     'NearDuplicate',
     'CorrectPhotobomb',  # FIXME: this is a terrible name
@@ -71,21 +66,17 @@ OLD_ANNOTMATCH_PROPS = [
 
 # Changes to prop names
 PROP_MAPPING = {
-    'ViewpointCanDo' : 'Correctable',
-    'ViewpointOMG'   : 'Uncorrectable',
-
-    'Shadowing'      : 'Lighting',
-
+    'ViewpointCanDo': 'Correctable',
+    'ViewpointOMG': 'Uncorrectable',
+    'Shadowing': 'Lighting',
     'success': None,
-    'GoodCoverage':  None,
-
+    'GoodCoverage': None,
     #'Hard'           : 'NeedsWork',
-    'shouldhavemore' : 'NeedsWork',
-    'BadCoverage'    : 'NeedsWork',
-    'ScoringIssue'   : 'NeedsWork',
-
-    'TooSmallMatches' : 'FeatureScale',
-    'TooLargeMatches' : 'FeatureScale',
+    'shouldhavemore': 'NeedsWork',
+    'BadCoverage': 'NeedsWork',
+    'ScoringIssue': 'NeedsWork',
+    'TooSmallMatches': 'FeatureScale',
+    'TooLargeMatches': 'FeatureScale',
     #'BadShoulder' : 'BadShoulder',
     #'GoodCoverage': None,
 }
@@ -98,11 +89,11 @@ for key, val in PROP_MAPPING.items():
 
 ANNOTMATCH_PROPS_OTHER_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_OTHER])
 ANNOTMATCH_PROPS_OLD_SET = set([_.lower() for _ in OLD_ANNOTMATCH_PROPS])
-#ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])
+# ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])
 
 
 def consolodate_annotmatch_tags(old_tags):
-    #return case_tags
+    # return case_tags
     remove_tags = [
         'hard',
         'needswork',
@@ -153,7 +144,7 @@ def consolodate_annotmatch_tags(old_tags):
 
     filtered_tags = list(map(filter_tags, old_tags))
     mapped_tags = list(map(map_tags, filtered_tags))
-    unique_tags = list(map(ut.unique_ordered,  mapped_tags))
+    unique_tags = list(map(ut.unique_ordered, mapped_tags))
     new_tags = list(map(cap_tags, unique_tags))
 
     return new_tags
@@ -176,13 +167,14 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
     """
 
     tags_list_ = get_annotmatch_case_tags(ibs, annotmatch_rowids)
+
     def fix_tags(tags):
         return {six.text_type(t.lower()) for t in tags}
+
     tags_list = list(map(fix_tags, tags_list_))
 
     prop_mapping = {
-        six.text_type(key.lower()): val
-        for key, val in six.iteritems(PROP_MAPPING)
+        six.text_type(key.lower()): val for key, val in six.iteritems(PROP_MAPPING)
     }
 
     bad_tags = fix_tags(prop_mapping.keys())
@@ -200,7 +192,7 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
 def get_cate_categories():
     standard = ANNOTMATCH_PROPS_STANDARD
     other = ANNOTMATCH_PROPS_OTHER
-    #case_list = standard + other
+    # case_list = standard + other
     return standard, other
 
 
@@ -229,8 +221,9 @@ def export_tagged_chips(ibs, aid_list, dpath='.'):
         >>> export_tagged_chips(ibs, aid_list, dpath)
     """
     visual_uuid_hashid = ibs.get_annot_hashid_visual_uuid(aid_list)
-    zip_fpath = ut.unixjoin(dpath, 'exported_chips2_' + ibs.get_dbname() +
-                            visual_uuid_hashid + '.zip')
+    zip_fpath = ut.unixjoin(
+        dpath, 'exported_chips2_' + ibs.get_dbname() + visual_uuid_hashid + '.zip'
+    )
     chip_fpath = ibs.get_annot_chip_fpath(aid_list)
     ut.archive_files(zip_fpath, chip_fpath, common_prefix=True)
 
@@ -322,36 +315,50 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
     """
     aid_pairs = np.vstack([aid1_list, aid2_list]).T
     if directed:
-        annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(aid_pairs.T[0], aid_pairs.T[1])
+        annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
+            aid_pairs.T[0], aid_pairs.T[1]
+        )
         tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid)
     else:
-        annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(aid_pairs.T[0], aid_pairs.T[1])
+        annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(
+            aid_pairs.T[0], aid_pairs.T[1]
+        )
         tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid)
         if False:
             expanded_aid_pairs = np.vstack([aid_pairs, aid_pairs[:, ::-1]])
             expanded_annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
-                expanded_aid_pairs.T[0], expanded_aid_pairs.T[1])
+                expanded_aid_pairs.T[0], expanded_aid_pairs.T[1]
+            )
             expanded_edgeids = vt.get_undirected_edge_ids(expanded_aid_pairs)
             unique_edgeids, groupxs = vt.group_indices(expanded_edgeids)
             expanded_tags_list = ibs.get_annotmatch_case_tags(expanded_annotmatch_rowid)
-            grouped_tags = vt.apply_grouping(np.array(expanded_tags_list, dtype=object), groupxs)
+            grouped_tags = vt.apply_grouping(
+                np.array(expanded_tags_list, dtype=object), groupxs
+            )
             undirected_tags = [list(set(ut.flatten(tags))) for tags in grouped_tags]
             edgeid2_tags = dict(zip(unique_edgeids, undirected_tags))
-            input_edgeids = expanded_edgeids[:len(aid_pairs)]
+            input_edgeids = expanded_edgeids[: len(aid_pairs)]
             tags_list = ut.dict_take(edgeid2_tags, input_edgeids)
     return tags_list
 
 
 @register_ibs_method
-def filter_aidpairs_by_tags(ibs, has_any=None, has_all=None, min_num=None, max_num=None, am_rowids=None):
+def filter_aidpairs_by_tags(
+    ibs, has_any=None, has_all=None, min_num=None, max_num=None, am_rowids=None
+):
     """
     list(zip(aid_pairs, undirected_tags))
     """
-    #annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)
+    # annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)
 
     filtered_annotmatch_rowids = filter_annotmatch_by_tags(
-        ibs, am_rowids, has_any=has_any, has_all=has_all, min_num=min_num,
-        max_num=max_num)
+        ibs,
+        am_rowids,
+        has_any=has_any,
+        has_all=has_all,
+        min_num=min_num,
+        max_num=max_num,
+    )
     aid1_list = np.array(ibs.get_annotmatch_aid1(filtered_annotmatch_rowids))
     aid2_list = np.array(ibs.get_annotmatch_aid2(filtered_annotmatch_rowids))
     aid_pairs = np.vstack([aid1_list, aid2_list]).T
@@ -362,8 +369,8 @@ def filter_aidpairs_by_tags(ibs, has_any=None, has_all=None, min_num=None, max_n
     aid2_list = aid2_list.take(xs)
     aid_pairs = np.vstack([aid1_list, aid2_list]).T
     return aid_pairs
-    #directed_tags = get_aidpair_tags(ibs, aid_pairs.T[0], aid_pairs.T[1], directed=True)
-    #valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)
+    # directed_tags = get_aidpair_tags(ibs, aid_pairs.T[0], aid_pairs.T[1], directed=True)
+    # valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)
 
 
 def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
@@ -434,17 +441,19 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
 # TODO: ut.filterflags_general_tags
 
 
-def filterflags_general_tags(tags_list,
-                             has_any=None,
-                             has_all=None,
-                             has_none=None,
-                             min_num=None,
-                             max_num=None,
-                             any_startswith=None,
-                             any_endswith=None,
-                             any_match=None,
-                             none_match=None,
-                             logic='and'):
+def filterflags_general_tags(
+    tags_list,
+    has_any=None,
+    has_all=None,
+    has_none=None,
+    min_num=None,
+    max_num=None,
+    any_startswith=None,
+    any_endswith=None,
+    any_match=None,
+    none_match=None,
+    logic='and',
+):
     r"""
     maybe integrate into utool? Seems pretty general
 
@@ -514,15 +523,9 @@ def filterflags_general_tags(tags_list,
     if logic is None:
         logic = 'and'
 
-    logic_func = {
-        'and': np.logical_and,
-        'or': np.logical_or,
-    }[logic]
+    logic_func = {'and': np.logical_and, 'or': np.logical_or,}[logic]
 
-    default_func = {
-        'and': np.ones,
-        'or': np.zeros,
-    }[logic]
+    default_func = {'and': np.ones, 'or': np.zeros,}[logic]
 
     tags_list_ = [fix_tags(tags_) for tags_ in tags_list]
     flags = default_func(len(tags_list_), dtype=np.bool)
@@ -547,7 +550,9 @@ def filterflags_general_tags(tags_list,
 
     if has_all is not None:
         has_all = fix_tags(set(ut.ensure_iterable(has_all)))
-        flags_ = [len(has_all.intersection(tags_)) == len(has_all) for tags_ in tags_list_]
+        flags_ = [
+            len(has_all.intersection(tags_)) == len(has_all) for tags_ in tags_list_
+        ]
         logic_func(flags, flags_, out=flags)
 
     def check_item(tags_, fields, op, compare):
@@ -568,20 +573,20 @@ def filterflags_general_tags(tags_list,
         return flags
 
     flags = execute_filter(
-        flags, tags_list, any_startswith,
-        operator.gt, six.text_type.startswith)
+        flags, tags_list, any_startswith, operator.gt, six.text_type.startswith
+    )
 
     flags = execute_filter(
-        flags, tags_list, any_endswith,
-        operator.gt, six.text_type.endswith)
+        flags, tags_list, any_endswith, operator.gt, six.text_type.endswith
+    )
 
     flags = execute_filter(
-        flags, tags_list, any_match,
-        operator.gt, lambda t, f: re.match(f, t))
+        flags, tags_list, any_match, operator.gt, lambda t, f: re.match(f, t)
+    )
 
     flags = execute_filter(
-        flags, tags_list, none_match,
-        operator.eq, lambda t, f: re.match(f, t))
+        flags, tags_list, none_match, operator.eq, lambda t, f: re.match(f, t)
+    )
     return flags
 
 
@@ -612,9 +617,11 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     """
     standard, other = get_cate_categories()
     annotmatch_tag_texts_list = ibs.get_annotmatch_tag_text(annotmatch_rowids)
-    tags_list = [[] if note is None else _parse_tags(note) for note in annotmatch_tag_texts_list]
-    #NEW = False
-    #if NEW:
+    tags_list = [
+        [] if note is None else _parse_tags(note) for note in annotmatch_tag_texts_list
+    ]
+    # NEW = False
+    # if NEW:
     #    # hack for faster tag parsing
     #    from wbia.control import _autogen_annotmatch_funcs as _aaf
     #    import itertools
@@ -629,13 +636,13 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     #    standardtags = [x[len('annotmatch_is_'):] for x in colnames]
     #    standard_tags_list = ut.list_zipcompress(itertools.repeat(standardtags), annotmatch_is_col)
     #    tags_list = [tags1 + tags2 for tags1, tags2 in zip(tags_list, standard_tags_list)]
-    #else:
+    # else:
     #    for case in standard:
     #        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)
     #        for tags in ut.compress(tags_list, flag_list):
     #            tags.append(case)
     tags_list = [[six.text_type(t) for t in tags] for tags in tags_list]
-    #if ut.get_argval('--consol') or True:
+    # if ut.get_argval('--consol') or True:
     #    tags_list = consolodate_annotmatch_tags(tags_list)
     return tags_list
 
@@ -695,7 +702,7 @@ def get_annotmatch_prop(ibs, prop, annotmatch_rowids):
         >>> flag_list2 = get_annotmatch_prop(ibs, prop, annotmatch_rowids)
         >>> print('flag_list2 = %r' % (flag_list2,))
     """
-    #if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
+    # if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
     #    return ibs.get_annotmatch_standard_prop(prop, annotmatch_rowids)
     for prop_ in ut.ensure_iterable(prop):
         flag1 = prop_.lower() not in ANNOTMATCH_PROPS_OTHER_SET
@@ -710,14 +717,21 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     """
     hacky setter for dynamic properties of annotmatches using notes table
     """
-    print('[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids)))
-    #if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
+    print(
+        '[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids))
+    )
+    # if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
     #    setter = getattr(ibs, 'set_annotmatch_is_' + prop.lower())
     #    return setter(annotmatch_rowids, flags)
-    if prop.lower() in ANNOTMATCH_PROPS_OTHER_SET or prop.lower() in ANNOTMATCH_PROPS_OLD_SET:
+    if (
+        prop.lower() in ANNOTMATCH_PROPS_OTHER_SET
+        or prop.lower() in ANNOTMATCH_PROPS_OLD_SET
+    ):
         return set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags)
     else:
-        raise NotImplementedError('Unknown prop=%r not in %r' % (prop, ANNOTMATCH_PROPS_OTHER_SET))
+        raise NotImplementedError(
+            'Unknown prop=%r not in %r' % (prop, ANNOTMATCH_PROPS_OTHER_SET)
+        )
 
 
 def _parse_tags(note):
@@ -753,20 +767,17 @@ def set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags):
 @profile
 def get_textformat_tag_flags(prop, text_list):
     """ general text tag getter hack """
-    tags_list = [None if note is None else _parse_tags(note)
-                 for note in text_list]
+    tags_list = [None if note is None else _parse_tags(note) for note in text_list]
     if ut.isiterable(prop):
         props_ = [p.lower() for p in prop]
         flags_list = [
-            [None if tags is None else int(prop_ in tags)
-             for tags in tags_list]
+            [None if tags is None else int(prop_ in tags) for tags in tags_list]
             for prop_ in props_
         ]
         return flags_list
     else:
         prop = prop.lower()
-        flag_list = [None if tags is None else int(prop in tags)
-                     for tags in tags_list]
+        flag_list = [None if tags is None else int(prop in tags) for tags in tags_list]
         return flag_list
 
 
@@ -794,21 +805,16 @@ ANNOT_TAGS = [
     'interesting',
     'error:viewpoint',
     'error:quality',
-
     'occlusion:large',
     'occlusion:medium',
     'occlusion:small',
-
     'lighting:shadowed',
     'lighting:overexposed',
     'lighting:underexposed',
-
     'quality:washedout',
     'quality:blury',
-
     'pose:novel',
     'pose:common',
-
     'error:bbox',
     'error:mask',
     'error:other',
@@ -849,7 +855,7 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
     TODO: remove
     """
     # Ensure each item is a list
-    #tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
+    # tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
     if isinstance(tag_list, six.string_types):
         # Apply single tag to everybody
         tag_list = [tag_list] * len(aid_list)
@@ -891,8 +897,8 @@ def overwrite_annot_case_tags(ibs, aid_list, tag_list):
     BE VERY CAREFUL WITH THIS FUNCTION
     """
     assert all([ut.isiterable(tag) for tag in tag_list])
-    #text_list = ibs.get_annot_tag_text(aid_list)
-    #orig_tags_list = [[] if note is None else _parse_tags(note) for note in text_list]
+    # text_list = ibs.get_annot_tag_text(aid_list)
+    # orig_tags_list = [[] if note is None else _parse_tags(note) for note in text_list]
     new_tags_list = tag_list
     new_text_list = [';'.join(tags) for tags in new_tags_list]
     ibs.set_annot_tag_text(aid_list, new_text_list)
@@ -1019,8 +1025,9 @@ def get_annot_annotmatch_tags(ibs, aid_list):
     """
     annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)
     unflat_tags_list = ibs.unflat_map(ibs.get_annotmatch_case_tags, annotmatch_rowids)
-    annotmatch_tags_list = [list(set(ut.flatten(_unflat_tags))) for
-                            _unflat_tags in unflat_tags_list]
+    annotmatch_tags_list = [
+        list(set(ut.flatten(_unflat_tags))) for _unflat_tags in unflat_tags_list
+    ]
     return annotmatch_tags_list
 
 
@@ -1046,9 +1053,12 @@ def get_annot_all_tags(ibs, aid_list=None):
 
     annotmatch_tags_list = ibs.get_annot_annotmatch_tags(aid_list)
     annot_tags_list = ibs.get_annot_case_tags(aid_list)
-    both_tags_list = list(map(ut.unique_ordered, map(ut.flatten,
-                                                         zip(annot_tags_list,
-                                                             annotmatch_tags_list))))
+    both_tags_list = list(
+        map(
+            ut.unique_ordered,
+            map(ut.flatten, zip(annot_tags_list, annotmatch_tags_list)),
+        )
+    )
     return both_tags_list
 
 
@@ -1060,6 +1070,8 @@ if __name__ == '__main__':
         python -m wbia.tag_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

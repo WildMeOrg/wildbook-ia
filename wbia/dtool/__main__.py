@@ -11,8 +11,10 @@ def dtool_main():
     ignore_prefix = []
     ignore_suffix = []
     import utool as ut
+
     # allows for --tf
     ut.main_function_tester('dtool', ignore_prefix, ignore_suffix)
+
 
 if __name__ == '__main__':
     """

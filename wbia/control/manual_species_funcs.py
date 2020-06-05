@@ -10,28 +10,30 @@ import uuid
 import functools
 import six  # NOQA
 from six.moves import range, zip, map  # NOQA
-#import numpy as np
-#import vtool as vt
+
+# import numpy as np
+# import vtool as vt
 import numpy as np
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
-SPECIES_ROWID   = 'species_rowid'
-SPECIES_UUID    = 'species_uuid'
-SPECIES_TEXT    = 'species_text'
-SPECIES_NICE    = 'species_nice'
-SPECIES_CODE    = 'species_code'
-SPECIES_NOTE    = 'species_note'
+SPECIES_ROWID = 'species_rowid'
+SPECIES_UUID = 'species_uuid'
+SPECIES_TEXT = 'species_text'
+SPECIES_NICE = 'species_nice'
+SPECIES_CODE = 'species_code'
+SPECIES_NOTE = 'species_note'
 SPECIES_ENABLED = 'species_toggle_enabled'
 
 
@@ -44,7 +46,7 @@ def _get_all_species_rowids(ibs):
         list_ (list): all nids of known animals
         (does not include unknown names)
     """
-    #all_known_species_rowids = ibs._get_all_known_lblannot_rowids(const.SPECIES_KEY)
+    # all_known_species_rowids = ibs._get_all_known_lblannot_rowids(const.SPECIES_KEY)
     all_known_species_rowids = ibs.db.get_all_rowids(const.SPECIES_TABLE)
     return all_known_species_rowids
 
@@ -76,7 +78,7 @@ def get_all_species_nice(ibs):
 
 
 @register_ibs_method
-#@register_api('/api/species/sanitize/', methods=['PUT'])
+# @register_api('/api/species/sanitize/', methods=['PUT'])
 def sanitize_species_texts(ibs, species_text_list):
     r"""
     changes unknown species to the unknown value
@@ -138,32 +140,42 @@ def sanitize_species_texts(ibs, species_text_list):
 
 def _convert_species_nice_to_text(species_nice_list):
     import re
+
     def _convert(nice):
         nice = re.sub(r'[ ]+', '_', nice)
         nice = re.sub(r'[^a-zA-Z0-9_\+]+', '', nice)
         nice = re.sub(r'[_]+', '_', nice)
         nice = nice.lower()
         return nice
-    return [ _convert(species_nice) for species_nice in species_nice_list ]
+
+    return [_convert(species_nice) for species_nice in species_nice_list]
 
 
 def _convert_species_nice_to_code(species_nice_list):
     import re
+
     def _convert(text):
         text = re.sub(r'[_]+', ' ', text)
         text = text.title()
         text = re.sub(r'[^A-Z0-9\+]+', '', text)
         return text
+
     species_text_list = _convert_species_nice_to_text(species_nice_list)
-    return [ _convert(species_text) for species_text in species_text_list ]
+    return [_convert(species_text) for species_text in species_text_list]
 
 
 @register_ibs_method
 @accessor_decors.adder
 @register_api('/api/species/', methods=['POST'], __api_plural_check__=False)
-def add_species(ibs, species_nice_list, species_text_list=None,
-                species_code_list=None, species_uuid_list=None,
-                species_note_list=None, skip_cleaning=False):
+def add_species(
+    ibs,
+    species_nice_list,
+    species_text_list=None,
+    species_code_list=None,
+    species_uuid_list=None,
+    species_note_list=None,
+    skip_cleaning=False,
+):
     r"""
     Adds a list of species.
 
@@ -205,7 +217,9 @@ def add_species(ibs, species_nice_list, species_text_list=None,
     """
 
     # Strip all spaces
-    species_nice_list = [ const.UNKNOWN if _ is None else _.strip() for _ in species_nice_list ]
+    species_nice_list = [
+        const.UNKNOWN if _ is None else _.strip() for _ in species_nice_list
+    ]
 
     if species_text_list is None:
         species_text_list = _convert_species_nice_to_text(species_nice_list)
@@ -217,10 +231,13 @@ def add_species(ibs, species_nice_list, species_text_list=None,
         species_uuid_list = [uuid.uuid4() for _ in range(len(species_text_list))]
 
     # Sanatize to remove invalid names
-    flag_list = np.array([
-        species_nice is None or species_nice.strip() in ['_', const.UNKNOWN, 'none', 'None', '']
-        for species_nice in species_nice_list
-    ])
+    flag_list = np.array(
+        [
+            species_nice is None
+            or species_nice.strip() in ['_', const.UNKNOWN, 'none', 'None', '']
+            for species_nice in species_nice_list
+        ]
+    )
     species_uuid_list = ut.filterfalse_items(species_uuid_list, flag_list)
     species_nice_list = ut.filterfalse_items(species_nice_list, flag_list)
     species_text_list = ut.filterfalse_items(species_text_list, flag_list)
@@ -230,11 +247,26 @@ def add_species(ibs, species_nice_list, species_text_list=None,
     superkey_paramx = (1,)
     # TODO Allow for better ensure=False without using partial
     # Just autogenerate these functions
-    get_rowid_from_superkey = functools.partial(ibs.get_species_rowids_from_text, ensure=False)
+    get_rowid_from_superkey = functools.partial(
+        ibs.get_species_rowids_from_text, ensure=False
+    )
     colnames = [SPECIES_UUID, SPECIES_TEXT, SPECIES_NICE, SPECIES_CODE, SPECIES_NOTE]
-    params_iter = list(zip(species_uuid_list, species_text_list, species_nice_list, species_code_list, species_note_list))
-    species_rowid_list = ibs.db.add_cleanly(const.SPECIES_TABLE, colnames, params_iter,
-                                             get_rowid_from_superkey, superkey_paramx)
+    params_iter = list(
+        zip(
+            species_uuid_list,
+            species_text_list,
+            species_nice_list,
+            species_code_list,
+            species_note_list,
+        )
+    )
+    species_rowid_list = ibs.db.add_cleanly(
+        const.SPECIES_TABLE,
+        colnames,
+        params_iter,
+        get_rowid_from_superkey,
+        superkey_paramx,
+    )
     temp_list = np.array([-1] * len(flag_list))
     temp_list[flag_list == False] = np.array(species_rowid_list)  # NOQA
     temp_list[flag_list == True] = const.UNKNOWN_SPECIES_ROWID  # NOQA
@@ -251,18 +283,18 @@ def add_species(ibs, species_nice_list, species_text_list=None,
             ]
 
     return species_rowid_list
-    #value_list = ibs.sanitize_species_texts(species_text_list)
-    #lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
-    #lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)
-    #species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, species_note_list)
+    # value_list = ibs.sanitize_species_texts(species_text_list)
+    # lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
+    # lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)
+    # species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, species_note_list)
     ##species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else
     #                      rowid for rowid in species_rowid_list]
-    #return species_rowid_list
+    # return species_rowid_list
 
 
 @register_ibs_method
 @accessor_decors.deleter
-#@cache_invalidator(const.SPECIES_TABLE)
+# @cache_invalidator(const.SPECIES_TABLE)
 @register_api('/api/species/', methods=['DELETE'], __api_plural_check__=False)
 def delete_species(ibs, species_rowid_list):
     r"""
@@ -278,7 +310,7 @@ def delete_species(ibs, species_rowid_list):
     if ut.VERBOSE:
         print('[ibs] deleting %d speciess' % len(species_rowid_list))
     ibs.db.delete_rowids(const.SPECIES_TABLE, species_rowid_list)
-    #ibs.delete_lblannots(species_rowid_list)
+    # ibs.delete_lblannots(species_rowid_list)
 
 
 @register_ibs_method
@@ -293,7 +325,7 @@ def delete_empty_species(ibs):
     unused_species_text_set = species_text_set - used_species_text_set
     unused_species_text_list = list(unused_species_text_set)
     unused_species_rowid_list = ibs.get_species_rowids_from_text(unused_species_text_list)
-    print('Deleting unused species: %r' % (unused_species_text_list, ))
+    print('Deleting unused species: %r' % (unused_species_text_list,))
     ibs.delete_species(unused_species_rowid_list)
 
 
@@ -358,16 +390,25 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         species_rowid_list = ibs.add_species(species_text_list, **kwargs)
     else:
         species_text_list_ = ibs.sanitize_species_texts(species_text_list)
-        #lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
-        #lbltype_rowid_list = [lbltype_rowid] * len(species_text_list_)
-        #species_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_text_list_)
+        # lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
+        # lbltype_rowid_list = [lbltype_rowid] * len(species_text_list_)
+        # species_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_text_list_)
         # Ugg species and names need their own table
-        #species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else
+        # species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else
         #                      rowid for rowid in species_rowid_list]
-        species_rowid_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_ROWID,), species_text_list_, id_colname=SPECIES_TEXT)
+        species_rowid_list = ibs.db.get(
+            const.SPECIES_TABLE,
+            (SPECIES_ROWID,),
+            species_text_list_,
+            id_colname=SPECIES_TEXT,
+        )
         # BIG HACK FOR ENFORCING UNKNOWN SPECIESS HAVE ROWID 0
-        species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if text is None or text == const.UNKNOWN else rowid
-                               for rowid, text in zip(species_rowid_list, species_text_list_)]
+        species_rowid_list = [
+            const.UNKNOWN_SPECIES_ROWID
+            if text is None or text == const.UNKNOWN
+            else rowid
+            for rowid, text in zip(species_rowid_list, species_text_list_)
+        ]
     return species_rowid_list
 
 
@@ -387,9 +428,13 @@ def get_species_rowids_from_uuids(ibs, species_uuid_list):
         Method: GET
         URL:    /api/species/rowid/uuid/
     """
-    species_rowid_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_ROWID,), species_uuid_list, id_colname=SPECIES_UUID)
-    species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if text is None or text == const.UNKNOWN else rowid
-                           for rowid, text in zip(species_rowid_list, species_uuid_list)]
+    species_rowid_list = ibs.db.get(
+        const.SPECIES_TABLE, (SPECIES_ROWID,), species_uuid_list, id_colname=SPECIES_UUID
+    )
+    species_rowid_list = [
+        const.UNKNOWN_SPECIES_ROWID if text is None or text == const.UNKNOWN else rowid
+        for rowid, text in zip(species_rowid_list, species_uuid_list)
+    ]
     return species_rowid_list
 
 
@@ -406,7 +451,7 @@ def get_species_uuids(ibs, species_rowid_list):
         URL:    /api/species/uuid/
     """
     uuids_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_UUID,), species_rowid_list)
-    #notes_list = ibs.get_lblannot_notes(nid_list)
+    # notes_list = ibs.get_lblannot_notes(nid_list)
     return uuids_list
 
 
@@ -438,12 +483,17 @@ def get_species_texts(ibs, species_rowid_list):
         ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
     """
     # FIXME: use standalone species table
-    #species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
-    species_text_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_TEXT,), species_rowid_list)
-    species_text_list = [const.UNKNOWN
-                         if rowid == const.UNKNOWN_SPECIES_ROWID else species_text
-                         for species_text, rowid in zip(species_text_list, species_rowid_list)]
-    species_text_list = [const.UNKNOWN if code is None else code for code in species_text_list ]
+    # species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
+    species_text_list = ibs.db.get(
+        const.SPECIES_TABLE, (SPECIES_TEXT,), species_rowid_list
+    )
+    species_text_list = [
+        const.UNKNOWN if rowid == const.UNKNOWN_SPECIES_ROWID else species_text
+        for species_text, rowid in zip(species_text_list, species_rowid_list)
+    ]
+    species_text_list = [
+        const.UNKNOWN if code is None else code for code in species_text_list
+    ]
     return species_text_list
 
 
@@ -476,13 +526,17 @@ def get_species_nice(ibs, species_rowid_list):
         ['Zebra (Plains)', "Zebra (Grevy's)", 'Polar Bear', 'bear_polar+head']
     """
     # FIXME: use standalone species table
-    #species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
-    species_nice_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_NICE,), species_rowid_list)
+    # species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
+    species_nice_list = ibs.db.get(
+        const.SPECIES_TABLE, (SPECIES_NICE,), species_rowid_list
+    )
     species_nice_list = [
         const.UNKNOWN if rowid == const.UNKNOWN_SPECIES_ROWID else species_nice
         for species_nice, rowid in zip(species_nice_list, species_rowid_list)
     ]
-    species_nice_list = [ 'Unknown' if code is None else code for code in species_nice_list ]
+    species_nice_list = [
+        'Unknown' if code is None else code for code in species_nice_list
+    ]
     return species_nice_list
 
 
@@ -498,8 +552,12 @@ def get_species_codes(ibs, species_rowid_list):
         Method: GET
         URL:    /api/species/code/
     """
-    species_code_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_CODE,), species_rowid_list)
-    species_code_list = [ 'UNKNOWN' if code is None else code for code in species_code_list ]
+    species_code_list = ibs.db.get(
+        const.SPECIES_TABLE, (SPECIES_CODE,), species_rowid_list
+    )
+    species_code_list = [
+        'UNKNOWN' if code is None else code for code in species_code_list
+    ]
     return species_code_list
 
 
@@ -516,7 +574,7 @@ def get_species_notes(ibs, species_rowid_list):
         URL:    /api/species/note/
     """
     notes_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_NOTE,), species_rowid_list)
-    #notes_list = ibs.get_lblannot_notes(nid_list)
+    # notes_list = ibs.get_lblannot_notes(nid_list)
     return notes_list
 
 
@@ -585,6 +643,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_species_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

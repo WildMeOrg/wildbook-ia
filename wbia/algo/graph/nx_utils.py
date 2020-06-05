@@ -8,9 +8,11 @@ import utool as ut
 import networkx as nx
 import itertools as it
 import vtool as vt  # NOQA
+
 # import wbia.algo.graph.nx_edge_kconnectivity as nx_ec
 from wbia.algo.graph import nx_edge_augmentation as nx_aug
 from collections import defaultdict
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -93,12 +95,10 @@ def edges_cross(graph, nodes1, nodes2):
         nodes1 (set): set of nodes disjoint from `nodes2`
         nodes2 (set): set of nodes disjoint from `nodes1`.
     """
-    return {e_(u, v) for u in nodes1
-            for v in nodes2.intersection(graph.adj[u])}
+    return {e_(u, v) for u in nodes1 for v in nodes2.intersection(graph.adj[u])}
 
 
-def edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
-                  assume_dense=True):
+def edges_between(graph, nodes1, nodes2=None, assume_disjoint=False, assume_dense=True):
     r"""
     Get edges between two components or within a single component
 
@@ -179,10 +179,12 @@ def _edges_between_dense(graph, nodes1, nodes2=None, assume_disjoint=False):
         nodes_isect = nodes1.intersection(nodes2)
         nodes_only1 = nodes1 - nodes_isect
         nodes_only2 = nodes2 - nodes_isect
-        edge_sets = [it.product(nodes_only1, nodes_only2),
-                     it.product(nodes_only1, nodes_isect),
-                     it.product(nodes_only2, nodes_isect),
-                     it.combinations(nodes_isect, 2)]
+        edge_sets = [
+            it.product(nodes_only1, nodes_only2),
+            it.product(nodes_only1, nodes_isect),
+            it.product(nodes_only2, nodes_isect),
+            it.combinations(nodes_isect, 2),
+        ]
         edge_iter = it.chain.from_iterable(edge_sets)
 
     if graph.is_directed():
@@ -240,16 +242,14 @@ def _edges_between_sparse(graph, nodes1, nodes2=None, assume_disjoint=False):
     if nodes2 is None or nodes2 is nodes1:
         # Case where we just are finding internal edges
         both = set(nodes1)
-        both_adj  = {u: set(graph.adj[u]) for u in both}
+        both_adj = {u: set(graph.adj[u]) for u in both}
         if graph.is_directed():
             edge_sets = (
                 _edges_inside_upper(graph, both_adj),  # B-to-B (u)
                 _edges_inside_lower(graph, both_adj),  # B-to-B (l)
             )
         else:
-            edge_sets = (
-                _edges_inside_upper(graph, both_adj),  # B-to-B (u)
-            )
+            edge_sets = (_edges_inside_upper(graph, both_adj),)  # B-to-B (u)
     elif assume_disjoint:
         # Case where we find edges between disjoint sets
         if not isinstance(nodes1, set):
@@ -267,9 +267,7 @@ def _edges_between_sparse(graph, nodes1, nodes2=None, assume_disjoint=False):
             )
         else:
             only1_adj = {u: set(graph.adj[u]) for u in only1}
-            edge_sets = (
-                _edges_between_disjoint(graph, only1, only2),  # 1-to-2
-            )
+            edge_sets = (_edges_between_disjoint(graph, only1, only2),)  # 1-to-2
     else:
         # Full general case
         if not isinstance(nodes1, set):
@@ -285,24 +283,24 @@ def _edges_between_sparse(graph, nodes1, nodes2=None, assume_disjoint=False):
         # Precompute all calls to set(graph.adj[u]) to avoid duplicate calls
         only1_adj = {u: set(graph.adj[u]) for u in only1}
         only2_adj = {u: set(graph.adj[u]) for u in only2}
-        both_adj  = {u: set(graph.adj[u]) for u in both}
+        both_adj = {u: set(graph.adj[u]) for u in both}
         if graph.is_directed():
             edge_sets = (
                 _edges_between_disjoint(graph, only1_adj, only2),  # 1-to-2
-                _edges_between_disjoint(graph, only1_adj, both),   # 1-to-B
-                _edges_inside_upper(graph, both_adj),              # B-to-B (u)
-                _edges_inside_lower(graph, both_adj),              # B-to-B (l)
-                _edges_between_disjoint(graph, both_adj, only1),   # B-to-1
-                _edges_between_disjoint(graph, both_adj, only2),   # B-to-2
-                _edges_between_disjoint(graph, only2_adj, both),   # 2-to-B
+                _edges_between_disjoint(graph, only1_adj, both),  # 1-to-B
+                _edges_inside_upper(graph, both_adj),  # B-to-B (u)
+                _edges_inside_lower(graph, both_adj),  # B-to-B (l)
+                _edges_between_disjoint(graph, both_adj, only1),  # B-to-1
+                _edges_between_disjoint(graph, both_adj, only2),  # B-to-2
+                _edges_between_disjoint(graph, only2_adj, both),  # 2-to-B
                 _edges_between_disjoint(graph, only2_adj, only1),  # 2-to-1
             )
         else:
             edge_sets = (
                 _edges_between_disjoint(graph, only1_adj, only2),  # 1-to-2
-                _edges_between_disjoint(graph, only1_adj, both),   # 1-to-B
-                _edges_inside_upper(graph, both_adj),              # B-to-B (u)
-                _edges_between_disjoint(graph, only2_adj, both),   # 2-to-B
+                _edges_between_disjoint(graph, only1_adj, both),  # 1-to-B
+                _edges_inside_upper(graph, both_adj),  # B-to-B (u)
+                _edges_between_disjoint(graph, only2_adj, both),  # 2-to-B
             )
 
     for u, v in it.chain.from_iterable(edge_sets):
@@ -319,6 +317,7 @@ def group_name_edges(g, node_to_label):
 
 def ensure_multi_index(index, names):
     import pandas as pd
+
     if not isinstance(index, (pd.MultiIndex, pd.Index)):
         names = ('aid1', 'aid2')
         if len(index) == 0:
@@ -351,8 +350,13 @@ def demodata_tarjan_bridge():
         >>> ut.show_if_requested()
     """
     # define 2-connected compoments and bridges
-    cc2 = [(1, 2, 4, 3, 1, 4), (5, 6, 7, 5), (8, 9, 10, 8),
-             (17, 18, 16, 15, 17), (11, 12, 14, 13, 11, 14)]
+    cc2 = [
+        (1, 2, 4, 3, 1, 4),
+        (5, 6, 7, 5),
+        (8, 9, 10, 8),
+        (17, 18, 16, 15, 17),
+        (11, 12, 14, 13, 11, 14),
+    ]
     bridges = [(4, 8), (3, 5), (3, 17)]
     G = nx.Graph(ut.flatten(ut.itertwo(path) for path in cc2 + bridges))
     return G
@@ -375,8 +379,7 @@ def complement_edges(G):
 
 
 def k_edge_augmentation(G, k, avail=None, partial=False):
-    return it.starmap(e_, nx_aug.k_edge_augmentation(G, k, avail=avail,
-                                                     partial=partial))
+    return it.starmap(e_, nx_aug.k_edge_augmentation(G, k, avail=avail, partial=partial))
 
 
 def is_complete(G, self_loops=False):
@@ -384,7 +387,7 @@ def is_complete(G, self_loops=False):
     n_edges = G.number_of_edges()
     n_nodes = G.number_of_nodes()
     if G.is_directed():
-        n_need = (n_nodes * (n_nodes - 1))
+        n_need = n_nodes * (n_nodes - 1)
     else:
         n_need = (n_nodes * (n_nodes - 1)) // 2
     if self_loops:
@@ -392,7 +395,7 @@ def is_complete(G, self_loops=False):
     return n_edges == n_need
 
 
-def random_k_edge_connected_graph(size, k, p=.1, rng=None):
+def random_k_edge_connected_graph(size, k, p=0.1, rng=None):
     """
     Super hacky way of getting a random k-connected graph
 
@@ -413,6 +416,7 @@ def random_k_edge_connected_graph(size, k, p=.1, rng=None):
         >>>     pt.show_nx(g, fnum=fnum, pnum=pnum_())
     """
     import sys
+
     for count in it.count(0):
         seed = None if rng is None else rng.randint(sys.maxsize)
         # Randomly generate a graph
@@ -436,6 +440,7 @@ def random_k_edge_connected_graph(size, k, p=.1, rng=None):
 
 def edge_df(graph, edges, ignore=None):
     import pandas as pd
+
     edge_dict = {e: graph.get_edge_data(*e) for e in edges}
     df = pd.DataFrame.from_dict(edge_dict, orient='index')
 
@@ -457,6 +462,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.nx_utils --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

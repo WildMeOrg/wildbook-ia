@@ -7,6 +7,7 @@ import torch
 import torch.nn
 import utool as ut
 import torchvision
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -40,6 +41,7 @@ def siam_vsone_train():
     """
     # wrapper around the RF vsone problem
     from wbia.algo.verif import vsone
+
     # pblm = vsone.OneVsOneProblem.from_empty('PZ_MTEST')
     pblm = vsone.OneVsOneProblem.from_empty('GZ_Master1')
     ibs = pblm.infr.ibs
@@ -57,8 +59,12 @@ def siam_vsone_train():
         labels = (labels == 1).astype(np.int64)
 
         chip_config = {'resize_dim': 'wh', 'dim_size': (224, 224)}
-        img1_fpaths = ibs.depc_annot.get('chips', aids1, read_extern=False, colnames='img', config=chip_config)
-        img2_fpaths = ibs.depc_annot.get('chips', aids2, read_extern=False, colnames='img', config=chip_config)
+        img1_fpaths = ibs.depc_annot.get(
+            'chips', aids1, read_extern=False, colnames='img', config=chip_config
+        )
+        img2_fpaths = ibs.depc_annot.get(
+            'chips', aids2, read_extern=False, colnames='img', config=chip_config
+        )
         dataset = LabeledPairDataset(img1_fpaths, img2_fpaths, labels)
         return dataset
 
@@ -75,6 +81,7 @@ def siam_vsone_train():
     print('* len(test_dataset) = {}'.format(len(test_dataset)))
 
     from wbia.algo.verif.torch import gpu_util
+
     gpu_num = gpu_util.find_unused_gpu(min_memory=6000)
 
     use_cuda = gpu_num is not None
@@ -82,15 +89,15 @@ def siam_vsone_train():
     if use_cuda:
         data_kw = {'num_workers': 6, 'pin_memory': True}
     batch_size = 64
-    train_loader = torch.utils.data.DataLoader(train_dataset,
-                                               batch_size=batch_size,
-                                               shuffle=True, **data_kw)
-    vali_loader = torch.utils.data.DataLoader(train_dataset,
-                                              batch_size=batch_size,
-                                              shuffle=True, **data_kw)
-    test_loader = torch.utils.data.DataLoader(test_dataset,
-                                              batch_size=batch_size,
-                                              shuffle=False, **data_kw)
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True, **data_kw
+    )
+    vali_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True, **data_kw
+    )
+    test_loader = torch.utils.data.DataLoader(
+        test_dataset, batch_size=batch_size, shuffle=False, **data_kw
+    )
 
     from wbia.algo.verif.torch import fit_harness
     from wbia.algo.verif.torch import models
@@ -148,23 +155,28 @@ class LabeledPairDataset(torch.utils.data.Dataset):
         >>> self = LabeledPairDataset(img1_fpaths, img2_fpaths, labels)
         >>> img1, img2, label = self[0]
     """
+
     def __init__(self, img1_fpaths, img2_fpaths, labels, transform='default'):
         assert len(img1_fpaths) == len(img2_fpaths)
         assert len(labels) == len(img2_fpaths)
         self.img1_fpaths = img1_fpaths
         self.img2_fpaths = img2_fpaths
         self.labels = labels
-        if transform  == 'default':
-            transform = torchvision.transforms.Compose([
-                # torchvision.transforms.Scale(224),
-                torchvision.transforms.ToTensor(),
-                torchvision.transforms.Normalize([0.5, 0.5, 0.5],
-                                                 [0.225, 0.225, 0.225]),
-            ])
+        if transform == 'default':
+            transform = torchvision.transforms.Compose(
+                [
+                    # torchvision.transforms.Scale(224),
+                    torchvision.transforms.ToTensor(),
+                    torchvision.transforms.Normalize(
+                        [0.5, 0.5, 0.5], [0.225, 0.225, 0.225]
+                    ),
+                ]
+            )
         self.transform = transform
 
     def class_weights(self):
         import pandas as pd
+
         label_freq = pd.value_counts(self.labels)
         class_weights = label_freq.median() / label_freq
         class_weights = class_weights.sort_index().values
@@ -208,4 +220,5 @@ if __name__ == '__main__':
         python -m wbia.algo.verif.torch.train_main
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

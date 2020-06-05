@@ -9,6 +9,7 @@ from wbia import dtool as dt
 from os.path import join
 from wbia.algo.graph import nx_utils as nxu
 from wbia.core_annots import ChipConfig
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -19,24 +20,38 @@ class PairFeatureConfig(dt.Config):
     I.E. Config to distil unordered feature correspondences into a fixed length
     vector.
     """
+
     _param_info_list = [
         # ut.ParamInfo('indices', slice(0, 5)),
         ut.ParamInfo('indices', []),
-        ut.ParamInfo('summary_ops', {
-            # 'invsum',
-            'sum', 'std', 'mean', 'len', 'med'}),
+        ut.ParamInfo(
+            'summary_ops',
+            {
+                # 'invsum',
+                'sum',
+                'std',
+                'mean',
+                'len',
+                'med',
+            },
+        ),
         ut.ParamInfo('local_keys', None),
-        ut.ParamInfo('sorters', [
-            # 'ratio', 'norm_dist', 'match_dist'
-            # 'lnbnn', 'lnbnn_norm_dist',
-        ]),
+        ut.ParamInfo(
+            'sorters',
+            [
+                # 'ratio', 'norm_dist', 'match_dist'
+                # 'lnbnn', 'lnbnn_norm_dist',
+            ],
+        ),
         # ut.ParamInfo('bin_key', None, valid_values=[None, 'ratio']),
         ut.ParamInfo('bin_key', 'ratio', valid_values=[None, 'ratio']),
         # ut.ParamInfo('bins', [.5, .6, .7, .8])
         # ut.ParamInfo('bins', None, type_=eval),
-        ut.ParamInfo('bins', (.625,), type_=eval),
+        ut.ParamInfo('bins', (0.625,), type_=eval),
         # ut.ParamInfo('need_lnbnn', False),
-        ut.ParamInfo('use_na', False),  # change to True if sklearn has RFs with nan support
+        ut.ParamInfo(
+            'use_na', False
+        ),  # change to True if sklearn has RFs with nan support
     ]
 
 
@@ -46,14 +61,15 @@ class VsOneMatchConfig(dt.Config):
 
 class VsOneFeatConfig(dt.Config):
     """ keypoint params """
+
     _param_info_list = vt.matching.VSONE_FEAT_CONFIG
 
 
 class MatchConfig(dt.Config):
     _param_info_list = (
-        vt.matching.VSONE_DEFAULT_CONFIG +
-        vt.matching.VSONE_FEAT_CONFIG +
-        ChipConfig._param_info_list
+        vt.matching.VSONE_DEFAULT_CONFIG
+        + vt.matching.VSONE_FEAT_CONFIG
+        + ChipConfig._param_info_list
     )
 
 
@@ -85,10 +101,19 @@ class PairwiseFeatureExtractor(object):
         >>> print(featinfo.get_infostr())
     """
 
-    def __init__(extr, ibs=None, config={}, use_cache=True, verbose=1,
-                 # Nested config props
-                 match_config=None, pairfeat_cfg=None, global_keys=None,
-                 need_lnbnn=None, feat_dims=None):
+    def __init__(
+        extr,
+        ibs=None,
+        config={},
+        use_cache=True,
+        verbose=1,
+        # Nested config props
+        match_config=None,
+        pairfeat_cfg=None,
+        global_keys=None,
+        need_lnbnn=None,
+        feat_dims=None,
+    ):
 
         extr.verbose = verbose
         extr.use_cache = use_cache
@@ -98,6 +123,7 @@ class PairwiseFeatureExtractor(object):
         # can either store params in nested or flat form
         config = config.copy()
         vars_ = vars()
+
         def _popconfig(key, default):
             """ ensures param is either specified in func args xor config """
             if key in config:
@@ -172,33 +198,38 @@ class PairwiseFeatureExtractor(object):
         daids = ut.take_column(edges, 1)
 
         # The depcache does the pairwise matching procedure
-        match_list = ibs.depc.get('pairwise_match', (qaids, daids), 'match',
-                                  config=match_config)
+        match_list = ibs.depc.get(
+            'pairwise_match', (qaids, daids), 'match', config=match_config
+        )
 
         # Hack: Postprocess matches to re-add wbia annotation info
         # in lazy-dict format
         from wbia import core_annots
+
         config = ut.hashdict(match_config)
         qannot_cfg = dannot_cfg = config
         preload = True
         configured_lazy_annots = core_annots.make_configured_annots(
-            ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=preload)
+            ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=preload
+        )
         for qaid, daid, match in zip(qaids, daids, match_list):
             match.annot1 = configured_lazy_annots[config][qaid]
             match.annot2 = configured_lazy_annots[config][daid]
             match.config = config
         return match_list
 
-    def _enrich_matches_lnbnn(extr, matches, other_aids, other_nids,
-                              inplace=False):
+    def _enrich_matches_lnbnn(extr, matches, other_aids, other_nids, inplace=False):
         """
         Given a set of one-vs-one matches, searches for LNBNN normalizers in a
         larger database to enrich the matches with database-level
         distinctiveness.
         """
         from wbia.algo.hots import nn_weights
-        raise NotImplementedError('havent tested since the re-work. '
-                                  'Need to ensure that things work correctly.')
+
+        raise NotImplementedError(
+            'havent tested since the re-work. '
+            'Need to ensure that things work correctly.'
+        )
         ibs = extr.ibs
         cfgdict = {
             'can_match_samename': False,
@@ -206,13 +237,17 @@ class PairwiseFeatureExtractor(object):
             'K': 3,
             'Knorm': 3,
             'prescore_method': 'csum',
-            'score_method': 'csum'
+            'score_method': 'csum',
         }
         custom_nid_lookup = ut.dzip(other_aids, other_nids)
         aids = [m.annot2['aid'] for m in matches]
-        qreq_ = ibs.new_query_request(aids, other_aids, cfgdict=cfgdict,
-                                      custom_nid_lookup=custom_nid_lookup,
-                                      verbose=extr.verbose >= 2)
+        qreq_ = ibs.new_query_request(
+            aids,
+            other_aids,
+            cfgdict=cfgdict,
+            custom_nid_lookup=custom_nid_lookup,
+            verbose=extr.verbose >= 2,
+        )
 
         qreq_.load_indexer()
         indexer = qreq_.indexer
@@ -222,19 +257,20 @@ class PairwiseFeatureExtractor(object):
             matches_ = matches
         K = qreq_.qparams.K
         Knorm = qreq_.qparams.Knorm
-        normalizer_rule  = qreq_.qparams.normalizer_rule
+        normalizer_rule = qreq_.qparams.normalizer_rule
 
         extr.print('Stacking vecs for batch lnbnn matching')
         offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
-        stacked_vecs = np.vstack([
-            match_.matched_vecs2()
-            for match_ in ut.ProgIter(matches_, label='stack matched vecs')
-        ])
+        stacked_vecs = np.vstack(
+            [
+                match_.matched_vecs2()
+                for match_ in ut.ProgIter(matches_, label='stack matched vecs')
+            ]
+        )
 
         vecs = stacked_vecs
-        num = (K + Knorm)
-        idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
-                                        label='lnbnn scoring')
+        num = K + Knorm
+        idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192, label='lnbnn scoring')
 
         idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
         dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
@@ -242,8 +278,7 @@ class PairwiseFeatureExtractor(object):
         prog = ut.ProgIter(iter_, length=len(matches_), label='lnbnn scoring')
         for match_, neighb_idx, neighb_dist in prog:
             qaid = match_.annot2['aid']
-            norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm,
-                                          normalizer_rule)
+            norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
             ndist = vt.take_col_per_row(neighb_dist, norm_k)
             vdist = match_.local_measures['match_dist']
             lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
@@ -358,10 +393,12 @@ class PairwiseFeatureExtractor(object):
         pairfeat_cfg = extr.pairfeat_cfg.copy()
         use_na = pairfeat_cfg.pop('use_na')
         pairfeat_cfg['summary_ops'] = set(pairfeat_cfg['summary_ops'])
-        X = pd.DataFrame([
-            m.make_feature_vector(**pairfeat_cfg)
-            for m in ut.ProgIter(matches, label='making pairwise feats')
-        ])
+        X = pd.DataFrame(
+            [
+                m.make_feature_vector(**pairfeat_cfg)
+                for m in ut.ProgIter(matches, label='making pairwise feats')
+            ]
+        )
         multi_index = True
         if multi_index:
             # Index features by edges
@@ -399,13 +436,15 @@ class PairwiseFeatureExtractor(object):
         _cfg_lbl = ut.partial(ut.repr2, si=True, itemsep='', kvsep=':')
         match_configclass = ibs.depc_annot.configclass_dict['pairwise_match']
 
-        cfgstr = '_'.join([
-            edge_hashid,
-            _cfg_lbl(extr.match_config),
-            _cfg_lbl(extr.pairfeat_cfg),
-            'global(' + _cfg_lbl(extr.global_keys) + ')',
-            'pairwise_match_version=%r' % (match_configclass().version,)
-        ])
+        cfgstr = '_'.join(
+            [
+                edge_hashid,
+                _cfg_lbl(extr.match_config),
+                _cfg_lbl(extr.pairfeat_cfg),
+                'global(' + _cfg_lbl(extr.global_keys) + ')',
+                'pairwise_match_version=%r' % (match_configclass().version,),
+            ]
+        )
         return cfgstr
 
     def _postprocess_feats(extr, feats):
@@ -415,8 +454,8 @@ class PairwiseFeatureExtractor(object):
             if any(missing):
                 # print('We have: ' + ut.repr4(feats.columns))
                 alt = feats.columns.difference(extr.feat_dims)
-                mis_msg = ('Missing feature dims: ' + ut.repr4(missing))
-                alt_msg = ('Did you mean? ' + ut.repr4(alt))
+                mis_msg = 'Missing feature dims: ' + ut.repr4(missing)
+                alt_msg = 'Did you mean? ' + ut.repr4(alt)
                 print(mis_msg)
                 print(alt_msg)
                 raise KeyError(mis_msg)
@@ -446,8 +485,7 @@ class PairwiseFeatureExtractor(object):
         """
         edges = list(edges)
         if extr.verbose:
-            print('[pairfeat] Requesting {} cached pairwise features'.format(
-                len(edges)))
+            print('[pairfeat] Requesting {} cached pairwise features'.format(len(edges)))
 
         # TODO: use object properties
         if len(edges) == 0:
@@ -460,8 +498,12 @@ class PairwiseFeatureExtractor(object):
             cache_dir = join(extr.ibs.get_cachedir(), 'infr_bulk_cache')
             feat_cfgstr = extr._make_cfgstr(edges)
             cacher = ub.Cacher(
-                'bulk_pairfeats_v3', feat_cfgstr, enabled=use_cache,
-                dpath=cache_dir, verbose=extr.verbose - 3)
+                'bulk_pairfeats_v3',
+                feat_cfgstr,
+                enabled=use_cache,
+                dpath=cache_dir,
+                verbose=extr.verbose - 3,
+            )
 
             # if cacher.exists() and extr.verbose > 3:
             #     fpath = cacher.get_fpath()
@@ -490,6 +532,8 @@ if __name__ == '__main__':
         python -m wbia.algo.verif.pairfeat --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

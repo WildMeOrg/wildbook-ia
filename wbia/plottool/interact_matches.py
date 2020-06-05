@@ -54,9 +54,25 @@ class MatchInteraction2(BASE_CLASS):
         >>> pt.show_if_requested()
 
     """
-    def __init__(self, rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2,
-                 H1=None, H2=None, fnum=None, **kwargs):
+
+    def __init__(
+        self,
+        rchip1,
+        rchip2,
+        kpts1,
+        kpts2,
+        fm,
+        fs,
+        fsv,
+        vecs1,
+        vecs2,
+        H1=None,
+        H2=None,
+        fnum=None,
+        **kwargs
+    ):
         import wbia.plottool as pt
+
         kwargs = kwargs.copy()
 
         # Drawing Data
@@ -86,13 +102,13 @@ class MatchInteraction2(BASE_CLASS):
 
         self.title = kwargs.get('title', True)
         self.truth = kwargs.pop('truth', None)
-        #self.fnum2 = pt.next_fnum()
+        # self.fnum2 = pt.next_fnum()
 
-        #if BASE_CLASS is not object:
+        # if BASE_CLASS is not object:
         kwargs['interaction_name'] = 'matches'
         super(MatchInteraction2, self).__init__(**kwargs)
 
-        #self.begin(**kwargs)
+        # self.begin(**kwargs)
 
     def plot(self, *args, **kwargs):
         self.chipmatch_view(*args, **kwargs)
@@ -103,6 +119,7 @@ class MatchInteraction2(BASE_CLASS):
         """
         import wbia.plottool as pt
         from wbia.plottool import plot_helpers as ph
+
         if fnum is None:
             fnum = self.fnum
         if verbose is None:
@@ -117,17 +134,18 @@ class MatchInteraction2(BASE_CLASS):
         if verbose:
             print('[ichipmatch_view] draw_lines = %r' % (draw_lines,))
             print('[ichipmatch_view] draw_ell = %r' % (draw_ell,))
-        #pt.figure(fnum=fnum, docla=True, doclf=True)
+        # pt.figure(fnum=fnum, docla=True, doclf=True)
         # NOTE: i remove the clf here. might cause issues
         pt.figure(fnum=fnum, docla=True, doclf=False)
-        #show_matches_kw = self.__dict__.copy()
+        # show_matches_kw = self.__dict__.copy()
         show_matches_kw = dict(
-            #fnum=fnum, pnum=pnum,
+            # fnum=fnum, pnum=pnum,
             draw_lines=draw_lines,
             draw_ell=draw_ell,
             colorbar_=True,
             vert=self.vert,
-            white_background=False)
+            white_background=False,
+        )
         show_matches_kw.update(kwargs_)
 
         if verbose:
@@ -138,12 +156,17 @@ class MatchInteraction2(BASE_CLASS):
         if verbose:
             print('show_matches_kw = %s' % (ut.repr2(show_matches_kw, truncate=True)))
 
-        #tup = show_matches(fm, fs, **show_matches_kw)
+        # tup = show_matches(fm, fs, **show_matches_kw)
         ax, xywh1, xywh2 = pt.show_chipmatch2(
-            self.rchip1, self.rchip2,
-            self.kpts1, self.kpts2,
-            fm=self.fm, fs=self.fs,
-            pnum=pnum, **show_matches_kw)
+            self.rchip1,
+            self.rchip2,
+            self.kpts1,
+            self.kpts2,
+            fm=self.fm,
+            fs=self.fs,
+            pnum=pnum,
+            **show_matches_kw
+        )
         self.xywh2 = xywh2
         ph.set_plotdat(ax, 'viztype', 'matches')
 
@@ -153,7 +176,7 @@ class MatchInteraction2(BASE_CLASS):
 
         if self.title is not None:
             pt.set_title(self.title, ax=ax)
-        #pt.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
+        # pt.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
 
     # Draw clicked selection
     def select_ith_match(self, mx):
@@ -164,40 +187,43 @@ class MatchInteraction2(BASE_CLASS):
         import wbia.plottool as pt
         from wbia.plottool import viz_featrow
         from wbia.plottool import interact_helpers as ih
-        fnum       = self.fnum
-        same_fig   = self.same_fig
-        rchip1     = self.rchip1
-        rchip2     = self.rchip2
-        self.mx    = mx
+
+        fnum = self.fnum
+        same_fig = self.same_fig
+        rchip1 = self.rchip1
+        rchip2 = self.rchip2
+        self.mx = mx
         print('+--- SELECT --- ')
         print('... selecting mx-th=%r feature match' % mx)
         fsv = self.fsv
-        fs  = self.fs
+        fs = self.fs
         print('score stats:')
         print(ut.repr2(ut.get_stats(fsv, axis=0), nl=1))
         print('fsv[mx] = %r' % (fsv[mx],))
         print('fs[mx] = %r' % (fs[mx],))
-        #----------------------
+        # ----------------------
         # Get info for the select_ith_match plot
         self.mode = 1
         # Get the mx-th feature match
         fx1, fx2 = self.fm[mx]
 
         # Older info
-        fscore2  = self.fs[mx]
-        fk2      = None if self.fk is None else self.fk[mx]
-        kp1, kp2     = self.kpts1[fx1], self.kpts2[fx2]
+        fscore2 = self.fs[mx]
+        fk2 = None if self.fk is None else self.fk[mx]
+        kp1, kp2 = self.kpts1[fx1], self.kpts2[fx2]
         vecs1, vecs2 = self.vecs1[fx1], self.vecs2[fx2]
         info1 = '\nquery'
         info2 = '\nk=%r fscore=%r' % (fk2, fscore2)
-        #self.last_fx = fx1
+        # self.last_fx = fx1
         self.last_fx = fx1
 
         # Extracted keypoints to draw
-        extracted_list = [(rchip1, kp1, vecs1, fx1, 'aid1', info1),
-                          (rchip2, kp2, vecs2, fx2, 'aid2', info2)]
+        extracted_list = [
+            (rchip1, kp1, vecs1, fx1, 'aid1', info1),
+            (rchip2, kp2, vecs2, fx2, 'aid2', info2),
+        ]
         # Normalizng Keypoint
-        #if hasattr(cm, 'filt2_meta') and 'lnbnn' in cm.filt2_meta:
+        # if hasattr(cm, 'filt2_meta') and 'lnbnn' in cm.filt2_meta:
         #    qfx2_norm = cm.filt2_meta['lnbnn']
         #    # Normalizing chip and feature
         #    (aid3, fx3, normk) = qfx2_norm[fx1]
@@ -206,24 +232,30 @@ class MatchInteraction2(BASE_CLASS):
         #    sift3 = ibs.get_annot_vecs(aid3)[fx3]
         #    info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
         #    extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
-        #else:
+        # else:
         #    pass
         #    #print('WARNING: meta doesnt exist')
 
-        #----------------------
+        # ----------------------
         # Draw the select_ith_match plot
         nRows, nCols = len(extracted_list) + same_fig, 3
         # Draw matching chips and features
         sel_fm = np.array([(fx1, fx2)])
         pnum1 = (nRows, 1, 1) if same_fig else (1, 1, 1)
         vert = self.vert if self.vert is not None else False
-        self.chipmatch_view(pnum=pnum1, ell_alpha=.4, ell_linewidth=1.8,
-                            colors=pt.BLUE, sel_fm=sel_fm, vert=vert)
+        self.chipmatch_view(
+            pnum=pnum1,
+            ell_alpha=0.4,
+            ell_linewidth=1.8,
+            colors=pt.BLUE,
+            sel_fm=sel_fm,
+            vert=vert,
+        )
         # Draw selected feature matches
         px = nCols * same_fig  # plot offset
         prevsift = None
         if not same_fig:
-            #fnum2 = fnum + len(viz.FNUMS)
+            # fnum2 = fnum + len(viz.FNUMS)
             fnum2 = self.fnum2
             fig2 = pt.figure(fnum=fnum2, docla=True, doclf=True)
         else:
@@ -231,24 +263,35 @@ class MatchInteraction2(BASE_CLASS):
 
         for (rchip, kp, sift, fx, aid, info) in extracted_list:
             px = viz_featrow.draw_feat_row(
-                rchip, fx, kp, sift, fnum2, nRows, nCols, px,
-                prevsift=prevsift, aid=aid, info=info)
+                rchip,
+                fx,
+                kp,
+                sift,
+                fnum2,
+                nRows,
+                nCols,
+                px,
+                prevsift=prevsift,
+                aid=aid,
+                info=info,
+            )
             prevsift = sift
         if not same_fig:
             ih.connect_callback(fig2, 'button_press_event', self.on_click)
-            #pt.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))
+            # pt.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))
 
     # Callback
     def on_click_inside(self, event, ax):
         from wbia.plottool import plot_helpers as ph
+
         (x, y) = (event.xdata, event.ydata)
         viztype = ph.get_plotdat(ax, 'viztype', '')
 
         if event.button == 3:
             self.show_popup_menu(self.get_popup_options(), event)
             return
-        #key = '' if event.key is None else event.key
-        #ctrl_down = key.find('control') == 0
+        # key = '' if event.key is None else event.key
+        # ctrl_down = key.find('control') == 0
         if viztype in ['matches', 'multi_match']:
             if len(self.fm) == 0:
                 print('[inter] no feature matches to click')
@@ -259,12 +302,13 @@ class MatchInteraction2(BASE_CLASS):
                 kpts2_m = self.kpts2[self.fm[:, 1]]
                 x2, y2, w2, h2 = self.xywh2
                 import vtool as vt
+
                 _mx1, _dist1 = vt.nearest_point(x, y, kpts1_m)
                 _mx2, _dist2 = vt.nearest_point(x - x2, y - y2, kpts2_m)
                 mx = _mx1 if _dist1 < _dist2 else _mx2
                 print('... clicked mx=%r' % mx)
                 self.select_ith_match(mx)
-        #elif viztype in ['warped', 'unwarped']:
+        # elif viztype in ['warped', 'unwarped']:
         #    pass
         #    #hs_aid = ax.__dict__.get('_hs_aid', None)
         #    #hs_fx = ax.__dict__.get('_hs_fx', None)
@@ -274,7 +318,7 @@ class MatchInteraction2(BASE_CLASS):
         #    #    viz.show_keypoint_gradient_orientations(ibs, hs_aid,
         #    #    hs_fx, fnum=pt.next_fnum())
         # Click in match axes
-        #elif viztype == 'matches' and ctrl_down:
+        # elif viztype == 'matches' and ctrl_down:
         #    # Ctrl-Click
         #    print('.. control click')
         #    return self.sv_view()
@@ -298,17 +342,17 @@ class MatchInteraction2(BASE_CLASS):
         if event.button != 1:
             return
         print('... out of axis')
-        #self.warp_homog = not self.warp_homog
+        # self.warp_homog = not self.warp_homog
         self.mode = (self.mode + 1) % 3
-        #self.chipmatch_view()
+        # self.chipmatch_view()
         self.show_page()
         self.draw()
 
     def get_popup_options(self):
-
         def toggle_attr_item(attr, num_states=2):
             value = getattr(self, attr)
             type_ = type(value)
+
             def toggle_attr():
                 new_value = (value + 1) % (num_states)
                 new_value = type_(new_value)
@@ -316,6 +360,7 @@ class MatchInteraction2(BASE_CLASS):
                 setattr(self, attr, new_value)
                 self.show_page()
                 self.draw()
+
             itemstr = 'Toggle %s=%r' % (attr, value)
             return (itemstr, toggle_attr)
 
@@ -326,18 +371,21 @@ class MatchInteraction2(BASE_CLASS):
         return options
 
 
-def show_keypoint_gradient_orientations(ibs, rchip, kp, vec, fnum=None,
-                                        pnum=None, config2_=None):
+def show_keypoint_gradient_orientations(
+    ibs, rchip, kp, vec, fnum=None, pnum=None, config2_=None
+):
     # Draw the gradient vectors of a patch overlaying the keypoint
     import wbia.plottoola as pt
+
     if fnum is None:
         fnum = pt.next_fnum()
-    #rchip = ibs.get_annot_chips(aid, config2_=config2_)
-    #kp    = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
-    #sift  = ibs.get_annot_vecs(aid, config2_=config2_)[fx]
-    pt.draw_keypoint_gradient_orientations(rchip, kp, sift=vec,
-                                            mode='vec', fnum=fnum, pnum=pnum)
-    #pt.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))
+    # rchip = ibs.get_annot_chips(aid, config2_=config2_)
+    # kp    = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
+    # sift  = ibs.get_annot_vecs(aid, config2_=config2_)[fx]
+    pt.draw_keypoint_gradient_orientations(
+        rchip, kp, sift=vec, mode='vec', fnum=fnum, pnum=pnum
+    )
+    # pt.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))
 
 
 if __name__ == '__main__':
@@ -348,6 +396,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.interact_matches --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

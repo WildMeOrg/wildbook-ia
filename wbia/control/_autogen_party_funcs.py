@@ -18,13 +18,16 @@ from wbia import constants as const
 import utool as ut
 from wbia.control import controller_inject
 from wbia.control import accessor_decors  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):
@@ -32,13 +35,15 @@ def testdata_ibs(defaultdb='testdb1'):
     Auto-docstr for 'testdata_ibs'
     """
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     qreq_ = None
     return ibs, qreq_
 
+
 # AUTOGENED CONSTANTS:
-PARTY_ROWID      = 'party_rowid'
-PARTY_TAG        = 'party_tag'
+PARTY_ROWID = 'party_rowid'
+PARTY_TAG = 'party_tag'
 
 
 @register_ibs_method
@@ -80,14 +85,11 @@ def add_party(ibs, party_tag_list):
     """
     # WORK IN PROGRESS
     colnames = (PARTY_TAG,)
-    params_iter = (
-        (party_tag,)
-        for (party_tag,) in
-        zip(party_tag_list)
-    )
+    params_iter = ((party_tag,) for (party_tag,) in zip(party_tag_list))
     get_rowid_from_superkey = ibs.get_party_rowid_from_superkey
     party_rowid_list = ibs.db.add_cleanly(
-        const.PARTY_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        const.PARTY_TABLE, colnames, params_iter, get_rowid_from_superkey
+    )
     return party_rowid_list
 
 
@@ -114,9 +116,15 @@ def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
     colnames = (PARTY_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(party_tag_list)
-    andwhere_colnames = (PARTY_TAG, )
+    andwhere_colnames = (PARTY_TAG,)
     party_rowid_list = ibs.db.get_where_eq(
-        const.PARTY_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
+        const.PARTY_TABLE,
+        colnames,
+        params_iter,
+        andwhere_colnames,
+        eager=eager,
+        nInput=nInput,
+    )
     return party_rowid_list
 
 
@@ -155,7 +163,13 @@ def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
     id_iter = party_rowid_list
     colnames = (PARTY_TAG,)
     party_tag_list = ibs.db.get(
-        const.PARTY_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+        const.PARTY_TABLE,
+        colnames,
+        id_iter,
+        id_colname='rowid',
+        eager=eager,
+        nInput=nInput,
+    )
     return party_tag_list
 
 
@@ -166,6 +180,8 @@ if __name__ == '__main__':
         python -m wbia.control._autogen_party_funcs --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     import utool as ut
+
     ut.doctest_funcs()

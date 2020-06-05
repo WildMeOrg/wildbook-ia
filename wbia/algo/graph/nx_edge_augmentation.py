@@ -27,6 +27,7 @@ from collections import defaultdict, namedtuple
 # Patch
 from wbia.algo.graph import nx_edge_kcomponents as nx_ec  # NOQA
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 # __all__ = [
@@ -216,22 +217,26 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
             raise ValueError('k must be a positive integer, not {}'.format(k))
         elif G.number_of_nodes() < k + 1:
             raise nx.NetworkXUnfeasible(
-                ('impossible to {} connect in graph with less than {} '
-                 'nodes').format(k, k + 1))
+                ('impossible to {} connect in graph with less than {} ' 'nodes').format(
+                    k, k + 1
+                )
+            )
         elif avail is not None and len(avail) == 0:
             if not is_k_edge_connected(G, k):
                 raise nx.NetworkXUnfeasible('no available edges')
             aug_edges = []
         elif k == 1:
-            aug_edges = one_edge_augmentation(G, avail=avail, weight=weight,
-                                              partial=partial)
+            aug_edges = one_edge_augmentation(
+                G, avail=avail, weight=weight, partial=partial
+            )
         elif k == 2:
             aug_edges = bridge_augmentation(G, avail=avail, weight=weight)
         else:
             # raise NotImplementedError(
             #    'not implemented for k>2. k={}'.format(k))
             aug_edges = greedy_k_edge_augmentation(
-                G, k=k, avail=avail, weight=weight, seed=0)
+                G, k=k, avail=avail, weight=weight, seed=0
+            )
         # Do eager evaulation so we can catch any exceptions
         # Before executing partial code.
         for edge in list(aug_edges):
@@ -244,8 +249,9 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
             else:
                 # If we cant k-edge-connect the entire graph, try to
                 # k-edge-connect as much as possible
-                aug_edges = partial_k_edge_augmentation(G, k=k, avail=avail,
-                                                        weight=weight)
+                aug_edges = partial_k_edge_augmentation(
+                    G, k=k, avail=avail, weight=weight
+                )
             for edge in aug_edges:
                 yield edge
         else:
@@ -273,6 +279,7 @@ def partial_k_edge_augmentation(G, k, avail, weight=None):
     >>> sorted(partial_k_edge_augmentation(G, k=2, avail=avail))
     [(1, 5), (1, 8)]
     """
+
     def _edges_between_disjoint(H, only1, only2):
         """ finds edges between disjoint nodes """
         only1_adj = {u: set(H.adj[u]) for u in only1}
@@ -287,8 +294,8 @@ def partial_k_edge_augmentation(G, k, avail, weight=None):
     # Find which parts of the graph can be k-edge-connected
     H = G.copy()
     H.add_edges_from(
-        ((u, v, {'weight': w, 'generator': (u, v)})
-         for (u, v), w in zip(avail, avail_w)))
+        ((u, v, {'weight': w, 'generator': (u, v)}) for (u, v), w in zip(avail, avail_w))
+    )
     k_edge_subgraphs = list(nx_ec.k_edge_subgraphs(H, k=k))
 
     # Generate edges to k-edge-connect internal components
@@ -333,8 +340,9 @@ def one_edge_augmentation(G, avail=None, weight=None, partial=False):
     if avail is None:
         return unconstrained_one_edge_augmentation(G)
     else:
-        return weighted_one_edge_augmentation(G, avail=avail, weight=weight,
-                                              partial=partial)
+        return weighted_one_edge_augmentation(
+            G, avail=avail, weight=weight, partial=partial
+        )
 
 
 @not_implemented_for('multigraph')
@@ -354,8 +362,7 @@ def bridge_augmentation(G, avail=None, weight=None):
     :func:`weighted_bridge_augmentation`.
     """
     if G.number_of_nodes() < 3:
-        raise nx.NetworkXUnfeasible(
-            'impossible to bridge connect less than 3 nodes')
+        raise nx.NetworkXUnfeasible('impossible to bridge connect less than 3 nodes')
     if avail is None:
         return unconstrained_bridge_augmentation(G)
     else:
@@ -363,6 +370,7 @@ def bridge_augmentation(G, avail=None, weight=None):
 
 
 # --- Algorithms and Helpers ---
+
 
 def _ordered(u, v):
     return (u, v) if u < v else (v, u)
@@ -376,14 +384,15 @@ def _unpack_available_edges(avail, weight=None, G=None):
         avail_uv = list(avail.keys())
         avail_w = list(avail.values())
     else:
+
         def _try_getitem(d):
             try:
                 return d[weight]
             except TypeError:
                 return d
+
         avail_uv = [tup[0:2] for tup in avail]
-        avail_w = [1 if len(tup) == 2 else _try_getitem(tup[-1])
-                   for tup in avail]
+        avail_w = [1 if len(tup) == 2 else _try_getitem(tup[-1]) for tup in avail]
 
     if G is not None:
         # Edges already in the graph are filtered
@@ -502,14 +511,12 @@ def weighted_one_edge_augmentation(G, avail, weight=None, partial=False):
     candidate_mapping = _lightest_meta_edges(mapping, avail_uv, avail_w)
     # nx.set_edge_attributes(C, name='weight', values=0)
     C.add_edges_from(
-        (mu, mv, {'weight': w, 'generator': uv})
-        for (mu, mv), uv, w in candidate_mapping
+        (mu, mv, {'weight': w, 'generator': uv}) for (mu, mv), uv, w in candidate_mapping
     )
     # Find MST of the meta graph
     meta_mst = nx.minimum_spanning_tree(C)
     if not partial and not nx.is_connected(meta_mst):
-        raise nx.NetworkXUnfeasible(
-            'Not possible to connect G with available edges')
+        raise nx.NetworkXUnfeasible('Not possible to connect G with available edges')
     # Yield the edge that generated the meta-edge
     for mu, mv, d in meta_mst.edges(data=True):
         if 'generator' in d:
@@ -599,9 +606,9 @@ def unconstrained_bridge_augmentation(G):
     # Choose pairs of distinct leaf nodes in each tree. If this is not
     # possible then make a pair using the single isolated node in the tree.
     vset1 = [
-        tuple(cc) * 2   # case1: an isolated node
-        if len(cc) == 1 else
-        sorted(cc, key=C.degree)[0:2]  # case2: pair of leaf nodes
+        tuple(cc) * 2  # case1: an isolated node
+        if len(cc) == 1
+        else sorted(cc, key=C.degree)[0:2]  # case2: pair of leaf nodes
         for cc in nx.connected_components(C)
     ]
     if len(vset1) > 1:
@@ -639,8 +646,10 @@ def unconstrained_bridge_augmentation(G):
     for k, v in C.graph['mapping'].items():
         inverse[v].append(k)
     # sort so we choose minimum degree nodes first
-    inverse = {mu: sorted(mapped, key=lambda u: (G.degree(u), u))
-               for mu, mapped in inverse.items()}
+    inverse = {
+        mu: sorted(mapped, key=lambda u: (G.degree(u), u))
+        for mu, mapped in inverse.items()
+    }
 
     # For each meta-edge, map back to an arbitrary pair in the original graph
     G2 = G.copy()
@@ -780,7 +789,8 @@ def weighted_bridge_augmentation(G, avail, weight=None):
         ]
     else:
         lca_gen = nx.tree_all_pairs_lowest_common_ancestor(
-            TR, root=root, pairs=meta_to_wuv.keys())
+            TR, root=root, pairs=meta_to_wuv.keys()
+        )
 
     for (mu, mv), lca in lca_gen:
         w, uv = meta_to_wuv[(mu, mv)]
@@ -854,10 +864,7 @@ def _lowest_common_anscestor(T, u, v, root):
     if len(common) == 0:
         lca = None
     else:
-        lca = max(
-            (nx.shortest_path_length(T, root, c), c)
-            for c in common
-        )[1]
+        lca = max((nx.shortest_path_length(T, root, c), c) for c in common)[1]
     return lca
 
 
@@ -910,8 +917,9 @@ def collapse(G, grouped_nodes):
     remaining = set(G.nodes())
     for i, group in enumerate(grouped_nodes):
         group = set(group)
-        assert remaining.issuperset(group), (
-            'grouped nodes must exist in G and be disjoint')
+        assert remaining.issuperset(
+            group
+        ), 'grouped nodes must exist in G and be disjoint'
         remaining.difference_update(group)
         members[i] = group
         mapping.update((n, i) for n in group)
@@ -922,8 +930,9 @@ def collapse(G, grouped_nodes):
         mapping.update((n, i) for n in group)
     number_of_groups = i + 1
     C.add_nodes_from(range(number_of_groups))
-    C.add_edges_from((mapping[u], mapping[v]) for u, v in G.edges()
-                     if mapping[u] != mapping[v])
+    C.add_edges_from(
+        (mapping[u], mapping[v]) for u, v in G.edges() if mapping[u] != mapping[v]
+    )
     # Add a list of members (ie original nodes) to each node (ie scc) in C.
     nx.set_node_attributes(C, name='members', values=members)
     # Add mapping dict as graph attribute
@@ -959,6 +968,7 @@ def complement_edges(G):
 
 
 if sys.version_info[0] == 2:
+
     def compat_shuffle(rng, input):
         """
         python2 workaround so shuffle works the same as python3
@@ -967,8 +977,9 @@ if sys.version_info[0] == 2:
         ----------
         https://stackoverflow.com/questions/38943038/diff-shuffle-py2-py3
         """
+
         def _randbelow(n):
-            "Return a random int in the range [0,n). Raises ValueError if n==0."
+            'Return a random int in the range [0,n). Raises ValueError if n==0.'
             getrandbits = rng.getrandbits
             k = n.bit_length()  # don't use (n-1) here because n can be 1
             r = getrandbits(k)  # 0 <= r < 2**k
@@ -980,7 +991,10 @@ if sys.version_info[0] == 2:
             # pick an element in input[:i+1] with which to exchange input[i]
             j = _randbelow(i + 1)
             input[i], input[j] = input[j], input[i]
+
+
 else:
+
     def compat_shuffle(rng, input):
         rng.shuffle(input)
 
@@ -1051,8 +1065,7 @@ def greedy_k_edge_augmentation(G, k, avail=None, weight=None, seed=None):
 
     # Check for feasibility
     if not done:
-        raise nx.NetworkXUnfeasible(
-            'not able to k-edge-connect with available edges')
+        raise nx.NetworkXUnfeasible('not able to k-edge-connect with available edges')
 
     # Randomized attempt to reduce the size of the solution
     rng = random.Random(seed)

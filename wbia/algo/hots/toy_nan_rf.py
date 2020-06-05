@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
@@ -15,6 +16,7 @@ def get_toydata(rng):
 
 def toydata2(rng):
     from sklearn.datasets import samples_generator
+
     n_samples = 1000
     n_features = 2
     n_classes = 2
@@ -28,9 +30,16 @@ def toydata2(rng):
         scale=1.0,
         n_redundant=0,
         n_repeated=0,
-        hypercube=hypercube, n_samples=n_samples, n_informative=n_informative,
-        n_classes=n_classes, n_clusters_per_class=n_clusters_per_class,
-        weights=None, shuffle=True, n_features=n_features, random_state=rng)
+        hypercube=hypercube,
+        n_samples=n_samples,
+        n_informative=n_informative,
+        n_classes=n_classes,
+        n_clusters_per_class=n_clusters_per_class,
+        weights=None,
+        shuffle=True,
+        n_features=n_features,
+        random_state=rng,
+    )
 
     X_true, y = samples_generator.make_classification(**samplekw)
     with_extra = ut.get_argflag('--extra')
@@ -38,13 +47,13 @@ def toydata2(rng):
     if with_extra:
         n_informative_nan = 100
         # extra_x = (rng.randn(n_informative_nan, 2) / 2 + [[12, -8]])
-        extra_x = (rng.randn(n_informative_nan, 2) / 2 + [[10, -12]])
+        extra_x = rng.randn(n_informative_nan, 2) / 2 + [[10, -12]]
         X_true = np.vstack((X_true, extra_x))
         y = np.append(y, [0] * n_informative_nan)
 
     # Randomly drop datapoints
     X = X_true.copy()
-    nanrate = ut.get_argval('--nanrate', default=.01)
+    nanrate = ut.get_argval('--nanrate', default=0.01)
     if nanrate:
         # TODO:
         # * informative nan
@@ -56,8 +65,8 @@ def toydata2(rng):
         if True:
             X.T[1][-n_informative_nan:] = np.nan
         else:
-            X.T[0][-n_informative_nan:-n_informative_nan // 2] = np.nan
-            X.T[1][-n_informative_nan // 2:] = np.nan
+            X.T[0][-n_informative_nan : -n_informative_nan // 2] = np.nan
+            X.T[1][-n_informative_nan // 2 :] = np.nan
     return X_true, X, y
 
 
@@ -108,11 +117,13 @@ def toydata1(rng):
     """
     from sklearn.datasets import samples_generator
     import functools
+
     step = 20
     n_samples = 100
 
-    blob = functools.partial(samples_generator.make_blobs, n_samples=n_samples,
-                             random_state=rng)
+    blob = functools.partial(
+        samples_generator.make_blobs, n_samples=n_samples, random_state=rng
+    )
 
     Xy_blobs = [
         (0, blob(centers=[[0 * step, 0 * step]])[0]),
@@ -152,26 +163,25 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
     plot_step = 1.0
     x_min, x_max = X_true[:, 0].min() - 1, X_true[:, 0].max() + 1
     y_min, y_max = X_true[:, 1].min() - 1, X_true[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
-                         np.arange(y_min, y_max, plot_step))
+    xx, yy = np.meshgrid(
+        np.arange(x_min, x_max, plot_step), np.arange(y_min, y_max, plot_step)
+    )
     yynan = np.full(yy.shape, fill_value=np.nan)
     xxnan = np.full(yy.shape, fill_value=np.nan)
 
     # Get prediction surface in the non-nan-zone
-    Z_nonnan = clf.predict_proba(
-        np.c_[xx.ravel(), yy.ravel()]).T[1].reshape(xx.shape)
+    Z_nonnan = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()]).T[1].reshape(xx.shape)
 
     # Get prediction surface in the xnan-zone
-    Z_xnan = clf.predict_proba(
-        np.c_[xxnan.ravel(), yy.ravel()]).T[1].reshape(xx.shape)
+    Z_xnan = clf.predict_proba(np.c_[xxnan.ravel(), yy.ravel()]).T[1].reshape(xx.shape)
 
     # Get prediction surface in the ynan-zone
-    Z_ynan = clf.predict_proba(
-        np.c_[xx.ravel(), yynan.ravel()]).T[1].reshape(xx.shape)
+    Z_ynan = clf.predict_proba(np.c_[xx.ravel(), yynan.ravel()]).T[1].reshape(xx.shape)
 
     # Get prediction surface for all-nan-zone
-    Z_fullnan = clf.predict_proba(
-        np.c_[xxnan.ravel(), yynan.ravel()]).T[1].reshape(xx.shape)
+    Z_fullnan = (
+        clf.predict_proba(np.c_[xxnan.ravel(), yynan.ravel()]).T[1].reshape(xx.shape)
+    )
 
     is_nonnan = np.logical_and(~np.isnan(X.T[0]), ~np.isnan(X.T[1]))
     is_xnan = np.logical_and(np.isnan(X.T[0]), ~np.isnan(X.T[1]))
@@ -181,9 +191,10 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
     # Draw surfaces and support points in different axes
     import matplotlib.gridspec as gridspec
     import matplotlib.pyplot as plt
+
     gs = gridspec.GridSpec(17, 17)
-    pnum1 = (gs[0:8,  0:8],)
-    pnum2 = (gs[0:8,  8:16],)
+    pnum1 = (gs[0:8, 0:8],)
+    pnum2 = (gs[0:8, 8:16],)
     pnum3 = (gs[9:17, 0:8],)
     pnum4 = (gs[9:17, 8:16],)
 
@@ -201,14 +212,16 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
 
     def draw_line_segments(pts1, pts2, ax=None, **kwargs):
         import matplotlib as mpl
+
         if ax is None:
             ax = plt.gca()
         assert len(pts1) == len(pts2), 'unaligned'
         segments = [(xy1, xy2) for xy1, xy2 in zip(pts1, pts2)]
         linewidth = kwargs.pop('lw', kwargs.pop('linewidth', 1.0))
         alpha = kwargs.pop('alpha', 1.0)
-        line_group = mpl.collections.LineCollection(segments, linewidth,
-                                                    alpha=alpha, **kwargs)
+        line_group = mpl.collections.LineCollection(
+            segments, linewidth, alpha=alpha, **kwargs
+        )
         ax.add_collection(line_group)
 
     def draw_single_nan_lines(X_true, y, flags, nan_dim):
@@ -227,12 +240,28 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
         pts1[:, num_dim] = numdim_pts
         pts2[:, num_dim] = numdim_pts
         y_ = y[flags]
-        draw_line_segments(pts1[y_ == 0], pts2[y_ == 0], color=color0, linestyle='-', alpha=1.0)
-        draw_line_segments(pts1[y_ == 1], pts2[y_ == 1], color=color1, linestyle='-', alpha=1.0)
+        draw_line_segments(
+            pts1[y_ == 0], pts2[y_ == 0], color=color0, linestyle='-', alpha=1.0
+        )
+        draw_line_segments(
+            pts1[y_ == 1], pts2[y_ == 1], color=color1, linestyle='-', alpha=1.0
+        )
 
     def draw_train_points(X_true, y, flags):
-        plt.plot(X_true[flags].T[0][y[flags] == 0], X_true[flags].T[1][y[flags] == 0], 'o', color=color0, markeredgecolor='w')
-        plt.plot(X_true[flags].T[0][y[flags] == 1], X_true[flags].T[1][y[flags] == 1], 'o', color=color1, markeredgecolor='w')
+        plt.plot(
+            X_true[flags].T[0][y[flags] == 0],
+            X_true[flags].T[1][y[flags] == 0],
+            'o',
+            color=color0,
+            markeredgecolor='w',
+        )
+        plt.plot(
+            X_true[flags].T[0][y[flags] == 1],
+            X_true[flags].T[1][y[flags] == 1],
+            'o',
+            color=color1,
+            markeredgecolor='w',
+        )
 
     def _contour(Z):
         plt.contourf(xx, yy, Z, cmap=cmap, norm=norm, alpha=1.0)
@@ -287,7 +316,9 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
 
     new_subplotpars = fig.subplotpars.__dict__.copy()
     del new_subplotpars['validate']
-    new_subplotpars.update(left=.001, right=.9, top=.9, bottom=.05, hspace=1.0, wspace=1.0)
+    new_subplotpars.update(
+        left=0.001, right=0.9, top=0.9, bottom=0.05, hspace=1.0, wspace=1.0
+    )
     plt.subplots_adjust(**new_subplotpars)
 
 
@@ -319,9 +350,13 @@ def main():
 
     print('Fitting RF on %d points' % (len(X),))
     # Train uncalibrated random forest classifier on train data
-    clf = RandomForestClassifier(n_estimators=64, random_state=42,
-                                 criterion='gini',
-                                 missing_values=np.nan, bootstrap=False)
+    clf = RandomForestClassifier(
+        n_estimators=64,
+        random_state=42,
+        criterion='gini',
+        missing_values=np.nan,
+        bootstrap=False,
+    )
     # import pprint
     # pprint.pprint(clf.__dict__)
     clf.fit(X, y)
@@ -337,4 +372,5 @@ if __name__ == '__main__':
     """
     main()
     import matplotlib.pyplot as plt
+
     plt.show()

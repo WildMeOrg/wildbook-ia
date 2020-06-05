@@ -52,7 +52,7 @@ function countUp(target, startVal, endVal, decimals, duration, options) {
     if (this.options.suffix == null) this.options.suffix = '';
 
     var self = this;
-    
+
     this.d = (typeof target === 'string') ? document.getElementById(target) : target;
     this.startVal = Number(startVal);
     this.endVal = Number(endVal);
@@ -67,13 +67,13 @@ function countUp(target, startVal, endVal, decimals, duration, options) {
     this.duration = duration * 1000 || 2000;
 
     this.version = function () { return '1.3.2' }
-    
+
     // Print value to target
     this.printValue = function(value) {
         var result = (!isNaN(value)) ? self.formatNumber(value) : '--';
         if (self.d.tagName == 'INPUT') {
             this.d.value = result;
-        } 
+        }
         else if (self.d.tagName == 'text') {
             this.d.textContent = result;
         }
@@ -124,7 +124,7 @@ function countUp(target, startVal, endVal, decimals, duration, options) {
 
         // format and print value
         self.printValue(self.frameVal);
-               
+
         // whether to continue
         if (progress < self.duration) {
             self.rAF = requestAnimationFrame(self.count);

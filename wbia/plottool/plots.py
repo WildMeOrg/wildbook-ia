@@ -10,12 +10,13 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import utool as ut  # NOQA
 import numpy as np
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 def is_default_dark_bg():
-    #return True
-    #lightbg = not  ut.get_argflag('--darkbg')
+    # return True
+    # lightbg = not  ut.get_argflag('--darkbg')
     # lightbg = ut.get_argflag('--save') or ut.get_argflag('--lightbg')
     lightbg = True
     return not lightbg
@@ -146,20 +147,27 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
             val_list = kwargs[key + 's']
         else:
             val_list = None
-            #val_list = [None] * num_lines
+            # val_list = [None] * num_lines
         return val_list
 
     # Parse out arguments to ax.plot
-    plot_kw_keys = ['label', 'color', 'marker', 'markersize',
-                    'markeredgewidth', 'linewidth', 'linestyle', 'alpha']
+    plot_kw_keys = [
+        'label',
+        'color',
+        'marker',
+        'markersize',
+        'markeredgewidth',
+        'linewidth',
+        'linestyle',
+        'alpha',
+    ]
     # hackish / extra args that dont go to plot, but help
     extra_plot_kw_keys = ['spread_alpha', 'autolabel', 'edgecolor', 'fill']
     plot_kw_keys += extra_plot_kw_keys
     plot_ks_vals = [parsekw_list(key, kwargs) for key in plot_kw_keys]
-    plot_list_kw = dict([
-        (key, vals)
-        for key, vals in zip(plot_kw_keys, plot_ks_vals) if vals is not None
-    ])
+    plot_list_kw = dict(
+        [(key, vals) for key, vals in zip(plot_kw_keys, plot_ks_vals) if vals is not None]
+    )
 
     if 'color' not in plot_list_kw:
         plot_list_kw['color'] = pt.distinct_colors(num_lines)
@@ -168,25 +176,27 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         if 'marker' not in plot_list_kw:
             plot_list_kw['marker'] = pt.distinct_markers(num_lines)
         if 'spread_alpha' not in plot_list_kw:
-            plot_list_kw['spread_alpha'] = [.2] * num_lines
+            plot_list_kw['spread_alpha'] = [0.2] * num_lines
 
     if kind == 'bar':
         # Remove non-bar kwargs
-        ut.delete_keys(plot_list_kw, ['markeredgewidth', 'linewidth', 'marker',
-                                      'markersize', 'linestyle'])
+        ut.delete_keys(
+            plot_list_kw,
+            ['markeredgewidth', 'linewidth', 'marker', 'markersize', 'linestyle'],
+        )
         stacked = kwargs.get('stacked', False)
         width_key = 'height' if transpose else 'width'
         if 'width_list' in kwargs:
             plot_list_kw[width_key] = kwargs['width_list']
         else:
-            width = kwargs.get('width', .9)
+            width = kwargs.get('width', 0.9)
             # if width is None:
             #     # HACK: need variable width
             #     # width = np.mean(np.diff(xdata_list[0]))
             #     width = .9
             if not stacked:
                 width /= num_lines
-            #plot_list_kw['orientation'] = ['horizontal'] * num_lines
+            # plot_list_kw['orientation'] = ['horizontal'] * num_lines
             plot_list_kw[width_key] = [width] * num_lines
 
     spread_list = kwargs.get('spread_list', None)
@@ -219,14 +229,16 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         if kind == 'bar':
             plot_func = ax.barh
         elif kind == 'plot':
+
             def plot_func(_x, _y, **kw):
                 return ax.plot(_y, _x, **kw)
+
     else:
         plot_func = getattr(ax, kind)  # usually ax.plot
 
     assert len(ydata_list) > 0, 'no ydata'
-    #assert len(extra_kw_list) == len(plot_kw_list), 'bad length'
-    #assert len(extra_kw_list) == len(ydata_list), 'bad length'
+    # assert len(extra_kw_list) == len(plot_kw_list), 'bad length'
+    # assert len(extra_kw_list) == len(ydata_list), 'bad length'
     _iter = enumerate(zip_longest(xdata_list, ydata_list, plot_kw_list, extra_kw_list))
     for count, (_xdata, _ydata, plot_kw, extra_kw) in _iter:
         ymask = np.isfinite(_ydata)
@@ -239,7 +251,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
             else:
                 # Plot bars side by side
                 baseoffset = (width * num_lines) / 2
-                lineoffset = (width * count)
+                lineoffset = width * count
                 offset = baseoffset - lineoffset  # Fixeme for more histogram bars
                 xdata_ = xdata_ - offset
             # width_key = 'height' if transpose else 'width'
@@ -257,12 +269,12 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
                 for rect in objs:
                     if transpose:
                         numlbl = width = rect.get_width()
-                        xpos = width + ((_xdata.max() - _xdata.min()) * .005)
-                        ypos = rect.get_y() + rect.get_height() / 2.
+                        xpos = width + ((_xdata.max() - _xdata.min()) * 0.005)
+                        ypos = rect.get_y() + rect.get_height() / 2.0
                         ha, va = 'left', 'center'
                     else:
                         numlbl = height = rect.get_height()
-                        xpos = rect.get_x() + rect.get_width() / 2.
+                        xpos = rect.get_x() + rect.get_width() / 2.0
                         ypos = 1.05 * height
                         ha, va = 'center', 'bottom'
                     barlbl = '%.3f' % (numlbl,)
@@ -270,8 +282,12 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
 
         # print('extra_kw = %r' % (extra_kw,))
         if kind == 'plot' and extra_kw.get('fill', False):
-            ax.fill_between(_xdata, ydata_, alpha=plot_kw.get('alpha', 1.0),
-                            color=plot_kw.get('color', None))  # , zorder=0)
+            ax.fill_between(
+                _xdata,
+                ydata_,
+                alpha=plot_kw.get('alpha', 1.0),
+                color=plot_kw.get('color', None),
+            )  # , zorder=0)
 
         if spread_list is not None:
             # Plots a spread around plot lines usually indicating standard
@@ -284,17 +300,22 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
             y_data_min = ydata_ave - y_data_dev
             ax = df2.gca()
             spread_alpha = extra_kw['spread_alpha']
-            ax.fill_between(_xdata, y_data_min, y_data_max, alpha=spread_alpha,
-                            color=plot_kw.get('color', None))  # , zorder=0)
+            ax.fill_between(
+                _xdata,
+                y_data_min,
+                y_data_max,
+                alpha=spread_alpha,
+                color=plot_kw.get('color', None),
+            )  # , zorder=0)
     # L________________
 
-    #max_y = max(np.max(y_data), max_y)
-    #min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
+    # max_y = max(np.max(y_data), max_y)
+    # min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
 
     ydata = _ydata  # HACK
     xdata = _xdata  # HACK
     if transpose:
-        #xdata_list = ydata_list
+        # xdata_list = ydata_list
         ydata = xdata
 
         # Hack / Fix any transpose issues
@@ -311,12 +332,13 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
                 return 'num_x' + key[5:]
             else:
                 return key
+
         kwargs = {transpose_key(key): val for key, val in kwargs.items()}
 
     # Setup axes labeling
-    title      = kwargs.get('title', None)
-    xlabel     = kwargs.get('xlabel', '')
-    ylabel     = kwargs.get('ylabel', '')
+    title = kwargs.get('title', None)
+    xlabel = kwargs.get('xlabel', '')
+    ylabel = kwargs.get('ylabel', '')
 
     def none_or_unicode(text):
         return None if text is None else ut.ensure_unicode(text)
@@ -327,19 +349,21 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
 
     # Initial integration with mpl rcParams standards
     mplrc = mpl.rcParams.copy()
-    mplrc.update({
-        # 'legend.fontsize': custom_figure.LEGEND_SIZE,
-        # 'axes.titlesize': custom_figure.TITLE_SIZE,
-        # 'axes.labelsize': custom_figure.LABEL_SIZE,
-        # 'legend.facecolor': 'w',
-        # 'font.family': 'sans-serif',
-        # 'xtick.labelsize': custom_figure.TICK_SIZE,
-        # 'ytick.labelsize': custom_figure.TICK_SIZE,
-    })
+    mplrc.update(
+        {
+            # 'legend.fontsize': custom_figure.LEGEND_SIZE,
+            # 'axes.titlesize': custom_figure.TITLE_SIZE,
+            # 'axes.labelsize': custom_figure.LABEL_SIZE,
+            # 'legend.facecolor': 'w',
+            # 'font.family': 'sans-serif',
+            # 'xtick.labelsize': custom_figure.TICK_SIZE,
+            # 'ytick.labelsize': custom_figure.TICK_SIZE,
+        }
+    )
     mplrc.update(kwargs.get('rcParams', {}))
 
-    titlesize  = kwargs.get('titlesize',  mplrc['axes.titlesize'])
-    labelsize  = kwargs.get('labelsize',  mplrc['axes.labelsize'])
+    titlesize = kwargs.get('titlesize', mplrc['axes.titlesize'])
+    labelsize = kwargs.get('labelsize', mplrc['axes.labelsize'])
     legendsize = kwargs.get('legendsize', mplrc['legend.fontsize'])
     xticksize = kwargs.get('ticksize', mplrc['xtick.labelsize'])
     yticksize = kwargs.get('ticksize', mplrc['ytick.labelsize'])
@@ -356,14 +380,13 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight=weight,
-            family=family, size=labelsize)
+            weight=weight, family=family, size=labelsize
+        )
     }
     ax.set_xlabel(xlabel, **labelkw)
     ax.set_ylabel(ylabel, **labelkw)
 
-    tick_fontprop = mpl.font_manager.FontProperties(family=family,
-                                                    weight=weight)
+    tick_fontprop = mpl.font_manager.FontProperties(family=family, weight=weight)
 
     if tick_fontprop is not None:
         for ticklabel in ax.get_xticklabels():
@@ -393,7 +416,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     ax.xaxis.set_tick_params(**xtick_kw)
     ax.yaxis.set_tick_params(**ytick_kw)
 
-    #ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+    # ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
 
     # Setup axes limits
     if 'xlim' in kwargs:
@@ -432,15 +455,17 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     if num_xticks is not None:
         # TODO check if xdata is integral
         if ut.is_int(xdata):
-            xticks = np.linspace(np.ceil(xmin), np.floor(xmax),
-                                 num_xticks).astype(np.int32)
+            xticks = np.linspace(np.ceil(xmin), np.floor(xmax), num_xticks).astype(
+                np.int32
+            )
         else:
             xticks = np.linspace((xmin), (xmax), num_xticks)
         ax.set_xticks(xticks)
     if num_yticks is not None:
         if ut.is_int(ydata):
-            yticks = np.linspace(np.ceil(ymin), np.floor(ymax),
-                                 num_yticks).astype(np.int32)
+            yticks = np.linspace(np.ceil(ymin), np.floor(ymax), num_yticks).astype(
+                np.int32
+            )
         else:
             yticks = np.linspace((ymin), (ymax), num_yticks)
         ax.set_yticks(yticks)
@@ -465,12 +490,10 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
 
     xtick_rotation = kwargs.get('xtick_rotation', None)
     if xtick_rotation is not None:
-        [lbl.set_rotation(xtick_rotation)
-         for lbl in ax.get_xticklabels()]
+        [lbl.set_rotation(xtick_rotation) for lbl in ax.get_xticklabels()]
     ytick_rotation = kwargs.get('ytick_rotation', None)
     if ytick_rotation is not None:
-        [lbl.set_rotation(ytick_rotation)
-         for lbl in ax.get_yticklabels()]
+        [lbl.set_rotation(ytick_rotation) for lbl in ax.get_yticklabels()]
 
     # Axis padding
     xpad = kwargs.get('xpad', None)
@@ -484,16 +507,16 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     xpad = 0 if xpad is None else xpad
     ypad = 0 if ypad is None else ypad
     ypad_high = kwargs.get('ypad_high', ypad)
-    ypad_low  = kwargs.get('ypad_low', ypad)
+    ypad_low = kwargs.get('ypad_low', ypad)
     xpad_high = kwargs.get('xpad_high', xpad)
-    xpad_low  = kwargs.get('xpad_low', xpad)
+    xpad_low = kwargs.get('xpad_low', xpad)
     xmin, xmax = (xmin - xpad_low), (xmax + xpad_high)
     ymin, ymax = (ymin - ypad_low), (ymax + ypad_high)
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
 
-    xscale          = kwargs.get('xscale', None)
-    yscale          = kwargs.get('yscale', None)
+    xscale = kwargs.get('xscale', None)
+    yscale = kwargs.get('yscale', None)
     if yscale is not None:
         ax.set_yscale(yscale)
     if xscale is not None:
@@ -513,29 +536,31 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     if title is not None:
         titlekw = {
             'fontproperties': mpl.font_manager.FontProperties(
-                family=family,
-                weight=weight,
-                size=titlesize)
+                family=family, weight=weight, size=titlesize
+            )
         }
         ax.set_title(title, **titlekw)
 
-    use_legend   = kwargs.get('use_legend', 'label' in valid_keys)
-    legend_loc   = kwargs.get('legend_loc', 'best')
+    use_legend = kwargs.get('use_legend', 'label' in valid_keys)
+    legend_loc = kwargs.get('legend_loc', 'best')
     legend_alpha = kwargs.get('legend_alpha', 1.0)
     if use_legend:
         legendkw = {
             'alpha': legend_alpha,
             'fontproperties': mpl.font_manager.FontProperties(
-                family=family,
-                weight=weight,
-                size=legendsize)
+                family=family, weight=weight, size=legendsize
+            ),
         }
         df2.legend(loc=legend_loc, ax=ax, **legendkw)
 
     figtitle = kwargs.get('figtitle', None)
     if figtitle is not None:
-        pt.set_figtitle(figtitle, fontfamily=family, fontweight=weight,
-                        size=kwargs.get('figtitlesize'))
+        pt.set_figtitle(
+            figtitle,
+            fontfamily=family,
+            fontweight=weight,
+            size=kwargs.get('figtitlesize'),
+        )
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     lightbg = kwargs.get('lightbg', None)
@@ -543,7 +568,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         lightbg = not is_default_dark_bg()
     if use_darkbackground is None:
         use_darkbackground = not lightbg
-        #use_darkbackground = is_default_dark_bg()
+        # use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         pt.dark_background(force=use_darkbackground is True)
     # TODO: return better info
@@ -569,27 +594,60 @@ def demo_fonts():
         >>> pt.show_if_requested()
     """
     import matplotlib.font_manager
+
     avail_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
-    names = [matplotlib.font_manager.FontProperties(fname=fname).get_name() for fname in avail_fonts]
+    names = [
+        matplotlib.font_manager.FontProperties(fname=fname).get_name()
+        for fname in avail_fonts
+    ]
     print('avail_fonts = %s' % ut.repr4(sorted(set(names))))
 
     xdata = [1, 2, 3, 4, 5]
-    ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
-    kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
-    f = ['DejaVu Sans', 'Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
-         'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
+    ydata_list = [
+        [1, 2, 3, 4, 5],
+        [3, 3, 3, 3, 3],
+        [5, 4, np.nan, 2, 1],
+        [4, 3, np.nan, 1, 0],
+    ]
+    kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'], 'linestyle': '-'}
+    f = [
+        'DejaVu Sans',
+        'Bitstream Vera Sans',
+        'Lucida Grande',
+        'Verdana',
+        'Geneva',
+        'Lucid',
+        'Arial',
+        'Helvetica',
+        'Avant Garde',
+        'sans-serif',
+    ]
     f = ['DejaVu Sans', 'Verdana', 'Arial']
     f = ['DejaVu Sans', 'CMU Serif', 'FreeMono']
     for count, family in enumerate(f):
-        multi_plot(xdata, ydata_list, title=family + ' ΣΣΣµµµ',
-                   xlabel='\nfdsΣΣΣµµµ', fontfamily=family, fnum=count,
-                   **kwargs)
+        multi_plot(
+            xdata,
+            ydata_list,
+            title=family + ' ΣΣΣµµµ',
+            xlabel='\nfdsΣΣΣµµµ',
+            fontfamily=family,
+            fnum=count,
+            **kwargs
+        )
 
 
-def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
-                         target_label, title=None, use_legend=True,
-                         color_list=None, marker_list=None, report_max=True,
-                         **kwargs):
+def plot_multiple_scores(
+    known_nd_data,
+    known_target_points,
+    nd_labels,
+    target_label,
+    title=None,
+    use_legend=True,
+    color_list=None,
+    marker_list=None,
+    report_max=True,
+    **kwargs
+):
     r"""
     Plots nd-data in 2d using multiple contour lines
 
@@ -621,7 +679,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    assert(len(known_nd_data.T) == 2), 'cannot do more than 2 right now'
+    assert len(known_nd_data.T) == 2, 'cannot do more than 2 right now'
 
     # Put the data into a dense field grid
     nd_basis = [np.unique(arr) for arr in known_nd_data.T]
@@ -638,39 +696,61 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
     if report_max:
         # TODO: multiple max poses
         import vtool as vt
+
         maxpos_list = ydata_list.argmax(axis=1)
         max_nd0_list = nd_basis[0].take(maxpos_list)
         max_score_list = vt.ziptake(ydata_list, maxpos_list)
-        hasmultiple_max = (ydata_list == np.array(max_score_list)[:, None]).sum(axis=1) > 1
+        hasmultiple_max = (ydata_list == np.array(max_score_list)[:, None]).sum(
+            axis=1
+        ) > 1
         multiple_max_markers = ['*' if flag else '' for flag in hasmultiple_max]
 
         if nd_labels[1] is None:
             label_list = [
-                '%.2f%% %s=%r%s'
-                % (max_score, nd_labels[0], max_nd0, marker)
+                '%.2f%% %s=%r%s' % (max_score, nd_labels[0], max_nd0, marker)
                 for max_nd0, max_score, marker in zip(
-                    max_nd0_list, max_score_list, multiple_max_markers)
+                    max_nd0_list, max_score_list, multiple_max_markers
+                )
             ]
         else:
             label_list = [
                 '%.2f%% %s=%r%s - %s=%r'
                 % (max_score, nd_labels[0], max_nd0, marker, nd_labels[1], val)
                 for val, max_nd0, max_score, marker in zip(
-                    nd_basis[1], max_nd0_list, max_score_list, multiple_max_markers)
+                    nd_basis[1], max_nd0_list, max_score_list, multiple_max_markers
+                )
             ]
     else:
         label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
 
     fig = multi_plot(
-        xdata, ydata_list, label_list=label_list, markersize=10,
-        marker_list=marker_list, color_list=color_list, title=title,
-        xlabel=nd_labels[0], ylabel=target_label, **kwargs)
+        xdata,
+        ydata_list,
+        label_list=label_list,
+        markersize=10,
+        marker_list=marker_list,
+        color_list=color_list,
+        title=title,
+        xlabel=nd_labels[0],
+        ylabel=target_label,
+        **kwargs
+    )
     return fig
 
 
-def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
-                      edges=None, xlabel='', ylabel='cumfreq', use_legend=True,
-                      num_xticks=None, kind='bar', **kwargs):
+def plot_rank_cumhist(
+    cdf_list,
+    label_list,
+    color_list=None,
+    marker_list=None,
+    edges=None,
+    xlabel='',
+    ylabel='cumfreq',
+    use_legend=True,
+    num_xticks=None,
+    kind='bar',
+    **kwargs
+):
     r"""
     Plots CMC curves
     TODO rename to plot_cmc
@@ -710,10 +790,10 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
         x_data = np.arange(num_data)
     else:
         x_data = np.array(edges[1:])
-    #max_y = 0
-    #min_y = None
+    # max_y = 0
+    # min_y = None
     if True or marker_list is None:
-        #marker_list = ['o'] * num_cdfs
+        # marker_list = ['o'] * num_cdfs
         marker_list = df2.distinct_markers(num_cdfs)
     if len(x_data) > 256:
         marker_list = [None] * num_cdfs
@@ -726,23 +806,37 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
             markersize = 7
 
     multi_kw = dict(
-        linewidth=2, markeredgewidth=2, linestyle='-', markersize=markersize,
-        xlabel=xlabel, ylabel=ylabel, num_xticks=num_xticks,
+        linewidth=2,
+        markeredgewidth=2,
+        linestyle='-',
+        markersize=markersize,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        num_xticks=num_xticks,
         use_legend=use_legend,
     )
     multi_kw.update(kwargs)
 
     fig = multi_plot(
-        x_data, cdf_list,
-        kind=kind, label_list=label_list, color_list=color_list,
+        x_data,
+        cdf_list,
+        kind=kind,
+        label_list=label_list,
+        color_list=color_list,
         marker_list=marker_list,
         **multi_kw
     )
     return fig
 
 
-def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
-                            maxima_thresh=None, remove_endpoints=True, **kwargs):
+def draw_hist_subbin_maxima(
+    hist,
+    centers=None,
+    bin_colors=None,
+    maxima_thresh=None,
+    remove_endpoints=True,
+    **kwargs
+):
     r"""
     Args:
         hist (ndarray):
@@ -768,6 +862,7 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     """
     # Find maxima
     import vtool as vt
+
     maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(hist, centers, maxima_thresh)
     argmaxima = np.array(ut.ensure_iterable(argmaxima))
     maxima_y = np.array(ut.ensure_iterable(maxima_y))
@@ -792,7 +887,7 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     else:
         submaxima_x, submaxima_y = vt.interpolate_submaxima(argmaxima, hist, centers)
         # Extract parabola points
-        coeff_list =  [np.polyfit(xtup, ytup, 2) for xtup, ytup in zip(x123.T, y123.T)]
+        coeff_list = [np.polyfit(xtup, ytup, 2) for xtup, ytup in zip(x123.T, y123.T)]
         xpoints = [np.linspace(x1, x3, 50) for (x1, x2, x3) in x123.T]
         ypoints = [np.polyval(coeff, x_pts) for x_pts, coeff in zip(xpoints, coeff_list)]
 
@@ -810,15 +905,15 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     else:
         # TODO use bin_color correctly
         # Create a colormap using exact specified colors
-        #bin_cmap = mpl.colors.ListedColormap(bin_colors)
+        # bin_cmap = mpl.colors.ListedColormap(bin_colors)
         bin_cmap = plt.get_cmap('hsv')  # HACK
-        #mpl.colors.ListedColormap(bin_colors)
+        # mpl.colors.ListedColormap(bin_colors)
         colorline(centers, hist, cmap=bin_cmap)
     # Draw Submax Parabola
     for x_pts, y_pts in zip(xpoints, ypoints):
         plt.plot(x_pts, y_pts, 'y--')
     # Draw maxbin
-    plt.scatter(maxima_x,    maxima_y,    marker='o', color=linecolor,  s=50)
+    plt.scatter(maxima_x, maxima_y, marker='o', color=linecolor, s=50)
     # Draw submaxbin
     plt.scatter(submaxima_x, submaxima_y, marker='*', color='r', s=100)
     # Draw Bins
@@ -830,11 +925,18 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
         df2.dark_background()
     print('submaxima_x = %r' % (submaxima_x,))
     print('submaxima_y = %r' % (submaxima_y,))
-    #return (submaxima_x, submaxima_y)
+    # return (submaxima_x, submaxima_y)
 
 
-def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
-                    thresh_factor=None, normalize_x=True, flat=True):
+def draw_subextrema(
+    ydata,
+    xdata=None,
+    op='max',
+    bin_colors=None,
+    thresh_factor=None,
+    normalize_x=True,
+    flat=True,
+):
     r"""
     Args:
         ydata (ndarray):
@@ -862,17 +964,18 @@ def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
     """
     # Find maxima
     import vtool as vt
+
     # Hack into the source code
     locals_ = ut.exec_func_src2(vt.argsubextrema2)
 
-    x123               = locals_.get('x123', None)
-    coeff_list         = locals_['coeff_list']
-    rel_subextrema_x   = locals_['rel_subextrema_x']
-    rel_subextrema_y   = locals_['rel_subextrema_y']
-    rel_argextrema     = locals_['rel_argextrema']
+    x123 = locals_.get('x123', None)
+    coeff_list = locals_['coeff_list']
+    rel_subextrema_x = locals_['rel_subextrema_x']
+    rel_subextrema_y = locals_['rel_subextrema_y']
+    rel_argextrema = locals_['rel_argextrema']
     other_subextrema_y = locals_['other_subextrema_y']
     other_subextrema_x = locals_['other_subextrema_x']
-    thresh_value       = locals_['thresh_value']
+    thresh_value = locals_['thresh_value']
 
     # Find the original max bins of the rel_extrema
     if xdata is None:
@@ -902,9 +1005,9 @@ def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
     else:
         # TODO use bin_color correctly
         # Create a colormap using exact specified colors
-        #bin_cmap = mpl.colors.ListedColormap(bin_colors)
+        # bin_cmap = mpl.colors.ListedColormap(bin_colors)
         bin_cmap = plt.get_cmap('hsv')  # HACK
-        #mpl.colors.ListedColormap(bin_colors)
+        # mpl.colors.ListedColormap(bin_colors)
         colorline(xdata_, ydata, cmap=bin_cmap)
     # Draw Submax Parabola
     for x_pts, y_pts in zip(xpoints, ypoints):
@@ -913,7 +1016,7 @@ def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
     # Draw flat extrema
     plt.scatter(other_subextrema_x, other_subextrema_y, marker='*', color='r', s=100)
     # Draw maxbin relative extrema
-    plt.scatter(rel_extrema_x,    rel_extrema_y,    marker='o', color='k',  s=50)
+    plt.scatter(rel_extrema_x, rel_extrema_y, marker='o', color='k', s=50)
     # Draw relative sub-extrema
     plt.scatter(rel_subextrema_x, rel_subextrema_y, marker='*', color='r', s=100)
     # Draw Bins
@@ -966,19 +1069,21 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
         >>> pt.show_if_requested()
 
     """
-    from matplotlib.transforms import (
-        Bbox, TransformedBbox, blended_transform_factory)
+    from matplotlib.transforms import Bbox, TransformedBbox, blended_transform_factory
 
     from mpl_toolkits.axes_grid1.inset_locator import (
-        BboxPatch, BboxConnector, BboxConnectorPatch)
+        BboxPatch,
+        BboxConnector,
+        BboxConnectorPatch,
+    )
 
-    def connect_bbox(bbox1, bbox2,
-                     loc1a, loc2a, loc1b, loc2b,
-                     prop_lines, prop_patches=None):
+    def connect_bbox(
+        bbox1, bbox2, loc1a, loc2a, loc1b, loc2b, prop_lines, prop_patches=None
+    ):
         if prop_patches is None:
             prop_patches = prop_lines.copy()
-            prop_patches['alpha'] = prop_patches.get('alpha', 1) * .01  # * 0.05
-        prop_patches['alpha'] = .1
+            prop_patches['alpha'] = prop_patches.get('alpha', 1) * 0.01  # * 0.05
+        prop_patches['alpha'] = 0.1
 
         c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
         c1.set_clip_on(False)
@@ -988,10 +1093,16 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
         bbox_patch1 = BboxPatch(bbox1, **prop_patches)
         bbox_patch2 = BboxPatch(bbox2, **prop_patches)
 
-        p = BboxConnectorPatch(bbox1, bbox2,
-                               #loc1a=3, loc2a=2, loc1b=4, loc2b=1,
-                               loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
-                               **prop_patches)
+        p = BboxConnectorPatch(
+            bbox1,
+            bbox2,
+            # loc1a=3, loc2a=2, loc1b=4, loc2b=1,
+            loc1a=loc1a,
+            loc2a=loc2a,
+            loc1b=loc1b,
+            loc2b=loc2b,
+            **prop_patches
+        )
         p.set_clip_on(False)
 
         return c1, c2, bbox_patch1, bbox_patch2, p
@@ -1008,10 +1119,16 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
     prop_patches['ec'] = 'none'
     prop_patches['alpha'] = 0.2
 
-    (c1, c2, bbox_patch1, bbox_patch2, p) = \
-        connect_bbox(mybbox1, mybbox2,
-                     loc1a=3, loc2a=2, loc1b=4, loc2b=1,
-                     prop_lines=kwargs, prop_patches=prop_patches)
+    (c1, c2, bbox_patch1, bbox_patch2, p) = connect_bbox(
+        mybbox1,
+        mybbox2,
+        loc1a=3,
+        loc2a=2,
+        loc1b=4,
+        loc2b=1,
+        prop_lines=kwargs,
+        prop_patches=prop_patches,
+    )
 
     ax1.add_patch(bbox_patch1)
     ax2.add_patch(bbox_patch2)
@@ -1021,12 +1138,19 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
 
     return c1, c2, bbox_patch1, bbox_patch2, p
 
+
 # Interface to LineCollection:
 
 
-def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'),
-              norm=plt.Normalize(0.0, 1.0),
-              linewidth=1, alpha=1.0):
+def colorline(
+    x,
+    y,
+    z=None,
+    cmap=plt.get_cmap('hsv'),
+    norm=plt.Normalize(0.0, 1.0),
+    linewidth=1,
+    alpha=1.0,
+):
     """
     Plot a colored line with coordinates x and y
     Optionally specify colors in the array z
@@ -1077,13 +1201,15 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'),
         z = np.linspace(0.0, 1.0, len(x))
 
     # Special case if a single number:
-    if not hasattr(z, "__iter__"):  # to check for numerical input -- this is a hack
+    if not hasattr(z, '__iter__'):  # to check for numerical input -- this is a hack
         z = np.array([z])
 
     z = np.asarray(z)
 
     segments = make_segments(x, y)
-    lc = LineCollection(segments, array=z, cmap=cmap, norm=norm, linewidth=linewidth, alpha=alpha)
+    lc = LineCollection(
+        segments, array=z, cmap=cmap, norm=norm, linewidth=linewidth, alpha=alpha
+    )
 
     ax = plt.gca()
     ax.add_collection(lc)
@@ -1116,26 +1242,28 @@ def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1), **kwargs):
         df2.dark_background()
 
     # pt.set_figtitle('plot_stems')
-    #df2.legend(loc='upper left')
+    # df2.legend(loc='upper left')
     df2.legend(loc='best')
     df2.iup()
 
 
-def plot_score_histograms(scores_list,
-                          score_lbls=None,
-                          score_markers=None,
-                          score_colors=None,
-                          markersizes=None,
-                          fnum=None,
-                          pnum=(1, 1, 1),
-                          title=None,
-                          score_label='score',
-                          score_thresh=None,
-                          overlay_prob_given_list=None,
-                          overlay_score_domain=None,
-                          logscale=False,
-                          histnorm=False,
-                          **kwargs):
+def plot_score_histograms(
+    scores_list,
+    score_lbls=None,
+    score_markers=None,
+    score_colors=None,
+    markersizes=None,
+    fnum=None,
+    pnum=(1, 1, 1),
+    title=None,
+    score_label='score',
+    score_thresh=None,
+    overlay_prob_given_list=None,
+    overlay_score_domain=None,
+    logscale=False,
+    histnorm=False,
+    **kwargs
+):
     r"""
     Accumulates scores into histograms and plots them
 
@@ -1161,6 +1289,7 @@ def plot_score_histograms(scores_list,
         >>> print(result)
     """
     import wbia.plottool as pt
+
     if isinstance(scores_list, np.ndarray):
         if len(scores_list.shape) == 1:
             scores_list = [scores_list]
@@ -1179,15 +1308,16 @@ def plot_score_histograms(scores_list,
         score_colors = pt.distinct_colors(len(scores_list))[::-1]
     if markersizes is None:
         markersizes = [12 / (1.0 + lblx) for lblx in range(len(scores_list))]
-    #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
+    # labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
 
     # append amount of support
-    score_lbls_ = ['%s %d' % (lbl, len(ydata),) for lbl, ydata in
-                   zip(score_lbls, scores_list)]
+    score_lbls_ = [
+        '%s %d' % (lbl, len(ydata),) for lbl, ydata in zip(score_lbls, scores_list)
+    ]
 
     # References:
     # stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram-for-n-where-n-ranges-from-30
-    #bandwidth = diff(range(x)) / (2 * IQR(x) / length(x) ^ (1 / 3)))
+    # bandwidth = diff(range(x)) / (2 * IQR(x) / length(x) ^ (1 / 3)))
 
     if fnum is None:
         fnum = pt.next_fnum()
@@ -1216,9 +1346,9 @@ def plot_score_histograms(scores_list,
     if bin_width is not None:
         total_min = np.floor(min([min(scores) for scores in scores_list]))
         total_max = np.ceil(max([max(scores) for scores in scores_list]))
-        #ave_diff = np.mean(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
-        #std_diff = np.std(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
-        #(total_max - total_min) / bin_width
+        # ave_diff = np.mean(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
+        # std_diff = np.std(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
+        # (total_max - total_min) / bin_width
         num_bins = kwargs.get('num_bins', None)
         total_min = min(0, total_min)  # HACK
         bins = make_bins(bin_width, total_min, total_max, num_bins)
@@ -1239,7 +1369,9 @@ def plot_score_histograms(scores_list,
         # width = bin_width
         # import utool
         # utool.embed()
-        bin_list = [make_bins2(bin_width, scores.min(), scores.max()) for scores in scores_list]
+        bin_list = [
+            make_bins2(bin_width, scores.min(), scores.max()) for scores in scores_list
+        ]
     # else:
     #     import scipy as sp
     #     sortscores = np.sort(np.hstack(scores_list))
@@ -1264,7 +1396,7 @@ def plot_score_histograms(scores_list,
     xdata_list = []
     width_list = []
     for lblx in list(range(len(scores_list))):
-        #marker = score_markers[lblx]
+        # marker = score_markers[lblx]
         data = scores_list[lblx]
         bins = bin_list[lblx]
 
@@ -1314,9 +1446,11 @@ def plot_score_histograms(scores_list,
             _n_max = max(_n_max, _n.max())
             _bin_max = max(_bin_max, max(_bins))
         except Exception as ex:
-            ut.printex(ex, 'probably gave negative scores', keys=[
-                'bins', 'data', 'total_min'])
+            ut.printex(
+                ex, 'probably gave negative scores', keys=['bins', 'data', 'total_min']
+            )
             import utool
+
             utool.embed()
             raise
 
@@ -1330,11 +1464,23 @@ def plot_score_histograms(scores_list,
         # New multiplot way
         # if bin_width is None:
         #     bin_width = np.mean(np.diff(bins))  # FIXME: variable widths
-        pt.multi_plot(xdata_list, freq_list, label_list=score_lbls_, fnum=fnum,
-                      color_list=score_colors, pnum=pnum, kind='bar',
-                      width_list=width_list, alpha=.7, stacked=True,
-                      edgecolor='none', xlabel=score_label, ylabel=histnorm,
-                      title=title, xlim=kwargs.get('xlim', None))
+        pt.multi_plot(
+            xdata_list,
+            freq_list,
+            label_list=score_lbls_,
+            fnum=fnum,
+            color_list=score_colors,
+            pnum=pnum,
+            kind='bar',
+            width_list=width_list,
+            alpha=0.7,
+            stacked=True,
+            edgecolor='none',
+            xlabel=score_label,
+            ylabel=histnorm,
+            title=title,
+            xlim=kwargs.get('xlim', None),
+        )
 
     ax = df2.gca()
 
@@ -1358,14 +1504,14 @@ def plot_score_histograms(scores_list,
         # set_logyscale_from_data(sorted(ut.flatten(scores_list)))
 
     if overlay_score_domain is not None:
-        ax  = df2.gca()
+        ax = df2.gca()
         p_max = max([prob.max() for prob in overlay_prob_given_list])
         scale_factor = _n_max / p_max
         for lblx in list(range(len(scores_list))):
             color = score_colors[lblx]
             p_given_lbl = overlay_prob_given_list[lblx]
             p_given_lbl_norm = p_given_lbl * scale_factor
-            #/ p_given_lbl.max()
+            # / p_given_lbl.max()
             flags = overlay_score_domain < _bin_max
             overlay_score_domain_clip = overlay_score_domain[flags]
             p_given_lbl_norm_clip = p_given_lbl_norm[flags]
@@ -1382,17 +1528,19 @@ def plot_score_histograms(scores_list,
     df2.legend(loc='best', size=size)
 
 
-def plot_probabilities(prob_list,
-                       prob_lbls=None,
-                       prob_colors=None,
-                       xdata=None,
-                       prob_thresh=None,
-                       score_thresh=None,
-                       figtitle='plot_probabilities',
-                       fnum=None,
-                       pnum=(1, 1, 1),
-                       fill=False,
-                       **kwargs):
+def plot_probabilities(
+    prob_list,
+    prob_lbls=None,
+    prob_colors=None,
+    xdata=None,
+    prob_thresh=None,
+    score_thresh=None,
+    figtitle='plot_probabilities',
+    fnum=None,
+    pnum=(1, 1, 1),
+    fill=False,
+    **kwargs
+):
     """
     Input: a list of scores (either chip or descriptor)
 
@@ -1448,10 +1596,21 @@ def plot_probabilities(prob_list,
         fnum = df2.next_fnum()
 
     # df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
-    multi_plot(xdata, prob_list, label_list=prob_lbls, color_list=prob_colors,
-               alpha=.7, fnum=fnum, pnum=pnum, fill=fill,
-               marker='', xlabel='score value', ylabel='probability',
-               title=figtitle, use_legend=False)
+    multi_plot(
+        xdata,
+        prob_list,
+        label_list=prob_lbls,
+        color_list=prob_colors,
+        alpha=0.7,
+        fnum=fnum,
+        pnum=pnum,
+        fill=fill,
+        marker='',
+        xlabel='score value',
+        ylabel='probability',
+        title=figtitle,
+        use_legend=False,
+    )
 
     if prob_thresh is not None:
         df2.plt.plot(xdata, [prob_thresh] * len(xdata), 'g-', label='prob thresh')
@@ -1460,8 +1619,12 @@ def plot_probabilities(prob_list,
         ydata_min = min([_ydata.min() for _ydata in prob_list])
         ydata_max = max([_ydata.max() for _ydata in prob_list])
         ydomain = np.linspace(ydata_min, ydata_max, 10)
-        df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-',
-                     label='score thresh=%.2f' % (score_thresh,))
+        df2.plt.plot(
+            [score_thresh] * len(ydomain),
+            ydomain,
+            'g-',
+            label='score thresh=%.2f' % (score_thresh,),
+        )
     ax = df2.gca()
     if kwargs.get('remove_yticks', False):
         ax.set_yticks([])
@@ -1476,19 +1639,21 @@ plot_probs = plot_probabilities
 plot_densities = plot_probabilities
 
 
-def plot_sorted_scores(scores_list,
-                       score_lbls=None,
-                       score_markers=None,
-                       score_colors=None,
-                       markersizes=None,
-                       fnum=None,
-                       pnum=(1, 1, 1),
-                       logscale=True,
-                       figtitle=None,
-                       score_label='score',
-                       thresh=None,
-                       use_stems=None,
-                       **kwargs):
+def plot_sorted_scores(
+    scores_list,
+    score_lbls=None,
+    score_markers=None,
+    score_colors=None,
+    markersizes=None,
+    fnum=None,
+    pnum=(1, 1, 1),
+    logscale=True,
+    figtitle=None,
+    score_label='score',
+    thresh=None,
+    use_stems=None,
+    **kwargs
+):
     r"""
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
@@ -1540,8 +1705,8 @@ def plot_sorted_scores(scores_list,
     if markersizes is None:
         markersizes = [12 / (1.0 + lblx) for lblx in range(len(scores_list))]
     labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
-    agg_scores  = np.hstack(scores_list)
-    agg_labelx  = np.hstack(labelx_list)
+    agg_scores = np.hstack(scores_list)
+    agg_labelx = np.hstack(labelx_list)
 
     agg_sortx = agg_scores.argsort()
 
@@ -1560,12 +1725,14 @@ def plot_sorted_scores(scores_list,
         ymax = sorted_scores.max()
         absolute_bottom = sorted_scores.min()
         for lblx in range(len(scores_list)):
-            bottom = (absolute_bottom - (ymax * .1)) if lblx % 2 == 1 else ymax
+            bottom = (absolute_bottom - (ymax * 0.1)) if lblx % 2 == 1 else ymax
             color = score_colors[lblx]
             xdata = np.where(sorted_labelx == lblx)[0]
             ydata = sorted_scores[xdata]
             # TODO: stems for binary labels
-            df2.draw_stems(xdata, ydata, setlims=False, color=color, markersize=0, bottom=bottom)
+            df2.draw_stems(
+                xdata, ydata, setlims=False, color=color, markersize=0, bottom=bottom
+            )
             pass
 
     # Plot each datapoint on a line
@@ -1576,15 +1743,26 @@ def plot_sorted_scores(scores_list,
         markersize = markersizes[lblx]
         xdata = np.where(sorted_labelx == lblx)[0]
         ydata = sorted_scores[xdata]
-        #printDBG('[sorted_scores] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
-        df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7,
-                 markersize=markersize)
+        # printDBG('[sorted_scores] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
+        df2.plot(
+            xdata,
+            ydata,
+            marker,
+            color=color,
+            label=label,
+            alpha=0.7,
+            markersize=markersize,
+        )
 
     if thresh is not None:
         indicies = np.arange(len(sorted_labelx))
-        #print('indicies.shape = %r' % (indicies.shape,))
-        df2.plot(indicies, [thresh] * len(indicies), 'g-',
-                 label=score_label + ' thresh=%.2f' % (thresh,))
+        # print('indicies.shape = %r' % (indicies.shape,))
+        df2.plot(
+            indicies,
+            [thresh] * len(indicies),
+            'g-',
+            label=score_label + ' thresh=%.2f' % (thresh,),
+        )
 
     if logscale:
         # DEPRICATE
@@ -1596,10 +1774,11 @@ def plot_sorted_scores(scores_list,
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', mpl.rcParams['axes.labelsize']))
+            weight='light', size=kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
+        )
     }
 
-    ax.set_xlabel('sorted individual ' +  score_label + ' indices', **labelkw)
+    ax.set_xlabel('sorted individual ' + score_label + ' indices', **labelkw)
     ax.set_ylabel(score_label, **labelkw)
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
@@ -1610,15 +1789,15 @@ def plot_sorted_scores(scores_list,
     titlesize = kwargs.get('titlesize', mpl.rcParams['axes.titlesize'])
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            family='DejaVu Sans',
-            weight='light', size=titlesize)
+            family='DejaVu Sans', weight='light', size=titlesize
+        )
     }
     ax.set_title(figtitle, **titlekw)
-    #df2.legend(loc='upper left')
+    # df2.legend(loc='upper left')
     size = kwargs.get('legendsize', mpl.rcParams['legend.fontsize'])
     df2.legend(loc='best', size=kwargs.get('legendsize', size))
-    #df2.legend(loc='best')
-    #df2.iup()
+    # df2.legend(loc='best')
+    # df2.iup()
 
 
 def set_logyscale_from_data(y_data):
@@ -1652,17 +1831,13 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
     try:
         nStdDevs = np.abs(dy_sorted - dy_stats['mean']) / dy_stats['std']
     except Exception as ex:
-        ut.printex(ex, key_list=[
-            'dy_stats',
-            (len, 'y_data'),
-            'y_data',
-        ])
+        ut.printex(ex, key_list=['dy_stats', (len, 'y_data'), 'y_data',])
         raise
     # Mark any above a threshold as knee points
     knee_indexes = np.where(nStdDevs > nStdDevs_thresh)[0]
     knee_mag = nStdDevs[knee_indexes]
     knee_points = dy_sortx[knee_indexes]
-    #printDBG('[df2] knee_points = %r' % (knee_points,))
+    # printDBG('[df2] knee_points = %r' % (knee_points,))
     # Check to see that we have found a knee
     if len(knee_points) > 0 and adaptive_knee_scaling:
         # Use linear scaling up the the knee points and
@@ -1672,8 +1847,8 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
         linthreshy = y_data[linthreshx] * basey
         linscaley = min(2, max(1, (knee_mag[kneex] / (basey * 2))))
     else:
-        linthreshx = 1E2
-        linthreshy = 1E2
+        linthreshx = 1e2
+        linthreshy = 1e2
         linscaley = 1
     logscale_kwargs = {
         'basey': basey,
@@ -1684,12 +1859,11 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
         'linscalex': 1,
         'linscaley': linscaley,
     }
-    #print(logscale_kwargs)
+    # print(logscale_kwargs)
     return logscale_kwargs
 
 
-def plot_pdf(data, draw_support=True, scale_to=None, label=None, color=0,
-             nYTicks=3):
+def plot_pdf(data, draw_support=True, scale_to=None, label=None, color=0, nYTicks=3):
     fig = df2.gcf()
     ax = df2.gca()
     data = np.array(data)
@@ -1703,7 +1877,7 @@ def plot_pdf(data, draw_support=True, scale_to=None, label=None, color=0,
         warnings.warn(warnstr)
         df2.draw_text(warnstr)
         return
-    bw_factor = .05
+    bw_factor = 0.05
     if isinstance(color, (int, float)):
         colorx = color
         line_color = plt.get_cmap('gist_rainbow')(colorx)
@@ -1722,12 +1896,12 @@ def plot_pdf(data, draw_support=True, scale_to=None, label=None, color=0,
         scale_factor = scale_to / y_data.max()
         y_data *= scale_factor
         prob_x *= scale_factor
-    #Plot the actual datas on near the bottom perterbed in Y
+    # Plot the actual datas on near the bottom perterbed in Y
     if draw_support:
         pdfrange = prob_x.max() - prob_x.min()
-        perb   = (np.random.randn(len(data))) * pdfrange / 30.
-        preb_y_data = np.abs([pdfrange / 50. for _ in data] + perb)
-        ax.plot(data, preb_y_data, 'o', color=line_color, figure=fig, alpha=.1)
+        perb = (np.random.randn(len(data))) * pdfrange / 30.0
+        preb_y_data = np.abs([pdfrange / 50.0 for _ in data] + perb)
+        ax.plot(data, preb_y_data, 'o', color=line_color, figure=fig, alpha=0.1)
     # Plot the pdf (unseen data)
     ax.plot(x_data, y_data, color=line_color, label=label)
     if nYTicks is not None:
@@ -1747,8 +1921,9 @@ def estimate_pdf(data, bw_factor):
     return data_pdf
 
 
-def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
-                        y_label='', title=''):
+def interval_stats_plot(
+    param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='', y_label='', title=''
+):
     r"""
 
     interval plot for displaying mean, range, and std
@@ -1787,46 +1962,56 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     if fnum is None:
         fnum = df2.next_fnum()
     import six
+
     x_data = np.array(list(six.iterkeys(param2_stat_dict)))
     sortx = x_data.argsort()
     x_data_sort = x_data[sortx]
     from matplotlib import pyplot as plt
+
     # Prepare y data for boxplot
     y_data_keys = ['std', 'mean', 'max', 'min']
     y_data_dict = list(six.itervalues(param2_stat_dict))
 
     def get_dictlist_key(dict_list, key):
         return [dict_[key] for dict_ in dict_list]
+
     y_data_components = [get_dictlist_key(y_data_dict, key) for key in y_data_keys]
     # The stacking is pretty much not needed anymore, but whatever
     y_data_sort = np.vstack(y_data_components)[:, sortx]
-    y_data_std_sort  = y_data_sort[0]
+    y_data_std_sort = y_data_sort[0]
     y_data_mean_sort = y_data_sort[1]
-    y_data_max_sort  = y_data_sort[2]
-    y_data_min_sort  = y_data_sort[3]
-    y_data_stdlow_sort  = y_data_mean_sort - y_data_std_sort
+    y_data_max_sort = y_data_sort[2]
+    y_data_min_sort = y_data_sort[3]
+    y_data_stdlow_sort = y_data_mean_sort - y_data_std_sort
     y_data_stdhigh_sort = y_data_mean_sort + y_data_std_sort
     FIX_STD_SYMETRY = True
     if FIX_STD_SYMETRY:
         # Standard deviation is symetric where min and max are not.
         # To avoid weird looking plots clip the stddev fillbetweens
         # at the min and max
-        #ut.embed()
-        outlier_min_std = y_data_stdlow_sort  < y_data_min_sort
+        # ut.embed()
+        outlier_min_std = y_data_stdlow_sort < y_data_min_sort
         outlier_max_std = y_data_stdhigh_sort > y_data_max_sort
-        y_data_stdlow_sort[outlier_min_std]  =  y_data_min_sort[outlier_min_std]
-        y_data_stdhigh_sort[outlier_max_std] =  y_data_max_sort[outlier_max_std]
+        y_data_stdlow_sort[outlier_min_std] = y_data_min_sort[outlier_min_std]
+        y_data_stdhigh_sort[outlier_max_std] = y_data_max_sort[outlier_max_std]
     # Make firgure
     fig = df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
     ax = plt.gca()
     # Plot max and mins
-    ax.fill_between(x_data_sort, y_data_min_sort, y_data_max_sort, alpha=.2,
-                    color='g', label='range')
-    df2.append_phantom_legend_label('range', 'g', alpha=.2)
+    ax.fill_between(
+        x_data_sort, y_data_min_sort, y_data_max_sort, alpha=0.2, color='g', label='range'
+    )
+    df2.append_phantom_legend_label('range', 'g', alpha=0.2)
     # Plot standard deviations
-    ax.fill_between(x_data_sort, y_data_stdlow_sort, y_data_stdhigh_sort,
-                    alpha=.4, color='b', label='std')
-    df2.append_phantom_legend_label('std', 'b', alpha=.4)
+    ax.fill_between(
+        x_data_sort,
+        y_data_stdlow_sort,
+        y_data_stdhigh_sort,
+        alpha=0.4,
+        color='b',
+        label='std',
+    )
+    df2.append_phantom_legend_label('std', 'b', alpha=0.4)
     # Plot means
     ax.plot(x_data_sort, y_data_mean_sort, 'o-', color='b', label='mean')
     df2.append_phantom_legend_label('mean', 'b', 'line')
@@ -1835,12 +2020,13 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     ax.set_ylabel(y_label)
     ax.set_title(title)
     return fig
-    #df2.dark_background()
-    #plt.show()
+    # df2.dark_background()
+    # plt.show()
 
 
-def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0],
-                       label=None, marker='o', linestyle='-'):
+def interval_line_plot(
+    xdata, ydata_mean, y_data_std, color=[1, 0, 0], label=None, marker='o', linestyle='-'
+):
     r"""
     Args:
         xdata (ndarray):
@@ -1870,13 +2056,22 @@ def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0],
     y_data_max = ydata_mean + y_data_std
     y_data_min = ydata_mean - y_data_std
     ax = df2.gca()
-    ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=color)
-    ax.plot(xdata, ydata_mean, marker=marker, color=color, label=label, linestyle=linestyle)
+    ax.fill_between(xdata, y_data_min, y_data_max, alpha=0.2, color=color)
+    ax.plot(
+        xdata, ydata_mean, marker=marker, color=color, label=label, linestyle=linestyle
+    )
     return
 
 
-def plot_search_surface(known_nd_data, known_target_points, nd_labels,
-                        target_label, fnum=None, pnum=None, title=None):
+def plot_search_surface(
+    known_nd_data,
+    known_target_points,
+    nd_labels,
+    target_label,
+    fnum=None,
+    pnum=None,
+    title=None,
+):
     r"""
     3D Function
 
@@ -1906,18 +2101,22 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
     """
     import wbia.plottool as pt
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
+
     fnum = pt.ensure_fnum(fnum)
     print('fnum = %r' % (fnum,))
-    #pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None, projection='3d')
+    # pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None, projection='3d')
     pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None)
 
     # Convert our non-uniform grid into a uniform grid using gcd
     def compute_interpolation_grid(known_nd_data, pad_steps=0):
         """ use gcd to get the number of steps to take in each dimension """
         import fractions
-        ug_steps = [reduce(fractions.gcd, np.unique(x_).tolist()) for x_ in known_nd_data.T]
-        ug_min   = known_nd_data.min(axis=0)
-        ug_max   = known_nd_data.max(axis=0)
+
+        ug_steps = [
+            reduce(fractions.gcd, np.unique(x_).tolist()) for x_ in known_nd_data.T
+        ]
+        ug_min = known_nd_data.min(axis=0)
+        ug_max = known_nd_data.max(axis=0)
         ug_basis = [
             np.arange(min_ - (step_ * pad_steps), max_ + (step_ * (pad_steps + 1)), step_)
             for min_, max_, step_ in zip(ug_min, ug_max, ug_steps)
@@ -1932,14 +2131,14 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
         References:
             docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html
         """
-        #method = 'cubic'  # {'linear', 'nearest', 'cubic'}
+        # method = 'cubic'  # {'linear', 'nearest', 'cubic'}
         method = 'linear'  # {'linear', 'nearest', 'cubic'}
         import scipy as sp
-        interpolated_targets = sp.interpolate.griddata(known_nd_data,
-                                                       known_target_points,
-                                                       unknown_nd_data,
-                                                       method=method)
-        #interpolated_targets[np.isnan(interpolated_targets)] = known_target_points.max() * 2
+
+        interpolated_targets = sp.interpolate.griddata(
+            known_nd_data, known_target_points, unknown_nd_data, method=method
+        )
+        # interpolated_targets[np.isnan(interpolated_targets)] = known_target_points.max() * 2
         interpolated_targets[np.isnan(interpolated_targets)] = known_target_points.min()
         return interpolated_targets
 
@@ -1951,13 +2150,19 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
         ax = pt.gca()
         if len(known_nd_data.T) == 2:
             ax.set_xlabel(
-                nd_labels[0] + ' (const:' + nd_labels[1] + '=%r)' % (known_nd_data.T[1][0],))
+                nd_labels[0]
+                + ' (const:'
+                + nd_labels[1]
+                + '=%r)' % (known_nd_data.T[1][0],)
+            )
         else:
             ax.set_xlabel(nd_labels[0])
         ax.set_ylabel(target_label)
     else:
         unknown_nd_data, ug_shape = compute_interpolation_grid(known_nd_data, 0 * 5)
-        interpolated_error = interpolate_error(known_nd_data, known_target_points, unknown_nd_data)
+        interpolated_error = interpolate_error(
+            known_nd_data, known_target_points, unknown_nd_data
+        )
 
         label_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
         title_fontprop = mpl.font_manager.FontProperties(weight='light', size=10)
@@ -1975,34 +2180,37 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
             zlabel=target_label,
             labelkw=labelkw,
             titlekw=titlekw,
-            rstride=1, cstride=1,
+            rstride=1,
+            cstride=1,
             pnum=pnum,
-            #cmap=pt.plt.get_cmap('jet'),
+            # cmap=pt.plt.get_cmap('jet'),
             cmap=pt.plt.get_cmap('coolwarm'),
-            #wire=True,
-            #mode='wire',
+            # wire=True,
+            # mode='wire',
             title=title,
             mode='surface',
-            alpha=.7,
+            alpha=0.7,
             contour=True,
-            #mode='contour',
-            #norm=pt.mpl.colors.Normalize(0, 1),
-            #shade=False,
-            #dark=False,
+            # mode='contour',
+            # norm=pt.mpl.colors.Normalize(0, 1),
+            # shade=False,
+            # dark=False,
         )
-        #ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=100, c=pt.YELLOW)
-        ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=10, c=pt.YELLOW)
+        # ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=100, c=pt.YELLOW)
+        ax.scatter(
+            known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=10, c=pt.YELLOW
+        )
         ax.set_aspect('auto')
-        #given_data_dims = [0]
-        #assert len(given_data_dims) == 1, 'can only plot 1 given data dim'
-        #xdim = given_data_dims[0]
-        #xdim = 0
-        #ydim = (xdim + 1) % (len(known_nd_data.T))
-        #known_nd_min = known_nd_data.min(axis=0)
-        #known_nd_max = known_nd_data.max(axis=0)
-        #xmin, xmax = known_nd_min[xdim], known_nd_max[xdim]
-        #ymin, ymax = known_nd_min[ydim], known_nd_max[ydim]
-        #zmin, zmax = known_target_points.min(), known_target_points.max()
+        # given_data_dims = [0]
+        # assert len(given_data_dims) == 1, 'can only plot 1 given data dim'
+        # xdim = given_data_dims[0]
+        # xdim = 0
+        # ydim = (xdim + 1) % (len(known_nd_data.T))
+        # known_nd_min = known_nd_data.min(axis=0)
+        # known_nd_max = known_nd_data.max(axis=0)
+        # xmin, xmax = known_nd_min[xdim], known_nd_max[xdim]
+        # ymin, ymax = known_nd_min[ydim], known_nd_max[ydim]
+        # zmin, zmax = known_target_points.min(), known_target_points.max()
 
         ##ax.set_xlim(xmin, xmax * 1.05)
         ##ax.set_ylim(ymin, ymax * 1.05)
@@ -2016,11 +2224,11 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
             label.set_fontsize(6)
         for label in ax.get_zticklabels():
             label.set_fontsize(6)
-        #import matplotlib.ticker as mtick
-        #ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
-        #ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
-        #ax.xaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
-        #ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+        # import matplotlib.ticker as mtick
+        # ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
+        # ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+        # ax.xaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+        # ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
     return ax
 
 
@@ -2047,6 +2255,7 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
         >>> pt.show_if_requested()
     """
     import datetime
+
     xdata = timedeltas[~np.isnan(timedeltas)]
     numnan = len(timedeltas) - len(xdata)
     max_time = xdata.max()
@@ -2059,13 +2268,15 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
             datetime.timedelta(days=1).total_seconds(),
             datetime.timedelta(weeks=1).total_seconds(),
             datetime.timedelta(days=356).total_seconds(),
-            #np.inf,
+            # np.inf,
             max(datetime.timedelta(days=356 * 10).total_seconds(), max_time + 1),
         ]
 
     freq = np.histogram(xdata, bins)[0]
-    timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True)
-                      for b in bins]
+    timedelta_strs = [
+        ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True)
+        for b in bins
+    ]
     bin_labels = [ll + ' - ' + h for ll, h in ut.iter_window(timedelta_strs)]
     bin_labels[-1] = '> 1 year'
     bin_labels[0] = '< 1 minute'
@@ -2086,19 +2297,24 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
     colors = pt.distinct_colors(len(bin_labels))
     if WITH_NAN:
         colors[-1] = pt.GRAY
-    #xints = np.arange(len(bin_labels))
+    # xints = np.arange(len(bin_labels))
 
     pt.figure(fnum=fnum, pnum=pnum)
     mask = freq > 0
-    masked_freq   = freq.compress(mask, axis=0)
+    masked_freq = freq.compress(mask, axis=0)
     size = masked_freq.sum()
-    masked_lbls   = ut.compress(bin_labels, mask)
+    masked_lbls = ut.compress(bin_labels, mask)
     masked_colors = ut.compress(colors, mask)
     explode = [0] * len(masked_freq)
-    masked_percent = (masked_freq * 100 / size)
-    pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%',
-               labels=masked_lbls, colors=masked_colors)
-    #ax = pt.gca()
+    masked_percent = masked_freq * 100 / size
+    pt.plt.pie(
+        masked_percent,
+        explode=explode,
+        autopct='%1.1f%%',
+        labels=masked_lbls,
+        colors=masked_colors,
+    )
+    # ax = pt.gca()
     pt.set_xlabel(label + '\nsize=%d' % (size,))
     pt.gca().set_aspect('equal')
 
@@ -2127,6 +2343,7 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
         >>> pt.show_if_requested()
     """
     import wbia.plottool as pt
+
     text_hist = ut.dict_hist(text_list, weight_list=weight_list)
     text_vals = list(text_hist.values())
     sortx = ut.list_argsort(text_vals)[::-1]
@@ -2134,7 +2351,7 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
     freq = np.array(ut.take(text_vals, sortx))
     xints = np.arange(len(bin_labels))
 
-    width = .95
+    width = 0.95
     ymax = freq.max() if len(freq) > 0 else 0
 
     if len(freq) == 0:
@@ -2142,56 +2359,79 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
     else:
         freq_max = freq.max()
 
-    color = plt.cm.get_cmap('inferno')((freq / freq_max) * .6 + .3)
-    pt.multi_plot(xints, [freq], xpad=0, ypad_high=.5,
-                  #kind='plot',
-                  kind='bar',
-                  color=color,
-                  width=width,
-                  #xtick_rotation=90,
-                  #num_yticks=ymax + 1,
-                  xticklabels=bin_labels, xmin=-1, xmax=len(xints),
-                  transpose=True,
-                  ymax=ymax,
-                  ylabel='Freq',
-                  xlabel=kwargs.pop('xlabel', 'Word'),
-                  **kwargs)
-    #ax.autofmt_xdate()
-    #plt.setp(plt.xticks()[1], rotation=30, ha='right')
-    #pt.gcf().autofmt_xdate()
+    color = plt.cm.get_cmap('inferno')((freq / freq_max) * 0.6 + 0.3)
+    pt.multi_plot(
+        xints,
+        [freq],
+        xpad=0,
+        ypad_high=0.5,
+        # kind='plot',
+        kind='bar',
+        color=color,
+        width=width,
+        # xtick_rotation=90,
+        # num_yticks=ymax + 1,
+        xticklabels=bin_labels,
+        xmin=-1,
+        xmax=len(xints),
+        transpose=True,
+        ymax=ymax,
+        ylabel='Freq',
+        xlabel=kwargs.pop('xlabel', 'Word'),
+        **kwargs
+    )
+    # ax.autofmt_xdate()
+    # plt.setp(plt.xticks()[1], rotation=30, ha='right')
+    # pt.gcf().autofmt_xdate()
 
 
 def draw_time_histogram(unixtime_list, **kwargs):
     import wbia.plottool as pt
+
     freq, bins = np.histogram(unixtime_list, bins=30)
 
-    #meanshift = sklearn.cluster.MeanShift()
-    #meanshift.fit(unixtime_list)
+    # meanshift = sklearn.cluster.MeanShift()
+    # meanshift.fit(unixtime_list)
 
     bin_labels = [ut.unixtime_to_datetimeobj(b).strftime('%Y/%m/%d') for b in bins]
     xints = np.arange(len(bin_labels))
     freq_list = [np.array(freq, dtype=np.int)]
-    width = .95
+    width = 0.95
 
-    #num_yticks = 1 + max([
+    # num_yticks = 1 + max([
     #    _freq.max() if len(_freq) > 0 else 0
     #    for _freq in freq_list])
-    pt.multi_plot(xints, freq_list, xpad=0, ypad_high=.5,
-                  #kind='plot',
-                  kind='bar',
-                  width=width,
-                  xtick_rotation=30,
-                  #num_yticks=num_yticks,
-                  xticklabels=bin_labels, xmin=-1, xmax=len(xints),
-                  #transpose=True,
-                  #ymax=num_yticks - 1,
-                  ylabel='Freq', xlabel='Time', **kwargs)
+    pt.multi_plot(
+        xints,
+        freq_list,
+        xpad=0,
+        ypad_high=0.5,
+        # kind='plot',
+        kind='bar',
+        width=width,
+        xtick_rotation=30,
+        # num_yticks=num_yticks,
+        xticklabels=bin_labels,
+        xmin=-1,
+        xmax=len(xints),
+        # transpose=True,
+        # ymax=num_yticks - 1,
+        ylabel='Freq',
+        xlabel='Time',
+        **kwargs
+    )
     pass
 
 
-def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
-                   xtick_rotation=0, transpose=False,
-                   **kwargs):
+def draw_histogram(
+    bin_labels,
+    bin_values,
+    xlabel='',
+    ylabel='Freq',
+    xtick_rotation=0,
+    transpose=False,
+    **kwargs
+):
     r"""
     Args:
         bin_labels (?):
@@ -2227,27 +2467,39 @@ def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
         >>> pt.show_if_requested()
     """
     import wbia.plottool as pt
+
     xints = np.arange(len(bin_labels))
-    width = .95
+    width = 0.95
     kwargs = kwargs.copy()
     kwargs['autolabel'] = kwargs.get('autolabel', True)
-    pt.multi_plot(xints, [bin_values], xpad=0, ypad_high=.5,
-                  #kind='plot',
-                  kind='bar',
-                  width=width,
-                  xtick_rotation=xtick_rotation,
-                  #num_yticks=num_yticks,
-                  xticklabels=bin_labels, xmin=-1, xmax=len(xints),
-                  transpose=transpose,
-                  #ymax=num_yticks - 1,
-                  ylabel=ylabel, xlabel=xlabel, **kwargs)
+    pt.multi_plot(
+        xints,
+        [bin_values],
+        xpad=0,
+        ypad_high=0.5,
+        # kind='plot',
+        kind='bar',
+        width=width,
+        xtick_rotation=xtick_rotation,
+        # num_yticks=num_yticks,
+        xticklabels=bin_labels,
+        xmin=-1,
+        xmax=len(xints),
+        transpose=transpose,
+        # ymax=num_yticks - 1,
+        ylabel=ylabel,
+        xlabel=xlabel,
+        **kwargs
+    )
 
 
 def draw_time_distribution(unixtime_list, bw=None):
     import vtool as vt
     import wbia.plottool as pt
+
     if len(unixtime_list) > 0:
         from sklearn.neighbors.kde import KernelDensity
+
         unixtime_arr = np.asarray(unixtime_list)
         # Remove nans from list
         nanflags = np.isnan(unixtime_arr)
@@ -2264,6 +2516,7 @@ def draw_time_distribution(unixtime_list, bw=None):
         if bw is None:
             from sklearn.model_selection import GridSearchCV  # NOQA
             from sklearn.model_selection import RandomizedSearchCV
+
             day = 60 * 60 * 24
             # bw_low = day
             # bw_high = (maxtime - mintime) / 10
@@ -2275,8 +2528,9 @@ def draw_time_distribution(unixtime_list, bw=None):
             # searcher = ut.partial(GridSearchCV, n_jobs=7)
             searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
             print('Searching for best bandwidth')
-            grid = searcher(KernelDensity(kernel='gaussian'),
-                                grid_params, cv=2, verbose=0)
+            grid = searcher(
+                KernelDensity(kernel='gaussian'), grid_params, cv=2, verbose=0
+            )
             grid.fit(unixtimes[:, None])
             bw = grid.best_params_['bandwidth']
             # print('bw = %r' % (bw,))
@@ -2297,27 +2551,38 @@ def draw_time_distribution(unixtime_list, bw=None):
         xdata = []
 
     fnum = pt.ensure_fnum(None)
-    pt.plot_probabilities([unixtime_density], ['time'], xdata=xdata, fill=True,
-                          use_legend=False, fnum=fnum, remove_yticks=True)
+    pt.plot_probabilities(
+        [unixtime_density],
+        ['time'],
+        xdata=xdata,
+        fill=True,
+        use_legend=False,
+        fnum=fnum,
+        remove_yticks=True,
+    )
 
     if False:
         # freq, bins = np.histogram(unixtimes, bins=30, normed=True)
         freq, bins = np.histogram(unixtimes, bins=30, normed=False)
         # xints = np.arange(len(bins))
-        pt.multi_plot(bins, [freq],
-                      fnum=fnum,
-                      width=np.diff(bins)[0],
-                      kind='bar', dark_background=False)
-    #xtick_rotation=30,
-    #num_yticks=num_yticks,
-    #xticklabels=bin_labels,
-    #xmin=-1,
-    #xmax=len(xints),
-    #transpose=True,
-    #ymax=num_yticks - 1,
-    #ylabel='Freq',
-    #xlabel='Time',
-    #**kwargs)
+        pt.multi_plot(
+            bins,
+            [freq],
+            fnum=fnum,
+            width=np.diff(bins)[0],
+            kind='bar',
+            dark_background=False,
+        )
+    # xtick_rotation=30,
+    # num_yticks=num_yticks,
+    # xticklabels=bin_labels,
+    # xmin=-1,
+    # xmax=len(xints),
+    # transpose=True,
+    # ymax=num_yticks - 1,
+    # ylabel='Freq',
+    # xlabel='Time',
+    # **kwargs)
 
 
 def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
@@ -2359,6 +2624,7 @@ def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
     """
     import wbia.plottool as pt
     from wordcloud import WordCloud
+
     if ax is None:
         fnum = pt.ensure_fnum(fnum)
         pt.figure(fnum=fnum, pnum=pnum)
@@ -2375,17 +2641,20 @@ def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
     # /home/joncrall/.local/share/fonts/Inconsolata-Regular.ttf
 
     from os.path import exists
+
     if not exists(font_path):
         font_path = None
 
-    colormap = pt.interpolated_colormap([
-        (pt.RED, 0),
-        (pt.PINK, .15),
-        (pt.ORANGE, .3),
-        (pt.GREEN, .55),
-        (pt.TRUE_BLUE, .75),
-        (pt.PURPLE, 1.0),
-    ])
+    colormap = pt.interpolated_colormap(
+        [
+            (pt.RED, 0),
+            (pt.PINK, 0.15),
+            (pt.ORANGE, 0.3),
+            (pt.GREEN, 0.55),
+            (pt.TRUE_BLUE, 0.75),
+            (pt.PURPLE, 1.0),
+        ]
+    )
 
     if size is None:
         size = (600, 300)
@@ -2396,7 +2665,8 @@ def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
             font_path=font_path,
             background_color=background_color,
             # min_font_size=12,
-            width=width, height=height,
+            width=width,
+            height=height,
             # relative_scaling=.8,
             # colormap='rainbow'
             colormap=colormap,
@@ -2420,6 +2690,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.plots --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -18,21 +18,23 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[other.detecttrain]')
 
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 
 
 @register_ibs_method
-def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
+def classifier_cameratrap_train(
+    ibs, positive_imageset_id, negative_imageset_id, **kwargs
+):
     from ibeis_cnn.ingest_wbia import get_cnn_classifier_cameratrap_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
+
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_classifier_cameratrap_binary_training_images(ibs,
-                                                                          positive_imageset_id,
-                                                                          negative_imageset_id,
-                                                                          dest_path=data_path,
-                                                                          **kwargs)
+    extracted_path = get_cnn_classifier_cameratrap_binary_training_images(
+        ibs, positive_imageset_id, negative_imageset_id, dest_path=data_path, **kwargs
+    )
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap')
     model_path = train_classifier(output_path, X_file, y_file)
@@ -41,9 +43,12 @@ def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id,
 
 
 @register_ibs_method
-def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_imageset_id,
-                                         ensembles=3, **kwargs):
-    from wbia.other.detectexport import get_cnn_classifier_cameratrap_binary_training_images_pytorch
+def classifier_cameratrap_densenet_train(
+    ibs, positive_imageset_id, negative_imageset_id, ensembles=3, **kwargs
+):
+    from wbia.other.detectexport import (
+        get_cnn_classifier_cameratrap_binary_training_images_pytorch,
+    )
     from wbia.algo.detect import densenet
 
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-cameratrap')
@@ -53,13 +58,15 @@ def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_ima
         negative_imageset_id,
         dest_path=data_path,
         image_size=densenet.INPUT_SIZE,
-        **kwargs
+        **kwargs,
     )
 
     weights_path_list = []
     for ensemble_num in range(ensembles):
-        args = (ensemble_num, )
-        output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-ensemble-%d' % args)
+        args = (ensemble_num,)
+        output_path = join(
+            ibs.get_cachedir(), 'training', 'classifier-cameratrap-ensemble-%d' % args
+        )
         weights_path = densenet.train(extracted_path, output_path, blur=True, flip=True)
         weights_path_list.append(weights_path)
 
@@ -69,17 +76,21 @@ def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_ima
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
-        ensemble_weights_path = 'classifier.cameratrap.%d.weights' % (index, )
+        ensemble_weights_path = 'classifier.cameratrap.%d.weights' % (index,)
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+    ut.archive_files(
+        archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True
+    )
 
     return archive_path
 
 
 @register_ibs_method
-def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3, **kwargs):
+def classifier_multiclass_densenet_train(
+    ibs, gid_list, label_list, ensembles=3, **kwargs
+):
     """
     >>> import uuid
     >>> manifest_filepath = join(ibs.dbdir, 'flukebook_groundtruth.csv')
@@ -111,7 +122,9 @@ def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3,
     >>> # archive_path = ibs.classifier_multiclass_densenet_train(gid_list, label_list)
     >>> ibs.classifier2_precision_recall_algo_display(test_gid_list=gid_list, test_label_list=label_list)
     """
-    from wbia.other.detectexport import get_cnn_classifier_multiclass_training_images_pytorch
+    from wbia.other.detectexport import (
+        get_cnn_classifier_multiclass_training_images_pytorch,
+    )
     from wbia.algo.detect import densenet
 
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-multiclass')
@@ -121,13 +134,15 @@ def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3,
         label_list,
         dest_path=data_path,
         image_size=densenet.INPUT_SIZE,
-        **kwargs
+        **kwargs,
     )
 
     weights_path_list = []
     for ensemble_num in range(ensembles):
-        args = (ensemble_num, )
-        output_path = join(ibs.get_cachedir(), 'training', 'classifier-multiclass-ensemble-%d' % args)
+        args = (ensemble_num,)
+        output_path = join(
+            ibs.get_cachedir(), 'training', 'classifier-multiclass-ensemble-%d' % args
+        )
         weights_path = densenet.train(extracted_path, output_path, blur=True, flip=False)
         weights_path_list.append(weights_path)
 
@@ -137,11 +152,13 @@ def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3,
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
-        ensemble_weights_path = 'classifier.multiclass.%d.weights' % (index, )
+        ensemble_weights_path = 'classifier.multiclass.%d.weights' % (index,)
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+    ut.archive_files(
+        archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True
+    )
 
     return archive_path
 
@@ -152,10 +169,11 @@ def classifier_binary_train(ibs, species_list, **kwargs):
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
     from ibeis_cnn.utils import save_model
+
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list,
-                                                               dest_path=data_path,
-                                                               **kwargs)
+    extracted_path = get_cnn_classifier_binary_training_images(
+        ibs, species_list, dest_path=data_path, **kwargs
+    )
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier-binary')
     model_path = train_classifier(output_path, X_file, y_file)
@@ -169,19 +187,25 @@ def classifier_binary_train(ibs, species_list, **kwargs):
 
 
 @register_ibs_method
-def classifier2_train(ibs, species_list=None, species_mapping={}, train_gid_set=None, **kwargs):
+def classifier2_train(
+    ibs, species_list=None, species_mapping={}, train_gid_set=None, **kwargs
+):
     from ibeis_cnn.ingest_wbia import get_cnn_classifier2_training_images
     from ibeis_cnn.process import numpy_processed_directory3
     from ibeis_cnn.models.classifier2 import train_classifier2
     from ibeis_cnn.utils import save_model
+
     if species_list is not None:
         species_list = sorted(species_list)
     data_path = join(ibs.get_cachedir(), 'extracted')
-    values = get_cnn_classifier2_training_images(ibs, species_list,
-                                                 category_mapping=species_mapping,
-                                                 train_gid_set=train_gid_set,
-                                                 dest_path=data_path,
-                                                 **kwargs)
+    values = get_cnn_classifier2_training_images(
+        ibs,
+        species_list,
+        category_mapping=species_mapping,
+        train_gid_set=train_gid_set,
+        dest_path=data_path,
+        **kwargs,
+    )
     extracted_path, category_list = values
     id_file, X_file, y_file = numpy_processed_directory3(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier2')
@@ -202,28 +226,33 @@ def classifier_train(ibs, **kwargs):
 
 @register_ibs_method
 def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, **kwargs):
-    from wbia.other.detectexport import get_cnn_classifier_canonical_training_images_pytorch
+    from wbia.other.detectexport import (
+        get_cnn_classifier_canonical_training_images_pytorch,
+    )
     from wbia.algo.detect import densenet
 
-    args = (species, )
+    args = (species,)
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-canonical-%s' % args)
     if extracted_path is None:
         extracted_path = get_cnn_classifier_canonical_training_images_pytorch(
-            ibs,
-            species,
-            dest_path=data_path,
+            ibs, species, dest_path=data_path,
         )
 
     weights_path_list = []
     for ensemble_num in range(ensembles):
-        args = (species, ensemble_num, )
-        output_path = join(ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args)
+        args = (
+            species,
+            ensemble_num,
+        )
+        output_path = join(
+            ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args
+        )
         if exists(output_path):
             ut.delete(output_path)
         weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
         weights_path_list.append(weights_path)
 
-    args = (species, )
+    args = (species,)
     output_name = 'classifier.canonical.%s' % args
     ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
     ut.ensuredir(ensemble_path)
@@ -233,37 +262,46 @@ def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, *
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
-        ensemble_weights_path = join(ensemble_path, 'classifier.canonical.%d.weights' % (index, ))
+        ensemble_weights_path = join(
+            ensemble_path, 'classifier.canonical.%d.weights' % (index,)
+        )
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
     ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+    ut.archive_files(
+        archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True
+    )
 
     return archive_path
 
 
 @register_ibs_method
 def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
-    from wbia.other.detectexport import get_cnn_localizer_canonical_training_images_pytorch
+    from wbia.other.detectexport import (
+        get_cnn_localizer_canonical_training_images_pytorch,
+    )
     from wbia.algo.detect import canonical
 
-    args = (species, )
+    args = (species,)
     data_path = join(ibs.get_cachedir(), 'extracted-localizer-canonical-%s' % args)
     extracted_path = get_cnn_localizer_canonical_training_images_pytorch(
-        ibs,
-        species,
-        dest_path=data_path,
+        ibs, species, dest_path=data_path,
     )
 
     weights_path_list = []
     for ensemble_num in range(ensembles):
-        args = (species, ensemble_num, )
-        output_path = join(ibs.get_cachedir(), 'training', 'localizer-canonical-%s-ensemble-%d' % args)
+        args = (
+            species,
+            ensemble_num,
+        )
+        output_path = join(
+            ibs.get_cachedir(), 'training', 'localizer-canonical-%s-ensemble-%d' % args
+        )
         weights_path = canonical.train(extracted_path, output_path)
         weights_path_list.append(weights_path)
 
-    args = (species, )
+    args = (species,)
     output_name = 'localizer.canonical.%s' % args
     ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
     ut.ensuredir(ensemble_path)
@@ -273,12 +311,16 @@ def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
-        ensemble_weights_path = join(ensemble_path, 'localizer.canonical.%d.weights' % (index, ))
+        ensemble_weights_path = join(
+            ensemble_path, 'localizer.canonical.%d.weights' % (index,)
+        )
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
     ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+    ut.archive_files(
+        archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True
+    )
 
     return archive_path
 
@@ -286,6 +328,7 @@ def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
 @register_ibs_method
 def localizer_yolo_train(ibs, species_list=None, **kwargs):
     from pydarknet import Darknet_YOLO_Detector
+
     data_path = ibs.export_to_xml(species_list=species_list, **kwargs)
     output_path = join(ibs.get_cachedir(), 'training', 'localizer')
     ut.ensuredir(output_path)
@@ -305,9 +348,9 @@ def _localizer_lightnet_validate_training_kit(lightnet_training_kit_url):
             ut.delete(delete_path)
 
     # Ensure first-level structure
-    bin_path     = join(lightnet_training_kit_url, 'bin')
-    cfg_path     = join(lightnet_training_kit_url, 'cfg')
-    data_path    = join(lightnet_training_kit_url, 'data')
+    bin_path = join(lightnet_training_kit_url, 'bin')
+    cfg_path = join(lightnet_training_kit_url, 'cfg')
+    data_path = join(lightnet_training_kit_url, 'data')
     weights_path = join(lightnet_training_kit_url, 'darknet19_448.conv.23.pt')
     assert exists(bin_path)
     assert exists(cfg_path)
@@ -316,10 +359,10 @@ def _localizer_lightnet_validate_training_kit(lightnet_training_kit_url):
 
     # Ensure second-level structure
     dataset_py_path = join(bin_path, 'dataset.template.py')
-    labels_py_path  = join(bin_path, 'labels.template.py')
-    test_py_path    = join(bin_path, 'test.template.py')
-    train_py_path   = join(bin_path, 'train.template.py')
-    config_py_path  = join(cfg_path, 'yolo.template.py')
+    labels_py_path = join(bin_path, 'labels.template.py')
+    test_py_path = join(bin_path, 'test.template.py')
+    train_py_path = join(bin_path, 'train.template.py')
+    config_py_path = join(cfg_path, 'yolo.template.py')
     assert exists(dataset_py_path)
     assert exists(labels_py_path)
     assert exists(test_py_path)
@@ -327,13 +370,15 @@ def _localizer_lightnet_validate_training_kit(lightnet_training_kit_url):
     assert exists(config_py_path)
 
 
-def _localizer_lightnet_template_replace(template_filepath, replace_dict, output_filepath=None):
+def _localizer_lightnet_template_replace(
+    template_filepath, replace_dict, output_filepath=None
+):
     if output_filepath is None:
         output_filepath = template_filepath.replace('.template.', '.')
     with open(template_filepath, 'r') as template_file:
         template = ''.join(template_file.readlines())
     for search_str, replace_str in replace_dict.items():
-        search_str  = str(search_str)
+        search_str = str(search_str)
         replace_str = str(replace_str)
         template = template.replace(search_str, replace_str)
     with open(output_filepath, 'w') as output_file:
@@ -342,11 +387,19 @@ def _localizer_lightnet_template_replace(template_filepath, replace_dict, output
 
 
 @register_ibs_method
-def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
-                             validate_with_accuracy=True, deploy_tag=None,
-                             cleanup=True, cleanup_all=True, deploy=True,
-                             cache_species_str=None,
-                             **kwargs):
+def localizer_lightnet_train(
+    ibs,
+    species_list,
+    cuda_device='0',
+    batches=60000,
+    validate_with_accuracy=True,
+    deploy_tag=None,
+    cleanup=True,
+    cleanup_all=True,
+    deploy=True,
+    cache_species_str=None,
+    **kwargs,
+):
     from wbia.algo.detect import lightnet
     import subprocess
     import datetime
@@ -365,39 +418,39 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
 
     cache_path = join(ibs.cachedir, 'training', 'lightnet')
     ut.ensuredir(cache_path)
-    training_instance_folder = 'lightnet-training-%s-%s' % (cache_species_str, hashstr, )
+    training_instance_folder = 'lightnet-training-%s-%s' % (cache_species_str, hashstr,)
     training_instance_path = join(cache_path, training_instance_folder)
     ut.copy(lightnet_training_kit_url, training_instance_path)
 
-    backup_path     = join(training_instance_path, 'backup')
-    bin_path        = join(training_instance_path, 'bin')
-    cfg_path        = join(training_instance_path, 'cfg')
-    data_path       = join(training_instance_path, 'data')
-    deploy_path     = join(training_instance_path, 'deploy')
-    weights_path    = join(training_instance_path, 'darknet19_448.conv.23.pt')
-    results_path    = join(training_instance_path, 'results.txt')
+    backup_path = join(training_instance_path, 'backup')
+    bin_path = join(training_instance_path, 'bin')
+    cfg_path = join(training_instance_path, 'cfg')
+    data_path = join(training_instance_path, 'data')
+    deploy_path = join(training_instance_path, 'deploy')
+    weights_path = join(training_instance_path, 'darknet19_448.conv.23.pt')
+    results_path = join(training_instance_path, 'results.txt')
     dataset_py_path = join(bin_path, 'dataset.template.py')
-    labels_py_path  = join(bin_path, 'labels.template.py')
-    test_py_path    = join(bin_path, 'test.template.py')
-    train_py_path   = join(bin_path, 'train.template.py')
-    config_py_path  = join(cfg_path, 'yolo.template.py')
+    labels_py_path = join(bin_path, 'labels.template.py')
+    test_py_path = join(bin_path, 'test.template.py')
+    train_py_path = join(bin_path, 'train.template.py')
+    config_py_path = join(cfg_path, 'yolo.template.py')
 
     ibs.export_to_xml(species_list=species_list, output_path=data_path, **kwargs)
 
-    species_str_list = ['%r' % (species, ) for species in species_list]
+    species_str_list = ['%r' % (species,) for species in species_list]
     species_str = ', '.join(species_str_list)
     replace_dict = {
-        '_^_YEAR_^_'            : str(datetime.datetime.now().year),
-        '_^_DATA_ROOT_^_'       : data_path,
-        '_^_SPECIES_MAPPING_^_' : species_str,
-        '_^_NUM_BATCHES_^_'     : str(batches),
+        '_^_YEAR_^_': str(datetime.datetime.now().year),
+        '_^_DATA_ROOT_^_': data_path,
+        '_^_SPECIES_MAPPING_^_': species_str,
+        '_^_NUM_BATCHES_^_': str(batches),
     }
 
     dataset_py_path = _localizer_lightnet_template_replace(dataset_py_path, replace_dict)
-    labels_py_path  = _localizer_lightnet_template_replace(labels_py_path,  replace_dict)
-    test_py_path    = _localizer_lightnet_template_replace(test_py_path,    replace_dict)
-    train_py_path   = _localizer_lightnet_template_replace(train_py_path,   replace_dict)
-    config_py_path  = _localizer_lightnet_template_replace(config_py_path,  replace_dict)
+    labels_py_path = _localizer_lightnet_template_replace(labels_py_path, replace_dict)
+    test_py_path = _localizer_lightnet_template_replace(test_py_path, replace_dict)
+    train_py_path = _localizer_lightnet_template_replace(train_py_path, replace_dict)
+    config_py_path = _localizer_lightnet_template_replace(config_py_path, replace_dict)
     assert exists(dataset_py_path)
     assert exists(labels_py_path)
     assert exists(test_py_path)
@@ -407,16 +460,27 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
     assert not exists(results_path)
 
     python_exe = sys.executable
-    cuda_str = '' if cuda_device in [-1, None] or len(cuda_device) == 0 else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device, )
+    cuda_str = (
+        ''
+        if cuda_device in [-1, None] or len(cuda_device) == 0
+        else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device,)
+    )
 
     # Call labels
-    call_str = '%s %s' % (python_exe, labels_py_path, )
+    call_str = '%s %s' % (python_exe, labels_py_path,)
     print(call_str)
     subprocess.call(call_str, shell=True)
 
     # Call training
     # Example: CUDA_VISIBLE_DEVICES=X python bin/train.py -c -n cfg/yolo.py -c darknet19_448.conv.23.pt
-    args = (cuda_str, python_exe, train_py_path, config_py_path, backup_path, weights_path)
+    args = (
+        cuda_str,
+        python_exe,
+        train_py_path,
+        config_py_path,
+        backup_path,
+        weights_path,
+    )
     call_str = '%s%s %s -c -n %s -b %s %s' % args
     print(call_str)
     subprocess.call(call_str, shell=True)
@@ -424,7 +488,7 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
 
     ut.embed()
 
-    '''
+    """
     x = (
         'CUDA_VISIBLE_DEVICES=3 ',
         '/home/jason.parham/virtualenv/wildme3.6/bin/python',
@@ -448,11 +512,18 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
     cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, validate_with_accuracy, deploy_path, deploy, deploy_tag, cleanup, cleanup_all, bin_path, cfg_path, data_path, weights_path, cache_species_str = x
 
     call_str = 'CUDA_VISIBLE_DEVICES=3 /home/jason.parham/virtualenv/wildme3.6/bin/python /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py -c -n /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py --results /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup/*'
-     '''
+     """
 
     # Call testing
     # Example: CUDA_VISIBLE_DEVICE=X python bin/test.py -c -n cfg/yolo.py
-    args = (cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, )
+    args = (
+        cuda_str,
+        python_exe,
+        test_py_path,
+        config_py_path,
+        results_path,
+        backup_path,
+    )
     call_str = '%s%s %s -c -n %s --results %s %s/*' % args
     print(call_str)
     subprocess.call(call_str, shell=True)
@@ -484,7 +555,7 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
         else:
             assert not math.isnan(loss)
             result = (loss, miss_rate, model_path)
-        print('\t%r' % (result, ))
+        print('\t%r' % (result,))
         result_list.append(result)
     result_list = sorted(result_list)
 
@@ -518,14 +589,14 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
 
         counter = 0
         while True:
-            final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter, )
-            final_config_filename = '%s.py' % (final_config_prefix, )
+            final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter,)
+            final_config_filename = '%s.py' % (final_config_prefix,)
             final_config_filepath = join(final_path, final_config_filename)
             if not exists(final_config_filepath):
                 break
             counter += 1
 
-        final_model_filename = '%s.weights' % (final_config_prefix, )
+        final_model_filename = '%s.weights' % (final_config_prefix,)
         final_model_filepath = join(final_path, final_model_filename)
 
         assert not exists(final_model_filepath)
@@ -534,19 +605,50 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
         ut.copy(deploy_model_filepath, final_model_filepath)
         ut.copy(deploy_config_filepath, final_config_filepath)
 
-        retval = (final_model_filepath, final_config_filepath, )
+        retval = (
+            final_model_filepath,
+            final_config_filepath,
+        )
     else:
-        retval = (deploy_model_filepath, deploy_config_filepath, )
+        retval = (
+            deploy_model_filepath,
+            deploy_config_filepath,
+        )
 
     return retval
 
 
-def validate_model(cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, validate_with_accuracy, deploy_path, deploy, deploy_tag, cleanup, cleanup_all, bin_path, cfg_path, data_path, weights_path, cache_species_str):
+def validate_model(
+    cuda_str,
+    python_exe,
+    test_py_path,
+    config_py_path,
+    results_path,
+    backup_path,
+    validate_with_accuracy,
+    deploy_path,
+    deploy,
+    deploy_tag,
+    cleanup,
+    cleanup_all,
+    bin_path,
+    cfg_path,
+    data_path,
+    weights_path,
+    cache_species_str,
+):
     import subprocess
 
     # Call testing
     # Example: CUDA_VISIBLE_DEVICE=X python bin/test.py -c -n cfg/yolo.py
-    args = (cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, )
+    args = (
+        cuda_str,
+        python_exe,
+        test_py_path,
+        config_py_path,
+        results_path,
+        backup_path,
+    )
     call_str = '%s%s %s -c -n %s --results %s %s/*' % args
     print(call_str)
     subprocess.call(call_str, shell=True)
@@ -574,7 +676,7 @@ def validate_model(cuda_str, python_exe, test_py_path, config_py_path, results_p
             result = (miss_rate, loss, model_path)
         else:
             result = (loss, miss_rate, model_path)
-        print('\t%r' % (result, ))
+        print('\t%r' % (result,))
         result_list.append(result)
     result_list = sorted(result_list)
 
@@ -608,14 +710,14 @@ def validate_model(cuda_str, python_exe, test_py_path, config_py_path, results_p
 
         counter = 0
         while True:
-            final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter, )
-            final_config_filename = '%s.py' % (final_config_prefix, )
+            final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter,)
+            final_config_filename = '%s.py' % (final_config_prefix,)
             final_config_filepath = join(final_path, final_config_filename)
             if not exists(final_config_filepath):
                 break
             counter += 1
 
-        final_model_filename = '%s.weights' % (final_config_prefix, )
+        final_model_filename = '%s.weights' % (final_config_prefix,)
         final_model_filepath = join(final_path, final_model_filename)
 
         assert not exists(final_model_filepath)
@@ -624,25 +726,37 @@ def validate_model(cuda_str, python_exe, test_py_path, config_py_path, results_p
         ut.copy(deploy_model_filepath, final_model_filepath)
         ut.copy(deploy_config_filepath, final_config_filepath)
 
-        retval = (final_model_filepath, final_config_filepath, )
+        retval = (
+            final_model_filepath,
+            final_config_filepath,
+        )
     else:
-        retval = (deploy_model_filepath, deploy_config_filepath, )
+        retval = (
+            deploy_model_filepath,
+            deploy_config_filepath,
+        )
 
     return retval
 
 
 @register_ibs_method
-def labeler_train_ibeis_cnn(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, **kwargs):
+def labeler_train_ibeis_cnn(
+    ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, **kwargs
+):
     from ibeis_cnn.ingest_wbia import get_cnn_labeler_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.labeler import train_labeler
     from ibeis_cnn.utils import save_model
+
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_labeler_training_images(ibs, data_path,
-                                                     category_list=species_list,
-                                                     category_mapping=species_mapping,
-                                                     viewpoint_mapping=viewpoint_mapping,
-                                                     **kwargs)
+    extracted_path = get_cnn_labeler_training_images(
+        ibs,
+        data_path,
+        category_list=species_list,
+        category_mapping=species_mapping,
+        viewpoint_mapping=viewpoint_mapping,
+        **kwargs,
+    )
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'labeler')
     model_path = train_labeler(output_path, X_file, y_file)
@@ -657,12 +771,19 @@ def labeler_train_ibeis_cnn(ibs, species_list=None, species_mapping=None, viewpo
 
 
 @register_ibs_method
-def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, ensembles=3, **kwargs):
+def labeler_train(
+    ibs,
+    species_list=None,
+    species_mapping=None,
+    viewpoint_mapping=None,
+    ensembles=3,
+    **kwargs,
+):
     from wbia.other.detectexport import get_cnn_labeler_training_images_pytorch
     from wbia.algo.detect import densenet
 
     species = '-'.join(species_list)
-    args = (species, )
+    args = (species,)
     data_path = join(ibs.get_cachedir(), 'extracted-labeler-%s' % args)
     extracted_path = get_cnn_labeler_training_images_pytorch(
         ibs,
@@ -670,19 +791,24 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
         category_mapping=species_mapping,
         viewpoint_mapping=viewpoint_mapping,
         dest_path=data_path,
-        **kwargs
+        **kwargs,
     )
 
     weights_path_list = []
     for ensemble_num in range(ensembles):
-        args = (species, ensemble_num, )
-        output_path = join(ibs.get_cachedir(), 'training', 'labeler-%s-ensemble-%d' % args)
+        args = (
+            species,
+            ensemble_num,
+        )
+        output_path = join(
+            ibs.get_cachedir(), 'training', 'labeler-%s-ensemble-%d' % args
+        )
         if exists(output_path):
             ut.delete(output_path)
         weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
         weights_path_list.append(weights_path)
 
-    args = (species, )
+    args = (species,)
     output_name = 'labeler.%s' % args
     ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
     ut.ensuredir(ensemble_path)
@@ -692,12 +818,14 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
-        ensemble_weights_path = join(ensemble_path, 'labeler.%d.weights' % (index, ))
+        ensemble_weights_path = join(ensemble_path, 'labeler.%d.weights' % (index,))
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
     ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+    ut.archive_files(
+        archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True
+    )
 
     return archive_path
 
@@ -771,9 +899,9 @@ def detector_train(ibs):
     ut.ensuredir(output_path)
     ut.copy(localizer_weight_path, join(output_path, 'localizer.weights'))
     ut.copy(localizer_config_path, join(output_path, 'localizer.config'))
-    ut.copy(localizer_class_path,  join(output_path, 'localizer.classes'))
+    ut.copy(localizer_class_path, join(output_path, 'localizer.classes'))
     ut.copy(classifier_model_path, join(output_path, 'classifier.npy'))
-    ut.copy(labeler_model_path,    join(output_path, 'labeler.npy'))
+    ut.copy(labeler_model_path, join(output_path, 'labeler.npy'))
 
 
 @register_ibs_method
@@ -782,12 +910,17 @@ def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kw
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.background import train_background
     from ibeis_cnn.utils import save_model
+
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_background_training_patches2(ibs, species, data_path,
-                                                      patch_size=50,
-                                                      train_gid_set=train_gid_set,
-                                                      global_limit=global_limit,
-                                                      **kwargs)
+    extracted_path = get_background_training_patches2(
+        ibs,
+        species,
+        data_path,
+        patch_size=50,
+        train_gid_set=train_gid_set,
+        global_limit=global_limit,
+        **kwargs,
+    )
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'background')
     model_path = train_background(output_path, X_file, y_file)
@@ -804,8 +937,11 @@ def aoi_train(ibs, species_list=None):
     from ibeis_cnn.process import numpy_processed_directory4
     from ibeis_cnn.models.aoi import train_aoi
     from ibeis_cnn.utils import save_model
+
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_aoi_training_data(ibs, data_path, target_species_list=species_list)
+    extracted_path = get_aoi_training_data(
+        ibs, data_path, target_species_list=species_list
+    )
     id_file, X_file, y_file = numpy_processed_directory4(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'aoi')
     model_path = train_aoi(output_path, X_file, y_file)
@@ -822,12 +958,16 @@ def aoi2_train(ibs, species_list=None, train_gid_list=None, purge=True, cache=Fa
     from ibeis_cnn.process import numpy_processed_directory5
     from ibeis_cnn.models.aoi2 import train_aoi2
     from ibeis_cnn.utils import save_model
+
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_aoi2_training_data(ibs, dest_path=data_path,
-                                            target_species_list=species_list,
-                                            train_gid_list=train_gid_list,
-                                            purge=purge,
-                                            cache=cache)
+    extracted_path = get_aoi2_training_data(
+        ibs,
+        dest_path=data_path,
+        target_species_list=species_list,
+        train_gid_list=train_gid_list,
+        purge=purge,
+        cache=cache,
+    )
     id_file, X_file, y_file = numpy_processed_directory5(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'aoi2')
     model_path = train_aoi2(output_path, X_file, y_file)
@@ -846,5 +986,6 @@ if __name__ == '__main__':
         python -m wbia.other.detecttrain --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()

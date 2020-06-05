@@ -12,6 +12,7 @@ from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 from wbia.algo.graph.nx_utils import e_
 from wbia.algo.graph import nx_utils as nxu
 import six
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -23,50 +24,61 @@ class AttrAccess(object):
 
     def gen_node_attrs(infr, key, nodes=None, default=ut.NoParam):
         return ut.util_graph.nx_gen_node_attrs(
-                infr.graph, key, nodes=nodes, default=default)
+            infr.graph, key, nodes=nodes, default=default
+        )
 
-    def gen_edge_attrs(infr, key, edges=None, default=ut.NoParam,
-                       on_missing=None):
+    def gen_edge_attrs(infr, key, edges=None, default=ut.NoParam, on_missing=None):
         """ maybe change to gen edge items """
         return ut.util_graph.nx_gen_edge_attrs(
-                infr.graph, key, edges=edges, default=default,
-                on_missing=on_missing)
+            infr.graph, key, edges=edges, default=default, on_missing=on_missing
+        )
 
     def gen_node_values(infr, key, nodes, default=ut.NoParam):
-        return ut.util_graph.nx_gen_node_values(
-            infr.graph, key, nodes, default=default)
+        return ut.util_graph.nx_gen_node_values(infr.graph, key, nodes, default=default)
 
-    def gen_edge_values(infr, key, edges=None, default=ut.NoParam,
-                        on_missing='error', on_keyerr='default'):
+    def gen_edge_values(
+        infr, key, edges=None, default=ut.NoParam, on_missing='error', on_keyerr='default'
+    ):
         return ut.util_graph.nx_gen_edge_values(
-            infr.graph, key, edges, default=default, on_missing=on_missing,
-            on_keyerr=on_keyerr)
+            infr.graph,
+            key,
+            edges,
+            default=default,
+            on_missing=on_missing,
+            on_keyerr=on_keyerr,
+        )
 
     def get_node_attrs(infr, key, nodes=None, default=ut.NoParam):
         """ Networkx node getter helper """
         return dict(infr.gen_node_attrs(key, nodes=nodes, default=default))
 
-    def get_edge_attrs(infr, key, edges=None, default=ut.NoParam,
-                       on_missing=None):
+    def get_edge_attrs(infr, key, edges=None, default=ut.NoParam, on_missing=None):
         """ Networkx edge getter helper """
-        return dict(infr.gen_edge_attrs(key, edges=edges, default=default,
-                                        on_missing=on_missing))
+        return dict(
+            infr.gen_edge_attrs(key, edges=edges, default=default, on_missing=on_missing)
+        )
 
-    def _get_edges_where(infr, key, op, val, edges=None, default=ut.NoParam,
-                         on_missing=None):
-        edge_to_attr = infr.gen_edge_attrs(key, edges=edges, default=default,
-                                           on_missing=on_missing)
+    def _get_edges_where(
+        infr, key, op, val, edges=None, default=ut.NoParam, on_missing=None
+    ):
+        edge_to_attr = infr.gen_edge_attrs(
+            key, edges=edges, default=default, on_missing=on_missing
+        )
         return (e for e, v in edge_to_attr if op(v, val))
 
-    def get_edges_where_eq(infr, key, val, edges=None, default=ut.NoParam,
-                           on_missing=None):
-        return infr._get_edges_where(key, operator.eq, val, edges=edges,
-                                     default=default, on_missing=on_missing)
+    def get_edges_where_eq(
+        infr, key, val, edges=None, default=ut.NoParam, on_missing=None
+    ):
+        return infr._get_edges_where(
+            key, operator.eq, val, edges=edges, default=default, on_missing=on_missing
+        )
 
-    def get_edges_where_ne(infr, key, val, edges=None, default=ut.NoParam,
-                           on_missing=None):
-        return infr._get_edges_where(key, operator.ne, val, edges=edges,
-                                     default=default, on_missing=on_missing)
+    def get_edges_where_ne(
+        infr, key, val, edges=None, default=ut.NoParam, on_missing=None
+    ):
+        return infr._get_edges_where(
+            key, operator.ne, val, edges=edges, default=default, on_missing=on_missing
+        )
 
     def set_node_attrs(infr, key, node_to_prop):
         """ Networkx node setter helper """
@@ -78,8 +90,9 @@ class AttrAccess(object):
 
     def get_edge_attr(infr, edge, key, default=ut.NoParam, on_missing='error'):
         """ single edge getter helper """
-        return infr.get_edge_attrs(key, [edge], default=default,
-                                   on_missing=on_missing)[edge]
+        return infr.get_edge_attrs(key, [edge], default=default, on_missing=on_missing)[
+            edge
+        ]
 
     def set_edge_attr(infr, edge, attr):
         """ single edge setter helper """
@@ -121,19 +134,30 @@ class AttrAccess(object):
 
     def get_edge_dataframe(infr, edges=None, all=False):
         import pandas as pd
+
         if edges is None:
             edges = infr.edges()
         edge_datas = {e: infr.get_nonvisual_edge_data(e) for e in edges}
-        edge_datas = {e: {k: None for k in infr.feedback_data_keys}
-                      if d is None else d for e, d in edge_datas.items()}
+        edge_datas = {
+            e: {k: None for k in infr.feedback_data_keys} if d is None else d
+            for e, d in edge_datas.items()
+        }
         edge_df = pd.DataFrame.from_dict(edge_datas, orient='index')
 
         part = ['evidence_decision', 'meta_decision', 'tags', 'user_id']
         neworder = ut.partial_order(edge_df.columns, part)
         edge_df = edge_df.reindex(neworder, axis=1)
         if not all:
-            edge_df = edge_df.drop(['review_id', 'timestamp', 'timestamp_s1',
-                                    'timestamp_c2', 'timestamp_c1'], axis=1)
+            edge_df = edge_df.drop(
+                [
+                    'review_id',
+                    'timestamp',
+                    'timestamp_s1',
+                    'timestamp_c2',
+                    'timestamp_c1',
+                ],
+                axis=1,
+            )
         # pd.DataFrame.from_dict(edge_datas, orient='list')
         return edge_df
 
@@ -182,8 +206,7 @@ class Convenience(object):
         label = 'orig_name_label'
         """
         node_to_label = infr.get_node_attrs(label)
-        label_to_nodes = ut.group_items(node_to_label.keys(),
-                                        node_to_label.values())
+        label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
         print('CC info')
         for name, cc in label_to_nodes.items():
             print('\nname = %r' % (name,))
@@ -244,9 +267,9 @@ class Convenience(object):
             df = infr.get_edge_dataframe(edges)
             if len(df):
                 df.index.names = ('aid1', 'aid2')
-                nids = np.array([
-                    infr.pos_graph.node_labels(u, v)
-                    for u, v in list(df.index)])
+                nids = np.array(
+                    [infr.pos_graph.node_labels(u, v) for u, v in list(df.index)]
+                )
                 df = df.assign(nid1=nids.T[0], nid2=nids.T[1])
                 part = ['nid1', 'nid2', 'evidence_decision', 'tags', 'user_id']
                 neworder = ut.partial_order(df.columns, part)
@@ -259,9 +282,13 @@ class Convenience(object):
             df_str = ut.highlight_regex(df_str, ut.regex_word(str(aid1)), color='blue')
             df_str = ut.highlight_regex(df_str, ut.regex_word(str(aid2)), color='red')
             if nid1 not in {aid1, aid2}:
-                df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid1)), color='darkblue')
+                df_str = ut.highlight_regex(
+                    df_str, ut.regex_word(str(nid1)), color='darkblue'
+                )
             if nid2 not in {aid1, aid2}:
-                df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid2)), color='darkred')
+                df_str = ut.highlight_regex(
+                    df_str, ut.regex_word(str(nid2)), color='darkred'
+                )
             print('\n\n=====')
             print(lbl)
             print('=====')
@@ -345,7 +372,6 @@ class Convenience(object):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class DummyEdges(object):
-
     def ensure_mst(infr, label='name_label', meta_decision=SAME):
         """
         Ensures that all names are names are connected.
@@ -409,9 +435,13 @@ class DummyEdges(object):
         new_edges = infr.find_mst_edges(label=label)
         # Add new MST edges to original graph
         infr.print('adding %d MST edges' % (len(new_edges)), 2)
-        infr.add_feedback_from(new_edges, meta_decision=SAME,
-                               confidence=const.CONFIDENCE.CODE.GUESSING,
-                               user_id='algo:mst', verbose=False)
+        infr.add_feedback_from(
+            new_edges,
+            meta_decision=SAME,
+            confidence=const.CONFIDENCE.CODE.GUESSING,
+            user_id='algo:mst',
+            verbose=False,
+        )
 
     def ensure_cliques(infr, label='name_label', meta_decision=None):
         """
@@ -454,9 +484,13 @@ class DummyEdges(object):
         if meta_decision is None:
             infr.ensure_edges_from(new_edges)
         else:
-            infr.add_feedback_from(new_edges, meta_decision=SAME,
-                                   confidence=const.CONFIDENCE.CODE.GUESSING,
-                                   user_id='algo:clique', verbose=False)
+            infr.add_feedback_from(
+                new_edges,
+                meta_decision=SAME,
+                confidence=const.CONFIDENCE.CODE.GUESSING,
+                user_id='algo:clique',
+                verbose=False,
+            )
         # infr.assert_disjoint_invariant()
 
     def ensure_full(infr):
@@ -477,8 +511,7 @@ class DummyEdges(object):
                 cliques.
         """
         node_to_label = infr.get_node_attrs(label)
-        label_to_nodes = ut.group_items(node_to_label.keys(),
-                                        node_to_label.values())
+        label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
         new_edges = []
         for label, nodes in label_to_nodes.items():
             for edge in it.combinations(nodes, 2):
@@ -522,8 +555,7 @@ class DummyEdges(object):
         """
         # Find clusters by labels
         node_to_label = infr.get_node_attrs(label)
-        label_to_nodes = ut.group_items(node_to_label.keys(),
-                                        node_to_label.values())
+        label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
 
         weight_heuristic = infr.ibs is not None
         if weight_heuristic:
@@ -541,12 +573,11 @@ class DummyEdges(object):
 
             if 'view_weight' in enabled_heuristics:
                 from vtool import _rhomb_dist
-                view_edge = [(node_to_view[u], node_to_view[v])
-                             for (u, v) in avail_uv]
-                view_weight = np.array([
-                    _rhomb_dist.VIEW_CODE_DIST[(v1, v2)]
-                    for (v1, v2) in view_edge
-                ])
+
+                view_edge = [(node_to_view[u], node_to_view[v]) for (u, v) in avail_uv]
+                view_weight = np.array(
+                    [_rhomb_dist.VIEW_CODE_DIST[(v1, v2)] for (v1, v2) in view_edge]
+                )
                 # Assume comparable by default and prefer undefined
                 # more than probably not, but less than definately so.
                 view_weight[np.isnan(view_weight)] = 1.5
@@ -560,43 +591,46 @@ class DummyEdges(object):
                 mintime = vt.safe_min(times, fill=0, nans=False)
                 time_denom = maxtime - mintime
                 # Try linking by time for lynx data
-                time_delta = np.array([
-                    abs(node_to_time[u] - node_to_time[v])
-                    for u, v in avail_uv
-                ])
+                time_delta = np.array(
+                    [abs(node_to_time[u] - node_to_time[v]) for u, v in avail_uv]
+                )
                 time_weight = time_delta / time_denom
                 weights += time_weight
 
             weights = np.array(weights)
             weights[np.isnan(weights)] = 1.0
 
-            avail = [(u, v, {'weight': w})
-                     for (u, v), w in zip(avail_uv, weights)]
+            avail = [(u, v, {'weight': w}) for (u, v), w in zip(avail_uv, weights)]
             return avail
 
         new_edges = []
-        prog = ut.ProgIter(list(label_to_nodes.keys()),
-                           label='finding mst edges',
-                           enabled=infr.verbose > 0)
+        prog = ut.ProgIter(
+            list(label_to_nodes.keys()),
+            label='finding mst edges',
+            enabled=infr.verbose > 0,
+        )
         for nid in prog:
             nodes = set(label_to_nodes[nid])
             if len(nodes) == 1:
                 continue
             # We want to make this CC connected
             pos_sub = infr.pos_graph.subgraph(nodes, dynamic=False)
-            impossible = set(it.starmap(e_, it.chain(
-                nxu.edges_inside(infr.neg_graph, nodes),
-                nxu.edges_inside(infr.incomp_graph, nodes),
-                # nxu.edges_inside(infr.unknown_graph, nodes),
-            )))
+            impossible = set(
+                it.starmap(
+                    e_,
+                    it.chain(
+                        nxu.edges_inside(infr.neg_graph, nodes),
+                        nxu.edges_inside(infr.incomp_graph, nodes),
+                        # nxu.edges_inside(infr.unknown_graph, nodes),
+                    ),
+                )
+            )
             if len(impossible) == 0 and not weight_heuristic:
                 # Simple mst augmentation
                 aug_edges = list(nxu.k_edge_augmentation(pos_sub, k=1))
             else:
                 complement = it.starmap(e_, nxu.complement_edges(pos_sub))
-                avail_uv = [
-                    (u, v) for u, v in complement if (u, v) not in impossible
-                ]
+                avail_uv = [(u, v) for u, v in complement if (u, v) not in impossible]
                 if weight_heuristic:
                     # Can do heuristic weighting to improve the MST
                     avail = _heuristic_weighting(nodes, avail_uv)
@@ -604,19 +638,18 @@ class DummyEdges(object):
                     avail = avail_uv
                 # print(len(pos_sub))
                 try:
-                    aug_edges = list(nxu.k_edge_augmentation(
-                        pos_sub, k=1, avail=avail))
+                    aug_edges = list(nxu.k_edge_augmentation(pos_sub, k=1, avail=avail))
                 except nx.NetworkXUnfeasible:
                     print('Warning: MST augmentation is not feasible')
                     print('explicit negative edges might disconnect a PCC')
-                    aug_edges = list(nxu.k_edge_augmentation(
-                        pos_sub, k=1, avail=avail, partial=True))
+                    aug_edges = list(
+                        nxu.k_edge_augmentation(pos_sub, k=1, avail=avail, partial=True)
+                    )
             new_edges.extend(aug_edges)
         prog.ensure_newline()
 
         for edge in new_edges:
-            assert not infr.graph.has_edge(*edge), (
-                'alrady have edge={}'.format(edge))
+            assert not infr.graph.has_edge(*edge), 'alrady have edge={}'.format(edge)
         return new_edges
 
     def find_connecting_edges(infr):
@@ -627,15 +660,16 @@ class DummyEdges(object):
         """
         label = 'name_label'
         node_to_label = infr.get_node_attrs(label)
-        label_to_nodes = ut.group_items(node_to_label.keys(),
-                                        node_to_label.values())
+        label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
 
         # k = infr.params['redun.pos']
         k = 1
         new_edges = []
-        prog = ut.ProgIter(list(label_to_nodes.keys()),
-                           label='finding connecting edges',
-                           enabled=infr.verbose > 0)
+        prog = ut.ProgIter(
+            list(label_to_nodes.keys()),
+            label='finding connecting edges',
+            enabled=infr.verbose > 0,
+        )
         for nid in prog:
             nodes = set(label_to_nodes[nid])
             G = infr.pos_graph.subgraph(nodes, dynamic=False)
@@ -652,12 +686,13 @@ class DummyEdges(object):
 
 
 class AssertInvariants(object):
-
     def assert_edge(infr, edge):
         import utool
+
         with utool.embed_on_exception_context:
-            assert edge[0] < edge[1], (
-                'edge={} does not satisfy ordering constraint'.format(edge))
+            assert (
+                edge[0] < edge[1]
+            ), 'edge={} does not satisfy ordering constraint'.format(edge)
 
     def assert_invariants(infr, msg=''):
         infr.assert_disjoint_invariant(msg)
@@ -672,14 +707,14 @@ class AssertInvariants(object):
         """
         # The total weight of all edges in the negative metagraph should equal
         # the total number of negative edges.
-        neg_weight = sum(nx.get_edge_attributes(
-            infr.neg_metagraph, 'weight').values())
+        neg_weight = sum(nx.get_edge_attributes(infr.neg_metagraph, 'weight').values())
         n_neg_edges = infr.neg_graph.number_of_edges()
         assert neg_weight == n_neg_edges
 
         # Self loops should correspond to the number of inconsistent components
-        neg_self_loop_nids = sorted([
-            ne[0] for ne in list(infr.neg_metagraph.selfloop_edges())])
+        neg_self_loop_nids = sorted(
+            [ne[0] for ne in list(infr.neg_metagraph.selfloop_edges())]
+        )
         incon_nids = sorted(infr.nid_to_errors.keys())
         assert neg_self_loop_nids == incon_nids
 
@@ -694,9 +729,9 @@ class AssertInvariants(object):
             print('ERROR STATUS DUMP:')
             print(ut.repr4(infr.status()))
             raise AssertionError(
-                'edge sets must have full union. Found union=%d vs all=%d' % (
-                    len(edge_union), len(all_edges)
-                ))
+                'edge sets must have full union. Found union=%d vs all=%d'
+                % (len(edge_union), len(all_edges))
+            )
 
     def assert_disjoint_invariant(infr, msg=''):
         # infr.print('assert_disjoint_invariant', 200)
@@ -714,8 +749,7 @@ class AssertInvariants(object):
         if infr.params['inference.enabled']:
             incon_ccs = list(infr.inconsistent_components())
             if len(incon_ccs) > 0:
-                raise AssertionError('The graph is not consistent. ' +
-                                     msg)
+                raise AssertionError('The graph is not consistent. ' + msg)
 
     def assert_recovery_invariant(infr, msg=''):
         if not DEBUG_INCON:
@@ -733,6 +767,7 @@ class AssertInvariants(object):
         #         infr.print('infr.recovery_cc = %r' % (infr.recovery_cc,))
         #         infr.print('incon_cc = %r' % (incon_cc,))
 
+
 if __name__ == '__main__':
     r"""
     CommandLine:
@@ -740,6 +775,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.mixin_helpers --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

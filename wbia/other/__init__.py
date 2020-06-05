@@ -11,6 +11,7 @@ from wbia.other import detectfuncs
 from wbia.other import detecttrain
 from wbia.other import ibsfuncs
 import utool
+
 print, rrr, profile = utool.inject2(__name__, '[wbia.other]')
 
 
@@ -19,10 +20,12 @@ def reassign_submodule_attributes(verbose=True):
     why reloading all the modules doesnt do this I don't know
     """
     import sys
+
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
     import wbia.other
+
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
@@ -47,6 +50,7 @@ def reload_subs(verbose=True):
     if verbose:
         print('Reloading submodules')
     rrr(verbose=verbose)
+
     def wrap_fbrrr(mod):
         def fbrrr(*args, **kwargs):
             """ fallback reload """
@@ -55,14 +59,18 @@ def reload_subs(verbose=True):
             # Breaks ut.Pref (which should be depricated anyway)
             # import imp
             # imp.reload(mod)
+
         return fbrrr
+
     def get_rrr(mod):
         if hasattr(mod, 'rrr'):
             return mod.rrr
         else:
             return wrap_fbrrr(mod)
+
     def get_reload_subs(mod):
         return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
+
     get_rrr(dbinfo)(verbose=verbose)
     get_rrr(duct_tape)(verbose=verbose)
     get_rrr(detectfuncs)(verbose=verbose)
@@ -77,6 +85,8 @@ def reload_subs(verbose=True):
         reassign_submodule_attributes(verbose=verbose)
     except Exception as ex:
         print(ex)
+
+
 rrrr = reload_subs
 
 IMPORT_TUPLES = [

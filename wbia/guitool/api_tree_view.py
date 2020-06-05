@@ -16,7 +16,7 @@ from wbia.guitool import api_item_view
 # AbstractItemView::keyboardSearch
 
 API_VIEW_BASE = QtWidgets.QTreeView
-#API_VIEW_BASE = QtWidgets.QAbstractItemView
+# API_VIEW_BASE = QtWidgets.QAbstractItemView
 
 
 class APITreeView(API_VIEW_BASE):
@@ -24,6 +24,7 @@ class APITreeView(API_VIEW_BASE):
     Tree view of API data.
     Implicitly inherits from APIItemView
     """
+
     rows_updated = signal_(str, int)
     contextMenuClicked = signal_(QtCore.QModelIndex, QtCore.QPoint)
     API_VIEW_BASE = API_VIEW_BASE
@@ -40,15 +41,15 @@ class APITreeView(API_VIEW_BASE):
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
-        #view.cornerButton = guitool_components.newButton(view)
-        #view.setCornerWidget(view.cornerButton)
+        # view.cornerButton = guitool_components.newButton(view)
+        # view.setCornerWidget(view.cornerButton)
         view._init_api_item_view()
 
-        #view.setUniformRowHeights(True)
+        # view.setUniformRowHeights(True)
 
-    #---------------
+    # ---------------
     # Initialization
-    #---------------
+    # ---------------
 
     def _init_tree_behavior(view):
         """ Tree behavior
@@ -82,20 +83,20 @@ class APITreeView(API_VIEW_BASE):
         header.setHighlightSections(True)
         # Column Sizes
         # DO NOT USE RESIZETOCONTENTS. IT MAKES THINGS VERY SLOW
-        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
+        # horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        # horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
         if GUITOOL_PYQT_VERSION == 4:
             header.setResizeMode(QtWidgets.QHeaderView.Interactive)
-            #horizontalHeader.setCascadingSectionResizes(True)
+            # horizontalHeader.setCascadingSectionResizes(True)
             # Columns moveable
             header.setMovable(True)
         else:
             header.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
             header.setSectionsMovable(True)
 
-    #---------------
+    # ---------------
     # Qt Overrides
-    #---------------
+    # ---------------
 
     def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
@@ -104,9 +105,9 @@ class APITreeView(API_VIEW_BASE):
     def keyPressEvent(view, event):
         return api_item_view.keyPressEvent(view, event)
 
-    #---------------
+    # ---------------
     # Slots
-    #---------------
+    # ---------------
 
     @slot_(str, int)
     def on_rows_updated(view, tblname, num):
@@ -138,6 +139,7 @@ def testdata_tree_view():
         >>> gt.qtapp_loop(qwin=wgt)
     """
     import wbia.guitool as gt
+
     gt.ensure_qapp()
     col_name_list = ['name', 'num_annots', 'annots']
     col_getter_dict = {
@@ -152,10 +154,7 @@ def testdata_tree_view():
     flat_data, reverse_list = ut.invertible_flatten1(grouped_data)
     col_getter_dict['annots'] = flat_data
 
-    iders = [
-        list(range(len(col_getter_dict['name']))),
-        reverse_list
-    ]
+    iders = [list(range(len(col_getter_dict['name']))), reverse_list]
 
     col_level_dict = {
         'name': 0,
@@ -182,7 +181,9 @@ def testdata_tree_view():
     def wgt_embed(wgt):
         view = wgt.view  # NOQA
         import utool
+
         utool.embed()
+
     ut.inject_func_as_method(wgt, wgt_embed)
     wgt.menuFile.newAction(triggered=wgt.wgt_embed)
 
@@ -197,6 +198,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.api_tree_view --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

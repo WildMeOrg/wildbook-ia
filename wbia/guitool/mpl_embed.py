@@ -3,16 +3,18 @@
 http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-#import utool as ut
-#import sys
-#import os
-#import random
+
+# import utool as ut
+# import sys
+# import os
+# import random
 import time
 import utool as ut
 from wbia.guitool.__PYQT__ import QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-#from matplotlib.backends import qt_compat
+
+# from matplotlib.backends import qt_compat
 
 
 BASE = FigureCanvas
@@ -67,8 +69,9 @@ class QtAbstractMplInteraction(BASE):
         BASE.__init__(self, fig)
         self.setParent(parent)
 
-        BASE.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding,
-                           QtWidgets.QSizePolicy.Expanding)
+        BASE.setSizePolicy(
+            self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         BASE.updateGeometry(self)
         self.fig = fig
 
@@ -78,16 +81,16 @@ class QtAbstractMplInteraction(BASE):
     def closeEvent(self, event):
         self.stop_blocking()
         event.accept()
-        #BASE.closeEvent(self, event)
+        # BASE.closeEvent(self, event)
 
     @QtCore.pyqtSlot()
     def start_blocking(self):
-        #self.buttonStart.setDisabled(True)
+        # self.buttonStart.setDisabled(True)
         self._running = True
         while self._running:
             QtWidgets.qApp.processEvents()
             time.sleep(0.05)
-        #self.buttonStart.setDisabled(False)
+        # self.buttonStart.setDisabled(False)
 
     @QtCore.pyqtSlot()
     def stop_blocking(self):
@@ -101,6 +104,8 @@ if __name__ == '__main__':
         python -m wbia.guitool.mpl_embed --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

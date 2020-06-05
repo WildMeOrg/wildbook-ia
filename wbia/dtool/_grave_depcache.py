@@ -1,5 +1,8 @@
-def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
-                    config, verbose=True):
+# -*- coding: utf-8 -*-
+# flake8: noqa
+def _add_dirty_rows(
+    table, parent_rowids, config_rowid, isdirty_list, config, verbose=True
+):
     """ Does work of adding dirty rowids """
     dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
     try:
@@ -8,47 +11,53 @@ def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
             # TODO: DEPRICATE OLD ALGO REQUST STRUCTURE
             # HACK: config here is a request
             request = config
-            #subreq = request.shallow_copy # TODO
+            # subreq = request.shallow_copy # TODO
             # FIXME: Need to vsone querys and name-vs-name queries work
             # here.
             if table.productinput:
                 # Roundabout way of forcing algo requests into the depcache
                 # structure Very ugly
-                subreq_list = list(request.shallowcopy_vsonehack(
-                    qmask=isdirty_list))
-                proptup_gen_list = [table.preproc_func(table.depc, subreq)
-                                    for subreq in subreq_list]
+                subreq_list = list(request.shallowcopy_vsonehack(qmask=isdirty_list))
+                proptup_gen_list = [
+                    table.preproc_func(table.depc, subreq) for subreq in subreq_list
+                ]
                 from itertools import chain
+
                 proptup_gen = chain(*proptup_gen_list)
                 dirty_params_iter = table._yeild_algo_result(
-                    dirty_parent_rowids, proptup_gen, config_rowid)
-                #proptup_gen = list(proptup_gen)
+                    dirty_parent_rowids, proptup_gen, config_rowid
+                )
+                # proptup_gen = list(proptup_gen)
             else:
                 subreq = request.shallowcopy(qmask=isdirty_list)
                 # CALL REGISTRED ALGO WORKER FUNCTION
                 proptup_gen = table.preproc_func(table.depc, subreq)
                 dirty_params_iter = table._yeild_algo_result(
-                    dirty_parent_rowids, proptup_gen, config_rowid)
+                    dirty_parent_rowids, proptup_gen, config_rowid
+                )
         else:
             args = zip(*dirty_parent_rowids)
             if table._asobject:
                 # Convinience
-                args = [table.depc.get_obj(parent, rowids)
-                        for parent, rowids in zip(table.parents, args)]
+                args = [
+                    table.depc.get_obj(parent, rowids)
+                    for parent, rowids in zip(table.parents, args)
+                ]
             # hack config out of request
             config_ = config.config if hasattr(config, 'config') else config
             # CALL REGISTRED TABLE WORKER FUNCTION
-            proptup_gen = table.preproc_func(table.depc, *args,
-                                             config=config_)
+            proptup_gen = table.preproc_func(table.depc, *args, config=config_)
             if len(table._nested_idxs) > 0:
                 assert not table.isalgo
                 unnest_data = table._make_unnester()
                 proptup_gen = (unnest_data(data) for data in proptup_gen)
             dirty_params_iter = table._concat_rowids_data(
-                dirty_parent_rowids, proptup_gen, config_rowid)
+                dirty_parent_rowids, proptup_gen, config_rowid
+            )
 
-        chunksize = (len(dirty_parent_rowids)
-                     if table.chunksize is None else table.chunksize)
+        chunksize = (
+            len(dirty_parent_rowids) if table.chunksize is None else table.chunksize
+        )
 
         # TODO: Separate this as a function which can be specified as a
         # callback.
@@ -62,39 +71,56 @@ def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
                 # HACKS, really this should be for anything that has a
                 # extern write function
                 sql_chunks = table._save_algo_result(dirty_params_chunk)
-                table.db._add(table.tablename, table._table_colnames,
-                              sql_chunks, nInput=nInput)
+                table.db._add(
+                    table.tablename, table._table_colnames, sql_chunks, nInput=nInput
+                )
             else:
-                table.db._add(table.tablename, table._table_colnames,
-                              dirty_params_chunk, nInput=nInput)
+                table.db._add(
+                    table.tablename,
+                    table._table_colnames,
+                    dirty_params_chunk,
+                    nInput=nInput,
+                )
     except Exception as ex:
-        ut.printex(ex, 'error in add_rowids', keys=[
-            'table', 'table.parents', 'parent_rowids', 'config', 'args',
-            'config_rowid', 'dirty_parent_rowids', 'table.preproc_func'])
+        ut.printex(
+            ex,
+            'error in add_rowids',
+            keys=[
+                'table',
+                'table.parents',
+                'parent_rowids',
+                'config',
+                'args',
+                'config_rowid',
+                'dirty_parent_rowids',
+                'table.preproc_func',
+            ],
+        )
         raise
 
 
-def _concat_rowids_data(table, dirty_parent_rowids, proptup_gen,
-                        config_rowid):
+def _concat_rowids_data(table, dirty_parent_rowids, proptup_gen, config_rowid):
     for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
         try:
             yield parent_rowids + (config_rowid,) + data_cols
         except Exception as ex:
-            ut.printex(ex, 'cat error', keys=[
-                'config_rowid', 'data_cols', 'parent_rowids'])
+            ut.printex(
+                ex, 'cat error', keys=['config_rowid', 'data_cols', 'parent_rowids']
+            )
             raise
+
 
 def _yeild_algo_result(table, dirty_parent_rowids, proptup_gen, config_rowid):
     # TODO: generalize to all external data that needs to be written
     # explicitly
-    extern_fname_list = table._get_extern_fnames(dirty_parent_rowids,
-                                                 config_rowid)
+    extern_fname_list = table._get_extern_fnames(dirty_parent_rowids, config_rowid)
     extern_dpath = table._get_extern_dpath()
     ut.ensuredir(extern_dpath, verbose=True or table.depc._debug)
     fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
     _iter = zip(dirty_parent_rowids, proptup_gen, fpath_list)
     for parent_rowids, algo_result, extern_fpath in _iter:
         yield parent_rowids, config_rowid, algo_result, extern_fpath
+
 
 def _save_algo_result(table, dirty_params_chunk):
     for tup in dirty_params_chunk:
@@ -103,8 +129,9 @@ def _save_algo_result(table, dirty_params_chunk):
             algo_result.save_to_fpath(extern_fpath, True)
             yield parent_rowids + (config_rowid,) + (extern_fpath,)
         except Exception as ex:
-            ut.printex(ex, 'cat2 error', keys=[
-                'config_rowid', 'data_cols', 'parent_rowids'])
+            ut.printex(
+                ex, 'cat2 error', keys=['config_rowid', 'data_cols', 'parent_rowids']
+            )
             raise
 
 
@@ -130,6 +157,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         >>> #request1 = depc.new_algo_request('vsone', [1, 2], [1, 2])
         >>> request2 = depc.new_request('vsmany', [1, 2], [1, 2])
     """
+
     _isnewreq = True
     _qaids_independent = True
     _daids_independent = False
@@ -164,14 +192,14 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
 
     def get_external_data_config2(request):
         # HACK
-        #return None
-        #print('[d] request.params = %r' % (request.params,))
+        # return None
+        # print('[d] request.params = %r' % (request.params,))
         return request.params
 
     def get_external_query_config2(request):
         # HACK
-        #return None
-        #print('[q] request.params = %r' % (request.params,))
+        # return None
+        # print('[q] request.params = %r' % (request.params,))
         return request.params
 
     @property
@@ -213,8 +241,9 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
                 use_cache = not ut.get_argflag('--nocache')
 
             parent_rowids = request.get_parent_rowids()
-            rowids = table.get_rowid(parent_rowids, config=request,
-                                     recompute=not use_cache)
+            rowids = table.get_rowid(
+                parent_rowids, config=request, recompute=not use_cache
+            )
             result_list = table.get_row_data(rowids)
             return ut.get_list_column(result_list, 0)
 
@@ -229,7 +258,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         daids_list = ut.apply_grouping(dirty_daids, groupxs)
         qaids_list = ut.apply_grouping(dirty_qaids, groupxs)
         for qaids, daids in zip(qaids_list, daids_list):
-            #subreq = copy.copy(request)  # copy calls setstate and getstate
+            # subreq = copy.copy(request)  # copy calls setstate and getstate
             subreq = request.__class__()
             subreq.__dict__.update(request.__dict__)
             subreq.qaids = qaids
@@ -241,12 +270,12 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         Creates a copy of qreq with the same qparams object and a subset of the
         qx and dx objects.  used to generate chunks of vsone and vsmany queries
         """
-        #subreq = copy.copy(request)  # copy calls setstate and getstate
+        # subreq = copy.copy(request)  # copy calls setstate and getstate
         subreq = request.__class__()
         subreq.__dict__.update(request.__dict__)
         if qmask is not None:
             assert qaids is None, 'cannot specify both'
-            qaid_list  = subreq.qaids
+            qaid_list = subreq.qaids
             subreq.qaids = ut.compress(qaid_list, qmask)
         elif qaids is not None:
             subreq.qaids = qaids
@@ -264,17 +293,18 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
     def get_pipe_hashid(request):
         return ut.hashstr27(request.get_pipe_cfgstr())
 
-    def get_cfgstr(request, with_input=None, with_data=None, with_pipe=True,
-                   hash_pipe=False):
+    def get_cfgstr(
+        request, with_input=None, with_data=None, with_pipe=True, hash_pipe=False
+    ):
         r"""
         main cfgstring used to identify the 'querytype'
         """
         if with_input is None:
-            #with_input = False
+            # with_input = False
             with_input = not request._qaids_independent
 
         if with_data is None:
-            #with_data = True
+            # with_data = True
             # non-independent aids must be in config string
             with_data = not request._daids_independent
 
@@ -297,13 +327,19 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         return full_cfgstr
 
     def __nice__(request):
-        dbname = (None if request.depc is None or request.depc.controller is None
-                  else request.depc.controller.get_dbname())
-        infostr_ = 'nQ=%s, nD=%s %s' % (len(request.qaids), len(request.daids),
-                                        request.get_pipe_hashid())
+        dbname = (
+            None
+            if request.depc is None or request.depc.controller is None
+            else request.depc.controller.get_dbname()
+        )
+        infostr_ = 'nQ=%s, nD=%s %s' % (
+            len(request.qaids),
+            len(request.daids),
+            request.get_pipe_hashid(),
+        )
         return '(%s) %s' % (dbname, infostr_)
 
-    #def _get_rootset_hashid(request, root_rowids, prefix):
+    # def _get_rootset_hashid(request, root_rowids, prefix):
     #    uuid_type = 'V'
     #    label = ''.join((prefix, uuid_type, 'UUIDS'))
     #    uuid_list = request.depc.get_root_uuid(root_rowids)
@@ -311,7 +347,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
     #    uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
     #    return uuid_hashid
 
-    #def __getstate__(request):
+    # def __getstate__(request):
     #    state_dict = request.__dict__.copy()
     #    # SUPER HACK
     #    state_dict['dbdir'] = request.depc.controller.get_dbdir()
@@ -321,30 +357,28 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
 
     def __setstate__(request, state_dict):
         import wbia
+
         dbdir = state_dict['dbdir']
         del state_dict['dbdir']
         params = state_dict['params']
         depc = wbia.opendb(dbdir=dbdir, web=False).depc
-        configclass = depc.configclass_dict[state_dict['algoname'] ]
+        configclass = depc.configclass_dict[state_dict['algoname']]
         config = configclass(**params)
         state_dict['depc'] = depc
         state_dict['config'] = config
         request.__dict__.update(state_dict)
 
-
-
-    #def _row_exists(table, parent_rowids, config=None, eager=True, nInput=None,
-    #                _debug=None):
-    #    config_rowid = table.get_config_rowid(config=config)
-    #    andwhere_colnames = table.superkey_colnames
-    #    params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
-    #    params_iter = list(params_iter)
-    #    tblname = table.tablename
-    #    flag_list = table.db.exists_where2(tblname, params_iter,
-    #                                       andwhere_colnames, eager=eager,
-    #                                       nInput=nInput)
-    #    return flag_list
-
+        # def _row_exists(table, parent_rowids, config=None, eager=True, nInput=None,
+        #                _debug=None):
+        #    config_rowid = table.get_config_rowid(config=config)
+        #    andwhere_colnames = table.superkey_colnames
+        #    params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
+        #    params_iter = list(params_iter)
+        #    tblname = table.tablename
+        #    flag_list = table.db.exists_where2(tblname, params_iter,
+        #                                       andwhere_colnames, eager=eager,
+        #                                       nInput=nInput)
+        #    return flag_list
 
         path2_pidx = ut.make_index_lookup(path_edges_nodata, dict_factory=ut.odict)
         assert isinstance(path2_pidx, ut.odict)
@@ -420,12 +454,12 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
 
         """
         import networkx as nx
+
         expanded_input_graph = table.expanded_input_graph
         composed_graph = nx.compose_all(expanded_input_graph.values())
-        #pt.show_nx(composed_graph)
+        # pt.show_nx(composed_graph)
         topsort = nx.topological_sort(composed_graph)
-        type_to_dependlevels = ut.map_dict_vals(ut.level_order,
-                                                expanded_input_graph)
+        type_to_dependlevels = ut.map_dict_vals(ut.level_order, expanded_input_graph)
         level_orders = type_to_dependlevels
         # Find computation order for all dependencies
         nonfinal_compute_order = ut.merge_level_order(level_orders, topsort)
@@ -439,6 +473,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         parent_rowids
         """
         from six.moves import zip_longest
+
         nonfinal_compute_order = table.nonfinal_compute_order()
         expanded_input_graph = table.expanded_input_graph
         hgroupids = ut.ddict(list)
@@ -447,11 +482,14 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
                 continue
             for t in order:
                 s = expanded_input_graph[t]
-                colxs = [y['parent_colx'] for x in s.pred[_tablename].values()
-                         for y in x.values()]
+                colxs = [
+                    y['parent_colx']
+                    for x in s.pred[_tablename].values()
+                    for y in x.values()
+                ]
                 assert len(colxs) > 0
                 colx = min(colxs)
-                #order_colxs.append(colx)
+                # order_colxs.append(colx)
                 hgroupids[t].append(colx)
 
         hgroupids = dict(hgroupids)
@@ -474,6 +512,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
             nodes = ut.all_nodes_between(graph, source, target)
             tablegraph = graph.subgraph(nodes)
             import wbia.plottool as pt
+
             # pt.show_nx(tablegraph.reverse())
             # sink = ut.nx_sink_nodes(tablegraph)[0]
             # bfs_edges = list(ut.bfs_multi_edges(G, sink, data=True, reverse=True))
@@ -496,7 +535,12 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
 
             G2 = nx.MultiDiGraph()
             # for u, v, k, d in G.edges(keys=True, data=True):
-            edge_iter = ((u, v, k, d) for u in nx.topological_sort(G)[::-1] for v, kd in G[u].items() for k, d in kd.items())
+            edge_iter = (
+                (u, v, k, d)
+                for u in nx.topological_sort(G)[::-1]
+                for v, kd in G[u].items()
+                for k, d in kd.items()
+            )
             edges = list(edge_iter)
             for u, v, k, d in edges:
                 s0 = ''
@@ -526,18 +570,23 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
             prev = None  # rinput_path_id[0]
             compressed = []
             for item in rinput_path_id:
-                #if item != prev and not (item == '1' and prev == '2'):
-                #if item != prev:
+                # if item != prev and not (item == '1' and prev == '2'):
+                # if item != prev:
                 compressed.append(item)
                 # else:
                 #     compressed.append(prev)
-                #prev = item
+                # prev = item
             if len(compressed) > 1:
                 compressed = compressed[1:]
             compressed = tuple(compressed)
             return compressed
+
         [[edge[3]['rinput_path_id'] for edge in path] for path in accum_path_edges]
-        x = [[compress_rinput_pathid(edge[3]['rinput_path_id']) for edge in path] for path in accum_path_edges]
+        x = [
+            [compress_rinput_pathid(edge[3]['rinput_path_id']) for edge in path]
+            for path in accum_path_edges
+        ]
+
 
 """
             >>> for type_, subgraph in expanded_input_graph.items():
@@ -548,6 +597,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
             >>>                              title='composed'))
         path_edges_nodata = ut.lmap(tuple, ut.lmap(ut.take_column, accum_path_edges, colx=slice(0, 3)))
 """
+
 
 def get_all_ancestor_rowids(depc, tablename, native_rowids):
     r"""
@@ -595,11 +645,13 @@ def get_all_ancestor_rowids(depc, tablename, native_rowids):
             child_rowids = rowid_dict[tablekey]
             colnames = table.parent_id_colnames
             parent_rowids_listT = table.get_internal_columns(
-                child_rowids, colnames, keepwrap=True)
+                child_rowids, colnames, keepwrap=True
+            )
             parent_rowids_list = list(zip(*parent_rowids_listT))
             for parent_key, parent_rowids in zip(table.parent, parent_rowids_list):
                 rowid_dict[parent_key] = parent_rowids
     return rowid_dict
+
 
 def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None):
     """
@@ -615,16 +667,14 @@ def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None)
     ancestor_rowids = table.get_ancestor_rowids(native_rowids, ancestor_tablename)
     return ancestor_rowids
 
-
-#def _parse_sqlkw(kwargs):
-#    default_sqlkw = dict(
-#        _debug=None, ensure=True, recompute=False, recompute_all=False,
-#        eager=True, nInput=None, read_extern=True, onthefly=False,
-#    )
-#    otherkw = kwargs.copy()
-#    sqlkw = {key: otherkw.pop(key, val) for key, val in default_sqlkw.items()}
-#    return sqlkw, otherkw
-
+    # def _parse_sqlkw(kwargs):
+    #    default_sqlkw = dict(
+    #        _debug=None, ensure=True, recompute=False, recompute_all=False,
+    #        eager=True, nInput=None, read_extern=True, onthefly=False,
+    #    )
+    #    otherkw = kwargs.copy()
+    #    sqlkw = {key: otherkw.pop(key, val) for key, val in default_sqlkw.items()}
+    #    return sqlkw, otherkw
 
     def get_dependants(depc, tablename):
         """

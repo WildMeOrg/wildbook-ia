@@ -5,28 +5,36 @@ import utool as ut
 import concurrent
 import random
 import time
+
 # from wbia.web import futures_utils as futures_actors
 import futures_actors
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 def double_review_test():
     # from wbia.web.graph_server import *
     import wbia
+
     actor = GraphActor()
     config = {
-        'manual.n_peek'   : 1,
-        'manual.autosave' : False,
-        'ranking.enabled' : False,
-        'autoreview.enabled' : False,
-        'redun.enabled'   : False,
-        'queue.conf.thresh' : 'absolutely_sure',
-        'algo.hardcase' : True,
+        'manual.n_peek': 1,
+        'manual.autosave': False,
+        'ranking.enabled': False,
+        'autoreview.enabled': False,
+        'redun.enabled': False,
+        'queue.conf.thresh': 'absolutely_sure',
+        'algo.hardcase': True,
     }
     # Start the process
     dbdir = wbia.sysres.db_to_dbdir('PZ_MTEST')
-    payload = {'action': 'start', 'dbdir': dbdir, 'aids': 'all',
-               'config': config, 'init': 'annotmatch'}
+    payload = {
+        'action': 'start',
+        'dbdir': dbdir,
+        'aids': 'all',
+        'config': config,
+        'init': 'annotmatch',
+    }
     start_resp = actor.handle(payload)
     print('start_resp = {!r}'.format(start_resp))
     infr = actor.infr
@@ -59,14 +67,12 @@ def ut_to_json_encode(dict_):
 
 def testdata_start_payload(aids='all'):
     import wbia
+
     payload = {
-        'action'       : 'start',
-        'dbdir'        : wbia.sysres.db_to_dbdir('PZ_MTEST'),
-        'aids'         : aids,
-        'config'       : {
-            'manual.n_peek'   : 50,
-            'manual.autosave' : False,
-        }
+        'action': 'start',
+        'dbdir': wbia.sysres.db_to_dbdir('PZ_MTEST'),
+        'aids': aids,
+        'config': {'manual.n_peek': 50, 'manual.autosave': False,},
     }
     return payload
 
@@ -89,10 +95,12 @@ def testdata_feedback_payload(edge, decision):
 
 
 def test_foo(future):
-    print('FOO %r' % (future, ))
+    print('FOO %r' % (future,))
 
 
-GRAPH_ACTOR_CLASS = futures_actors.ProcessActor if ut.LINUX or ut.WIN32 else futures_actors.ThreadActor
+GRAPH_ACTOR_CLASS = (
+    futures_actors.ProcessActor if ut.LINUX or ut.WIN32 else futures_actors.ThreadActor
+)
 
 
 class GraphActor(GRAPH_ACTOR_CLASS):
@@ -193,16 +201,15 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 
                     raise sys.exc_info()[0](trace)
 
-    def start(actor, dbdir, aids='all', config={},
-              **kwargs):
+    def start(actor, dbdir, aids='all', config={}, **kwargs):
         import wbia
+
         assert dbdir is not None, 'must specify dbdir'
-        assert actor.infr is None, ('AnnotInference already running')
-        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False,
-                           force_serial=True)
+        assert actor.infr is None, 'AnnotInference already running'
+        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         # Create the AnnotInference
-        print('starting via actor with ibs = %r' % (ibs, ))
+        print('starting via actor with ibs = %r' % (ibs,))
         actor.infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         actor.infr.print('started via actor')
         actor.infr.print('config = {}'.format(ut.repr3(config)))
@@ -243,18 +250,18 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return response
 
     def remove_annots(actor, aids, **kwargs):
-        print('Removing aids=%r from AnnotInference' % (aids, ))
+        print('Removing aids=%r from AnnotInference' % (aids,))
         response = actor.infr.remove_aids(aids)
-        print('\t got response = %r' % (response, ))
+        print('\t got response = %r' % (response,))
         print('Applying NonDynamic Update to AnnotInference')
         actor.infr.apply_nondynamic_update()
         print('\t ...applied')
         return 'removed'
 
     def update_task_thresh(actor, task, decision, value, **kwargs):
-        print('Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value, ))
+        print('Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value,))
         actor.infr.task_thresh[task][decision] = value
-        print('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh, ))
+        print('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh,))
         return 'updated'
 
     def add_annots(actor, aids, **kwargs):
@@ -425,7 +432,7 @@ class GraphClient(object):
 
         # Update graph_client infr_status for all external calls
         payload_ = {
-            'action' : 'get_infr_status',
+            'action': 'get_infr_status',
         }
         future_ = client.executor.post(payload_)
         client.futures.append((payload_['action'], future_))
@@ -483,7 +490,7 @@ class GraphClient(object):
             else:
                 status = 'Exception'
                 client.exception = exception
-            client.status = '%s (%d in Futures Queue)' % (status, num_futures, )
+            client.status = '%s (%d in Futures Queue)' % (status, num_futures,)
         return client.status, client.exception
 
     def add_annots(client):
@@ -510,12 +517,18 @@ class GraphClient(object):
                 aid1, aid2 = edge
                 if aid2 < aid1:
                     aid1, aid2 = aid2, aid1
-                edge = (aid1, aid2, )
+                edge = (
+                    aid1,
+                    aid2,
+                )
                 if client.review_vip is None:
                     # Hack around the double review problem
                     if edge != client.prev_vip:
                         client.review_vip = edge
-                client.review_dict[edge] = (priority, edge_data_dict, )
+                client.review_dict[edge] = (
+                    priority,
+                    edge_data_dict,
+                )
 
     def check(client, edge):
         if edge not in client.review_dict:
@@ -549,7 +562,9 @@ class GraphClient(object):
                     client.prev_vip = edge
                     client.review_vip = None
                 else:
-                    print('VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)')
+                    print(
+                        'VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)'
+                    )
             else:
                 print('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
 
@@ -569,6 +584,8 @@ if __name__ == '__main__':
         python -m wbia.web.graph_server --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

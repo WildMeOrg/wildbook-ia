@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ Implements ThreadActor """
 from __future__ import absolute_import, division, print_function
 from concurrent.futures import _base
@@ -25,8 +26,7 @@ class _WorkItem(object):
         self.message = message
 
 
-def _thread_actor_eventloop(executor_reference, work_queue, _ActorClass, *args,
-                            **kwargs):
+def _thread_actor_eventloop(executor_reference, work_queue, _ActorClass, *args, **kwargs):
     """
     actor event loop run in a separate thread.
 
@@ -94,6 +94,7 @@ class ThreadActorExecutor(_base_actor.ActorExecutor):
             self._work_queue.put(w)
             self._initialize_actor()
             return f
+
     post.__doc__ = _base_actor.ActorExecutor.post.__doc__
 
     def _initialize_actor(self, *args, **kwargs):
@@ -101,15 +102,17 @@ class ThreadActorExecutor(_base_actor.ActorExecutor):
         # the worker threads.
         def weakref_cb(_, q=self._work_queue):
             q.put(None)
+
         # We only maintain one thread for an actor
         if len(self._threads) < 1:
             assert self._did_initialize is False, 'only initialize actor once'
             self._did_initialize = True
             t = threading.Thread(
                 target=_thread_actor_eventloop,
-                args=(weakref.ref(self, weakref_cb),
-                      self._work_queue, self._ActorClass) +
-                args, kwargs=kwargs)
+                args=(weakref.ref(self, weakref_cb), self._work_queue, self._ActorClass)
+                + args,
+                kwargs=kwargs,
+            )
             t.daemon = True
             t.start()
             self._threads.add(t)
@@ -122,13 +125,16 @@ class ThreadActorExecutor(_base_actor.ActorExecutor):
         if wait:
             for t in self._threads:
                 t.join()
+
     shutdown.__doc__ = _base.Executor.shutdown.__doc__
 
 
 class ThreadActor(_base_actor.Actor):
-
     @classmethod
     def executor(cls, *args, **kwargs):
         return ThreadActorExecutor(cls, *args, **kwargs)
+
     # executor.__doc__ = _base_actor.Actor.executor.__doc___
+
+
 # ThreadActor.__doc__ = _base_actor.Actor.__doc___

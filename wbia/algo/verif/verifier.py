@@ -6,6 +6,7 @@ import utool as ut
 from wbia.algo.verif import pairfeat
 from wbia.algo.verif import sklearn_utils
 import vtool as vt
+
 # import itertools as it
 # from os.path import join
 print, rrr, profile = ut.inject2(__name__)
@@ -13,10 +14,8 @@ print, rrr, profile = ut.inject2(__name__)
 
 @ut.reloadable_class
 class BaseVerifier(ut.NiceRepr):
-
     def __nice__(verif):
-        return '.'.join([verif.metadata['task_key'],
-                         verif.metadata['clf_key']])
+        return '.'.join([verif.metadata['task_key'], verif.metadata['clf_key']])
 
     def predict_proba_df(verif, edges):
         raise NotImplementedError('abstract')
@@ -32,7 +31,8 @@ class BaseVerifier(ut.NiceRepr):
         probs = verif.predict_proba_df(edges)
         target_names = verif.class_names
         pred_enc = sklearn_utils.predict_from_probs(
-            probs, method=method, target_names=target_names)
+            probs, method=method, target_names=target_names
+        )
         if encoded:
             pred = pred_enc
         else:
@@ -95,15 +95,15 @@ class Verifier(BaseVerifier):
             feat_extract_config['feat_dims'] = feat_dims
 
             verif.extr = pairfeat.PairwiseFeatureExtractor(
-                ibs, config=feat_extract_config)
+                ibs, config=feat_extract_config
+            )
 
     def predict_proba_df(verif, edges):
         # TODO: if multiple verifiers have the same feature extractor we should
         # be able to cache it before we run the verification algo.
         # (we used to do this)
         X_df = verif.extr.transform(edges)
-        probs_df = sklearn_utils.predict_proba_df(verif.clf, X_df,
-                                                  verif.class_names)
+        probs_df = sklearn_utils.predict_proba_df(verif.clf, X_df, verif.class_names)
         return probs_df
         # prev_data_info = None
         # task_keys = list(infr.verifiers.keys())
@@ -130,6 +130,7 @@ class IntraVerifier(BaseVerifier):
         This classifier is for intra-dataset evaulation and is not meant to be
         pushlished for use on external datasets.
     """
+
     def __init__(verif, pblm, task_key, clf_key, data_key):
         verif.pblm = pblm
         verif.task_key = task_key
@@ -143,9 +144,11 @@ class IntraVerifier(BaseVerifier):
 
         # Make an ensemble of the evaluation classifiers
         from wbia.algo.verif import deploy
+
         deployer = deploy.Deployer(pblm=verif.pblm)
         verif.ensemble = deployer._make_ensemble_verifier(
-            verif.task_key, verif.clf_key, verif.data_key)
+            verif.task_key, verif.clf_key, verif.data_key
+        )
 
         verif.class_names = verif.ensemble.class_names
 
@@ -168,12 +171,15 @@ class IntraVerifier(BaseVerifier):
 
         # Normalize and align combined result sample edges
         train_uv = np.array(res.probs_df.index.tolist())
-        assert np.all(train_uv.T[0] < train_uv.T[1]), (
-            'edges must be in lower triangular form')
-        assert len(vt.unique_row_indexes(train_uv)) == len(train_uv), (
-            'edges must be unique')
-        assert (sorted(ut.emap(tuple, train_uv.tolist())) ==
-                sorted(ut.emap(tuple, pblm.samples.aid_pairs.tolist())))
+        assert np.all(
+            train_uv.T[0] < train_uv.T[1]
+        ), 'edges must be in lower triangular form'
+        assert len(vt.unique_row_indexes(train_uv)) == len(
+            train_uv
+        ), 'edges must be unique'
+        assert sorted(ut.emap(tuple, train_uv.tolist())) == sorted(
+            ut.emap(tuple, pblm.samples.aid_pairs.tolist())
+        )
         want_uv = np.array(want_edges)
 
         # Determine which edges need/have probabilities
@@ -199,8 +205,9 @@ class IntraVerifier(BaseVerifier):
         # Combine probabilities --- get probabilites for each sample
         # edges = have_edges + need_edges
         have_probs = res.probs_df.loc[have_edges]
-        assert have_probs.index.intersection(eclf_probs.index).size == 0, (
-            'training (have) data was not disjoint from new (want) data ')
+        assert (
+            have_probs.index.intersection(eclf_probs.index).size == 0
+        ), 'training (have) data was not disjoint from new (want) data '
 
         probs = pd.concat([have_probs, eclf_probs])
         return probs
@@ -213,6 +220,8 @@ if __name__ == '__main__':
         python -m wbia.algo.verif.verifier --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

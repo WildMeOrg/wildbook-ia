@@ -7,6 +7,7 @@ import functools
 from wbia.algo.hots import hstypes
 from wbia.algo.hots import _pipeline_helpers as plh
 from six.moves import zip, range, map  # NOQA
+
 print, rrr, profile = ut.inject2(__name__)
 
 """
@@ -23,7 +24,7 @@ TODO: replace testdata_pre_weight_neighbors with
 
 NN_WEIGHT_FUNC_DICT = {}
 MISC_WEIGHT_FUNC_DICT = {}
-EPS = 1E-8
+EPS = 1e-8
 
 
 def _register_nn_normalized_weight_func(func):
@@ -82,7 +83,9 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
 
     for nns in nns_list:
         (neighb_idx, neighb_dist) = nns
-        neighb_constvote = np.ones((len(neighb_idx), len(neighb_idx.T) - Knorm), dtype=np.float)
+        neighb_constvote = np.ones(
+            (len(neighb_idx), len(neighb_idx.T) - Knorm), dtype=np.float
+        )
         constvote_weight_list.append(neighb_constvote)
     return constvote_weight_list
 
@@ -115,7 +118,9 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
         # database forground weights
         neighb_dfgws = qreq_.indexer.get_nn_fgws(nn.neighb_idxs.T[0:-Knorm].T)
         # query forground weights
-        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([nn.qaid], ensure=False, config2_=config2_)[0]
+        qfx2_qfgw = qreq_.ibs.get_annot_fgweights(
+            [nn.qaid], ensure=False, config2_=config2_
+        )[0]
         qfgws = qfx2_qfgw.take(nn.qfx_list, axis=0)
         # feature match forground weight is geometric mean
         neighb_fgvote_weight = np.sqrt(qfgws[:, None] * neighb_dfgws)
@@ -176,7 +181,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> ut.assert_inbounds(weights1.sum(), 1500, 4500)
     """
     Knorm = qreq_.qparams.Knorm
-    normalizer_rule  = qreq_.qparams.normalizer_rule
+    normalizer_rule = qreq_.qparams.normalizer_rule
     # Database feature index to chip index
     qaid_list = qreq_.get_internal_qaids()
     normk_list = [
@@ -184,8 +189,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         for qaid, (neighb_idx, neighb_dist) in zip(qaid_list, nns_list)
     ]
     weight_list = [
-        apply_normweight(
-            normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm)
+        apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm)
         for neighb_normk, (neighb_idx, neighb_dist) in zip(normk_list, nns_list)
     ]
     return weight_list, normk_list
@@ -272,7 +276,7 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
     neighb_normdist = vt.take_col_per_row(neighb_dist, neighb_normk)
     neighb_normdist.shape = (len(neighb_idx), 1)
     neighb_nndist = neighb_dist.T[0:K].T
-    vdist = neighb_nndist    # voting distance
+    vdist = neighb_nndist  # voting distance
     ndist = neighb_normdist  # normalizer distance
     neighb_normweight = normweight_fn(vdist, ndist)
     return neighb_normweight
@@ -307,7 +311,7 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
     """
     assert Knorm == qreq_.qparams.Knorm, 'inconsistency in qparams'
     # Get the top names you do not want your normalizer to be from
-    #qnid = qreq_.internal_qannots.loc([qaid]).nids[0]
+    # qnid = qreq_.internal_qannots.loc([qaid]).nids[0]
     qnid = qreq_.get_qreq_annot_nids(qaid)
     K = len(neighb_idx.T) - Knorm
     assert K > 0, 'K cannot be 0'
@@ -316,9 +320,9 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
     # Get tke Kth - KNth normalizing neighbors
     neighb_normidx = neighb_idx.T[-Knorm:].T
     # Apply temporary uniquish name
-    neighb_topaid  = qreq_.indexer.get_nn_aids(neighb_topidx)
+    neighb_topaid = qreq_.indexer.get_nn_aids(neighb_topidx)
     neighb_normaid = qreq_.indexer.get_nn_aids(neighb_normidx)
-    neighb_topnid  = qreq_.get_qreq_annot_nids(neighb_topaid)
+    neighb_topnid = qreq_.get_qreq_annot_nids(neighb_topaid)
     neighb_normnid = qreq_.get_qreq_annot_nids(neighb_normaid)
     # Inspect the potential normalizers
     neighb_selnorm = mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid)
@@ -382,15 +386,18 @@ def mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid):
     """
     # TODO?: warn if any([np.any(flags) for flags in neighb_invalid]), (
     #    'Normalizers are potential matches. Increase Knorm')
-    neighb_valid = np.logical_and.reduce([col1[:, None] != neighb_normnid
-                                          for col1 in neighb_topnid.T])
+    neighb_valid = np.logical_and.reduce(
+        [col1[:, None] != neighb_normnid for col1 in neighb_topnid.T]
+    )
     # Mark self as invalid, if given that information
     neighb_valid = np.logical_and(neighb_normnid != qnid, neighb_valid)
     # For each query feature find its best normalizer (using negative indices)
     Knorm = neighb_normnid.shape[1]
     neighb_validxs = [np.nonzero(normrow)[0] for normrow in neighb_valid]
-    neighb_selnorm = np.array([validxs[0] - Knorm if len(validxs) != 0 else -1
-                               for validxs in neighb_validxs], hstypes.FK_DTYPE)
+    neighb_selnorm = np.array(
+        [validxs[0] - Knorm if len(validxs) != 0 else -1 for validxs in neighb_validxs],
+        hstypes.FK_DTYPE,
+    )
     return neighb_selnorm
 
 
@@ -432,7 +439,7 @@ def lnbnn_fn(vdist, ndist):
                            [0.67, 0.42, 0.25],
                            [0.59, 0.3 , 0.27]])
     """
-    return (ndist - vdist)
+    return ndist - vdist
 
 
 @_register_nn_normalized_weight_func
@@ -545,7 +552,7 @@ def normonly_fn(vdist, ndist):
                   [0.77, 0.77, 0.77]])
     """
     return np.tile(ndist[:, 0:1], (1, vdist.shape[1]))
-    #return ndist[None, 0:1]
+    # return ndist[None, 0:1]
 
 
 def testdata_vn_dists(nfeats=5, K=3):
@@ -572,11 +579,13 @@ def testdata_vn_dists(nfeats=5, K=3):
                           [0.79],
                           [0.77]])
     """
+
     def make_precise(dist):
         prec = 100
-        dist = ((prec * dist).astype(np.uint8) / prec)
+        dist = (prec * dist).astype(np.uint8) / prec
         dist = dist.astype(hstypes.FS_DTYPE)
         return dist
+
     rng = np.random.RandomState(0)
     vdist = rng.rand(nfeats, K)
     ndist = rng.rand(nfeats, 1)
@@ -590,25 +599,25 @@ def testdata_vn_dists(nfeats=5, K=3):
     return vdist, ndist
 
 
-#@_register_nn_normalized_weight_func
-#def dist_fn(vdist, ndist):
+# @_register_nn_normalized_weight_func
+# def dist_fn(vdist, ndist):
 #    """ the euclidian distance between the features """
 #    return vdist
 
 
-#@_register_nn_simple_weight_func
+# @_register_nn_simple_weight_func
 def gravity_match_weighter(nns_list, nnvalid0_list, qreq_):
     raise NotImplementedError('have not finished gv weighting')
-    #qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)
-    #qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
-    #qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_internal_query_config2())  # FIXME: Highly inefficient
-    #qfx2_oris  = ktool.get_oris(qfx2_kpts)
+    # qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)
+    # qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
+    # qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_internal_query_config2())  # FIXME: Highly inefficient
+    # qfx2_oris  = ktool.get_oris(qfx2_kpts)
     ## Get the orientation distance
-    #qfx2_oridist = vt.rowwise_oridist(qfx2_nnori, qfx2_oris)
+    # qfx2_oridist = vt.rowwise_oridist(qfx2_nnori, qfx2_oris)
     ## Normalize into a weight (close orientations are 1, far are 0)
-    #qfx2_gvweight = (TAU - qfx2_oridist) / TAU
+    # qfx2_gvweight = (TAU - qfx2_oridist) / TAU
     ## Apply gravity vector weight to the score
-    #qfx2_score *= qfx2_gvweight
+    # qfx2_score *= qfx2_gvweight
 
 
 def all_normalized_weights_test():
@@ -623,22 +632,29 @@ def all_normalized_weights_test():
     """
     from wbia.algo.hots import nn_weights
     import six
-    #ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()
 
-    qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
-                                    a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
-                                    p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
+    # ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()
+
+    qreq_, args = plh.testdata_pre(
+        'weight_neighbors',
+        defaultdb='testdb1',
+        a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
+        p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'],
+        verbose=True,
+    )
     nns_list = args.nns_list
     nnvalid0_list = args.nnvalid0_list
     qaid = qreq_.qaids[0]
 
     def tst_weight_fn(nn_weight, nns_list, qreq_, qaid):
         normweight_fn = nn_weights.__dict__[nn_weight + '_fn']
-        weight_list1, nomx_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
+        weight_list1, nomx_list1 = nn_weights.nn_normalized_weight(
+            normweight_fn, nns_list, nnvalid0_list, qreq_
+        )
         weights1 = weight_list1[0]
-        #---
+        # ---
         # test NN_WEIGHT_FUNC_DICT
-        #---
+        # ---
         nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT[nn_weight]
         weight_list2, nomx_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         weights2 = weight_list2[0]
@@ -658,6 +674,8 @@ if __name__ == '__main__':
     python -m wbia.algo.hots.nn_weights
     """
     import multiprocessing
+
     multiprocessing.freeze_support()
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

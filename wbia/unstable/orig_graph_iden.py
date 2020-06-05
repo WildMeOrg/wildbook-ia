@@ -7,6 +7,7 @@ import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
 import six
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -100,19 +101,24 @@ class OrigAnnotInference(object):
         aid_pairs = np.array(ut.take_column(self.needs_review_list, [0, 1]))
         nid_pairs = qreq_.ibs.get_annot_nids(aid_pairs)
         truth = nid_pairs.T[0] == nid_pairs.T[1]
-        user_feedback = ut.odict([
-            ('aid1', aid_pairs.T[0]),
-            ('aid2', aid_pairs.T[1]),
-            ('p_match', truth.astype(np.float)),
-            ('p_nomatch', 1.0 - truth),
-            ('p_notcomp', np.array([0.0] * len(aid_pairs))),
-        ])
+        user_feedback = ut.odict(
+            [
+                ('aid1', aid_pairs.T[0]),
+                ('aid2', aid_pairs.T[1]),
+                ('p_match', truth.astype(np.float)),
+                ('p_nomatch', 1.0 - truth),
+                ('p_notcomp', np.array([0.0] * len(aid_pairs))),
+            ]
+        )
         return user_feedback
 
     def make_prob_annots(self):
         cm_list = self.cm_list
-        unique_aids = sorted(ut.list_union(*[cm.daid_list for cm in cm_list] +
-                                           [[cm.qaid for cm in cm_list]]))
+        unique_aids = sorted(
+            ut.list_union(
+                *[cm.daid_list for cm in cm_list] + [[cm.qaid for cm in cm_list]]
+            )
+        )
         aid2_aidx = ut.make_index_lookup(unique_aids)
         prob_annots = np.zeros((len(unique_aids), len(unique_aids)))
         for count, cm in enumerate(cm_list):
@@ -120,9 +126,9 @@ class OrigAnnotInference(object):
             annot_scores = ut.dict_take(cm.aid2_annot_score, unique_aids, 0)
             prob_annots[idx][:] = annot_scores
         prob_annots[np.diag_indices(len(prob_annots))] = np.inf
-        prob_annots += 1E-9
-        #print(ut.hz_str('prob_names = ', ut.repr2(prob_names,
-        #precision=2, max_line_width=140, suppress_small=True)))
+        prob_annots += 1e-9
+        # print(ut.hz_str('prob_names = ', ut.repr2(prob_names,
+        # precision=2, max_line_width=140, suppress_small=True)))
         return unique_aids, prob_annots
 
     @ut.memoize
@@ -130,7 +136,7 @@ class OrigAnnotInference(object):
         cm_list = self.cm_list
         # Consolodate information from a series of chip matches
         unique_nids = sorted(ut.list_union(*[cm.unique_nids for cm in cm_list]))
-        #nid2_nidx = ut.make_index_lookup(unique_nids)
+        # nid2_nidx = ut.make_index_lookup(unique_nids)
         # Populate matrix of raw name scores
         prob_names = np.zeros((len(cm_list), len(unique_nids)))
         for count, cm in enumerate(cm_list):
@@ -143,19 +149,19 @@ class OrigAnnotInference(object):
 
         # Normalize to row stochastic matrix
         prob_names /= prob_names.sum(axis=1)[:, None]
-        #print(ut.hz_str('prob_names = ', ut.repr2(prob_names,
-        #precision=2, max_line_width=140, suppress_small=True)))
+        # print(ut.hz_str('prob_names = ', ut.repr2(prob_names,
+        # precision=2, max_line_width=140, suppress_small=True)))
         return unique_nids, prob_names
 
     def choose_thresh(self):
-        #prob_annots /= prob_annots.sum(axis=1)[:, None]
+        # prob_annots /= prob_annots.sum(axis=1)[:, None]
         # Find connected components
-        #thresh = .25
-        #thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
+        # thresh = .25
+        # thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
         unique_nids, prob_names = self.make_prob_names()
 
         if len(unique_nids) <= 2:
-            return .5
+            return 0.5
 
         nscores = np.sort(prob_names.flatten())
         # x = np.gradient(nscores).argmax()
@@ -167,20 +173,22 @@ class OrigAnnotInference(object):
         idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
         if False:
             import wbia.plottool as pt
-            idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
+
+            idx3 = vt.find_elbow_point(curve[idx1 : idx2 + 1]) + idx1
             pt.plot(curve)
             pt.plot(idx1, curve[idx1], 'bo')
             pt.plot(idx2, curve[idx2], 'ro')
             pt.plot(idx3, curve[idx3], 'go')
         thresh = nscores[idx2]
-        #print('thresh = %r' % (thresh,))
-        #thresh = .999
-        #thresh = .1
+        # print('thresh = %r' % (thresh,))
+        # thresh = .999
+        # thresh = .1
         return thresh
 
     def make_graph(self, show=False):
         import networkx as nx
         import itertools
+
         cm_list = self.cm_list
         unique_nids, prob_names = self.make_prob_names()
         thresh = self.choose_thresh()
@@ -199,28 +207,30 @@ class OrigAnnotInference(object):
         qreq_ = self.qreq_
 
         nodes = ut.unique(qreq_.qaids.tolist() + qreq_.daids.tolist())
-        #qnids = qreq_.get_qreq_annot_nids(qreq_.qaids)
+        # qnids = qreq_.get_qreq_annot_nids(qreq_.qaids)
         dnids = qreq_.get_qreq_annot_nids(qreq_.daids)
         dnid2_daids = ut.group_items(qreq_.daids, dnids)
         grouped_aids = dnid2_daids.values()
         matched_daids = ut.take(dnid2_daids, matched_nids)
         name_cliques = [list(itertools.combinations(aids, 2)) for aids in grouped_aids]
-        aid_matches = [list(ut.product([qaid], daids)) for qaid, daids in
-                       zip(matching_qaids, matched_daids)]
+        aid_matches = [
+            list(ut.product([qaid], daids))
+            for qaid, daids in zip(matching_qaids, matched_daids)
+        ]
 
         graph = nx.Graph()
         graph.add_nodes_from(nodes)
         graph.add_edges_from(ut.flatten(name_cliques))
         graph.add_edges_from(ut.flatten(aid_matches))
 
-        #matchless_quries = ut.take(qaid_list, ut.index_complement(qxs, len(qaid_list)))
+        # matchless_quries = ut.take(qaid_list, ut.index_complement(qxs, len(qaid_list)))
         name_nodes = [('nid', l) for l in dnids]
         db_aid_nid_edges = list(zip(qreq_.daids, name_nodes))
-        #query_aid_nid_edges = list(zip(matching_qaids, [('nid', l) for l in matched_nids]))
-        #G = nx.Graph()
-        #G.add_nodes_from(matchless_quries)
-        #G.add_edges_from(db_aid_nid_edges)
-        #G.add_edges_from(query_aid_nid_edges)
+        # query_aid_nid_edges = list(zip(matching_qaids, [('nid', l) for l in matched_nids]))
+        # G = nx.Graph()
+        # G.add_nodes_from(matchless_quries)
+        # G.add_edges_from(db_aid_nid_edges)
+        # G.add_edges_from(query_aid_nid_edges)
 
         graph.add_edges_from(db_aid_nid_edges)
 
@@ -230,9 +240,10 @@ class OrigAnnotInference(object):
             part1 = user_feedback['p_match'] * (1 - user_feedback['p_notcomp'])
             part2 = p_bg * user_feedback['p_notcomp']
             p_same_list = part1 + part2
-            for aid1, aid2, p_same in zip(user_feedback['aid1'],
-                                          user_feedback['aid2'], p_same_list):
-                if p_same > .5:
+            for aid1, aid2, p_same in zip(
+                user_feedback['aid1'], user_feedback['aid2'], p_same_list
+            ):
+                if p_same > 0.5:
                     if not graph.has_edge(aid1, aid2):
                         graph.add_edge(aid1, aid2)
                 else:
@@ -240,19 +251,39 @@ class OrigAnnotInference(object):
                         graph.remove_edge(aid1, aid2)
         if show:
             import wbia.plottool as pt
-            nx.set_node_attributes(graph, name='color', values={aid: pt.LIGHT_PINK for aid in qreq_.daids})
-            nx.set_node_attributes(graph, name='color', values={aid: pt.TRUE_BLUE for aid in qreq_.qaids})
-            nx.set_node_attributes(graph, name='color', values={aid: pt.LIGHT_PURPLE for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
-            nx.set_node_attributes(graph, name='label', values={node: 'n%r' % (node[1],) for node in name_nodes})
-            nx.set_node_attributes(graph, name='color', values={node: pt.LIGHT_GREEN for node in name_nodes})
+
+            nx.set_node_attributes(
+                graph, name='color', values={aid: pt.LIGHT_PINK for aid in qreq_.daids}
+            )
+            nx.set_node_attributes(
+                graph, name='color', values={aid: pt.TRUE_BLUE for aid in qreq_.qaids}
+            )
+            nx.set_node_attributes(
+                graph,
+                name='color',
+                values={
+                    aid: pt.LIGHT_PURPLE
+                    for aid in np.intersect1d(qreq_.qaids, qreq_.daids)
+                },
+            )
+            nx.set_node_attributes(
+                graph,
+                name='label',
+                values={node: 'n%r' % (node[1],) for node in name_nodes},
+            )
+            nx.set_node_attributes(
+                graph, name='color', values={node: pt.LIGHT_GREEN for node in name_nodes},
+            )
         if show:
             import wbia.plottool as pt
+
             pt.show_nx(graph, layoutkw={'prog': 'neato'}, verbose=False)
         return graph
 
     def make_clusters(self):
         import itertools
         import networkx as nx
+
         cm_list = self.cm_list
 
         graph = self.make_graph()
@@ -262,8 +293,8 @@ class OrigAnnotInference(object):
         all_nids = self.qreq_.get_qreq_annot_nids(all_aids)
         orig_aid2_nid = dict(zip(all_aids, all_nids))
 
-        #orig_aid2_nid = {}
-        #for cm in cm_list:
+        # orig_aid2_nid = {}
+        # for cm in cm_list:
         #    orig_aid2_nid[cm.qaid] = cm.qnid
         #    for daid, dnid in zip(cm.daid_list, cm.dnid_list):
         #        orig_aid2_nid[daid] = dnid
@@ -283,7 +314,7 @@ class OrigAnnotInference(object):
         # Make first part of inference output
         qaid_list = [cm.qaid for cm in cm_list]
         qaid_set = set(qaid_list)
-        #start_nid = 9001
+        # start_nid = 9001
         # Find an nid that doesn't exist in the database
         start_nid = len(self.qreq_.ibs._get_all_known_name_rowids()) + 1
         next_new_nid = itertools.count(start_nid)
@@ -296,12 +327,12 @@ class OrigAnnotInference(object):
             merge_case = len(nids) > 1
             new_name = len(nids) == 0
 
-            #print('[chip_match > OrigAnnotInference > make_inference] WARNING:
+            # print('[chip_match > OrigAnnotInference > make_inference] WARNING:
             #      EXEMPLAR FLAG SET TO TRUE, NEEDS TO BE IMPLEMENTED')
             error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
             strflags = ['split', 'merge', 'new']
             error_flag = ut.compress(strflags, [split_case, merge_case, new_name])
-            #error_flag = split_case or merge_case
+            # error_flag = split_case or merge_case
 
             # <HACK>
             # SET EXEMPLARS
@@ -313,13 +344,14 @@ class OrigAnnotInference(object):
             for view, aids_ in view_to_aids.items():
                 heuristic_exemplar_aids = set(aids) - qaid_set
                 heuristic_non_exemplar_aids = set(aids).intersection(qaid_set)
-                num_needed_exemplars = (num_wanted_exemplars_per_view -
-                                        len(heuristic_exemplar_aids))
+                num_needed_exemplars = num_wanted_exemplars_per_view - len(
+                    heuristic_exemplar_aids
+                )
                 # Choose the best query annots to fill out exemplars
                 if len(heuristic_non_exemplar_aids) == 0:
                     continue
                 quality_ints = ibs.get_annot_qualities(heuristic_non_exemplar_aids)
-                okish = ibs.const.QUALITY_TEXT_TO_INT[ibs.const.QUAL_OK] - .1
+                okish = ibs.const.QUALITY_TEXT_TO_INT[ibs.const.QUAL_OK] - 0.1
                 quality_ints = [x if x is None else okish for x in quality_ints]
                 aids_ = ut.sortedby(heuristic_non_exemplar_aids, quality_ints)[::-1]
                 chosen = aids_[:num_needed_exemplars]
@@ -336,17 +368,18 @@ class OrigAnnotInference(object):
                         continue
                 orig_nid = orig_aid2_nid[aid]
                 exemplar_flag = aid in hack_set_these_qaids_as_exemplars
-                #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
+                # clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
                 tup = (aid, orig_nid, new_nid, exemplar_flag, error_flag)
                 cluster_tuples.append(tup)
         return cluster_tuples
 
     def make_inference2(self):
         raise NotImplementedError('do not use')
-        #import utool
-        #utool.embed()
+        # import utool
+        # utool.embed()
 
         from wbia.algo.graph import graph_iden
+
         graph_iden.rrr()
         qreq_ = self.qreq_
         cm_list = self.cm_list
@@ -367,7 +400,7 @@ class OrigAnnotInference(object):
         infr.show_graph(show_cuts=True)
 
     def make_inference(self):
-        #self.make_inference2()
+        # self.make_inference2()
 
         cm_list = self.cm_list
         unique_nids, prob_names = self.make_prob_names()
@@ -406,18 +439,19 @@ class OrigAnnotInference(object):
                 raw_score = raw_scores[scorex]
                 daid = daids[scorex]
                 import scipy.special
+
                 # SUPER HACK: these are not probabilities
                 # TODO: set a and b based on dbsize and param configuration
                 # python -m wbia.plottool.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
-                #a = 2.0
+                # a = 2.0
                 a = 1.5
                 b = 2
                 p_same = scipy.special.expit(b * raw_score - a)
-                #confidence = scores[scorex]
-                #p_diff = 1 - p_same
-                #decision = 'same' if confidence > thresh else 'diff'
-                #confidence = p_same if confidence > thresh else p_diff
-                #tup = (cm.qaid, daid, decision, confidence, raw_score)
+                # confidence = scores[scorex]
+                # p_diff = 1 - p_same
+                # decision = 'same' if confidence > thresh else 'diff'
+                # confidence = p_same if confidence > thresh else p_diff
+                # tup = (cm.qaid, daid, decision, confidence, raw_score)
                 confidence = (2 * np.abs(0.5 - p_same)) ** 2
                 key = (cm.qaid, daid)
                 fb_idx = feedback_lookup.get(key)
@@ -433,78 +467,102 @@ class OrigAnnotInference(object):
         self.needs_review_list = needs_review_list
         self.cluster_tuples = cluster_tuples
 
-        #print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
-        #print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
+        # print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
+        # print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
 
-        #prob_annots = None
-        #print(ut.repr2)prob_names precision=2, max_line_width=100,
+        # prob_annots = None
+        # print(ut.repr2)prob_names precision=2, max_line_width=100,
         #      suppress_small=True))
 
     def make_annot_inference_dict(self, internal=False):
-        #import uuid
+        # import uuid
 
         def convert_to_name_uuid(nid):
-            #try:
+            # try:
             text = ibs.get_name_texts(nid, apply_fix=False)
             if text is None:
                 text = 'NEWNAME_%s' % (str(nid),)
-            #uuid_ = uuid.UUID(text)
-            #except ValueError:
+            # uuid_ = uuid.UUID(text)
+            # except ValueError:
             #    text = 'NEWNAME_%s' % (str(nid),)
             #    #uuid_ = nid
             return text
+
         ibs = self.qreq_.ibs
 
         if internal:
             get_annot_uuids = ut.identity
         else:
             get_annot_uuids = ibs.get_annot_uuids
-            #return uuid_
+            # return uuid_
 
         # Compile the cluster_dict
-        col_list = ['aid_list', 'orig_nid_list', 'new_nid_list',
-                    'exemplar_flag_list', 'error_flag_list']
+        col_list = [
+            'aid_list',
+            'orig_nid_list',
+            'new_nid_list',
+            'exemplar_flag_list',
+            'error_flag_list',
+        ]
         shape = (len(self.cluster_tuples), len(col_list))
         cluster_tuplesT = ut.listT(self.cluster_tuples, shape)
         cluster_dict = dict(zip(col_list, cluster_tuplesT))
         cluster_dict['annot_uuid_list'] = get_annot_uuids(cluster_dict['aid_list'])
         # We store the name's UUID as the name's text
-        #cluster_dict['orig_name_uuid_list'] = [convert_to_name_uuid(nid)
+        # cluster_dict['orig_name_uuid_list'] = [convert_to_name_uuid(nid)
         #                                       for nid in cluster_dict['orig_nid_list']]
-        #cluster_dict['new_name_uuid_list'] = [convert_to_name_uuid(nid)
+        # cluster_dict['new_name_uuid_list'] = [convert_to_name_uuid(nid)
         # for nid in cluster_dict['new_nid_list']]
-        cluster_dict['orig_name_list'] = [convert_to_name_uuid(nid)
-                                          for nid in cluster_dict['orig_nid_list']]
-        cluster_dict['new_name_list'] = [convert_to_name_uuid(nid)
-                                         for nid in cluster_dict['new_nid_list']]
+        cluster_dict['orig_name_list'] = [
+            convert_to_name_uuid(nid) for nid in cluster_dict['orig_nid_list']
+        ]
+        cluster_dict['new_name_list'] = [
+            convert_to_name_uuid(nid) for nid in cluster_dict['new_nid_list']
+        ]
         # Filter out only the keys we want to send back in the dictionary
-        #key_list = ['annot_uuid_list', 'orig_name_uuid_list',
+        # key_list = ['annot_uuid_list', 'orig_name_uuid_list',
         #            'new_name_uuid_list', 'exemplar_flag_list',
         #            'error_flag_list']
-        key_list = ['annot_uuid_list', 'orig_name_list', 'new_name_list',
-                    'exemplar_flag_list', 'error_flag_list']
+        key_list = [
+            'annot_uuid_list',
+            'orig_name_list',
+            'new_name_list',
+            'exemplar_flag_list',
+            'error_flag_list',
+        ]
         cluster_dict = ut.dict_subset(cluster_dict, key_list)
 
         # Compile the annot_pair_dict
-        col_list = ['aid_1_list', 'aid_2_list', 'p_same_list',
-                    'confidence_list', 'raw_score_list']
+        col_list = [
+            'aid_1_list',
+            'aid_2_list',
+            'p_same_list',
+            'confidence_list',
+            'raw_score_list',
+        ]
         shape = (len(self.needs_review_list), len(col_list))
         annot_pair_dict = dict(zip(col_list, ut.listT(self.needs_review_list, shape)))
-        annot_pair_dict['annot_uuid_1_list'] = get_annot_uuids(annot_pair_dict['aid_1_list'])
-        annot_pair_dict['annot_uuid_2_list'] = get_annot_uuids(annot_pair_dict['aid_2_list'])
-        zipped = zip(annot_pair_dict['annot_uuid_1_list'],
-                     annot_pair_dict['annot_uuid_2_list'],
-                     annot_pair_dict['p_same_list'])
+        annot_pair_dict['annot_uuid_1_list'] = get_annot_uuids(
+            annot_pair_dict['aid_1_list']
+        )
+        annot_pair_dict['annot_uuid_2_list'] = get_annot_uuids(
+            annot_pair_dict['aid_2_list']
+        )
+        zipped = zip(
+            annot_pair_dict['annot_uuid_1_list'],
+            annot_pair_dict['annot_uuid_2_list'],
+            annot_pair_dict['p_same_list'],
+        )
         annot_pair_dict['review_pair_list'] = [
             {
-                'annot_uuid_key'       : annot_uuid_1,
-                'annot_uuid_1'         : annot_uuid_1,
-                'annot_uuid_2'         : annot_uuid_2,
-                'prior_matching_state' : {
-                    'p_match'   : p_same,
-                    'p_nomatch' : 1.0 - p_same,
-                    'p_notcomp' : 0.0,
-                }
+                'annot_uuid_key': annot_uuid_1,
+                'annot_uuid_1': annot_uuid_1,
+                'annot_uuid_2': annot_uuid_2,
+                'prior_matching_state': {
+                    'p_match': p_same,
+                    'p_nomatch': 1.0 - p_same,
+                    'p_notcomp': 0.0,
+                },
             }
             for (annot_uuid_1, annot_uuid_2, p_same) in zipped
         ]
@@ -513,11 +571,13 @@ class OrigAnnotInference(object):
         annot_pair_dict = ut.dict_subset(annot_pair_dict, key_list)
 
         # Compile the inference dict
-        inference_dict = ut.odict([
-            ('cluster_dict', cluster_dict),
-            ('annot_pair_dict', annot_pair_dict),
-            ('_internal_state', None),
-        ])
+        inference_dict = ut.odict(
+            [
+                ('cluster_dict', cluster_dict),
+                ('annot_pair_dict', annot_pair_dict),
+                ('_internal_state', None),
+            ]
+        )
         return inference_dict
 
 
@@ -528,6 +588,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.orig_graph_iden --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

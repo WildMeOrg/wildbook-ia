@@ -15,15 +15,21 @@ import six  # NOQA
 from wbia import constants as const
 from wbia.init import sysres
 from wbia.algo.hots import hstypes
+
 print, rrr, profile = ut.inject2(__name__)
 
 
-DCVS_DEFAULT = ut.ParamInfoList('distinctivness', [
-    ut.ParamInfo('dcvs_power', 1.0, 'p',    varyvals=[.5, 1.0, 1.5, 2.0]),
-    ut.ParamInfo('dcvs_min_clip', .2, 'mn', varyvals=[.2, .02, .03][0:1]),
-    ut.ParamInfo('dcvs_max_clip', .5, 'mx', varyvals=[.05, .3, .4, .45, .5, 1.0][1:4]),
-    ut.ParamInfo('dcvs_K', 5, 'dcvsK',      varyvals=[5, 7, 15][0:1]),
-])
+DCVS_DEFAULT = ut.ParamInfoList(
+    'distinctivness',
+    [
+        ut.ParamInfo('dcvs_power', 1.0, 'p', varyvals=[0.5, 1.0, 1.5, 2.0]),
+        ut.ParamInfo('dcvs_min_clip', 0.2, 'mn', varyvals=[0.2, 0.02, 0.03][0:1]),
+        ut.ParamInfo(
+            'dcvs_max_clip', 0.5, 'mx', varyvals=[0.05, 0.3, 0.4, 0.45, 0.5, 1.0][1:4]
+        ),
+        ut.ParamInfo('dcvs_K', 5, 'dcvsK', varyvals=[5, 7, 15][0:1]),
+    ],
+)
 
 
 DISTINCTIVENESS_NORMALIZER_CACHE = {}
@@ -43,6 +49,7 @@ def testdata_distinctiveness():
         >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
     """
     import wbia
+
     # build test data
     db = ut.get_argval('--db', str, 'testdb1')
     species = ut.get_argval('--species', str, None)
@@ -60,9 +67,9 @@ def testdata_distinctiveness():
     return dstcnvs_normer, qreq_
 
 
-#@six.add_metaclass(ut.ReloadingMetaclass)
+# @six.add_metaclass(ut.ReloadingMetaclass)
 class DistinctivnessNormalizer(ut.Cachable):
-    ext    = '.cPkl'
+    ext = '.cPkl'
     prefix = 'distinctivness'
 
     def __init__(dstcnvs_normer, species, cachedir=None):
@@ -72,12 +79,9 @@ class DistinctivnessNormalizer(ut.Cachable):
         dstcnvs_normer.max_distance_sqrd = dstcnvs_normer.max_distance ** 2
         dstcnvs_normer.cachedir = cachedir
         dstcnvs_normer.species = species
-        dstcnvs_normer.flann_params = {
-            'algorithm': 'kdtree',
-            'trees': 8,
-            'checks': 800}
+        dstcnvs_normer.flann_params = {'algorithm': 'kdtree', 'trees': 8, 'checks': 800}
         dstcnvs_normer.checks = dstcnvs_normer.flann_params.get('checks')
-        dstcnvs_normer.cores  = dstcnvs_normer.flann_params.get('cores', 0)
+        dstcnvs_normer.cores = dstcnvs_normer.flann_params.get('cores', 0)
 
     def get_prefix(dstcnvs_normer):
         return DistinctivnessNormalizer.prefix + '_'
@@ -94,13 +98,13 @@ class DistinctivnessNormalizer(ut.Cachable):
         pass
 
     def archive(dstcnvs_normer, cachedir=None, overwrite=False):
-        cachedir      = dstcnvs_normer.cachedir if cachedir is None else cachedir
-        data_fpath    = dstcnvs_normer.get_fpath(cachedir)
-        #flann_fpath   = dstcnvs_normer.get_flann_fpath(cachedir)
+        cachedir = dstcnvs_normer.cachedir if cachedir is None else cachedir
+        data_fpath = dstcnvs_normer.get_fpath(cachedir)
+        # flann_fpath   = dstcnvs_normer.get_flann_fpath(cachedir)
         archive_fpath = dstcnvs_normer.get_fpath(cachedir, ext='.zip')
         fpath_list = [
             data_fpath,
-            #flann_fpath
+            # flann_fpath
         ]
         ut.archive_files(archive_fpath, fpath_list, overwrite=overwrite)
         return archive_fpath
@@ -127,18 +131,23 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> print(result)
         """
         from os.path import basename, join
+
         assert ut.is_developer(), 'ONLY DEVELOPERS CAN PERFORM THIS OPERATION'
-        cachedir      = dstcnvs_normer.cachedir if cachedir is None else cachedir
+        cachedir = dstcnvs_normer.cachedir if cachedir is None else cachedir
         archive_fpath = dstcnvs_normer.archive(cachedir, overwrite=True)
         archive_fname = basename(archive_fpath)
         publish_dpath = PUBLISH_DIR
         publish_fpath = join(publish_dpath, archive_fname)
         if ut.checkpath(publish_fpath, verbose=True):
             print('Overwriting model')
-            print('old nBytes(publish_fpath) = %s' %
-                  (ut.get_file_nBytes_str(publish_fpath),))
-            print('new nBytes(archive_fpath) = %s' %
-                  (ut.get_file_nBytes_str(archive_fpath),))
+            print(
+                'old nBytes(publish_fpath) = %s'
+                % (ut.get_file_nBytes_str(publish_fpath),)
+            )
+            print(
+                'new nBytes(archive_fpath) = %s'
+                % (ut.get_file_nBytes_str(archive_fpath),)
+            )
         else:
             print('Publishing model')
         print('publish_fpath = %r' % (publish_fpath,))
@@ -148,8 +157,9 @@ class DistinctivnessNormalizer(ut.Cachable):
         flann_fpath = dstcnvs_normer.get_fpath(cachedir, ext='.flann')
         return flann_fpath
 
-    def exists(dstcnvs_normer, cachedir=None, verbose=True, need_flann=False,
-               *args, **kwargs):
+    def exists(
+        dstcnvs_normer, cachedir=None, verbose=True, need_flann=False, *args, **kwargs
+    ):
         r"""
         Args:
             cachedir (str): cache directory
@@ -169,6 +179,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> assert dstcnvs_normer.exists()
         """
         from os.path import exists
+
         cachedir = dstcnvs_normer.cachedir if cachedir is None else cachedir
         cpkl_fpath = dstcnvs_normer.get_fpath(cachedir)
         flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
@@ -182,31 +193,29 @@ class DistinctivnessNormalizer(ut.Cachable):
         # Inherited method
         cachedir = dstcnvs_normer.cachedir if cachedir is None else cachedir
         kwargs['ignore_keys'] = ['flann']
-        super(DistinctivnessNormalizer, dstcnvs_normer).load(cachedir, *args,
-                                                             **kwargs)
+        super(DistinctivnessNormalizer, dstcnvs_normer).load(cachedir, *args, **kwargs)
         dstcnvs_normer.load_or_build_flann(cachedir, verbose, *args, **kwargs)
         ## Load Flann
-        #if ut.VERBOSE:
+        # if ut.VERBOSE:
         #    print('[nnindex] load_success = %r' % (load_success,))
 
-    def load_or_build_flann(dstcnvs_normer, cachedir=None, verbose=True, *args,
-                            **kwargs):
+    def load_or_build_flann(dstcnvs_normer, cachedir=None, verbose=True, *args, **kwargs):
         from vtool._pyflann_backend import pyflann as pyflann
+
         flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
         if ut.checkpath(flann_fpath, verbose=ut.VERBOSE):
             try:
                 dstcnvs_normer.flann = pyflann.FLANN()
                 dstcnvs_normer.flann.load_index(flann_fpath, dstcnvs_normer.vecs)
                 assert dstcnvs_normer.flann._FLANN__curindex is not None
-                #load_success = True
+                # load_success = True
             except Exception as ex:
-                ut.printex(ex, '... cannot load distinctiveness flann',
-                           iswarning=True)
+                ut.printex(ex, '... cannot load distinctiveness flann', iswarning=True)
                 dstcnvs_normer.rebuild(cachedir)
         else:
             dstcnvs_normer.ensure_flann(cachedir)
-            #raise IOError('cannot load distinctiveness flann')
-        #return load_success
+            # raise IOError('cannot load distinctiveness flann')
+        # return load_success
 
     def save(dstcnvs_normer, cachedir=None, verbose=True, *args, **kwargs):
         """
@@ -217,8 +226,7 @@ class DistinctivnessNormalizer(ut.Cachable):
         # Inherited method
         kwargs['ignore_keys'] = ['flann']
         # Save everything but flann
-        super(DistinctivnessNormalizer, dstcnvs_normer).save(cachedir, *args,
-                                                             **kwargs)
+        super(DistinctivnessNormalizer, dstcnvs_normer).save(cachedir, *args, **kwargs)
         # Save flann
         if dstcnvs_normer.flann is not None:
             dstcnvs_normer.save_flann(cachedir, verbose=verbose)
@@ -246,8 +254,14 @@ class DistinctivnessNormalizer(ut.Cachable):
             dstcnvs_normer.rebuild(cachedir)
             dstcnvs_normer.save_flann(cachedir)
 
-    def get_distinctiveness(dstcnvs_normer, qfx2_vec, dcvs_K=2, dcvs_power=1.0,
-                            dcvs_max_clip=1.0, dcvs_min_clip=0.0):
+    def get_distinctiveness(
+        dstcnvs_normer,
+        qfx2_vec,
+        dcvs_K=2,
+        dcvs_power=1.0,
+        dcvs_max_clip=1.0,
+        dcvs_min_clip=0.0,
+    ):
         r"""
         Args:
             qfx2_vec (ndarray):  mapping from query feature index to vec
@@ -288,35 +302,38 @@ class DistinctivnessNormalizer(ut.Cachable):
             %s/\(^ *\)\(.*\)/\1>>> \2/c
 
         """
-        #ut.embed()
-        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), (
-            'dcvs_K=%r' % (dcvs_K,))
+        # ut.embed()
+        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K=%r' % (dcvs_K,)
         if len(qfx2_vec) == 0:
-            #(qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
-            qfx2_idx  = np.empty((0, dcvs_K), dtype=np.int32)
+            # (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
+            qfx2_idx = np.empty((0, dcvs_K), dtype=np.int32)
             qfx2_dist = np.empty((0, dcvs_K), dtype=np.float64)
         else:
             # perform nearest neighbors
             (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.flann.nn_index(
-                qfx2_vec, dcvs_K, checks=dstcnvs_normer.checks,
-                cores=dstcnvs_normer.cores)
+                qfx2_vec, dcvs_K, checks=dstcnvs_normer.checks, cores=dstcnvs_normer.cores
+            )
             # Ensure that distance returned are between 0 and 1
-            #qfx2_dist = qfx2_dist / (dstcnvs_normer.max_distance ** 2)
-            qfx2_dist = (np.sqrt(qfx2_dist_sqrd.astype(np.float64)) /
-                         hstypes.VEC_PSEUDO_MAX_DISTANCE)
-            #qfx2_dist32 = np.sqrt(np.divide(qfx2_dist_sqrd, dstcnvs_normer.max_distance_sqrd))
-            #qfx2_dist =
-            #qfx2_dist = np.sqrt(qfx2_dist) / dstcnvs_normer.max_distance
+            # qfx2_dist = qfx2_dist / (dstcnvs_normer.max_distance ** 2)
+            qfx2_dist = (
+                np.sqrt(qfx2_dist_sqrd.astype(np.float64))
+                / hstypes.VEC_PSEUDO_MAX_DISTANCE
+            )
+            # qfx2_dist32 = np.sqrt(np.divide(qfx2_dist_sqrd, dstcnvs_normer.max_distance_sqrd))
+            # qfx2_dist =
+            # qfx2_dist = np.sqrt(qfx2_dist) / dstcnvs_normer.max_distance
         if dcvs_K == 1:
             qfx2_dist = qfx2_dist[:, None]
         norm_dist = qfx2_dist.T[dcvs_K - 1].T
-        qfx2_dstncvs = compute_distinctiveness_from_dist(norm_dist, dcvs_power,
-                                                         dcvs_max_clip,
-                                                         dcvs_min_clip)
+        qfx2_dstncvs = compute_distinctiveness_from_dist(
+            norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip
+        )
         return qfx2_dstncvs
 
 
-def compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip):
+def compute_distinctiveness_from_dist(
+    norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip
+):
     """
     Compute distinctiveness from distance to dcvs_K+1 nearest neighbor
 
@@ -351,39 +368,46 @@ def compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs
 
 def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
     import wbia.plottool as pt
+
     pt.figure(fnum, pnum=pnum)
     ax = pt.gca()
     divider = pt.ensure_divider(ax)
-    #ax1 = divider.append_axes("left", size="50%", pad=0)
+    # ax1 = divider.append_axes("left", size="50%", pad=0)
     ax1 = ax
-    ax2 = divider.append_axes("bottom", size="100%", pad=0.05)
-    #f, (ax1, ax2) = pt.plt.subplots(1, 2, sharex=True)
+    ax2 = divider.append_axes('bottom', size='100%', pad=0.05)
+    # f, (ax1, ax2) = pt.plt.subplots(1, 2, sharex=True)
     cmapstr = 'rainbow'  # 'hot'
     color_list = pt.df2.plt.get_cmap(cmapstr)(ut.norm_zero_one(dstncvs))
     sortx = dstncvs.argsort()
-    #pt.df2.plt.plot(qfx2_dstncvs[sortx], c=color_list[sortx])
+    # pt.df2.plt.plot(qfx2_dstncvs[sortx], c=color_list[sortx])
     pt.plt.sca(ax1)
-    pt.colorline(np.arange(len(sortx)), dstncvs[sortx],
-                 cmap=pt.plt.get_cmap(cmapstr))
+    pt.colorline(np.arange(len(sortx)), dstncvs[sortx], cmap=pt.plt.get_cmap(cmapstr))
     pt.gca().set_xlim(0, len(sortx))
     pt.dark_background()
     pt.plt.sca(ax2)
-    pt.imshow(chip, darken=.2)
+    pt.imshow(chip, darken=0.2)
     # MATPLOTLIB BUG CANNOT SHOW DIFFERENT ALPHA FOR POINTS AND KEYPOINTS AT ONCE
-    #pt.draw_kpts2(kpts, pts_color=color_list, ell_color=color_list, ell_alpha=.1, ell=True, pts=True)
-    #pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,
+    # pt.draw_kpts2(kpts, pts_color=color_list, ell_color=color_list, ell_alpha=.1, ell=True, pts=True)
+    # pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,
     #              ell=True, ell_alpha=.1, pts=False)
     ell = ut.get_argflag('--ell')
-    pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,
-                  ell=ell, ell_alpha=.3, pts=not ell)
+    pt.draw_kpts2(
+        kpts,
+        color_list=color_list,
+        pts_alpha=1.0,
+        pts_size=1.5,
+        ell=ell,
+        ell_alpha=0.3,
+        pts=not ell,
+    )
     pt.plt.sca(ax)
-    #pt.figure(fnum, pnum=pnum)
+    # pt.figure(fnum, pnum=pnum)
 
 
 def download_baseline_distinctiveness_normalizer(cachedir, species):
     zipped_url = BASELINE_DISTINCTIVNESS_URLS[species]
     ut.grab_zipped_url(zipped_url, ensure=True, download_dir=cachedir)
-    #ut.assert_eq(ut.unixpath(cachedir), dir_)
+    # ut.assert_eq(ut.unixpath(cachedir), dir_)
 
 
 def request_wbia_distinctiveness_normalizer(qreq_, verbose=True):
@@ -414,9 +438,9 @@ def request_wbia_distinctiveness_normalizer(qreq_, verbose=True):
     species = unique_species[0]
     global_distinctdir = qreq_.ibs.get_global_distinctiveness_modeldir()
     cachedir = global_distinctdir
-    dstcnvs_normer = request_species_distinctiveness_normalizer(species,
-                                                                cachedir,
-                                                                verbose=False)
+    dstcnvs_normer = request_species_distinctiveness_normalizer(
+        species, cachedir, verbose=False
+    )
     return dstcnvs_normer
 
 
@@ -436,9 +460,10 @@ def request_species_distinctiveness_normalizer(species, cachedir=None, verbose=F
         dstcnvs_normer.load(cachedir)
         print(ut.get_object_size_str(dstcnvs_normer, 'dstcnvs_normer = '))
         print('Loaded distinctivness normalizer')
-        #dstcnvs_normer.ensure_flann(cachedir)
-        assert dstcnvs_normer.exists(cachedir, need_flann=True), (
-            'normalizer should have been downloaded, but it doesnt exist')
+        # dstcnvs_normer.ensure_flann(cachedir)
+        assert dstcnvs_normer.exists(
+            cachedir, need_flann=True
+        ), 'normalizer should have been downloaded, but it doesnt exist'
         DISTINCTIVENESS_NORMALIZER_CACHE[species] = dstcnvs_normer
     return dstcnvs_normer
 
@@ -520,12 +545,13 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
     # HACK IN ABILITY TO SET CONFIG
     from wbia.init.main_commands import postload_commands
     from wbia.algo import Config
+
     postload_commands(ibs, None)
 
     import wbia.plottool as pt
 
-    #cfglbl_list = cfgdict_list
-    #ut.all_dict_combinations_lbls(varied_dict)
+    # cfglbl_list = cfgdict_list
+    # ut.all_dict_combinations_lbls(varied_dict)
 
     # Get info to find distinctivness of
     species_text = ibs.get_annot_species(aid)
@@ -552,19 +578,28 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
         dstcvnss_normer = request_species_distinctiveness_normalizer(species_text)
 
     # Get distinctivness over all params
-    dstncvs_list = [dstcvnss_normer.get_distinctiveness(vecs, **cfgdict)
-                    for cfgdict in ut.ProgIter(cfgdict_list, lbl='get dstcvns')]
+    dstncvs_list = [
+        dstcvnss_normer.get_distinctiveness(vecs, **cfgdict)
+        for cfgdict in ut.ProgIter(cfgdict_list, lbl='get dstcvns')
+    ]
 
-    #fgweights = ibs.get_annot_fgweights([aid])[0]
-    #dstncvs_list = [x * fgweights for x in dstncvs_list]
+    # fgweights = ibs.get_annot_fgweights([aid])[0]
+    # dstncvs_list = [x * fgweights for x in dstncvs_list]
     fnum = 1
 
     import functools
+
     show_func = functools.partial(show_chip_distinctiveness_plot, chip, kpts)
 
     ut.interact_gridsearch_result_images(
-        show_func, cfgdict_list, cfglbl_list, dstncvs_list,
-        score_list=None, fnum=fnum, figtitle='dstncvs gridsearch')
+        show_func,
+        cfgdict_list,
+        cfglbl_list,
+        dstncvs_list,
+        score_list=None,
+        fnum=fnum,
+        figtitle='dstncvs gridsearch',
+    )
 
     pt.present()
 
@@ -592,7 +627,8 @@ def dev_train_distinctiveness(species=None):
         >>> dev_train_distinctiveness(species)
     """
     import wbia
-    #if 'species' not in vars() or species is None:
+
+    # if 'species' not in vars() or species is None:
     #    species = 'zebra_grevys'
     if species == 'zebra_grevys':
         dbname = 'GZ_ALL'
@@ -615,10 +651,10 @@ def dev_train_distinctiveness(species=None):
             # Need to train
             # Add one example from each name
             # TODO: add one exemplar per viewpoint for each name
-            #max_vecs = 1E6
-            #max_annots = 975
+            # max_vecs = 1E6
+            # max_annots = 975
             max_annots = 975
-            #ibs.fix_and_clean_database()
+            # ibs.fix_and_clean_database()
             nid_list = ibs.get_valid_nids()
             aids_list = ibs.get_name_aids(nid_list)
             # remove junk
@@ -632,8 +668,10 @@ def dev_train_distinctiveness(species=None):
             # Keep only a certain number of annots for distinctiveness mapping
             aid_list_ = ut.listclip(aid_list, max_annots)
             print('total num named annots = %r' % (sum(num_annots_list)))
-            print('training distinctiveness using %d/%d singleton annots' %
-                  (len(aid_list_), len(aid_list)))
+            print(
+                'training distinctiveness using %d/%d singleton annots'
+                % (len(aid_list_), len(aid_list))
+            )
             # vec
             # FIXME: qreq_ params for config rowid
             vecs_list = ibs.get_annot_vecs(aid_list_)
@@ -646,8 +684,9 @@ def dev_train_distinctiveness(species=None):
 
     if ut.get_argflag('--publish'):
         dstcnvs_normer.publish()
-    #vsone_
-    #inct
+    # vsone_
+    # inct
+
 
 if __name__ == '__main__':
     """
@@ -657,6 +696,8 @@ if __name__ == '__main__':
         python -m wbia.algo.hots.distinctiveness_normalizer --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-#import numpy as np
+
+# import numpy as np
 from os.path import join, dirname
 from six.moves import zip
 
@@ -15,34 +17,44 @@ def depc_34_helper(depc):
             data = []
             for row, p in zip(row_arg, parents):
                 p = p.replace('*', '')
-                #print('p = %r' % (p,))
-                #print('row = %r' % (row,))
+                # print('p = %r' % (p,))
+                # print('row = %r' % (row,))
                 if not p.startswith(depc.root):
                     native_cols = depc.get_native(p, ut.ensure_iterable(row))
                     parent_data = '+'.join(['#'.join(col) for col in native_cols])
                 else:
-                    parent_data = 'root(' + ';'.join(list(map(str, ut.ensure_iterable(row)))) + ')'
+                    parent_data = (
+                        'root(' + ';'.join(list(map(str, ut.ensure_iterable(row)))) + ')'
+                    )
                 data += [parent_data]
             d = '[' + '&'.join(data) + ']'
             retstr = tablename + '(' + d + ':' + str(param_val) + ')'
-            return retstr,
-            #return (data + tablename + repr(row_arg) + repr(param_val)),
+            return (retstr,)
+            # return (data + tablename + repr(row_arg) + repr(param_val)),
 
         if kwargs.get('vectorized'):
             dummy_func = dummy_single_func
         else:
+
             def dummy_gen_func(depc, *argsT, **kw):
-                #config = kw.get('config')
-                #param_val = config[config_param]
+                # config = kw.get('config')
+                # param_val = config[config_param]
                 for row_arg in zip(*argsT):
                     yield dummy_single_func(depc, *row_arg, **kw)
-                    #(tablename + repr(row_arg) + repr(param_val)),
-                #yield (np.array([row_arg]),)
+                    # (tablename + repr(row_arg) + repr(param_val)),
+                # yield (np.array([row_arg]),)
+
             dummy_func = dummy_gen_func
         from wbia.dtool import base
+
         configclass = base.make_configclass({config_param: 42}, tablename)
-        dummy_cols = dict(colnames=['data'], coltypes=[str], configclass=configclass, **kwargs)
-        depc.register_preproc(tablename=tablename, parents=parents, **dummy_cols)(dummy_func)
+        dummy_cols = dict(
+            colnames=['data'], coltypes=[str], configclass=configclass, **kwargs
+        )
+        depc.register_preproc(tablename=tablename, parents=parents, **dummy_cols)(
+            dummy_func
+        )
+
     return register_dummy_config
 
 
@@ -85,12 +97,15 @@ def testdata_depc3(in_memory=True):
 
     root = 'annot'
     depc = dtool.DependencyCache(
-        root_tablename=root, get_root_uuid=ut.identity,
+        root_tablename=root,
+        get_root_uuid=ut.identity,
         default_fname=default_fname,
-        cache_dpath=cache_dpath, use_globals=False)
+        cache_dpath=cache_dpath,
+        use_globals=False,
+    )
 
     # ----------
-    #dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
+    # dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
     register_dummy_config = depc_34_helper(depc)
 
     register_dummy_config(tablename='labeler', parents=['annot'])
@@ -102,12 +117,12 @@ def testdata_depc3(in_memory=True):
     # register_dummy_config(tablename='smk_vec', parents=['annot', 'vocab'], vectorized=True)
     register_dummy_config(tablename='smk_vec', parents=['annot', 'vocab'])
     # vectorized=True)
-    #register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
+    # register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
     register_dummy_config(tablename='inv_index', parents=['smk_vec*', 'vocab'])
     register_dummy_config(tablename='smk_match', parents=['smk_vec', 'inv_index'])
     register_dummy_config(tablename='vsone', parents=['annot', 'annot'])
-    #register_dummy_config(tablename='viewpoint_classifier', parents=['annot*'])
-    #register_dummy_config(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'])
+    # register_dummy_config(tablename='viewpoint_classifier', parents=['annot*'])
+    # register_dummy_config(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'])
 
     depc.initialize()
     return depc
@@ -152,12 +167,15 @@ def testdata_depc4(in_memory=True):
 
     root = 'annot'
     depc = dtool.DependencyCache(
-        root_tablename=root, get_root_uuid=ut.identity,
+        root_tablename=root,
+        get_root_uuid=ut.identity,
         default_fname=default_fname,
-        cache_dpath=cache_dpath, use_globals=False)
+        cache_dpath=cache_dpath,
+        use_globals=False,
+    )
 
     # ----------
-    #dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
+    # dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
 
     register_dummy_config = depc_34_helper(depc)
 
@@ -169,13 +187,15 @@ def testdata_depc4(in_memory=True):
     register_dummy_config(tablename='indexer', parents=['feat*'])
     register_dummy_config(tablename='neighbs', parents=['feat', 'indexer'])
     register_dummy_config(tablename='vocab', parents=['feat*'])
-    register_dummy_config(tablename='smk_vec', parents=['feat', 'vocab'], vectorized=False)
-    #register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
+    register_dummy_config(
+        tablename='smk_vec', parents=['feat', 'vocab'], vectorized=False
+    )
+    # register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
     register_dummy_config(tablename='inv_index', parents=['smk_vec*', 'vocab'])
     register_dummy_config(tablename='smk_match', parents=['smk_vec', 'inv_index'])
     register_dummy_config(tablename='vsone', parents=['feat', 'feat'])
-    #register_dummy_config(tablename='viewpoint_classifier', parents=['annot*'])
-    #register_dummy_config(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'])
+    # register_dummy_config(tablename='viewpoint_classifier', parents=['annot*'])
+    # register_dummy_config(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'])
 
     depc.initialize()
     return depc
@@ -183,6 +203,7 @@ def testdata_depc4(in_memory=True):
 
 def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
     from wbia import dtool
+
     # put the test cache in the dtool repo
     dtool_repo = dirname(ut.get_module_dir(dtool))
     cache_dpath = join(dtool_repo, 'DEPCACHE5')
@@ -190,9 +211,12 @@ def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
     default_fname = ':memory:' if in_memory else None
     root = 'annot'
     depc = dtool.DependencyCache(
-        root_tablename=root, get_root_uuid=ut.identity,
+        root_tablename=root,
+        get_root_uuid=ut.identity,
         default_fname=default_fname,
-        cache_dpath=cache_dpath, use_globals=False)
+        cache_dpath=cache_dpath,
+        use_globals=False,
+    )
     # ----------
     register_dummy_config = depc_34_helper(depc)
 
@@ -210,6 +234,8 @@ if __name__ == '__main__':
         python -m dtool.example_depcache2 --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

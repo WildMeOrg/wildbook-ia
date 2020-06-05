@@ -9,5 +9,6 @@ if __name__ == '__main__':
     """
     import wbia
     from wbia.tests import reset_testdbs
+
     wbia.ENABLE_WILDBOOK_SIGNAL = False
     reset_testdbs.reset_testdbs()

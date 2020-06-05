@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import splitext, join, exists, commonprefix
 import utool as ut
 import re
+
 (print, rrr, profile) = ut.inject2(__name__, '[getshark]')
 
 
@@ -77,6 +78,7 @@ def sync_wildbook():
 
     # Check these images against what currently exists in WS_ALL
     import wbia
+
     ibs = wbia.opendb(db, allow_newdir=True)
     all_images = ibs.images()
 
@@ -86,13 +88,15 @@ def sync_wildbook():
 
     # Determine which items are in the database
     info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
-    is_hit  = ut.flag_not_None_items(info_gid_list)
+    is_hit = ut.flag_not_None_items(info_gid_list)
     is_miss = ut.flag_None_items(info_gid_list)
-    hit_info  = info.compress(is_hit)  # NOQA
+    hit_info = info.compress(is_hit)  # NOQA
     miss_info = info.compress(is_miss)  # NOQA
     print('The IA database has %r images' % (len(all_images),))
-    print('The IA database has %r/%r images not from this downloaded set' % (
-        num_ia_unique, len(all_images),))
+    print(
+        'The IA database has %r/%r images not from this downloaded set'
+        % (num_ia_unique, len(all_images),)
+    )
 
     print('Have %d/%d parsed images' % (len(hit_info), len(info_gid_list)))
     print('Missing %d/%d parsed images' % (len(miss_info), len(info_gid_list)))
@@ -105,13 +109,15 @@ def sync_wildbook():
     # REFIND Existing
     print('Redoing exist check')
     info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
-    is_hit  = ut.flag_not_None_items(info_gid_list)
+    is_hit = ut.flag_not_None_items(info_gid_list)
     is_miss = ut.flag_None_items(info_gid_list)
-    hit_info  = info.compress(is_hit)  # NOQA
+    hit_info = info.compress(is_hit)  # NOQA
     miss_info = info.compress(is_miss)  # NOQA
     print('The IA database has %r images' % (len(all_images),))
-    print('The IA database has %r/%r images not from this downloaded set' % (
-        num_ia_unique, len(all_images),))
+    print(
+        'The IA database has %r/%r images not from this downloaded set'
+        % (num_ia_unique, len(all_images),)
+    )
     print('Have %d/%d parsed images' % (len(hit_info), len(info_gid_list)))
     print('Missing %d/%d parsed images' % (len(miss_info), len(info_gid_list)))
 
@@ -144,10 +150,15 @@ def sync_existing_images(ibs, hit_info, species, DRY):
     if not any(dirty_flags):
         print('...All %d original uris do not need fixing' % len(hit_images))
     else:
-        print('...There are %d/%d original uris that need fixing' % (sum(dirty_flags), len(dirty_flags)))
+        print(
+            '...There are %d/%d original uris that need fixing'
+            % (sum(dirty_flags), len(dirty_flags))
+        )
         dirty_info = hit_info.compress(dirty_flags)
         dirty_gids = dirty_info['gid']
-        dirty_wb_props = dirty_info.map_column('img_url', lambda v: ut.ensure_iterable(v)[0])
+        dirty_wb_props = dirty_info.map_column(
+            'img_url', lambda v: ut.ensure_iterable(v)[0]
+        )
         if not DRY:
             print('...Fixing %d original uris' % (sum(dirty_flags),))
             ibs.set_image_uris_original(dirty_gids, dirty_wb_props, overwrite=True)
@@ -186,40 +197,61 @@ def sync_existing_images(ibs, hit_info, species, DRY):
 
     # We expect multi images to be tagged with primary / secondary
     multi_annots = multi_hit_images._annot_groups
-    nontagged = [not all(ut.filterflags_general_tags(t, has_any=['primary', 'secondary']))
-                 for t in multi_annots.case_tags]
+    nontagged = [
+        not all(ut.filterflags_general_tags(t, has_any=['primary', 'secondary']))
+        for t in multi_annots.case_tags
+    ]
     if any(nontagged):
         print('Reviewing untagged multi images')
         review_multi = multi_hit_images.compress(nontagged)
         review_annots = review_multi._annot_groups
         print('review_multi = %r' % (review_multi.gids,))
         multi_hit_info.compress(nontagged).print(
-            ignore=['img_url', 'new_fpath', 'uuid', 'encounter', 'keywords',
-                    'ext', 'suffix', 'fname_tags', 'orig_fname', 'new_fname'])
+            ignore=[
+                'img_url',
+                'new_fpath',
+                'uuid',
+                'encounter',
+                'keywords',
+                'ext',
+                'suffix',
+                'fname_tags',
+                'orig_fname',
+                'new_fname',
+            ]
+        )
         # Determine the primary annotation
         # Check if any are the entire image
         print('Attempting to handle automatically')
         img_areas = np.prod(review_multi.sizes, axis=1)
-        bbox_area_rat = [np.array(areas) / a for areas, a in zip(review_annots.bbox_area, img_areas)]
+        bbox_area_rat = [
+            np.array(areas) / a for areas, a in zip(review_annots.bbox_area, img_areas)
+        ]
         flag = False
         for areas, g in zip(bbox_area_rat, review_multi):
-            if np.any(areas > .9):
+            if np.any(areas > 0.9):
                 print('PLEASE CHECK image %r' % (g,))
                 flag = True
         assert not flag, 'need to remove bad annots or change code'
-        #assert False, 'Need to finish/review this code. Stopped in development'
+        # assert False, 'Need to finish/review this code. Stopped in development'
         primary_idxs = [np.argsort(areas)[-1:] for areas in bbox_area_rat]
         nonprimary_idxs = [np.argsort(areas)[:-1] for areas in bbox_area_rat]
-        multi_primary_annots = ibs.annots(ut.flatten(ut.ziptake(review_annots.aids, primary_idxs)))
-        multi_secondary_annots = ibs.annots(ut.flatten(ut.ziptake(review_annots.aids, nonprimary_idxs)))
+        multi_primary_annots = ibs.annots(
+            ut.flatten(ut.ziptake(review_annots.aids, primary_idxs))
+        )
+        multi_secondary_annots = ibs.annots(
+            ut.flatten(ut.ziptake(review_annots.aids, nonprimary_idxs))
+        )
         if not DRY:
             multi_primary_annots.append_tags('primary')
             multi_secondary_annots.append_tags('secondary')
             # set tags indicating fg/bg status
 
     # Take primary annots from multi-images
-    isprimary = [ut.filterflags_general_tags(t, has_any=['primary'])
-                 for t in multi_annots.case_tags]
+    isprimary = [
+        ut.filterflags_general_tags(t, has_any=['primary'])
+        for t in multi_annots.case_tags
+    ]
     assert all(p.sum() == 1 for p in isprimary), 'should only be one primary'
     primary_aids = ut.flatten(ut.zipcompress(multi_annots.aids, isprimary))
 
@@ -236,6 +268,7 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
     sync `info` from wildbook into `annots` from IA.
     """
     import numpy as np
+
     # single_info._meta['ignore'] = ['img_url', 'new_fpath', 'uuid', 'encounter']
     single_info._meta['ignore'] = ['img_url', 'new_fpath', 'uuid']
 
@@ -248,35 +281,36 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
         prop2 = 'static_encounter'
         repl2 = ('____', None)
         is_set = False
-        check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
-                             is_set, DRY=DRY)
+        check_annot_disagree(
+            single_info, single_annots, key1, prop2, repl2, is_set, DRY=DRY
+        )
 
     # Fix sharks marked as healthy and injured
-    isbadmark = ut.filterflags_general_tags(single_annots.case_tags,
-                                            any_startswith='injur-', has_all='healthy',
-                                            logic='and')
+    isbadmark = ut.filterflags_general_tags(
+        single_annots.case_tags, any_startswith='injur-', has_all='healthy', logic='and'
+    )
     print('Marked %r as both healthy and injured' % (isbadmark.sum()))
     if np.any(isbadmark):
         bad_fixme = single_annots.compress(isbadmark)
         if not DRY:
             bad_fixme.remove_tags('healthy')
 
-    #cleaned_tags = ut.modify_tags(
+    # cleaned_tags = ut.modify_tags(
     #    single_info['tags'],
     #    regex_map=[
     #        ('view-.*', None)
     #    ],
-    #)
+    # )
 
-    #info_injur_tags = parse_injury_categories(single_info['tags'])
-    #annot_injur_tags = parse_injury_categories(single_annots.case_tags)
-    #print(ut.repr4(ut.dict_hist(ut.flatten(cleaned_tags))))
+    # info_injur_tags = parse_injury_categories(single_info['tags'])
+    # annot_injur_tags = parse_injury_categories(single_annots.case_tags)
+    # print(ut.repr4(ut.dict_hist(ut.flatten(cleaned_tags))))
 
-    #info_injur_tags = [t if len(t) > 0 else ['healthy'] for t in info_injur_tags]
-    #info_injur_tags = [ut.setdiff(t, ['healthy']) for t in info_injur_tags]
-    #annot_injur_tags = [ut.setdiff(t, ['healthy']) for t in annot_injur_tags]
-    #info_injur_tags = [ut.setdiff(t, ['injur-other']) for t in info_injur_tags]
-    #annot_injur_tags = [ut.setdiff(t, ['injur-other']) for t in annot_injur_tags]
+    # info_injur_tags = [t if len(t) > 0 else ['healthy'] for t in info_injur_tags]
+    # info_injur_tags = [ut.setdiff(t, ['healthy']) for t in info_injur_tags]
+    # annot_injur_tags = [ut.setdiff(t, ['healthy']) for t in annot_injur_tags]
+    # info_injur_tags = [ut.setdiff(t, ['injur-other']) for t in info_injur_tags]
+    # annot_injur_tags = [ut.setdiff(t, ['injur-other']) for t in annot_injur_tags]
 
     # Remove redundant aliases on IA side
     cleaned_tags = ut.modify_tags(
@@ -286,41 +320,54 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
             ('scar', 'injur-scar'),
             ('trunc', 'injur-trunc'),
             ('injur-trtruunc', 'injur-trunc'),
-        ]
+        ],
     )
-    #print(ut.repr4(ut.dict_hist(ut.flatten(cleaned_tags))))
+    # print(ut.repr4(ut.dict_hist(ut.flatten(cleaned_tags))))
     single_info['orig_case_tags'] = ut.lmap(sorted, single_annots.case_tags)
     single_info['clean_case_tags'] = ut.lmap(sorted, cleaned_tags)
 
-    check_annot_disagree(single_info, single_annots,
-                         key1='clean_case_tags',
-                         prop2=None, repl2=(None, []), is_set=True,
-                         key2='orig_case_tags', DRY=DRY)
-    isdirty = [x != y for x, y in zip(single_info['orig_case_tags'], single_info['clean_case_tags'])]
+    check_annot_disagree(
+        single_info,
+        single_annots,
+        key1='clean_case_tags',
+        prop2=None,
+        repl2=(None, []),
+        is_set=True,
+        key2='orig_case_tags',
+        DRY=DRY,
+    )
+    isdirty = [
+        x != y
+        for x, y in zip(single_info['orig_case_tags'], single_info['clean_case_tags'])
+    ]
     dirty_info = single_info.compress(isdirty)
     print('removing redundant info from %r annots' % (len(dirty_info),))
     if not DRY:
-        #dirty_info['orig_case_tags']
+        # dirty_info['orig_case_tags']
         ibs.overwrite_annot_case_tags(dirty_info['aid'], dirty_info['clean_case_tags'])
 
     # Setup injury tags
     info_injur_tags = get_injured_tags(single_info['tags'])
-    #annot_injur_tags = get_injured_tags(single_annots.case_tags)
+    # annot_injur_tags = get_injured_tags(single_annots.case_tags)
     single_info['injur_tags'] = info_injur_tags
-    #single_info['annot_tags'] = annot_injur_tags
+    # single_info['annot_tags'] = annot_injur_tags
     ## Fix injury tags
-    #key1 = 'injur_tags'
-    #prop2 = None
-    #key2 = 'annot_tags'
-    #repl2 = (None, [])
-    #is_set = True
-    #check_annot_disagree(single_info, single_annots, key1, None, repl2, is_set,
+    # key1 = 'injur_tags'
+    # prop2 = None
+    # key2 = 'annot_tags'
+    # repl2 = (None, [])
+    # is_set = True
+    # check_annot_disagree(single_info, single_annots, key1, None, repl2, is_set,
     #                     key2=key2, DRY=DRY)
     # We should just be able to do a union on the two sets.
-    isdirty = [not ut.issubset(t1, t2)
-               for t1, t2 in zip(single_info['injur_tags'], single_annots.case_tags)]
-    new_injurtags = [ut.setdiff(t1, t2)
-                     for t1, t2 in zip(single_info['injur_tags'], single_annots.case_tags)]
+    isdirty = [
+        not ut.issubset(t1, t2)
+        for t1, t2 in zip(single_info['injur_tags'], single_annots.case_tags)
+    ]
+    new_injurtags = [
+        ut.setdiff(t1, t2)
+        for t1, t2 in zip(single_info['injur_tags'], single_annots.case_tags)
+    ]
     single_info['new_injurtags'] = new_injurtags
     dirty_info = single_info.compress(isdirty)
     print('new injur tags' + ut.repr4(ut.dict_hist(ut.flatten(new_injurtags))))
@@ -331,12 +378,13 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
     # Append all other keywords as well
     cleaned_keywords = ut.modify_tags(single_info['keywords'], direct_map=[('', None)])
     single_info['new_keywords'] = [
-        ut.setdiff(t1, t2)
-        for t1, t2 in zip(cleaned_keywords, single_annots.case_tags)
+        ut.setdiff(t1, t2) for t1, t2 in zip(cleaned_keywords, single_annots.case_tags)
     ]
     isdirty = [len(t) > 0 for t in single_info['new_keywords']]
     dirty_info = single_info.compress(isdirty)
-    print('new_keywords' + ut.repr4(ut.dict_hist(ut.flatten(single_info['new_keywords']))))
+    print(
+        'new_keywords' + ut.repr4(ut.dict_hist(ut.flatten(single_info['new_keywords'])))
+    )
     print('unioning new_keywords into %r/%r annots' % (len(dirty_info), len(isdirty)))
     if not DRY:
         ibs.append_annot_case_tags(dirty_info['aid'], dirty_info['new_keywords'])
@@ -344,8 +392,7 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
     # Check if any other tags need appending
     cleaned_tags = ut.modify_tags(single_info['tags'], direct_map=[('', None)])
     single_info['new_tags'] = [
-        ut.setdiff(t1, t2)
-        for t1, t2 in zip(cleaned_tags, single_annots.case_tags)
+        ut.setdiff(t1, t2) for t1, t2 in zip(cleaned_tags, single_annots.case_tags)
     ]
     isdirty = [len(t) > 0 for t in single_info['new_tags']]
     dirty_info = single_info.compress(isdirty)
@@ -371,16 +418,14 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
     prop2 = 'viewpoint_code'
     repl2 = ('____', None)
     is_set = False
-    check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
-                         is_set, DRY=DRY)
+    check_annot_disagree(single_info, single_annots, key1, prop2, repl2, is_set, DRY=DRY)
 
     # Fix Names
     key1 = 'nameid'
     prop2 = 'names'
     repl2 = ('____', None)
     is_set = False
-    check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
-                         is_set, DRY=DRY)
+    check_annot_disagree(single_info, single_annots, key1, prop2, repl2, is_set, DRY=DRY)
 
     # Fix Species
     bad_flags = [s == '____' for s in single_annots.species]
@@ -391,26 +436,30 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
 
     # Move injured/healthy/untagged to appropriate sets
     injur_tags = get_injured_tags(single_annots.case_tags, include_healthy=True)
-    untagged = (np.array(ut.lmap(len, injur_tags)) == 0)
+    untagged = np.array(ut.lmap(len, injur_tags)) == 0
     untagged_annots = single_annots.compress(untagged)
     untagged_info = single_info.compress(untagged)
     print('%d/%d annots have no tags' % (len(untagged_annots), len(single_annots)))
-    print('Tags from WB imgnames:' +
-          ut.repr3(ut.dict_hist(ut.flatten(untagged_info['tags']))))
+    print(
+        'Tags from WB imgnames:'
+        + ut.repr3(ut.dict_hist(ut.flatten(untagged_info['tags'])))
+    )
     untagged_images = ibs.images(untagged_annots.gids)
     # Add healthy tag to anything without an injured tag
     if not DRY:
         print('Adding healthy tag to sharked not taged as injured')
-        ibs.append_annot_case_tags(untagged_annots.aids, ['healthy'] * len(untagged_annots.aids))
+        ibs.append_annot_case_tags(
+            untagged_annots.aids, ['healthy'] * len(untagged_annots.aids)
+        )
 
     if not DRY:
         untagged_images.append_to_imageset('Untagged')
 
     categories = get_injur_categories(single_annots.case_tags)
-    healthy_flags = ut.filterflags_general_tags(categories,
-                                                any_startswith=('injur-'))
-    injured_flags = ut.filterflags_general_tags(single_annots.case_tags,
-                                                has_any=['healthy'])
+    healthy_flags = ut.filterflags_general_tags(categories, any_startswith=('injur-'))
+    injured_flags = ut.filterflags_general_tags(
+        single_annots.case_tags, has_any=['healthy']
+    )
     num_have = sum(ut.xor_lists(healthy_flags, injured_flags))
     num_miss = len(single_annots) - num_have
     print('missing %d annots' % (num_miss,))
@@ -428,8 +477,9 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
         healthy_images.append_to_imageset('Probably Healthy')
 
 
-def check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
-                         is_set, key2=None, DRY=True):
+def check_annot_disagree(
+    single_info, single_annots, key1, prop2, repl2, is_set, key2=None, DRY=True
+):
     info_prop = single_info[key1]
     if key2 is None:
         key2 = 'annot_' + prop2
@@ -440,51 +490,69 @@ def check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
         annot_prop = single_info[key2]
     out_of_sync = [x != y for x, y in zip(info_prop, annot_prop)]
     if not is_set:
+
         def isnull(z):
             return z is None
+
     else:
+
         def isnull(z):
             return len(z) == 0
 
     ia_empty = [isnull(y) and not isnull(x) for x, y in zip(info_prop, annot_prop)]
     wb_empty = [isnull(x) and not isnull(y) for x, y in zip(info_prop, annot_prop)]
-    disagree = [x != y and not isnull(x) and not isnull(y)
-                for x, y in zip(info_prop, annot_prop)]
+    disagree = [
+        x != y and not isnull(x) and not isnull(y) for x, y in zip(info_prop, annot_prop)
+    ]
 
     if is_set:
         # Like empty, but ia is a pure subset of wb
-        ia_is_subset = [d and ut.issubset(y, x) for x, y, d in
-                        zip(info_prop, annot_prop, disagree)]
-        wb_is_subset = [d and ut.issubset(x, y) for x, y, d in
-                        zip(info_prop, annot_prop, disagree)]
+        ia_is_subset = [
+            d and ut.issubset(y, x) for x, y, d in zip(info_prop, annot_prop, disagree)
+        ]
+        wb_is_subset = [
+            d and ut.issubset(x, y) for x, y, d in zip(info_prop, annot_prop, disagree)
+        ]
         # There may not be a subset, but there is overlap?
-        some_isect = [d and len(ut.isect(y, x)) > 0 for x, y, d in
-                      zip(info_prop, annot_prop, disagree)]
+        some_isect = [
+            d and len(ut.isect(y, x)) > 0
+            for x, y, d in zip(info_prop, annot_prop, disagree)
+        ]
         some_isect = ut.and_lists(some_isect, ut.not_list(ia_is_subset))
         some_isect = ut.and_lists(some_isect, ut.not_list(wb_is_subset))
         # Absolutely no overlap
-        total_disagree = [d and len(ut.isect(y, x)) == 0 for x, y, d in
-                          zip(info_prop, annot_prop, disagree)]
+        total_disagree = [
+            d and len(ut.isect(y, x)) == 0
+            for x, y, d in zip(info_prop, annot_prop, disagree)
+        ]
 
     print('\n--- RECTIFY prop=%r --- ' % (key1,))
 
-    print('Prop=%r has %r/%r out of sync items' % (key1, sum(out_of_sync),
-                                                   len(out_of_sync)))
-    print('WB has populated info for %r/%r %r' % (sum(ia_empty),
-                                                  len(ia_empty), key1))
-    print('IA has populated info for %r/%r %r' % (sum(wb_empty),
-                                                  len(wb_empty), key1))
-    print('IA and WB disagree on info for %r/%r %r' % (sum(disagree),
-                                                       len(disagree), key1))
+    print(
+        'Prop=%r has %r/%r out of sync items' % (key1, sum(out_of_sync), len(out_of_sync))
+    )
+    print('WB has populated info for %r/%r %r' % (sum(ia_empty), len(ia_empty), key1))
+    print('IA has populated info for %r/%r %r' % (sum(wb_empty), len(wb_empty), key1))
+    print(
+        'IA and WB disagree on info for %r/%r %r' % (sum(disagree), len(disagree), key1)
+    )
     if is_set:
-        print('IA is subset of WB info for %r/%r %r' % (
-            sum(ia_is_subset), len(ia_is_subset), key1))
-        print('WB is subset of IA info for %r/%r %r' % (
-            sum(wb_is_subset), len(wb_is_subset), key1))
-        print('WB and IA partial overlap info for %r/%r %r' % (
-            sum(some_isect), len(some_isect), key1))
-        print('IA and WB total disagree on info for %r/%r %r' % (
-            sum(total_disagree), len(total_disagree), key1))
+        print(
+            'IA is subset of WB info for %r/%r %r'
+            % (sum(ia_is_subset), len(ia_is_subset), key1)
+        )
+        print(
+            'WB is subset of IA info for %r/%r %r'
+            % (sum(wb_is_subset), len(wb_is_subset), key1)
+        )
+        print(
+            'WB and IA partial overlap info for %r/%r %r'
+            % (sum(some_isect), len(some_isect), key1)
+        )
+        print(
+            'IA and WB total disagree on info for %r/%r %r'
+            % (sum(total_disagree), len(total_disagree), key1)
+        )
 
     sub_info = single_info.take_column('gid', 'aid', key1, key2)
     sub_info._meta['ignore'] = []
@@ -563,13 +631,24 @@ def get_injured_tags(tags_list, include_healthy=False, invert=False):
     annot_injur_tags = parse_injury_categories(single_annots.case_tags)
     """
     injur_patterns = [
-        'injur-.*', 'trunc', 'nicks', 'bite', 'scar', '.*damage.*', '.*scar',
-        '.*bite', 'other_injury', 'injured', 'injur'
+        'injur-.*',
+        'trunc',
+        'nicks',
+        'bite',
+        'scar',
+        '.*damage.*',
+        '.*scar',
+        '.*bite',
+        'other_injury',
+        'injured',
+        'injur',
     ]
     if include_healthy:
         injur_patterns += ['healthy']
-    flags_list = [[any([re.match(pat, t) for pat in injur_patterns])
-                   for t in tags] for tags in tags_list]
+    flags_list = [
+        [any([re.match(pat, t) for pat in injur_patterns]) for t in tags]
+        for tags in tags_list
+    ]
     if invert:
         flags_list = ut.lmap(ut.not_list, flags_list)
     only_injur_tags = ut.zipcompress(tags_list, flags_list)
@@ -577,7 +656,7 @@ def get_injured_tags(tags_list, include_healthy=False, invert=False):
 
 
 def get_injur_categories(single_annots, verbose=False):
-    #if verbose:
+    # if verbose:
     #    print('Original tags')
     #    print(ut.repr3(ut.tag_hist(injur_tags)))
 
@@ -595,14 +674,11 @@ def get_injur_categories(single_annots, verbose=False):
         regex_map=[
             # Invalid patterns
             ('^.*' + re.escape('?') + '$', None),
-
             # Truncation
             ('injur-trunc', 'injur-trunc'),
             ('trunc', 'injur-trunc'),
-
             # Gill damage
             ('.*gilldamage.*', 'injur-gill'),
-
             # Other
             ('injur-unknown', 'injur-other'),
             ('injur-dead', 'injur-other'),
@@ -610,11 +686,9 @@ def get_injur_categories(single_annots, verbose=False):
             ('injur-damage', 'injur-other'),
             ('injured', 'injur-other'),
             ('^injur$', 'injur-other'),
-
             # Nicks
             ('nicks', 'injur-nicks'),
             ('injur-nicks-.*', 'injur-nicks'),
-
             ('.*bite', 'injur-bite'),
             ('.*scar', 'injur-scar'),
         ],
@@ -628,7 +702,7 @@ def get_injur_categories(single_annots, verbose=False):
         ],
         return_unmapped=True,
         return_map=True,
-        delete_unmapped=True
+        delete_unmapped=True,
     )
     assert len(unmapped) == 0, 'fixme %r' % (unmapped,)
     # Remove injur-other if other known injuries are present
@@ -646,15 +720,16 @@ def get_injur_categories(single_annots, verbose=False):
         tags = ut.setdiff(tags, ['injur-gill'])
         if injured and len(tags) == 0:
             tags = ['injur-gill']
-        #if len(tags) == 1:
+        # if len(tags) == 1:
         #    tags = ut.setdiff(tags, ['healthy'])
         return tags
-    cleaned_tags = [fixinjur(aid, tags)
-                    for aid, tags in zip(aids, cleaned_tags)]
+
+    cleaned_tags = [fixinjur(aid, tags) for aid, tags in zip(aids, cleaned_tags)]
     if verbose:
 
-        print('mapping: ' + ut.repr3(ut.group_items(alias_map.keys(),
-                                                    alias_map.values())))
+        print(
+            'mapping: ' + ut.repr3(ut.group_items(alias_map.keys(), alias_map.values()))
+        )
         print('unmapped = %s' % (ut.repr3(unmapped),))
 
         given_tags = set(ut.flatten(injur_tags))
@@ -662,8 +737,10 @@ def get_injur_categories(single_annots, verbose=False):
         for val, key in alias_map.items():
             if val in given_tags:
                 alias_map_used[val] = key
-        print('used_mapping: ' + ut.repr3(ut.group_items(alias_map_used.keys(),
-                                                         alias_map_used.values())))
+        print(
+            'used_mapping: '
+            + ut.repr3(ut.group_items(alias_map_used.keys(), alias_map_used.values()))
+        )
 
         print('Cleaned tags')
         hist = ut.tag_hist(cleaned_tags)
@@ -675,12 +752,16 @@ def get_injur_categories(single_annots, verbose=False):
         print(ut.repr3(co_occur))
 
         print('Co-Occurrence Percent')
-        co_occur_percent = ut.odict([(keys,  [100 * val / hist[k] for k in keys]) for
-                                     keys, val in co_occur.items()])
+        co_occur_percent = ut.odict(
+            [
+                (keys, [100 * val / hist[k] for k in keys])
+                for keys, val in co_occur.items()
+            ]
+        )
         print(ut.repr3(co_occur_percent, precision=2, nl=1))
 
-    #other_annots = single_annots.compress(ut.filterflags_general_tags(cleaned_tags, has_any=['injur-other']))
-    #print('other_annots.case_tags = %s' % (ut.repr4(list(zip(other_annots.gids, other_annots.aids, other_annots.case_tags)), nl=1),))
+    # other_annots = single_annots.compress(ut.filterflags_general_tags(cleaned_tags, has_any=['injur-other']))
+    # print('other_annots.case_tags = %s' % (ut.repr4(list(zip(other_annots.gids, other_annots.aids, other_annots.case_tags)), nl=1),))
 
     return cleaned_tags
 
@@ -703,10 +784,11 @@ def add_new_images(ibs, miss_info, species):
     miss_info = miss_info.compress(passed_flags)
 
     ut.assert_all_not_None(miss_info['gid'])
-    #ibs.get_image_uris_original(clist['gid'])
+    # ibs.get_image_uris_original(clist['gid'])
 
-    assert len(ut.find_duplicate_items(miss_info['gid'])) == 0, (
-        'duplicates should have already been sorted out')
+    assert (
+        len(ut.find_duplicate_items(miss_info['gid'])) == 0
+    ), 'duplicates should have already been sorted out'
 
     # Just choose one of the urls if any are ambiguous
     orig_urls = miss_info.map_column('img_url', lambda v: ut.ensure_iterable(v)[0])
@@ -719,7 +801,9 @@ def add_new_images(ibs, miss_info, species):
     injured_keywords = get_injured_tags(miss_info['tags'])
     hasinjur_kw = ut.lmap(bool, injured_keywords)
     images_new.compress(hasinjur_kw).append_to_imageset(new_imgsettext + ' Injur')
-    images_new.compress(ut.not_list(hasinjur_kw)).append_to_imageset(new_imgsettext + ' Healthy')
+    images_new.compress(ut.not_list(hasinjur_kw)).append_to_imageset(
+        new_imgsettext + ' Healthy'
+    )
 
     verbose = True
     if verbose:
@@ -727,15 +811,17 @@ def add_new_images(ibs, miss_info, species):
         print('Added %r new images' % (len(miss_info)))
         print('Of these, %r images had injured tags' % (sum(hasinjur_kw)))
         print('Of these, %r images had other tags' % (sum(ut.lmap(bool, other_keywords))))
-        print('Of these, %r images had no injured tags' % (
-            len(miss_info) - sum(ut.lmap(bool, injured_keywords))))
-        #injured_keyhist = ut.dict_hist(ut.flatten(injured_keywords), ordered=True)
-        #other_keyhist = ut.dict_hist(ut.flatten(other_keywords), ordered=True)
-        #print('')
-        #print('Injured Keyword histogram:\n' + ', '.join(
+        print(
+            'Of these, %r images had no injured tags'
+            % (len(miss_info) - sum(ut.lmap(bool, injured_keywords)))
+        )
+        # injured_keyhist = ut.dict_hist(ut.flatten(injured_keywords), ordered=True)
+        # other_keyhist = ut.dict_hist(ut.flatten(other_keywords), ordered=True)
+        # print('')
+        # print('Injured Keyword histogram:\n' + ', '.join(
         #    ['*%s*: %s' % (k, v) for k, v in injured_keyhist.items()][::-1]))
-        #print('')
-        #print('Other Keyword histogram:\n' + ', '.join(
+        # print('')
+        # print('Other Keyword histogram:\n' + ', '.join(
         #    ['*%s*: %s' % (k, v) for k, v in other_keyhist.items()][::-1]))
 
     is_empty_annots = np.array(images_new.num_annotations) == 0
@@ -748,11 +834,17 @@ def add_new_images(ibs, miss_info, species):
     if ibs.dbname == 'WS_ALL':
         # In the best case we have a detector
         config = {
-            'algo'            : 'yolo',
-            'sensitivity'     : 0.2,
-            'config_filepath' : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg'),
-            'weight_filepath' : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights'),
-            'class_filepath'  : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg.classes'),
+            'algo': 'yolo',
+            'sensitivity': 0.2,
+            'config_filepath': ut.truepath(
+                '~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg'
+            ),
+            'weight_filepath': ut.truepath(
+                '~/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights'
+            ),
+            'class_filepath': ut.truepath(
+                '~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg.classes'
+            ),
         }
         depc = ibs.depc_image
 
@@ -761,7 +853,9 @@ def add_new_images(ibs, miss_info, species):
         gid_list = images.gids
 
         # result is a tuple: (score, bbox_list, theta_list, conf_list, class_list)
-        results_list = depc.get_property('localizations', gid_list, None, config=config)  # NOQA
+        results_list = depc.get_property(
+            'localizations', gid_list, None, config=config
+        )  # NOQA
         print('Finished running localizations')
 
         results_list2 = []
@@ -778,7 +872,7 @@ def add_new_images(ibs, miss_info, species):
                 # Take only a single annotation per bounding box.
                 multi_gids.append(gid)
                 idx = conf_list.argmax()
-                res2 = (gid, bbox_list[idx:idx + 1], theta_list[idx:idx + 1])
+                res2 = (gid, bbox_list[idx : idx + 1], theta_list[idx : idx + 1])
                 results_list2.append(res2)
 
         print('%d/%d have localizations' % (len(results_list2), len(results_list)))
@@ -792,16 +886,20 @@ def add_new_images(ibs, miss_info, species):
         # Reorder empty_info to be aligned with results
         localized_imgs = ibs.images(ut.take_column(results_list2, 0))
         empty_new_info_ = empty_new_info.loc_by_key('gid', localized_imgs.gids)
-        assert all([len(a) == 0 for a in localized_imgs.aids]), 'no annots should be made yet'
+        assert all(
+            [len(a) == 0 for a in localized_imgs.aids]
+        ), 'no annots should be made yet'
 
         # Override old bboxes
         annot_gids = localized_imgs.gids
         annot_bboxes = np.array(ut.take_column(results_list2, 1))[:, 0, :]
         annot_thetas = np.array(ut.take_column(results_list2, 2))[:, 0]
         # Fix any ambiguities for name
-        annot_names = empty_new_info_.map_column('nameid', lambda v: ut.ensure_iterable(v)[0])
+        annot_names = empty_new_info_.map_column(
+            'nameid', lambda v: ut.ensure_iterable(v)[0]
+        )
         annot_names = ut.replace_nones(annot_names, ibs.const.UNKNOWN)
-        #annot_names = empty_new_info_['nameid']
+        # annot_names = empty_new_info_['nameid']
         annot_species = [species] * len(localized_imgs)
     else:
         # Make a single annotation for each image in the worst case
@@ -812,9 +910,13 @@ def add_new_images(ibs, miss_info, species):
         annot_names = ut.replace_nones(annot_names, ibs.const.UNKNOWN)
         annot_species = [species] * len(annot_gids)
 
-    aid_list = ibs.add_annots(annot_gids, bbox_list=annot_bboxes,
-                              theta_list=annot_thetas, name_list=annot_names,
-                              species_list=annot_species)
+    aid_list = ibs.add_annots(
+        annot_gids,
+        bbox_list=annot_bboxes,
+        theta_list=annot_thetas,
+        name_list=annot_names,
+        species_list=annot_species,
+    )
     print('Finished adding new info')
 
 
@@ -847,7 +949,7 @@ def parse_whaleshark_org():
     print('Parsed %d urls from keywords' % (len(parsed2),))
 
     # Apply keywords to existing images
-    #raise NotImplementedError('suffix is now unreliable for comparing encounters')
+    # raise NotImplementedError('suffix is now unreliable for comparing encounters')
 
     # Use suffix as a key to create a merger mapping between indices
     print('Merging keyword and XML jsp results')
@@ -862,15 +964,15 @@ def parse_whaleshark_org():
     print('There are %d unique entries in the XML results' % (len(unmatched_idx1),))
     print('There are %d unique entries in the jsp results' % (len(unmatched_idx2),))
 
-    #nonmatching1 = parsed1.take(unmatched_idx1)
-    #nonmatching2 = parsed2.take(unmatched_idx2)
+    # nonmatching1 = parsed1.take(unmatched_idx1)
+    # nonmatching2 = parsed2.take(unmatched_idx2)
 
     # Find the items that are common between both sets
     match_idx1 = ut.filter_Nones(idx2_to_idx1)
     match_idx2 = ut.filter_Nones(idx1_to_idx2)
 
-    #matching1 = parsed1.take(match_idx1)
-    #matching2 = parsed2.take(match_idx2)
+    # matching1 = parsed1.take(match_idx1)
+    # matching2 = parsed2.take(match_idx2)
     assert len(match_idx1) == len(match_idx2)
     print('There are %d items in common' % (len(match_idx1),))
 
@@ -896,14 +998,14 @@ def parse_whaleshark_org():
         parsed._meta['ignore'] = ['new_fname', 'img_url', 'suffix']
         parsed.print()
 
-    #nonmatching1['nameid'] = [None] * len(nonmatching1)
-    #nonmatching1['localid'] = [None] * len(nonmatching1)
+    # nonmatching1['nameid'] = [None] * len(nonmatching1)
+    # nonmatching1['localid'] = [None] * len(nonmatching1)
     # Merge keywords from matching parts in parsed2 into parsed1
-    #parsed1['keywords'] = [[] for _ in range(len(parsed1))]
-    #for idx1, keys in zip(match_idx1, matching2['keywords']):
+    # parsed1['keywords'] = [[] for _ in range(len(parsed1))]
+    # for idx1, keys in zip(match_idx1, matching2['keywords']):
     #    parsed1['keywords'][idx1].extend(keys)
 
-    #parsed = parsed2 + nonmatching1
+    # parsed = parsed2 + nonmatching1
     print('Parsed %d total urls' % (len(parsed),))
     return parsed
 
@@ -941,7 +1043,7 @@ def parse_wildbook(images_url, keyword_url=None):
     #     print('Parsed %d urls from keywords' % (len(parsed2),))
 
     # Apply keywords to existing images
-    #raise NotImplementedError('suffix is now unreliable for comparing encounters')
+    # raise NotImplementedError('suffix is now unreliable for comparing encounters')
 
     # Use suffix as a key to create a merger mapping between indices
     # print('Merging keyword and XML jsp results')
@@ -956,8 +1058,8 @@ def parse_wildbook(images_url, keyword_url=None):
     # print('There are %d unique entries in the XML results' % (len(unmatched_idx1),))
     # print('There are %d unique entries in the jsp results' % (len(unmatched_idx2),))
 
-    #nonmatching1 = parsed1.take(unmatched_idx1)
-    #nonmatching2 = parsed2.take(unmatched_idx2)
+    # nonmatching1 = parsed1.take(unmatched_idx1)
+    # nonmatching2 = parsed2.take(unmatched_idx2)
 
     # Find the items that are common between both sets
     # match_idx1 = ut.filter_Nones(idx2_to_idx1)
@@ -986,14 +1088,14 @@ def parse_wildbook(images_url, keyword_url=None):
         parsed._meta['ignore'] = ['new_fname', 'img_url', 'suffix']
         parsed.print()
 
-    #nonmatching1['nameid'] = [None] * len(nonmatching1)
-    #nonmatching1['localid'] = [None] * len(nonmatching1)
+    # nonmatching1['nameid'] = [None] * len(nonmatching1)
+    # nonmatching1['localid'] = [None] * len(nonmatching1)
     # Merge keywords from matching parts in parsed2 into parsed1
-    #parsed1['keywords'] = [[] for _ in range(len(parsed1))]
-    #for idx1, keys in zip(match_idx1, matching2['keywords']):
+    # parsed1['keywords'] = [[] for _ in range(len(parsed1))]
+    # for idx1, keys in zip(match_idx1, matching2['keywords']):
     #    parsed1['keywords'][idx1].extend(keys)
 
-    #parsed = parsed2 + nonmatching1
+    # parsed = parsed2 + nonmatching1
     print('Parsed %d total urls' % (len(parsed),))
     return parsed
 
@@ -1042,8 +1144,7 @@ def parse_wildbook_images(url):
                 ext = splitext(img_url)[1].lower()
                 nameid = shark.getAttribute('number')
 
-                new_fname = '%s-%i%s' % (
-                    nameid, localCount, ext)
+                new_fname = '%s-%i%s' % (nameid, localCount, ext)
 
                 parsed_info['img_url'].append(img_url)
                 parsed_info['nameid'].append(nameid)
@@ -1053,7 +1154,7 @@ def parse_wildbook_images(url):
 
                 parsed_info['encounter'].append(encounter.getAttribute('number'))
 
-                #print('Parsed %i / %i files.' % (len(parsed_info['orig_fname']), maxCount))
+                # print('Parsed %i / %i files.' % (len(parsed_info['orig_fname']), maxCount))
                 if number is not None and len(parsed_info['orig_fname']) == number:
                     break
 
@@ -1069,9 +1170,9 @@ def parse_wildbook_images(url):
     # Check and rectify for duplicate urls
 
     # Check and rectify for duplicate urls
-    #unique_urls, idxs = parsed_.group_indicies('img_url')
-    #toremove = []
-    #for url, idxs in zip(unique_urls, idxs):
+    # unique_urls, idxs = parsed_.group_indicies('img_url')
+    # toremove = []
+    # for url, idxs in zip(unique_urls, idxs):
     #    if len(idxs) == 1:
     #        continue
     #    dupinfo = parsed_.take(idxs)
@@ -1086,12 +1187,12 @@ def parse_wildbook_images(url):
     #            can_fix = False
     #    if can_fix:
     #        toremove += idxs[1:]
-    #print('Removing %d duplicate urls' % (len(toremove),))
-    #flags = ut.not_list(ut.index_to_boolmask(toremove))
-    #parsed1 = parsed_.compress(flags)
+    # print('Removing %d duplicate urls' % (len(toremove),))
+    # flags = ut.not_list(ut.index_to_boolmask(toremove))
+    # parsed1 = parsed_.compress(flags)
 
     prefix = commonprefix(parsed1['img_url'])
-    parsed1['suffix'] = [url_[len(prefix):] for url_ in parsed1['img_url']]
+    parsed1['suffix'] = [url_[len(prefix) :] for url_ in parsed1['img_url']]
     return parsed1
 
 
@@ -1101,7 +1202,7 @@ def parse_whaleshark_org_keywords():
     if verbose:
         print('[keywords] Parsing whaleshark.org keywords')
 
-    #if False:
+    # if False:
     #    key_url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
     #    #import requests
     #    #resp = requests.get(url)
@@ -1117,12 +1218,14 @@ def parse_whaleshark_org_keywords():
     #    #resp.json()
 
     from wbia.scripts import getshark
+
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
 
     cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo3')
 
     def cached_json_request(key_url):
         import requests
+
         cache_fpath = join(cache_dpath, 'req_' + ut.hashstr27(key_url) + '.json')
         if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 3000):
             print('Execute request %s' % (key_url,))
@@ -1161,7 +1264,7 @@ def parse_whaleshark_org_keywords():
             parsed_info2['nameid'].append(imgdict.get('individualID', None))
             parsed_info2['uuid'].append(imgdict['uuid'])
             parsed_info2['keywords'].append(imgdict['keywords'])
-            #parsed_info2['keywords'].append([key])
+            # parsed_info2['keywords'].append([key])
     parsed2_ = ut.ColumnLists(parsed_info2)
 
     # Fix trivial (all non-keyword entries are the same) duplicates
@@ -1177,17 +1280,26 @@ def parse_whaleshark_org_keywords():
         injured_keyhist = ut.dict_hist(ut.flatten(injured_keywords), ordered=True)
         other_keyhist = ut.dict_hist(ut.flatten(other_keywords), ordered=True)
         print('Scraped %r images with keywords' % (len(parsed2)))
-        print('Of these, %r images had injured tags' % (sum(ut.lmap(bool, injured_keywords))))
+        print(
+            'Of these, %r images had injured tags'
+            % (sum(ut.lmap(bool, injured_keywords)))
+        )
         print('Of these, %r images had other tags' % (sum(ut.lmap(bool, other_keywords))))
-        print('Of these, %r images had no injured tags' % (
-            len(parsed2) - sum(ut.lmap(bool, injured_keywords))))
+        print(
+            'Of these, %r images had no injured tags'
+            % (len(parsed2) - sum(ut.lmap(bool, injured_keywords)))
+        )
 
         print('')
-        print('Injured Keyword histogram:\n' + ', '.join(
-            ['*%s*: %s' % (k, v) for k, v in injured_keyhist.items()][::-1]))
+        print(
+            'Injured Keyword histogram:\n'
+            + ', '.join(['*%s*: %s' % (k, v) for k, v in injured_keyhist.items()][::-1])
+        )
         print('')
-        print('Other Keyword histogram:\n' + ', '.join(
-            ['*%s*: %s' % (k, v) for k, v in other_keyhist.items()][::-1]))
+        print(
+            'Other Keyword histogram:\n'
+            + ', '.join(['*%s*: %s' % (k, v) for k, v in other_keyhist.items()][::-1])
+        )
 
         # Get tag co-occurrence
         print('Injur Keywords Co-Occurrence Freq')
@@ -1196,14 +1308,18 @@ def parse_whaleshark_org_keywords():
         print('Num co-occurrences: %r' % (sum(co_occur.values())))
 
         print('Injur Keywords Co-Occurrence Percent')
-        co_occur_percent = ut.odict([(keys,  [100 * val / injured_keyhist[k] for k in keys]) for
-                                     keys, val in co_occur.items()])
+        co_occur_percent = ut.odict(
+            [
+                (keys, [100 * val / injured_keyhist[k] for k in keys])
+                for keys, val in co_occur.items()
+            ]
+        )
         print(ut.repr3(co_occur_percent, precision=2, nl=1))
 
         _ = getshark.get_injur_categories(injured_keywords, verbose=True)  # NOQA
 
     prefix = commonprefix(parsed2['img_url'])
-    parsed2['suffix'] = [url_[len(prefix):] for url_ in parsed2['img_url']]
+    parsed2['suffix'] = [url_[len(prefix) :] for url_ in parsed2['img_url']]
     # Hack off encounters so it aggrees with parsed1
     parsed2['suffix'] = [url_.lstrip('encounters/') for url_ in parsed2['suffix']]
     parsed2['new_fname'] = [suffix.replace('/', '--') for suffix in parsed2['suffix']]
@@ -1214,12 +1330,12 @@ def parse_whaleshark_org_keywords():
 
 def postprocess_filenames(parsed, download_dir):
     from os.path import commonprefix, basename  # NOQA
+
     # Create a new filename
-    parsed['new_fpath'] = [join(download_dir, _fname)
-                           for _fname in parsed['new_fname']]
+    parsed['new_fpath'] = [join(download_dir, _fname) for _fname in parsed['new_fname']]
     # Remember the original filename
     prefix = commonprefix(parsed['img_url'])
-    parsed['orig_fname'] = [url_[len(prefix):] for url_ in parsed['img_url']]
+    parsed['orig_fname'] = [url_[len(prefix) :] for url_ in parsed['img_url']]
     # Parse out the extension
     parsed['ext'] = [splitext(_fname)[-1] for _fname in parsed['new_fname']]
     return parsed
@@ -1228,7 +1344,7 @@ def postprocess_filenames(parsed, download_dir):
 def postprocess_extfilter(parsed):
     # Filter based on image type (keep only jpgs)
     valid_exts = ['.jpg', '.jpeg', '.png']
-    #, '.bmp', '.gif']
+    # , '.bmp', '.gif']
     ext_flags = [ext_.lower() in valid_exts for ext_ in parsed['ext']]
 
     invalid_exts = parsed.compress(ut.not_list(ext_flags))['ext']
@@ -1242,9 +1358,17 @@ def postprocess_extfilter(parsed):
 
 def postprocess_tags_build(parsed):
     if False:
-        parsed._meta['ignore'] = ['ext', 'orig_fname', 'new_fname', 'img_url',
-                                  'new_fpath', 'encounter', 'localid', 'suffix',
-                                  'nameid']
+        parsed._meta['ignore'] = [
+            'ext',
+            'orig_fname',
+            'new_fname',
+            'img_url',
+            'new_fpath',
+            'encounter',
+            'localid',
+            'suffix',
+            'nameid',
+        ]
         parsed._meta['max_lines_start'] = 30
         parsed._meta['max_lines_end'] = 30
         parsed.print()
@@ -1253,16 +1377,14 @@ def postprocess_tags_build(parsed):
 
     # Filter to only images matching the appropriate tags
     from wbia.scripts import getshark
+
     parsed['fname_tags'] = getshark.parse_shark_fname_tags(parsed['orig_fname'])
 
     # Map keyword/fname tags to standard ia tags
     tags_list = ut.zipflat(parsed['fname_tags'], parsed['keywords'])
     cleaned_tags = ut.modify_tags(
         tags_list,
-        direct_map=[
-            ('c429b13e4d232129014d251c74c60011', 'stranding'),
-            ('', None),
-        ],
+        direct_map=[('c429b13e4d232129014d251c74c60011', 'stranding'), ('', None),],
         regex_aug=[
             ('other_injury', 'injur-other'),
             ('truncation', 'injur-trunc'),
@@ -1271,12 +1393,12 @@ def postprocess_tags_build(parsed):
             ('bite', 'injur-bite'),
         ],
     )
-    #cleaned_tags = ut.modify_tags(
+    # cleaned_tags = ut.modify_tags(
     #    cleaned_tags,
     #    regex_aug=[
     #        ('injur-', 'injured'),
     #    ],
-    #)
+    # )
     parsed['tags'] = cleaned_tags
     return parsed
 
@@ -1284,18 +1406,20 @@ def postprocess_tags_build(parsed):
 def postprocess_tags_filter(parsed):
     tag_flags = ut.filterflags_general_tags(
         parsed['tags'],
-        #has_any=['view-left'],
-        #none_match=['qual.*', 'view-top', 'part-.*', 'cropped'],
+        # has_any=['view-left'],
+        # none_match=['qual.*', 'view-top', 'part-.*', 'cropped'],
     )
     if all(tag_flags):
-        print('Tags histogram:' +
-              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']), ordered=True)))
+        print(
+            'Tags histogram:'
+            + ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']), ordered=True))
+        )
     else:
-        print('Tags before choosing:' +
-              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
+        print(
+            'Tags before choosing:' + ut.repr3(ut.dict_hist(ut.flatten(parsed['tags'])))
+        )
         parsed = parsed.compress(tag_flags)
-        print('Tags after choosing:' +
-              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
+        print('Tags after choosing:' + ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
     num_removed = sum(ut.not_list(tag_flags))
     print('Removed %d images based on tags' % (num_removed,))
     return parsed
@@ -1314,10 +1438,17 @@ def download_missing_images(parsed, num=None):
             print('Only downloading {}'.format(num))
 
         from concurrent import futures
-        ex = futures.ProcessPoolExecutor(7)
-        fs = [ex.submit(ut.download_url, *args, new=True, verbose=False) for args in _iter]
 
-        for f in ut.ProgIter(futures.as_completed(fs), length=len(_iter), label='downloading wildbook images'):
+        ex = futures.ProcessPoolExecutor(7)
+        fs = [
+            ex.submit(ut.download_url, *args, new=True, verbose=False) for args in _iter
+        ]
+
+        for f in ut.ProgIter(
+            futures.as_completed(fs),
+            length=len(_iter),
+            label='downloading wildbook images',
+        ):
             pass
 
         # import multiprocessing
@@ -1346,6 +1477,7 @@ def download_missing_images(parsed, num=None):
 def postprocess_corrupted(parsed_dl):
     # Remove corrupted or ill-formatted images
     import vtool as vt
+
     print('Checking for corrupted images')
     gpaths = fpaths = parsed_dl['new_fpath']
     valid_flags = vt.filterflags_valid_images(fpaths, verbose=2)
@@ -1358,9 +1490,10 @@ def postprocess_uuids(parsed_dl):
     # Stride of 1 is what IA uses internally
     print('Assigning file based UUID')
     _prog = ut.ProgPartial(bs=True, freq=10, adjust=True)
-    parsed_dl['uuid'] = [ut.get_file_uuid(fpath_, stride=1)
-                         for fpath_ in _prog(parsed_dl['new_fpath'],
-                                             lbl='uuid check')]
+    parsed_dl['uuid'] = [
+        ut.get_file_uuid(fpath_, stride=1)
+        for fpath_ in _prog(parsed_dl['new_fpath'], lbl='uuid check')
+    ]
     return parsed_dl
 
 
@@ -1407,23 +1540,30 @@ def postprocess_rectify_duplicates(unmerged):
         num = sum(isambiguous)
         if num > 0:
             ut.colorprint('X: key=%s has %r ambiguities!' % (key, num), 'red')
-            #merged.compress(isambiguous).print(keys=[key, 'suffix'])
+            # merged.compress(isambiguous).print(keys=[key, 'suffix'])
         else:
             ut.colorprint('o: key=%s is unambiguous' % (key,), 'green')
 
     # Take the first item from the columns that should only have one value
-    #merged.cast_column(takeone_keys, lambda v: v[0])
+    # merged.cast_column(takeone_keys, lambda v: v[0])
     # Deal with animals with multiple names
-    #merged.cast_column('nameid', lambda v: v if len(v) <= 1 else ut.filter_Nones(v))
-    #merged.cast_column('nameid', lambda v: v[0] if len(v) == 1 else v)
+    # merged.cast_column('nameid', lambda v: v if len(v) <= 1 else ut.filter_Nones(v))
+    # merged.cast_column('nameid', lambda v: v[0] if len(v) == 1 else v)
 
     # print info
-    #del parsed_dl[['ext', 'localid', 'orig_fname', 'suffix', 'new_fname', 'keywords']]
+    # del parsed_dl[['ext', 'localid', 'orig_fname', 'suffix', 'new_fname', 'keywords']]
     if False:
-        merged._meta['ignore'] = ['img_url', 'orig_fname', 'suffix',
-                                  'new_fpath', 'new_fname', 'uuid',
-                                  'ext',
-                                  'fname_tags', 'keywords']
+        merged._meta['ignore'] = [
+            'img_url',
+            'orig_fname',
+            'suffix',
+            'new_fpath',
+            'new_fname',
+            'uuid',
+            'ext',
+            'fname_tags',
+            'keywords',
+        ]
         merged._meta['max_lines_start'] = 30
         merged._meta['max_lines_end'] = 30
         merged.print()
@@ -1449,47 +1589,157 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
     invalid_tag_patterns = [
         re.escape('-'),
         re.escape('(') + '?\\d*' + re.escape(')') + '?',
-        '\\d+-\\d+-\\d+', '\\d+,',
-        '\\d+', 'vi*', 'i*v', 'i+',
-        '\\d+th', '\\d+nd', '\\d+rd',
-        'remant', 'timnfe', 't', 'e', 'sjl', 'disc', 'dec', 'road', 'easter',
-        'western', 'west', 'tn',
+        '\\d+-\\d+-\\d+',
+        '\\d+,',
+        '\\d+',
+        'vi*',
+        'i*v',
+        'i+',
+        '\\d+th',
+        '\\d+nd',
+        '\\d+rd',
+        'remant',
+        'timnfe',
+        't',
+        'e',
+        'sjl',
+        'disc',
+        'dec',
+        'road',
+        'easter',
+        'western',
+        'west',
+        'tn',
         '\\d*ap',
-        'whaleshark\\d*', 'shark\\d*', 'whale\\d*',
-        'whalesharking', 'sharking', 'whalesharks', 'whales',
+        'whaleshark\\d*',
+        'shark\\d*',
+        'whale\\d*',
+        'whalesharking',
+        'sharking',
+        'whalesharks',
+        'whales',
         'picture',
         'australien',
         'australia',
-        'nick', 'tim\\d*',
+        'nick',
+        'tim\\d*',
         'imageset',
-        'holiday', 'visit', 'tour', 'trip', 'pec', 'sv',
-        'a', 'b', 'c', 's', 'd', 'h', 'g'
-        'gender', 'sex',
-        'img', 'image', 'pic', 'pics', 'leith', 'trips', 'kings', 'photo', 'video', 'media',
-        'fix', 'feeding',
-        'nrd', 'nd', 'gen', 'wa', 'nmp', 'bo', 'kd', 'ow', 'ne', 'dsc', 'nwd',
-        'mg', 'w', 'mai', 'blue', 'stumpy',
-        'oea', 'cbe', 'edc', 'knrt',
+        'holiday',
+        'visit',
+        'tour',
+        'trip',
+        'pec',
+        'sv',
+        'a',
+        'b',
+        'c',
+        's',
+        'd',
+        'h',
+        'g' 'gender',
+        'sex',
+        'img',
+        'image',
+        'pic',
+        'pics',
+        'leith',
+        'trips',
+        'kings',
+        'photo',
+        'video',
+        'media',
+        'fix',
+        'feeding',
+        'nrd',
+        'nd',
+        'gen',
+        'wa',
+        'nmp',
+        'bo',
+        'kd',
+        'ow',
+        'ne',
+        'dsc',
+        'nwd',
+        'mg',
+        'w',
+        'mai',
+        'blue',
+        'stumpy',
+        'oea',
+        'cbe',
+        'edc',
+        'knrt',
         'tiws2',
-        'ando', 'adv', 'str', 'adventure',
-        'camera', 'tag', 'id', 'ws1', 'ws',
-        'gulf', 'wally', 'walhai', 'wags', 'shark[0-9][a-z]',
-        'shark', 'sharks', 'reef', '720x480', 'nb', 'nrdive', 'tiws', 'exmouth', 'nrdive2',
-        'ningaloo', 'ti', 'nwss', '1st', 'exp', 'wsnd', 'cba', '3iwsd', 'c1',
-        'nwd2', 's1l1', 's1r1'
-        'encounter',
-        'of', 'and', 'the',  'on', 'to', 'with', 'in',
-        'up', 'ws3', 's2'
-        'tagged', 'from', 'dive', 'untag', 'tagtrace',
-        'day', '\\d*april', '\\d*may', '\\d*july', '\\d*june', 'apr\\d+'
-        'ningaloo', 'ningblue\\d*', 'kooling',
+        'ando',
+        'adv',
+        'str',
+        'adventure',
+        'camera',
+        'tag',
+        'id',
+        'ws1',
+        'ws',
+        'gulf',
+        'wally',
+        'walhai',
+        'wags',
+        'shark[0-9][a-z]',
+        'shark',
+        'sharks',
+        'reef',
+        '720x480',
+        'nb',
+        'nrdive',
+        'tiws',
+        'exmouth',
+        'nrdive2',
+        'ningaloo',
+        'ti',
+        'nwss',
+        '1st',
+        'exp',
+        'wsnd',
+        'cba',
+        '3iwsd',
+        'c1',
+        'nwd2',
+        's1l1',
+        's1r1' 'encounter',
+        'of',
+        'and',
+        'the',
+        'on',
+        'to',
+        'with',
+        'in',
+        'up',
+        'ws3',
+        's2' 'tagged',
+        'from',
+        'dive',
+        'untag',
+        'tagtrace',
+        'day',
+        '\\d*april',
+        '\\d*may',
+        '\\d*july',
+        '\\d*june',
+        'apr\\d+' 'ningaloo',
+        'ningblue\\d*',
+        'kooling',
     ]
 
     couldbe_tags = [
-        'remnant', 'prop', 'north'
-        'shot', 'professional', 'red', 'original',
-        'measure', 'gender',
-        'encounter'
+        'remnant',
+        'prop',
+        'north' 'shot',
+        'professional',
+        'red',
+        'original',
+        'measure',
+        'gender',
+        'encounter',
     ]
 
     invalid_tag_patterns += couldbe_tags
@@ -1538,7 +1788,7 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
     ]
 
     invalid_tag_patterns += [re.escape(c) for c in ut.flatten(cam_tags)]
-    #valid_tag_level_set += invalid_tag_patterns
+    # valid_tag_level_set += invalid_tag_patterns
 
     def apply_enum_regex(pat_list):
         enum_endings = [
@@ -1546,10 +1796,9 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
             '\\d*',
             'i*',
         ]
-        expanded_pats = ut.flatten([
-            [pat + end for end in enum_endings]
-            for pat  in pat_list
-        ])
+        expanded_pats = ut.flatten(
+            [[pat + end for end in enum_endings] for pat in pat_list]
+        )
         return expanded_pats
 
     def apply_regex_endings(pat_list):
@@ -1566,8 +1815,12 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
         inverse_alias_map[level_set[0]] = level_set
 
     regex_alias_map = {
-        'view-left': apply_regex_endings(apply_enum_regex(inverse_alias_map['view-left'])),
-        'view-right': apply_regex_endings(apply_enum_regex(inverse_alias_map['view-right'])),
+        'view-left': apply_regex_endings(
+            apply_enum_regex(inverse_alias_map['view-left'])
+        ),
+        'view-right': apply_regex_endings(
+            apply_enum_regex(inverse_alias_map['view-right'])
+        ),
     }
 
     valid_tags = list(inverse_alias_map.keys())
@@ -1576,9 +1829,10 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
 
     def parse_all_fname_tags(fname):
         from os.path import basename
+
         base = basename(splitext(fname)[0])
-        #base.replace('(', '')
-        #base.replace(')', '')
+        # base.replace('(', '')
+        # base.replace(')', '')
         _tags = [base]
         for c in ['_', '.', '/', ')', '(', ',']:
             _tags = ut.flatten([t.split(c) for t in _tags])
@@ -1594,24 +1848,23 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
 
     all_img_tag_list = list(map(parse_all_fname_tags, orig_fname_list))
 
-    known_img_tag_list = [list(set(tags).intersection(set(valid_tags)))
-                          for tags in all_img_tag_list]
+    known_img_tag_list = [
+        list(set(tags).intersection(set(valid_tags))) for tags in all_img_tag_list
+    ]
 
     if dev:
         # Help figure out which tags are important
         _parsed_tags = ut.flatten(all_img_tag_list)
 
-        taghist =  ut.dict_hist(_parsed_tags)
+        taghist = ut.dict_hist(_parsed_tags)
         taghist = {key: val for key, val in taghist.items() if val > 1}
 
-        unknown_taghist = sorted([
-            (val, key) for key, val in taghist.items()
-            if key not in valid_tags
-        ])[::-1]
-        known_taghist = sorted([
-            (val, key) for key, val in taghist.items()
-            if key in valid_tags
-        ])[::-1]
+        unknown_taghist = sorted(
+            [(val, key) for key, val in taghist.items() if key not in valid_tags]
+        )[::-1]
+        known_taghist = sorted(
+            [(val, key) for key, val in taghist.items() if key in valid_tags]
+        )[::-1]
 
         print('Unknown')
         print(ut.repr2(unknown_taghist[0:100][::-1], nl=1))
@@ -1619,15 +1872,16 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
         print('Known')
         print(ut.repr2(known_taghist[0:100][::-1], nl=1))
 
-        print(ut.repr2(
-            ut.dict_hist(ut.flatten(known_img_tag_list)),
-            key_order_metric='val', nl=1
-        ))
+        print(
+            ut.repr2(
+                ut.dict_hist(ut.flatten(known_img_tag_list)), key_order_metric='val', nl=1
+            )
+        )
 
     return known_img_tag_list
 
 
-#def main():
+# def main():
 #    try:
 #        opts, args = getopt.getopt(sys.argv[1:], 'f:u:n:h')
 #    except getopt.GetoptError:
@@ -1666,7 +1920,7 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
 #    #download_sharks(XMLdata, number)
 
 
-#def usage():
+# def usage():
 #    print('Fetches a number of images from the ECOCEAN shark database.')
 #    print('Options:')
 #    print('  -f <FILENAME> - Reads XML data from a file, rather than a URL.')
@@ -1675,5 +1929,5 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
 #    print('  -h - Prints this help text.')
 
 
-#if __name__ == '__main__':
+# if __name__ == '__main__':
 #    main()

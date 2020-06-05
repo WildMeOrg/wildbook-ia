@@ -1,10 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from . import common as com
 
 
 class IBEIS_Part(object):
-
     def __init__(ibsp, _xml, **kwargs):
         ibsp.name = com.get(_xml, 'name')
 

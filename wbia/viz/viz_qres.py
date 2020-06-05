@@ -7,6 +7,7 @@ from wbia.other import ibsfuncs
 from wbia.viz import viz_helpers as vh
 from wbia.viz import viz_chip
 from wbia.viz import viz_matches  # NOQA
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -18,22 +19,27 @@ def show_qres_top(ibs, cm, qreq_=None, **kwargs):
     Wrapper around show_qres.
     """
     N = kwargs.get('N', DEFAULT_NTOP)
-    #name_scoring = kwargs.get('name_scoring', False)
-    #if isinstance(cm, chip_match.ChipMatch):
+    # name_scoring = kwargs.get('name_scoring', False)
+    # if isinstance(cm, chip_match.ChipMatch):
     top_aids = cm.get_top_aids(N)
-    #else:
+    # else:
     #    top_aids = cm.get_top_aids(num=N, ibs=ibs, name_scoring=name_scoring)
     aidstr = ibsfuncs.aidstr(cm.qaid)
     figtitle = kwargs.get('figtitle', '')
     if len(figtitle) > 0:
         figtitle = ' ' + figtitle
     kwargs['figtitle'] = ('q%s -- TOP %r' % (aidstr, N)) + figtitle
-    return show_qres(ibs, cm, top_aids=top_aids, qreq_=qreq_,
-                     # dont use these. use annot mode instead
-                     #draw_kpts=False,
-                     #draw_ell=False,
-                     #all_kpts=False,
-                     **kwargs)
+    return show_qres(
+        ibs,
+        cm,
+        top_aids=top_aids,
+        qreq_=qreq_,
+        # dont use these. use annot mode instead
+        # draw_kpts=False,
+        # draw_ell=False,
+        # all_kpts=False,
+        **kwargs,
+    )
 
 
 def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
@@ -84,12 +90,12 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         print('[show_qres] cm.show_analysis()')
     # Parse arguments
     N = kwargs.get('N', DEFAULT_NTOP)
-    show_gt  = kwargs.pop('show_gt', True)
-    show_gf  = kwargs.pop('show_gf', False)
+    show_gt = kwargs.pop('show_gt', True)
+    show_gf = kwargs.pop('show_gf', False)
     show_query = kwargs.pop('show_query', True)
-    aid_list   = kwargs.pop('aid_list', None)
-    figtitle   = kwargs.pop('figtitle', None)
-    viz_name_score  = kwargs.get('viz_name_score', True)
+    aid_list = kwargs.pop('aid_list', None)
+    figtitle = kwargs.pop('figtitle', None)
+    viz_name_score = kwargs.get('viz_name_score', True)
     failed_to_match = False
 
     if aid_list is None:
@@ -103,7 +109,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
                 figtitle = 'WARNING: no matches found!' + ibsfuncs.aidstr(cm.qaid)
             else:
                 topscore = cm.get_annot_scores(top_aids)[0]
-                figtitle = ('q%s -- topscore=%r' % (ibsfuncs.aidstr(cm.qaid), topscore))
+                figtitle = 'q%s -- topscore=%r' % (ibsfuncs.aidstr(cm.qaid), topscore)
     else:
         print('[analysis] showing a given list of aids')
         top_aids = aid_list
@@ -136,7 +142,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         else:
             if len(_gtaids) > 3:
                 # Hack to not show too many unmatched groundtruths
-                #_isexmp = ibs.get_annot_exemplar_flags(_gtaids)
+                # _isexmp = ibs.get_annot_exemplar_flags(_gtaids)
                 _gtaids = _gtaids[0:3]
         showgt_aids = _gtaids
 
@@ -171,10 +177,17 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         top_nids = ibs.get_annot_name_rowids(top_aids)
         top_aids = ut.compress(top_aids, ut.flag_unique_items(top_nids))
 
-    return show_qres(ibs, cm, gt_aids=showgt_aids, top_aids=top_aids,
-                     figtitle=figtitle, show_query=show_query, qreq_=qreq_,
-                     failed_to_match=failed_to_match,
-                     **kwargs)
+    return show_qres(
+        ibs,
+        cm,
+        gt_aids=showgt_aids,
+        top_aids=top_aids,
+        figtitle=figtitle,
+        show_query=show_query,
+        qreq_=qreq_,
+        failed_to_match=failed_to_match,
+        **kwargs,
+    )
 
 
 def show_qres(ibs, cm, qreq_=None, **kwargs):
@@ -226,32 +239,55 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         >>> fig = show_qres(ibs, cm, show_query=False, qreq_=qreq_, **kwargs)
         >>> ut.show_if_requested()
     """
-    #ut.print_dict(kwargs)
-    annot_mode     = kwargs.get('annot_mode', 1) % 4  # this is toggled
-    figtitle       = kwargs.get('figtitle', '')
-    aug            = kwargs.get('aug', '')
-    top_aids       = kwargs.get('top_aids', DEFAULT_NTOP)
-    gt_aids        = kwargs.get('gt_aids',   [])
-    all_kpts       = kwargs.get('all_kpts', False)
-    show_query     = kwargs.get('show_query', False)
-    in_image       = kwargs.get('in_image', False)
-    sidebyside     = kwargs.get('sidebyside', True)
-    simplemode     = kwargs.get('simplemode', False)
-    colorbar_      = kwargs.get('colorbar_', False)
-    #name_scoring   = kwargs.get('name_scoring', False)
+    # ut.print_dict(kwargs)
+    annot_mode = kwargs.get('annot_mode', 1) % 4  # this is toggled
+    figtitle = kwargs.get('figtitle', '')
+    aug = kwargs.get('aug', '')
+    top_aids = kwargs.get('top_aids', DEFAULT_NTOP)
+    gt_aids = kwargs.get('gt_aids', [])
+    all_kpts = kwargs.get('all_kpts', False)
+    show_query = kwargs.get('show_query', False)
+    in_image = kwargs.get('in_image', False)
+    sidebyside = kwargs.get('sidebyside', True)
+    simplemode = kwargs.get('simplemode', False)
+    colorbar_ = kwargs.get('colorbar_', False)
+    # name_scoring   = kwargs.get('name_scoring', False)
     viz_name_score = kwargs.get('viz_name_score', qreq_ is not None)
-    max_nCols      = kwargs.get('max_nCols', None)
+    max_nCols = kwargs.get('max_nCols', None)
     failed_to_match = kwargs.get('failed_to_match', False)
 
     fnum = pt.ensure_fnum(kwargs.get('fnum', None))
 
     if ut.VERBOSE and ut.NOT_QUIET:
-        print('query_info = ' + ut.repr2(
-            ibs.get_annot_info(cm.qaid, default=True, gname=False, name=False, notes=False,
-                               exemplar=False), nl=4))
-        print('top_aids_info = ' + ut.repr2(
-            ibs.get_annot_info(top_aids, default=True, gname=False, name=False, notes=False,
-                               exemplar=False, reference_aid=cm.qaid), nl=4))
+        print(
+            'query_info = '
+            + ut.repr2(
+                ibs.get_annot_info(
+                    cm.qaid,
+                    default=True,
+                    gname=False,
+                    name=False,
+                    notes=False,
+                    exemplar=False,
+                ),
+                nl=4,
+            )
+        )
+        print(
+            'top_aids_info = '
+            + ut.repr2(
+                ibs.get_annot_info(
+                    top_aids,
+                    default=True,
+                    gname=False,
+                    name=False,
+                    notes=False,
+                    exemplar=False,
+                    reference_aid=cm.qaid,
+                ),
+                nl=4,
+            )
+        )
 
     fig = pt.figure(fnum=fnum, docla=True, doclf=True)
 
@@ -273,8 +309,9 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             max_nCols = 4
 
     try:
-        assert len(list(set(top_aids).intersection(set(gt_aids)))) == 0, (
-            'gts should be missed.  not in top')
+        assert (
+            len(list(set(top_aids).intersection(set(gt_aids)))) == 0
+        ), 'gts should be missed.  not in top'
     except AssertionError as ex:
         ut.printex(ex, keys=['top_aids', 'gt_aids'])
         raise
@@ -282,27 +319,27 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     if ut.DEBUG2:
         print(cm.get_inspect_str())
 
-    #--------------------------------------------------
+    # --------------------------------------------------
     # Get grid / cell information to build subplot grid
-    #--------------------------------------------------
+    # --------------------------------------------------
     # Show query or not
     nQuerySubplts = 1 if show_query else 0
     # The top row is given slots for ground truths and querys
     # all aids in gt_aids should not be in top aids
-    nGtSubplts    = nQuerySubplts + (0 if gt_aids is None else len(gt_aids))
+    nGtSubplts = nQuerySubplts + (0 if gt_aids is None else len(gt_aids))
     # The bottom rows are for the top results
-    nTopNSubplts  = nTop
-    nTopNCols     = min(max_nCols, nTopNSubplts)
-    nGTCols       = min(max_nCols, nGtSubplts)
-    nGTCols       = max(nGTCols, nTopNCols)
-    nTopNCols     = nGTCols
+    nTopNSubplts = nTop
+    nTopNCols = min(max_nCols, nTopNSubplts)
+    nGTCols = min(max_nCols, nGtSubplts)
+    nGTCols = max(nGTCols, nTopNCols)
+    nTopNCols = nGTCols
     # Get number of rows to show groundtruth
-    nGtRows       = 0 if nGTCols   == 0 else int(np.ceil(nGtSubplts   / nGTCols))
+    nGtRows = 0 if nGTCols == 0 else int(np.ceil(nGtSubplts / nGTCols))
     # Get number of rows to show results
-    nTopNRows     = 0 if nTopNCols == 0 else int(np.ceil(nTopNSubplts / nTopNCols))
-    nGtCells      = nGtRows * nGTCols
+    nTopNRows = 0 if nTopNCols == 0 else int(np.ceil(nTopNSubplts / nTopNCols))
+    nGtCells = nGtRows * nGTCols
     # Total number of rows
-    nRows         = nTopNRows + nGtRows
+    nRows = nTopNRows + nGtRows
 
     DEBUG_SHOW_QRES = 0
 
@@ -338,7 +375,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         """ helper for show_qres """
         plotx = plotx_shift + 1
         pnum = (rowcols[0], rowcols[1], plotx)
-        #print('[viz] Plotting Query: pnum=%r' % (pnum,))
+        # print('[viz] Plotting Query: pnum=%r' % (pnum,))
         _kwshow = dict(draw_kpts=annot_mode)
         _kwshow.update(kwargs)
         _kwshow['prefix'] = 'q'
@@ -349,8 +386,13 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
 
     def _plot_matches_aids(aid_list, plotx_shift, rowcols):
         """ helper for show_qres to draw many aids """
-        _kwshow  = dict(draw_ell=annot_mode, draw_pts=False, draw_lines=annot_mode,
-                        ell_alpha=.5, all_kpts=all_kpts)
+        _kwshow = dict(
+            draw_ell=annot_mode,
+            draw_pts=False,
+            draw_lines=annot_mode,
+            ell_alpha=0.5,
+            all_kpts=all_kpts,
+        )
         _kwshow.update(kwargs)
         _kwshow['fnum'] = fnum
         _kwshow['in_image'] = in_image
@@ -361,18 +403,19 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             _kwshow['draw_lines'] = annot_mode in {1, 2}
             _kwshow['heatmask'] = annot_mode in {3}
         else:
-            #print('annot_mode = %r' % (annot_mode,))
+            # print('annot_mode = %r' % (annot_mode,))
             _kwshow['draw_ell'] = annot_mode == 1
-            #_kwshow['draw_pts'] = annot_mode >= 1
-            #_kwshow['draw_lines'] = False
+            # _kwshow['draw_pts'] = annot_mode >= 1
+            # _kwshow['draw_lines'] = False
             _kwshow['show_query'] = False
+
         def _show_matches_fn(aid, orank, pnum):
             """ Helper function for drawing matches to one aid """
             aug = 'rank=%r\n' % orank
             _kwshow['pnum'] = pnum
             _kwshow['title_aug'] = aug
-            #draw_ell = annot_mode == 1
-            #draw_lines = annot_mode >= 1
+            # draw_ell = annot_mode == 1
+            # draw_lines = annot_mode >= 1
             # If we already are showing the query dont show it here
             if sidebyside:
                 # Draw each match side by side the query
@@ -386,21 +429,27 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                         _kwshow['vert'] = False
                         _kwshow['modifysize'] = True
                     cm.show_single_annotmatch(qreq_, aid, **_kwshow)
-                    #viz_matches.show_matches(ibs, cm, aid, qreq_=qreq_, **_kwshow)
+                    # viz_matches.show_matches(ibs, cm, aid, qreq_=qreq_, **_kwshow)
             else:
                 # Draw each match by themselves
                 data_config2_ = None if qreq_ is None else qreq_.extern_data_config2
-                #_kwshow['draw_border'] = kwargs.get('draw_border', True)
-                #_kwshow['notitle'] = ut.get_argflag(('--no-title', '--notitle'))
-                viz_chip.show_chip(ibs, aid, annote=False, notitle=True,
-                                   data_config2_=data_config2_, **_kwshow)
+                # _kwshow['draw_border'] = kwargs.get('draw_border', True)
+                # _kwshow['notitle'] = ut.get_argflag(('--no-title', '--notitle'))
+                viz_chip.show_chip(
+                    ibs,
+                    aid,
+                    annote=False,
+                    notitle=True,
+                    data_config2_=data_config2_,
+                    **_kwshow,
+                )
 
         if DEBUG_SHOW_QRES:
             print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
         if aid_list is None:
             return
         # Do lazy load before show
-        #data_config2_ = None if qreq_ is None else qreq_.extern_data_config2
+        # data_config2_ = None if qreq_ is None else qreq_.extern_data_config2
 
         # tblhack = getattr(qreq_, 'tablename', None)
         # HACK FOR HUMPBACKS
@@ -419,10 +468,15 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             if len(oranks) == 0:
                 orank = -1
                 if aid is None:
-                    pt.imshow_null('Failed to find matches\nfor qaid=%r' % (cm.qaid), fnum=fnum, pnum=pnum, fontsize=18)
+                    pt.imshow_null(
+                        'Failed to find matches\nfor qaid=%r' % (cm.qaid),
+                        fnum=fnum,
+                        pnum=pnum,
+                        fontsize=18,
+                    )
                 else:
                     _show_matches_fn(aid, orank, pnum)
-                #if DEBUG_SHOW_QRES:
+                # if DEBUG_SHOW_QRES:
                 #    print('skipping pnum=%r' % (pnum,))
                 continue
             if DEBUG_SHOW_QRES:
@@ -457,6 +511,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     # Result Interaction
     return fig
 
+
 if __name__ == '__main__':
     """
     CommandLine:
@@ -465,6 +520,8 @@ if __name__ == '__main__':
         python -m wbia.viz.viz_qres --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

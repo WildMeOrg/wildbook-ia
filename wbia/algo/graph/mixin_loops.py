@@ -7,8 +7,9 @@ import ubelt as ub
 import pandas as pd
 import itertools as it
 import wbia.constants as const
-from wbia.algo.graph.state import (POSTV, NEGTV, INCMP, NULL)
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP, NULL
 from wbia.algo.graph.refresh import RefreshCriteria
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -120,7 +121,7 @@ class InfrLoops(object):
                 for _ in infr.ranked_list_gen(use_refresh):
                     yield _
 
-                terminate = (infr.refresh.num_meaningful == 0)
+                terminate = infr.refresh.num_meaningful == 0
                 if terminate:
                     infr.print('Triggered break criteria', 1, color='red')
 
@@ -133,8 +134,11 @@ class InfrLoops(object):
                         yield _
 
                 print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
-                print('infr.refresh.num_meaningful = {!r}'.format(
-                    infr.refresh.num_meaningful))
+                print(
+                    'infr.refresh.num_meaningful = {!r}'.format(
+                        infr.refresh.num_meaningful
+                    )
+                )
 
                 if (count + 1) >= max_loops:
                     infr.print('early stop', 1, color='red')
@@ -213,8 +217,7 @@ class InfrLoops(object):
             infr.print('WARNING: should queue.conf.thresh = "pretty_sure"?')
 
         # work around add_candidate_edges
-        infr.prioritize(metric='hardness', edges=edges,
-                        scores=hardness)
+        infr.prioritize(metric='hardness', edges=edges, scores=hardness)
         infr.set_edge_attrs('hardness', ut.dzip(edges, hardness))
         for _ in infr._inner_priority_gen(use_refresh=False):
             yield _
@@ -323,7 +326,10 @@ class InfrLoops(object):
                         if q2 is not None and q2 < ibs.const.QUAL.OK:
                             continue
                         if include_filter_set is not None:
-                            if u not in include_filter_set and v not in include_filter_set:
+                            if (
+                                u not in include_filter_set
+                                and v not in include_filter_set
+                            ):
                                 continue
                         valid_edges.append((u, v))
                     if len(valid_edges) > 0:
@@ -348,9 +354,7 @@ class InfrLoops(object):
                 break
 
             infr.print('not pos-reduntant yet.', color='white')
-        infr.print(
-            'pos-redundancy achieved in {} iterations'.format(
-                count + 1))
+        infr.print('pos-redundancy achieved in {} iterations'.format(count + 1))
 
     def neg_redun_gen(infr):
         """
@@ -373,8 +377,7 @@ class InfrLoops(object):
             infr.print('another neg redun chunk')
             # Add chunks in a little at a time for faster response time
             infr.add_candidate_edges(new_edges)
-            gen = infr._inner_priority_gen(use_refresh=False,
-                                           only_auto=only_auto)
+            gen = infr._inner_priority_gen(use_refresh=False, only_auto=only_auto)
             for value in gen:
                 yield value
 
@@ -399,23 +402,31 @@ class InfrLoops(object):
         """
         if infr.refresh:
             infr.refresh.enabled = use_refresh
-        infr.print('Start inner loop with {} items in the queue'.format(
-            len(infr.queue)))
+        infr.print('Start inner loop with {} items in the queue'.format(len(infr.queue)))
         for count in it.count(0):
             if infr.is_recovering():
-                infr.print('Still recovering after %d iterations' % (count,),
-                           3, color='turquoise')
+                infr.print(
+                    'Still recovering after %d iterations' % (count,),
+                    3,
+                    color='turquoise',
+                )
             else:
                 # Do not check for refresh if we are recovering
                 if use_refresh and infr.refresh.check():
-                    infr.print('Triggered refresh criteria after %d iterations' %
-                               (count,), 1, color='yellow')
+                    infr.print(
+                        'Triggered refresh criteria after %d iterations' % (count,),
+                        1,
+                        color='yellow',
+                    )
                     break
 
             # If the queue is empty break
             if len(infr.queue) == 0:
-                infr.print('No more edges after %d iterations, need refresh' %
-                           (count,), 1, color='yellow')
+                infr.print(
+                    'No more edges after %d iterations, need refresh' % (count,),
+                    1,
+                    color='yellow',
+                )
                 break
 
             # Try to automatically do the next review.
@@ -513,8 +524,9 @@ class InfrReviewers(object):
                 return None
 
         primary_thresh = infr.task_thresh[primary_task]
-        decision_flags = {k: decision_probs[k] > thresh
-                          for k, thresh in primary_thresh.items()}
+        decision_flags = {
+            k: decision_probs[k] > thresh for k, thresh in primary_thresh.items()
+        }
         hasone = sum(decision_flags.values()) == 1
         auto_flag = False
         if hasone:
@@ -536,8 +548,11 @@ class InfrReviewers(object):
                 if review['evidence_decision'] != truth:
                     infr.print(
                         'AUTOMATIC ERROR edge={}, truth={}, decision={}, probs={}'.format(
-                            edge, truth, review['evidence_decision'], decision_probs),
-                        2, color='darkred')
+                            edge, truth, review['evidence_decision'], decision_probs
+                        ),
+                        2,
+                        color='darkred',
+                    )
                 auto_flag = True
         if auto_flag and infr.verbose > 1:
             infr.print('Automatic review success')
@@ -554,8 +569,7 @@ class InfrReviewers(object):
 
     def _make_review_tuple(infr, edge, priority=None):
         """ Makes tuple to be sent back to the user """
-        edge_data = infr.get_nonvisual_edge_data(
-            edge, on_missing='default')
+        edge_data = infr.get_nonvisual_edge_data(edge, on_missing='default')
         # Extra information
         edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
         if infr.queue is None:
@@ -564,7 +578,7 @@ class InfrReviewers(object):
             edge_data['queue_len'] = len(infr.queue)
         edge_data['n_ccs'] = (
             len(infr.pos_graph.connected_to(edge[0])),
-            len(infr.pos_graph.connected_to(edge[1]))
+            len(infr.pos_graph.connected_to(edge[1])),
         )
         return (edge, priority, edge_data)
 
@@ -632,11 +646,13 @@ class InfrReviewers(object):
 
     def qt_edge_reviewer(infr, edge=None):
         import wbia.guitool as gt
+
         gt.ensure_qapp()
         from wbia.viz import viz_graph2
+
         infr.manual_wgt = viz_graph2.AnnotPairDialog(
-            edge=edge, infr=infr, standalone=False,
-            cfgdict=infr.verifier_params)
+            edge=edge, infr=infr, standalone=False, cfgdict=infr.verifier_params
+        )
         if edge is not None:
             # infr.emit_manual_review(edge, priority=None)
             infr.manual_wgt.seek(0)
@@ -693,6 +709,7 @@ if False:
             >>> next(parbuf)
 
         """
+
         def __init__(self, infr, queue, source):
             Thread.__init__(self)
 
@@ -737,6 +754,7 @@ if False:
 
         The source must be threadsafe.
         """
+
         def __init__(self, infr, size, source):
             if six.PY2:
                 from Queue import Queue
@@ -767,6 +785,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.mixin_loops --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

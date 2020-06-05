@@ -20,9 +20,7 @@ APPLE = PLATFORM.startswith('darwin')
 WIN32 = PLATFORM.startswith('win32')
 LINUX = PLATFORM.startswith('linux2')
 
-LIB_EXT = {'win32': '.dll',
-           'darwin': '.dylib',
-           'linux2': '.so'}[PLATFORM]
+LIB_EXT = {'win32': '.dll', 'darwin': '.dylib', 'linux2': '.so'}[PLATFORM]
 
 ##################################
 # Asserts
@@ -35,12 +33,13 @@ def get_site_package_directories():
     import site
     import sys
     import six
+
     sitepackages = site.getsitepackages()
     if sys.platform.startswith('darwin'):
         if six.PY2:
             macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages'
         else:
-            #version_str = '.'.join(sys.version.split('.')[0:2])
+            # version_str = '.'.join(sys.version.split('.')[0:2])
             macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages'
             assert six.PY2, 'fix this for python 3'
         sitepackages = [macports_site] + sitepackages
@@ -50,9 +49,12 @@ def get_site_package_directories():
 def join_SITE_PACKAGES(*args):
     from os.path import join
     import utool as ut
+
     fname = join(*args)
     sitepackages = get_site_package_directories()
-    path, tried_list = ut.search_in_dirs(fname, sitepackages, return_tried=True, strict=True)
+    path, tried_list = ut.search_in_dirs(
+        fname, sitepackages, return_tried=True, strict=True
+    )
     return path
 
 
@@ -62,22 +64,26 @@ def add_data(a, dst, src):
     if src == '':
         raise ValueError('src path cannot be the empty string')
     src_ = ut.platform_path(src)
-    if not os.path.exists(dirname(dst)) and dirname(dst) != "":
+    if not os.path.exists(dirname(dst)) and dirname(dst) != '':
         os.makedirs(dirname(dst))
     _pretty_path = lambda str_: str_.replace('\\', '/')
     # Default datatype is DATA
     dtype = 'DATA'
     # Infer datatype from extension
-    #extension = splitext(dst)[1].lower()
-    #if extension == LIB_EXT.lower():
+    # extension = splitext(dst)[1].lower()
+    # if extension == LIB_EXT.lower():
     if LIB_EXT[1:] in dst.split('.'):
         dtype = 'BINARY'
-    print(ut.codeblock('''
+    print(
+        ut.codeblock(
+            """
     [installer] a.add_data(
     [installer]    dst=%r,
     [installer]    src=%r,
-    [installer]    dtype=%s)''') %
-          (_pretty_path(dst), _pretty_path(src_), dtype))
+    [installer]    dtype=%s)"""
+        )
+        % (_pretty_path(dst), _pretty_path(src_), dtype)
+    )
     assert exists(src_), 'src_=%r does not exist'
     a.datas.append((dst, src_, dtype))
 
@@ -99,14 +105,19 @@ def get_path_extensions():
         'ibeis_cnn',
         'pydarknet',
         'hesaff',
-        'detecttools'
+        'detecttools',
     ]
-    pathex = ['.'] + [ join('..', repo) for repo in module_repos ]
+    pathex = ['.'] + [join('..', repo) for repo in module_repos]
     if APPLE:
         # We need to explicitly add the MacPorts and system Python site-packages folders on Mac
-        pathex.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/')
-        pathex.append('/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/')
+        pathex.append(
+            '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/'
+        )
+        pathex.append(
+            '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/'
+        )
     return pathex
+
 
 # IF MPL FAILS:
 # MPL has a problem where the __init__.py is not created in the library.  touch __init__.py in the module's path should fix the issue
@@ -157,10 +168,10 @@ def get_data_list():
     DATATUP_LIST = []
     BINARYTUP_LIST = []
 
-    #import pyhesaff
-    #pyhesaff.HESAFF_CLIB.__LIB_FPATH__
-    #import pyrf
-    #pyrf.RF_CLIB.__LIB_FPATH__
+    # import pyhesaff
+    # pyhesaff.HESAFF_CLIB.__LIB_FPATH__
+    # import pyrf
+    # pyrf.RF_CLIB.__LIB_FPATH__
     # Hesaff
     libhesaff_fname = 'libhesaff' + LIB_EXT
     libhesaff_src = realpath(join(root_dir, '..', 'hesaff', 'pyhesaff', libhesaff_fname))
@@ -180,18 +191,18 @@ def get_data_list():
 
     # FLANN
     libflann_fname = 'libflann' + LIB_EXT
-    #try:
+    # try:
     #    #from vtool_ibeis._pyflann_backend import pyflann as pyflann
     #    #pyflann.__file__
     #    #join(dirname(dirname(pyflann.__file__)), 'build')
-    #except ImportError as ex:
+    # except ImportError as ex:
     #    print('PYFLANN IS NOT IMPORTABLE')
     #    raise
-    #if WIN32 or LINUX:
+    # if WIN32 or LINUX:
     # FLANN
-    #libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
-    #libflann_dst = join(ibsbuild, libflann_fname)
-    #elif APPLE:
+    # libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
+    # libflann_dst = join(ibsbuild, libflann_fname)
+    # elif APPLE:
     #    # libflann_src = '/pyflann/lib/libflann.dylib'
     #    # libflann_dst = join(ibsbuild, libflann_fname)
     #    libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
@@ -205,15 +216,13 @@ def get_data_list():
     vtool_libs = ['libsver']
     for libname in vtool_libs:
         lib_fname = libname + LIB_EXT
-        vtlib_src = realpath(join(root_dir, '..', 'vtool_ibeis', 'vtool_ibeis', lib_fname))
+        vtlib_src = realpath(
+            join(root_dir, '..', 'vtool_ibeis', 'vtool_ibeis', lib_fname)
+        )
         vtlib_dst = join(ibsbuild, 'vtool_ibeis', lib_fname)
         DATATUP_LIST.append((vtlib_dst, vtlib_src))
 
-    linux_lib_dpaths = [
-        '/usr/lib/x86_64-linux-gnu',
-        '/usr/lib',
-        '/usr/local/lib'
-    ]
+    linux_lib_dpaths = ['/usr/lib/x86_64-linux-gnu', '/usr/lib', '/usr/local/lib']
 
     # OpenMP
     if APPLE:
@@ -239,22 +248,29 @@ def get_data_list():
     # MinGW
     if WIN32:
         mingw_root = r'C:\MinGW\bin'
-        mingw_dlls = ['libgcc_s_dw2-1.dll', 'libstdc++-6.dll', 'libgomp-1.dll', 'pthreadGC2.dll']
+        mingw_dlls = [
+            'libgcc_s_dw2-1.dll',
+            'libstdc++-6.dll',
+            'libgomp-1.dll',
+            'pthreadGC2.dll',
+        ]
         for lib_fname in mingw_dlls:
             lib_src = join(mingw_root, lib_fname)
             lib_dst = join(ibsbuild, lib_fname)
             DATATUP_LIST.append((lib_dst, lib_src))
 
     # We need to add these 4 opencv libraries because pyinstaller does not find them.
-    #OPENCV_EXT = {'win32': '248.dll',
+    # OPENCV_EXT = {'win32': '248.dll',
     #              'darwin': '.2.4.dylib',
     #              'linux2': '.so.2.4'}[PLATFORM]
 
     target_cv_version = '3.1.0'
 
-    OPENCV_EXT = {'win32': target_cv_version.replace('.', '') + '.dll',
-                  'darwin': '.' + target_cv_version + '.dylib',
-                  'linux2': '.so.' + target_cv_version}[PLATFORM]
+    OPENCV_EXT = {
+        'win32': target_cv_version.replace('.', '') + '.dll',
+        'darwin': '.' + target_cv_version + '.dylib',
+        'linux2': '.so.' + target_cv_version,
+    }[PLATFORM]
 
     missing_cv_name_list = [
         'libopencv_videostab',
@@ -273,8 +289,10 @@ def get_data_list():
         if APPLE:
             src = join('/opt/local/lib', fname)
         elif LINUX:
-            #src = join('/usr/lib', fname)
-            src, tried = ut.search_in_dirs(fname, linux_lib_dpaths, strict=True, return_tried=True)
+            # src = join('/usr/lib', fname)
+            src, tried = ut.search_in_dirs(
+                fname, linux_lib_dpaths, strict=True, return_tried=True
+            )
         elif WIN32:
             if ut.get_computer_name() == 'Ooo':
                 src = join(r'C:/Program Files (x86)/OpenCV/x86/mingw/bin', fname)
@@ -299,14 +317,12 @@ def get_data_list():
     # Documentation, Icons, and Web Assets
     ##################################
     # Documentation
-    #userguide_dst = join('.', '_docs', 'IBEISUserGuide.pdf')
-    #userguide_src = join(root_dir, '_docs', 'IBEISUserGuide.pdf')
-    #DATATUP_LIST.append((userguide_dst, userguide_src))
+    # userguide_dst = join('.', '_docs', 'IBEISUserGuide.pdf')
+    # userguide_src = join(root_dir, '_docs', 'IBEISUserGuide.pdf')
+    # DATATUP_LIST.append((userguide_dst, userguide_src))
 
     # Icon File
-    ICON_EXT = {'darwin': '.icns',
-                'win32':  '.ico',
-                'linux2': '.ico'}[PLATFORM]
+    ICON_EXT = {'darwin': '.icns', 'win32': '.ico', 'linux2': '.ico'}[PLATFORM]
     iconfile = join('_installers', 'ibsicon' + ICON_EXT)
     icon_src = join(root_dir, iconfile)
     icon_dst = join(ibsbuild, iconfile)
@@ -324,39 +340,57 @@ def get_data_list():
     INSTALL_WEB = True and not ut.get_argflag('--noweb')
     if INSTALL_WEB:
         web_root = join('wbia', 'web/')
-        #walk_path = join(web_root, 'static')
-        #static_data = []
-        #for root, dirs, files in os.walk(walk_path):
+        # walk_path = join(web_root, 'static')
+        # static_data = []
+        # for root, dirs, files in os.walk(walk_path):
         #    root2 = root.replace(web_root, '')
         #    for icon_fname in files:
         #        if '.DS_Store' not in icon_fname:
         #            toc_src = join(abspath(root), icon_fname)
         #            toc_dst = join(root2, icon_fname)
         #            static_data.append((toc_dst, toc_src))
-        #ut.get_list_column(static_data, 1) == ut.glob(walk_path, '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
-        static_src_list = ut.glob(join(web_root, 'static'), '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
-        static_dst_list = [relpath(src, join(root_dir, 'wbia')) for src in static_src_list]
+        # ut.get_list_column(static_data, 1) == ut.glob(walk_path, '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
+        static_src_list = ut.glob(
+            join(web_root, 'static'),
+            '*',
+            recursive=True,
+            with_dirs=False,
+            exclude_dirs=['.DS_Store'],
+        )
+        static_dst_list = [
+            relpath(src, join(root_dir, 'wbia')) for src in static_src_list
+        ]
         static_data = zip(static_dst_list, static_src_list)
         DATATUP_LIST.extend(static_data)
 
-        #walk_path = join(web_root, 'templates')
-        #template_data = []
-        #for root, dirs, files in os.walk(walk_path):
+        # walk_path = join(web_root, 'templates')
+        # template_data = []
+        # for root, dirs, files in os.walk(walk_path):
         #    root2 = root.replace(web_root, '')
         #    for icon_fname in files:
         #        if '.DS_Store' not in icon_fname:
         #            toc_src = join(abspath(root), icon_fname)
         #            toc_dst = join(root2, icon_fname)
         #            template_data.append((toc_dst, toc_src))
-        template_src_list = ut.glob(join(web_root, 'templates'), '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
-        template_dst_list = [relpath(src, join(root_dir, 'wbia')) for src in template_src_list]
+        template_src_list = ut.glob(
+            join(web_root, 'templates'),
+            '*',
+            recursive=True,
+            with_dirs=False,
+            exclude_dirs=['.DS_Store'],
+        )
+        template_dst_list = [
+            relpath(src, join(root_dir, 'wbia')) for src in template_src_list
+        ]
         template_data = zip(template_dst_list, template_src_list)
         DATATUP_LIST.extend(template_data)
 
     print('[installer] Checking Data (postweb)')
     try:
         for (dst, src) in DATATUP_LIST:
-            assert ut.checkpath(src, verbose=False), 'checkpath for src=%r failed' % (src,)
+            assert ut.checkpath(src, verbose=False), 'checkpath for src=%r failed' % (
+                src,
+            )
     except Exception as ex:
         ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.repr2(DATATUP_LIST))
         raise
@@ -373,6 +407,8 @@ if __name__ == '__main__':
         python ~/code/wbia/_installers/wbia_pyinstaller_data_helper.py --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import numpy as np  # NOQA
 from six.moves import range
+
 (print, rrr, profile) = ut.inject2(__name__, '[_wbia_object]')
 
 
@@ -35,6 +36,7 @@ def _find_wbia_attrs(ibs, objname, blacklist=[]):
         >>> _find_wbia_attrs(ibs, objname, blacklist)
     """
     import re
+
     getter_prefix = 'get_' + objname + '_'
     found_getters = ut.search_module(ibs, getter_prefix)
     pat = getter_prefix + ut.named_field('attr', '.*')
@@ -51,9 +53,16 @@ def _find_wbia_attrs(ibs, objname, blacklist=[]):
     return matched_getters, matched_setters
 
 
-def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
-                         depc_name=None, depcache_attrs=None,
-                         settable_attrs=None, aliased_attrs=None):
+def _inject_getter_attrs(
+    metaself,
+    objname,
+    attrs,
+    configurable_attrs,
+    depc_name=None,
+    depcache_attrs=None,
+    settable_attrs=None,
+    aliased_attrs=None,
+):
     """
     Used by the metaclass to inject methods and properties into the class
     inheriting from ObjectList1D
@@ -70,8 +79,7 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
     if depcache_attrs is None:
         metaself._depcache_attrs = []
     else:
-        metaself._depcache_attrs = ['%s_%s' % (tbl, col)
-                                    for tbl, col in depcache_attrs]
+        metaself._depcache_attrs = ['%s_%s' % (tbl, col) for tbl, col in depcache_attrs]
     if aliased_attrs is not None:
         metaself._attrs_aliases = aliased_attrs
     else:
@@ -96,19 +104,20 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
                 if self._caching and attrname in self._internal_attrs:
                     self._internal_attrs[attrname] = values
                 _rowid_setter(self, self._rowids, values)
+
         ut.set_funcname(_setter, '_set_' + attrname)
         return _setter
 
     def _make_caching_getter(attrname, _rowid_getter):
         def _getter(self):
-            if self._ibs is None or (self._caching and
-                                     attrname in self._internal_attrs):
+            if self._ibs is None or (self._caching and attrname in self._internal_attrs):
                 data = self._internal_attrs[attrname]
             else:
                 data = _rowid_getter(self, self._rowids)
                 if self._caching:
                     self._internal_attrs[attrname] = data
             return data
+
         ut.set_funcname(_getter, '_get_' + attrname)
         return _getter
 
@@ -117,9 +126,11 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
 
     def _make_setters(objname, attrname):
         ibs_funcname = 'set_%s_%s' % (objname, attrname)
+
         def _rowid_setter(self, rowids, values, *args, **kwargs):
             ibs_callable = getattr(self._ibs, ibs_funcname)
             ibs_callable(rowids, values, *args, **kwargs)
+
         ut.set_funcname(_rowid_setter, '_rowid_set_' + attrname)
         _setter = _make_caching_setter(attrname, _rowid_setter)
         return _rowid_setter, _setter
@@ -128,24 +139,28 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
 
     def _make_getters(objname, attrname):
         ibs_funcname = 'get_%s_%s' % (objname, attrname)
+
         def _rowid_getter(self, rowids):
             ibs_callable = getattr(self._ibs, ibs_funcname)
             data = ibs_callable(rowids)
             if self._asarray:
                 data = np.array(data)
             return data
+
         ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
         _getter = _make_caching_getter(attrname, _rowid_getter)
         return _rowid_getter, _getter
 
     def _make_cfg_getters(objname, attrname):
         ibs_funcname = 'get_%s_%s' % (objname, attrname)
+
         def _rowid_getter(self, rowids):
             ibs_callable = getattr(self._ibs, ibs_funcname)
             data = ibs_callable(rowids, config2_=self._config)
             if self._asarray:
                 data = np.array(data)
             return data
+
         ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
         _getter = _make_caching_getter(attrname, _rowid_getter)
         return _rowid_getter, _getter
@@ -157,6 +172,7 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
             if self._asarray:
                 data = np.array(data)
             return data
+
         ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
         _getter = _make_caching_getter(attrname, _rowid_getter)
         return _rowid_getter, _getter
@@ -188,8 +204,7 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
     if depcache_attrs is not None:
         for tbl, col in depcache_attrs:
             attrname = '%s_%s' % (tbl, col)
-            _rowid_getter, _getter = _make_depc_getters(depc_name, attrname,
-                                                        tbl, col)
+            _rowid_getter, _getter = _make_depc_getters(depc_name, attrname, tbl, col)
             prop = property(fget=_getter, fset=None)
             rowid_getters.append((attrname, _rowid_getter))
             getters.append(_getter)
@@ -224,10 +239,13 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         # TODO: turn on autogenertion given a flag
         def expand_closure_source(funcname, func):
             source = ut.get_func_sourcecode(func)
-            closure_vars = [(k, v.cell_contents) for k, v in
-                            zip(func.func_code.co_freevars, func.func_closure)]
+            closure_vars = [
+                (k, v.cell_contents)
+                for k, v in zip(func.func_code.co_freevars, func.func_closure)
+            ]
             source = ut.unindent(source)
             import re
+
             for k, v in closure_vars:
                 source = re.sub('\\b' + k + '\\b', ut.repr2(v), source)
             source = re.sub(r'def .*\(self', 'def ' + funcname + '(self', source)
@@ -254,17 +272,20 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
             source = '    %s = %s' % (alias, attrname)
             explicit_lines.append(source)
 
-        explicit_source = '\n'.join([
-            'from wbia import _wbia_object',
-            '',
-            '',
-            'class _%s_base_class(_wbia_object.ObjectList1D):',
-            '    __needs_inject__ = False',
-            '',
-        ]) % (objname,)
+        explicit_source = '\n'.join(
+            [
+                'from wbia import _wbia_object',
+                '',
+                '',
+                'class _%s_base_class(_wbia_object.ObjectList1D):',
+                '    __needs_inject__ = False',
+                '',
+            ]
+        ) % (objname,)
         explicit_source += '\n'.join(explicit_lines)
         explicit_fname = '_autogen_%s_base.py' % (objname,)
         from os.path import dirname, join
+
         ut.writeto(join(dirname(__file__), explicit_fname), explicit_source + '\n')
 
     if attr_to_aliases:
@@ -276,6 +297,7 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
     This actually stores a ObjectList1D of length 1 and
     simply calls those functions where available
     """
+
     def __init__(self, obj1d):
         assert len(obj1d) == 1
         self.obj1d = obj1d
@@ -322,16 +344,16 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
         return metadata
 
 
-#@ut.reloadable_class
+# @ut.reloadable_class
 class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
     """
     An object that efficiently operates on a list of wbia objects using
     vectorized code. Single instances can be returned as ObjectScalar0D's
     """
-    def __init__(self, rowids, ibs, config=None, caching=False,
-                 asarray=False):
+
+    def __init__(self, rowids, ibs, config=None, caching=False, asarray=False):
         self._rowids = rowids
-        #self._islist = True
+        # self._islist = True
         # Internal cache
         self._internal_attrs = {}
         # Internal behaviors
@@ -341,11 +363,15 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         # Private attributes
         self._rowid_to_idx = None
         self._asarray = asarray
-        #ut.make_index_lookup(self._rowids)
+        # ut.make_index_lookup(self._rowids)
 
     def __vector_attributes__(self):
-        attrs = (self._attrs + self._configurable_attrs + self._depcache_attrs +
-                 list(self._attrs_aliases.keys()))
+        attrs = (
+            self._attrs
+            + self._configurable_attrs
+            + self._depcache_attrs
+            + list(self._attrs_aliases.keys())
+        )
         return attrs
 
     def set_caching(self, flag):
@@ -371,11 +397,13 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         """
         rowids = ut.take(self._rowids, idxs)
         # Create a new instance pointing only to the requested subset
-        newself = self.__class__(rowids, ibs=self._ibs, config=self._config,
-                                 caching=self._caching)
+        newself = self.__class__(
+            rowids, ibs=self._ibs, config=self._config, caching=self._caching
+        )
         # Pass along any internally cached values
-        _new_internal = {key: ut.take(val, idxs)
-                         for key, val in self._internal_attrs.items()}
+        _new_internal = {
+            key: ut.take(val, idxs) for key, val in self._internal_attrs.items()
+        }
         newself._internal_attrs = _new_internal
         return newself
 
@@ -418,7 +446,7 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         scalar_list = [self[idx] for idx in range(len(self))]
         return scalar_list
 
-    def compress(self,  flags):
+    def compress(self, flags):
         idxs = ut.where(flags)
         return self.take(idxs)
 
@@ -427,7 +455,7 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         dict_list = [dict(zip(keys, vals)) for vals in vals_list]
         return dict_list
 
-    def chunks(self,  chunksize):
+    def chunks(self, chunksize):
         for idxs in ut.ichunks(self, range(len(self))):
             yield self.take(idxs)
 
@@ -494,12 +522,12 @@ class ObjectView1D(ut.NiceRepr):
         >>> assert v.vecs[0] is v.vecs[1]
         >>> assert v.vecs[0] is not v.vecs[2]
     """
+
     def __init__(self, rowids, obj1d, cache=None):
         self._rowids = list(rowids)
         self._obj1d = obj1d
         self._unique_rowids = set(self._rowids)
-        self._unique_inverse = ut.list_alignment(self._unique_rowids,
-                                                 self._rowids)
+        self._unique_inverse = ut.list_alignment(self._unique_rowids, self._rowids)
         if cache is None:
             self._cache = ut.ddict(dict)
         else:
@@ -529,8 +557,9 @@ class ObjectView1D(ut.NiceRepr):
             raise AttributeError('ObjectView1D has no attribute %r' % (key,))
         if self._caching:
             rowid_to_value = self._cache[key]
-            miss_rowids = [rowid for rowid in self._unique_rowids
-                           if rowid not in rowid_to_value]
+            miss_rowids = [
+                rowid for rowid in self._unique_rowids if rowid not in rowid_to_value
+            ]
             miss_data = _rowid_getter(miss_rowids)
             for rowid, value in zip(miss_rowids, miss_data):
                 rowid_to_value[rowid] = value
@@ -574,11 +603,9 @@ class ObjectView1D(ut.NiceRepr):
             >>> assert v2._cache is v1._cache
         """
         if ut.isiterable(rowids):
-            childview = self.__class__(rowids, obj1d=self._obj1d,
-                                       cache=self._cache)
+            childview = self.__class__(rowids, obj1d=self._obj1d, cache=self._cache)
         else:
-            childview = self.__class__([rowids], obj1d=self._obj1d,
-                                       cache=self._cache)
+            childview = self.__class__([rowids], obj1d=self._obj1d, cache=self._cache)
             childview = ObjectScalar0D(childview)
         return childview
 
@@ -590,6 +617,8 @@ if __name__ == '__main__':
         python -m wbia._wbia_object --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -11,7 +11,7 @@
 		<height>600</height>
 		<depth>3</depth>
 	</size>
-	<segmented>0</segmented>	
+	<segmented>0</segmented>
 	<object>
 		<name>rhino</name>
 		<pose>Unspecified</pose>

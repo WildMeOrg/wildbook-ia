@@ -9,7 +9,9 @@ import wbia.plottool.draw_sv as draw_sv
 WRITE_SV_DEBUG = ut.get_argflag('--write-sv-debug')
 
 
-def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=None):
+def _get_sv_vartup_for_plottool(
+    ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=None
+):
     """ Compiles IBEIS information into info suitable for plottool """
     chip1, chip2 = ibs.get_annot_chips([aid1, aid2], config2_=config2_)
     kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2], config2_=config2_)
@@ -28,6 +30,7 @@ def _compute_svvars(ibs, aid1):
     If spatial-verfication dbginfo is not in we need to compute it
     """
     from wbia.algo.hots import _pipeline_helpers as plh
+
     daids = ibs.get_valid_aids()
     qaids = [aid1]
     cfgdict = dict()
@@ -37,14 +40,16 @@ def _compute_svvars(ibs, aid1):
     qreq_.lazy_load()
     pipeline_locals_ = plh.testrun_pipeline_upto(qreq_, None)
     qaid2_chipmatch_FILT = pipeline_locals_['qaid2_chipmatch_FILT']
-    qaid2_svtups         = qreq_.metadata['qaid2_svtups']
+    qaid2_svtups = qreq_.metadata['qaid2_svtups']
     chipmatch_FILT = qaid2_chipmatch_FILT[aid1]
-    aid2_svtup     = qaid2_svtups[aid1]
+    aid2_svtup = qaid2_svtups[aid1]
     return chipmatch_FILT, aid2_svtup
 
 
 @ut.indent_func
-def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=None, **kwargs):
+def show_sver(
+    ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=None, **kwargs
+):
     """
     Compiles IBEIS information and sends it to plottool
 
@@ -68,17 +73,21 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
         >>> exec(pt.present())
     """
     print('\n[show_sver] ====================== [show_sver]')
-    #print(ut.func_str(show_sv, kwargs=locals()))
+    # print(ut.func_str(show_sv, kwargs=locals()))
     if chipmatch_FILT is None or aid2_svtup is None:
         chipmatch_FILT, aid2_svtup = _compute_svvars(ibs, aid1)
-    sv_vartup = _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=config2_)
+    sv_vartup = _get_sv_vartup_for_plottool(
+        ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=config2_
+    )
     (chip1, chip2, kpts1, kpts2, fm, homog_tup, aff_tup) = sv_vartup
     if WRITE_SV_DEBUG:
         keys = ('chip1', 'chip2', 'kpts1', 'kpts2', 'fm', 'homog_tup', 'aff_tup')
         ut.save_testdata(*keys)
         print('[vizsv] write test info')
         ut.qflag()
-    draw_sv.show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=homog_tup, aff_tup=aff_tup, **kwargs)
+    draw_sv.show_sv(
+        chip1, chip2, kpts1, kpts2, fm, homog_tup=homog_tup, aff_tup=aff_tup, **kwargs
+    )
 
 
 if __name__ == '__main__':

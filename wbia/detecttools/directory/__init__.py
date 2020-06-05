@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 
 import os
@@ -16,7 +17,6 @@ def _parseFilename(path):
 
 
 class Directory(object):
-
     def __init__(self, directory_path, **kwargs):
         _kwargs(kwargs, 'include_file_extensions', None)
         _kwargs(kwargs, 'include_hidden', False)
@@ -26,14 +26,22 @@ class Directory(object):
         _kwargs(kwargs, 'image', None)
         _kwargs(kwargs, 'images', None)
 
-        if kwargs['include_file_extensions'] == 'images' or True in [kwargs['image'], kwargs['images']]:
+        if kwargs['include_file_extensions'] == 'images' or True in [
+            kwargs['image'],
+            kwargs['images'],
+        ]:
             kwargs['include_file_extensions'] = ['jpg', 'jpeg', 'png', 'tiff']
 
         if kwargs['absolute']:
             directory_path = os.path.abspath(os.path.expanduser(directory_path))
 
         if not os.path.exists(directory_path):
-            raise Exception('DIRECTORY_EXISTENCE', 'The directory path you specified [' + directory_path + '] does not exist.')
+            raise Exception(
+                'DIRECTORY_EXISTENCE',
+                'The directory path you specified ['
+                + directory_path
+                + '] does not exist.',
+            )
 
         self.directory_path = directory_path
         self.absolute_directory_path = os.path.abspath(directory_path)
@@ -47,20 +55,31 @@ class Directory(object):
             line_path = os.path.join(self.absolute_directory_path, line)
             filename, line_extension = _parseFilename(line_path)
 
-            if os.path.isfile(line_path) and \
-               (kwargs['include_hidden'] or line[0] != '.') and \
-               (kwargs['include_file_extensions'] is None or line_extension in kwargs['include_file_extensions']) and \
-               (line_extension not in kwargs['exclude_file_extensions']):
-                    self.file_list.append(line_path)
-            elif os.path.isdir(line_path) and \
-                 kwargs['recursive'] >= 0 and \
-                 (kwargs['include_hidden'] or line[0] != '.'):
-                    kwargs_ = kwargs.copy()
-                    kwargs_['recursive'] -= 1
-                    self.directory_list.append(Directory(line_path, **kwargs_))
+            if (
+                os.path.isfile(line_path)
+                and (kwargs['include_hidden'] or line[0] != '.')
+                and (
+                    kwargs['include_file_extensions'] is None
+                    or line_extension in kwargs['include_file_extensions']
+                )
+                and (line_extension not in kwargs['exclude_file_extensions'])
+            ):
+                self.file_list.append(line_path)
+            elif (
+                os.path.isdir(line_path)
+                and kwargs['recursive'] >= 0
+                and (kwargs['include_hidden'] or line[0] != '.')
+            ):
+                kwargs_ = kwargs.copy()
+                kwargs_['recursive'] -= 1
+                self.directory_list.append(Directory(line_path, **kwargs_))
 
     def __str__(self):
-        return '<Directory Object | %s | %d files | %d directories>' % (self.absolute_directory_path, len(self.file_list), len(self.directory_list))
+        return '<Directory Object | %s | %d files | %d directories>' % (
+            self.absolute_directory_path,
+            len(self.file_list),
+            len(self.directory_list),
+        )
 
     def __repr__(self):
         return '<Directory Object | ../%s>' % (self.base())
@@ -90,7 +109,7 @@ class Directory(object):
 
     def files(self, **kwargs):
         _kwargs(kwargs, 'recursive', self.recursive)
-        _kwargs(kwargs, 'absolute',  False)
+        _kwargs(kwargs, 'absolute', False)
 
         kwargs['recursive'] = self._fix_recursive(kwargs['recursive'])
 
@@ -170,6 +189,8 @@ if __name__ == '__main__':
     assert direct.num_files() == 6
 
     # Test exclude
-    direct = Directory('tests/directory', exclude_file_extensions=['ignore'], recursive=True)
+    direct = Directory(
+        'tests/directory', exclude_file_extensions=['ignore'], recursive=True
+    )
     assert direct.num_files(recursive=False) == 9
     assert direct.num_files(recursive=True) == 13

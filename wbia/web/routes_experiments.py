@@ -13,9 +13,10 @@ import cv2
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
@@ -25,20 +26,20 @@ DBDIR_PREFIX = '/Datasets'
 
 DB_DICT = {}
 DBDIR_DICT = {
-    'demo-jasonp'  : '/data2/wbia/DEMO2-JASONP',
-    'demo-chuck'   : '/data2/wbia/DEMO2-CHUCK',
-    'demo-hendrik' : '/data2/wbia/DEMO2-HENDRIK',
-    'demo-jonv'    : '/data2/wbia/DEMO2-JONV',
-    'demo-jasonh'  : '/data2/wbia/DEMO2-JASONH',
-    'demo-dan'     : '/data2/wbia/DEMO2-DAN',
-    'demo-kaia'    : '/data2/wbia/DEMO2-KAIA',
-    'demo-tanya'   : '/data2/wbia/DEMO2-TANYA',
-    'voting'       : join(DBDIR_PREFIX, 'DETECT_TEAM'),
-    'voting-team1' : join(DBDIR_PREFIX, 'DETECT_TEAM1'),
-    'voting-team2' : join(DBDIR_PREFIX, 'DETECT_TEAM2'),
-    'voting-team3' : join(DBDIR_PREFIX, 'DETECT_TEAM3'),
-    'voting-team4' : join(DBDIR_PREFIX, 'DETECT_TEAM4'),
-    'voting-team5' : join(DBDIR_PREFIX, 'DETECT_TEAM5'),
+    'demo-jasonp': '/data2/wbia/DEMO2-JASONP',
+    'demo-chuck': '/data2/wbia/DEMO2-CHUCK',
+    'demo-hendrik': '/data2/wbia/DEMO2-HENDRIK',
+    'demo-jonv': '/data2/wbia/DEMO2-JONV',
+    'demo-jasonh': '/data2/wbia/DEMO2-JASONH',
+    'demo-dan': '/data2/wbia/DEMO2-DAN',
+    'demo-kaia': '/data2/wbia/DEMO2-KAIA',
+    'demo-tanya': '/data2/wbia/DEMO2-TANYA',
+    'voting': join(DBDIR_PREFIX, 'DETECT_TEAM'),
+    'voting-team1': join(DBDIR_PREFIX, 'DETECT_TEAM1'),
+    'voting-team2': join(DBDIR_PREFIX, 'DETECT_TEAM2'),
+    'voting-team3': join(DBDIR_PREFIX, 'DETECT_TEAM3'),
+    'voting-team4': join(DBDIR_PREFIX, 'DETECT_TEAM4'),
+    'voting-team5': join(DBDIR_PREFIX, 'DETECT_TEAM5'),
 }
 
 
@@ -55,6 +56,7 @@ def view_experiments(**kwargs):
 
 def experiment_init_db(tag):
     import wbia
+
     if tag in DBDIR_DICT:
         dbdir = abspath(expanduser(DBDIR_DICT[tag]))
         DB_DICT[tag] = wbia.opendb(dbdir=dbdir, web=False)
@@ -118,7 +120,7 @@ def experiments_interest(dbtag1='demo-jasonp', dbtag2='demo-chuck', **kwargs):
         gid1 = ibs1.get_image_gids_from_uuid(uuid1)
         gid2 = ibs2.get_image_gids_from_uuid(uuid2)
 
-        print('%s %s' % (index1, index2, ))
+        print('%s %s' % (index1, index2,))
         stats = None
         if uuid1 is not None and uuid2 is not None:
             if uuid1 == uuid2:
@@ -188,7 +190,7 @@ def experiments_interest(dbtag1='demo-jasonp', dbtag2='demo-chuck', **kwargs):
                 else:
                     gid1 = None
 
-        gid_pair_list.append( (gid1, gid2, stats) )
+        gid_pair_list.append((gid1, gid2, stats))
         if gid1 is not None:
             index1 += 1
         if gid2 is not None:
@@ -203,22 +205,16 @@ def voting_uuid_list(ibs, team_list):
     image_uuid_list = ibs.get_image_uuids(ibs.get_valid_gids())
     # image_uuid_list = image_uuid_list[:100]
     annot_uuid_list = ut.flatten(
-        ibs.get_image_annot_uuids(
-            ibs.get_image_gids_from_uuid(image_uuid_list)
-        )
+        ibs.get_image_annot_uuids(ibs.get_image_gids_from_uuid(image_uuid_list))
     )
     for team in team_list:
-        print('Checking team %r' % (team, ))
+        print('Checking team %r' % (team,))
         try:
             gid_list = team.get_image_gids_from_uuid(image_uuid_list)
             assert None not in gid_list
         except AssertionError:
             zipped = zip(image_uuid_list, gid_list)
-            blacklist += [
-                image_uuid
-                for image_uuid, gid in zipped
-                if gid is None
-            ]
+            blacklist += [image_uuid for image_uuid, gid in zipped if gid is None]
         try:
             aid_list = team.get_annot_aids_from_uuid(annot_uuid_list)
             assert None not in aid_list
@@ -226,27 +222,31 @@ def voting_uuid_list(ibs, team_list):
             zipped = zip(annot_uuid_list, aid_list)
             blacklist += [
                 ibs.get_image_uuids(
-                    ibs.get_annot_image_rowids(
-                        ibs.get_annot_aids_from_uuid(annot_uuid)
-                    )
+                    ibs.get_annot_image_rowids(ibs.get_annot_aids_from_uuid(annot_uuid))
                 )
                 for annot_uuid, aid in zipped
                 if aid is None
             ]
     blacklist = list(set(blacklist))
     assert None not in blacklist
-    print('Blacklisted %d / %d' % (len(blacklist), len(image_uuid_list), ))
+    print('Blacklisted %d / %d' % (len(blacklist), len(image_uuid_list),))
     image_uuid_list = list(set(image_uuid_list) - set(blacklist))
     annot_uuid_list = ut.flatten(
-        ibs.get_image_annot_uuids(
-            ibs.get_image_gids_from_uuid(image_uuid_list)
-        )
+        ibs.get_image_annot_uuids(ibs.get_image_gids_from_uuid(image_uuid_list))
     )
     return image_uuid_list, annot_uuid_list
 
 
-def voting_data(method=3, option='inclusive', species='all',
-                team1=True, team2=True, team3=True, team4=True, team5=True):
+def voting_data(
+    method=3,
+    option='inclusive',
+    species='all',
+    team1=True,
+    team2=True,
+    team3=True,
+    team4=True,
+    team5=True,
+):
     global GLOBAL_AOI_VALUES, GLOBAL_AOI_DICT, GLOBAL_ANNOT_UUID_LIST
 
     method = int(method)
@@ -316,9 +316,7 @@ def voting_data(method=3, option='inclusive', species='all',
             continue
 
         flag_list = [
-            team.get_annot_interest(
-                team.get_annot_aids_from_uuid(annot_uuid)
-            )
+            team.get_annot_interest(team.get_annot_aids_from_uuid(annot_uuid))
             for team in team_list
         ]
         count = flag_list.count(True)
@@ -338,7 +336,9 @@ def voting_data(method=3, option='inclusive', species='all',
     return aoi_dict
 
 
-@register_api('/experiments/ajax/voting/count/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/experiments/ajax/voting/count/', methods=['GET'], __api_plural_check__=False
+)
 def experiments_voting_counts(ibs, **kwargs):
     aoi_dict = voting_data(**kwargs)
 
@@ -349,7 +349,7 @@ def experiments_voting_counts(ibs, **kwargs):
     if total == 0:
         total_str = 'Undefined'
     else:
-        total_str = '%0.2f' % (100.0 * float(count) / total, )
+        total_str = '%0.2f' % (100.0 * float(count) / total,)
 
     stage1_count_list = [count, total_str, total]
 
@@ -384,16 +384,18 @@ def experiments_voting_counts(ibs, **kwargs):
         count_list = np.array(count_list)
         avg = np.mean(count_list)
         std = np.std(count_list)
-        count_str = '%0.2f' % (avg, )
-        deviation_str = '%0.2f' % (std, )
-        percentage_str = '%0.2f' % (100.0 * sum(precentage_list) / total, )
+        count_str = '%0.2f' % (avg,)
+        deviation_str = '%0.2f' % (std,)
+        percentage_str = '%0.2f' % (100.0 * sum(precentage_list) / total,)
 
     stage2_count_list = [count_str, deviation_str, percentage_str]
 
     return stage1_count_list, stage2_count_list
 
 
-@register_api('/experiments/ajax/voting/variance/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/experiments/ajax/voting/variance/', methods=['GET'], __api_plural_check__=False
+)
 def experiments_voting_variance(ibs, team_index, **kwargs):
     aoi_dict = voting_data(**kwargs)
     team_index = int(team_index)
@@ -415,7 +417,7 @@ def experiments_voting_variance(ibs, team_index, **kwargs):
         accuracy_str = 'Undefined'
     else:
         correct = total - incorrect
-        accuracy_str = '%0.02f' % (100.0 * (correct / total), )
+        accuracy_str = '%0.02f' % (100.0 * (correct / total),)
     return team_index, incorrect, accuracy_str
 
 
@@ -431,7 +433,9 @@ def _normalize_image(image):
     return image
 
 
-@register_api('/experiments/ajax/voting/center/src/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/experiments/ajax/voting/center/src/', methods=['GET'], __api_plural_check__=False
+)
 def experiments_voting_center_src(ibs, aoi=False, **kwargs):
     aoi_dict = voting_data(**kwargs)
     ibs, team_list = experiments_voting_initialize()
@@ -461,7 +465,9 @@ def experiments_voting_center_src(ibs, aoi=False, **kwargs):
     return maximum, appf.embed_image_html(image, target_width=None)
 
 
-@register_api('/experiments/ajax/voting/area/src/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/experiments/ajax/voting/area/src/', methods=['GET'], __api_plural_check__=False
+)
 def experiments_voting_area_src(ibs, aoi=False, **kwargs):
     aoi_dict = voting_data(**kwargs)
     ibs, team_list = experiments_voting_initialize()
@@ -490,7 +496,7 @@ def experiments_voting_area_src(ibs, aoi=False, **kwargs):
         y0 = int(np.around(y0 * 100.0))
         x1 = int(np.around(x1 * 100.0))
         y1 = int(np.around(y1 * 100.0))
-        image[x0: x1, y0: y1] += 1.0
+        image[x0:x1, y0:y1] += 1.0
 
     maximum = np.max(image)
     image /= maximum
@@ -500,7 +506,9 @@ def experiments_voting_area_src(ibs, aoi=False, **kwargs):
     return maximum, appf.embed_image_html(image, target_width=None)
 
 
-@register_api('/experiments/ajax/voting/bbox/metrics/', methods=['GET'], __api_plural_check__=False)
+@register_api(
+    '/experiments/ajax/voting/bbox/metrics/', methods=['GET'], __api_plural_check__=False,
+)
 def experiments_voting_bbox_width(ibs, **kwargs):
     aoi_dict = voting_data(**kwargs)
     ibs, team_list = experiments_voting_initialize()
@@ -508,10 +516,10 @@ def experiments_voting_bbox_width(ibs, **kwargs):
     bins = 10.0
     key_list = list(range(int(bins + 1)))
     histogram_dict = {
-        'keys':   key_list,
-        'width':  [{index: 0 for index in key_list} for _ in range(2)],
+        'keys': key_list,
+        'width': [{index: 0 for index in key_list} for _ in range(2)],
         'height': [{index: 0 for index in key_list} for _ in range(2)],
-        'area':   [{index: 0 for index in key_list} for _ in range(2)],
+        'area': [{index: 0 for index in key_list} for _ in range(2)],
     }
     for annot_uuid in aoi_dict:
         aid = ibs.get_annot_aids_from_uuid(annot_uuid)
@@ -527,13 +535,13 @@ def experiments_voting_bbox_width(ibs, **kwargs):
         w = int(np.around(w * bins))
         h = int(np.around(h * bins))
         a = int(np.around(a * bins))
-        histogram_dict['width'][0][w]  += 1
+        histogram_dict['width'][0][w] += 1
         histogram_dict['height'][0][h] += 1
-        histogram_dict['area'][0][a]   += 1
+        histogram_dict['area'][0][a] += 1
         if aoi_dict[annot_uuid]:
-            histogram_dict['width'][1][w]  += 1
+            histogram_dict['width'][1][w] += 1
             histogram_dict['height'][1][h] += 1
-            histogram_dict['area'][1][a]   += 1
+            histogram_dict['area'][1][a] += 1
 
     for histogram_key in histogram_dict:
         if histogram_key == 'keys':
@@ -563,11 +571,7 @@ def experiments_voting_initialize(enabled_list=None):
     if enabled_list is not None:
         assert len(team_list) == 5
         assert False not in [enabled in [True, False] for enabled in enabled_list]
-        team_list = [
-            team
-            for team, enabled in zip(team_list, enabled_list)
-            if enabled
-        ]
+        team_list = [team for team, enabled in zip(team_list, enabled_list) if enabled]
 
     if None in [GLOBAL_IMAGE_UUID_LIST, GLOBAL_ANNOT_UUID_LIST]:
         image_uuid_list, annot_uuid_list = voting_uuid_list(ibs, team_list)
@@ -595,6 +599,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

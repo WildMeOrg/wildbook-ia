@@ -8,6 +8,7 @@ from wbia.algo.smk import pickle_flann
 import numpy as np
 import warnings
 from wbia.control.controller_inject import register_preprocs
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -100,10 +101,14 @@ class VisualVocab(ut.NiceRepr):
         try:
             idx_to_vec = idx_to_vec.astype(vocab.wordflann._FLANN__curindex_data.dtype)
             _idx_to_wx, _idx_to_wdist = vocab.wordflann.nn_index(
-                idx_to_vec, nAssign, checks=checks)
+                idx_to_vec, nAssign, checks=checks
+            )
         except pyflann.FLANNException as ex:
-            ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (
-                getattr(vocab.wordflann, 'flann_fpath', None),))
+            ut.printex(
+                ex,
+                'probably misread the cached flann_fpath=%r'
+                % (getattr(vocab.wordflann, 'flann_fpath', None),),
+            )
             raise
         else:
             _idx_to_wx = vt.atleast_nd(_idx_to_wx, 2)
@@ -130,6 +135,7 @@ class VisualVocab(ut.NiceRepr):
             >>> ut.show_if_requested()
         """
         import wbia.plottool as pt
+
         wx_list = list(range(len(vocab)))
         # wx_list = ut.strided_sample(wx_list, 64)
         wx_list = ut.strided_sample(wx_list, 64)
@@ -146,10 +152,15 @@ class VisualVocab(ut.NiceRepr):
 
 
 @derived_attribute(
-    tablename='vocab', parents=['feat*'],
-    colnames=['words'], coltypes=[VisualVocab],
-    configclass=VocabConfig, chunksize=1, fname='visual_vocab',
-    taggable=True, vectorized=False,
+    tablename='vocab',
+    parents=['feat*'],
+    colnames=['words'],
+    coltypes=[VisualVocab],
+    configclass=VocabConfig,
+    chunksize=1,
+    fname='visual_vocab',
+    taggable=True,
+    vectorized=False,
 )
 def compute_vocab(depc, fid_list, config):
     r"""
@@ -228,22 +239,22 @@ def compute_vocab(depc, fid_list, config):
     vecs_list = depc.get_native('feat', fid_list, 'vecs')
     train_vecs = np.vstack(vecs_list).astype(np.float32)
     num_words = config['num_words']
-    print('[smk_index] Train Vocab(nWords=%d) using %d annots and %d descriptors' %
-          (num_words, len(fid_list), len(train_vecs)))
+    print(
+        '[smk_index] Train Vocab(nWords=%d) using %d annots and %d descriptors'
+        % (num_words, len(fid_list), len(train_vecs))
+    )
     if config['algorithm'] == 'kdtree':
         flann_params = vt.get_flann_params(random_seed=42)
-        kwds = dict(
-            max_iters=20,
-            flann_params=flann_params
-        )
+        kwds = dict(max_iters=20, flann_params=flann_params)
         words = vt.akmeans(train_vecs, num_words, **kwds)
     elif config['algorithm'] == 'minibatch':
         print('Using minibatch kmeans')
         import sklearn.cluster
+
         rng = np.random.RandomState(config['random_seed'])
         n_init = config['n_init']
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.simplefilter('ignore')
             init_size = int(num_words * 4)
             batch_size = 1000
             n_batches = ut.get_num_chunks(train_vecs.shape[0], batch_size)
@@ -260,8 +271,8 @@ def compute_vocab(depc, fid_list, config):
             )
             print('minibatch_params = %s' % (ut.repr4(minibatch_params),))
             clusterer = sklearn.cluster.MiniBatchKMeans(
-                compute_labels=False, random_state=rng, verbose=2,
-                **minibatch_params)
+                compute_labels=False, random_state=rng, verbose=2, **minibatch_params
+            )
             try:
                 clusterer.fit(train_vecs)
             except (Exception, KeyboardInterrupt) as ex:
@@ -296,6 +307,7 @@ def testdata_vocab(defaultdb='testdb1', **kwargs):
     >>> kwargs = {'num_words': 1000}
     """
     import wbia
+
     ibs, aids = wbia.testdata_aids(defaultdb=defaultdb)
     config = kwargs
     # vocab = new_load_vocab(ibs, aid_list, kwargs)
@@ -319,6 +331,8 @@ if __name__ == '__main__':
         python ~/code/wbia/wbia/algo/smk/vocab_indexer.py --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

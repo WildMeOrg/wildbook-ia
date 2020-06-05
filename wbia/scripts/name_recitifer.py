@@ -45,27 +45,28 @@ def reasign_names1(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
     grouped_aids = list(nid2_aids.values())
 
     # Get grouped images
-    grouped_imgnames = ibs.unflat_map(ibs.get_annot_image_names,
-                                      grouped_aids)
+    grouped_imgnames = ibs.unflat_map(ibs.get_annot_image_names, grouped_aids)
 
     # Assume a mapping from old image names to old names is given.
     # Or just hack it in the Lewa case.
     if old_img2_names is None:
+
         def get_name_from_gname(gname):
             from os.path import splitext
+
             gname_, ext = splitext(gname)
-            assert gname_.startswith(common_prefix), (
-                'prefix assumption is invalidated')
-            gname_ = gname_[len(common_prefix):]
+            assert gname_.startswith(common_prefix), 'prefix assumption is invalidated'
+            gname_ = gname_[len(common_prefix) :]
             return gname_
+
         # Create mapping from image name to the desired "name" for the image.
-        old_img2_names = {gname: get_name_from_gname(gname)
-                          for gname in ut.flatten(grouped_imgnames)}
+        old_img2_names = {
+            gname: get_name_from_gname(gname) for gname in ut.flatten(grouped_imgnames)
+        }
 
     # Make the name of the individual associated with that annotation be the
     # file name prefix
-    grouped_oldnames = [ut.take(old_img2_names, gnames)
-                        for gnames in grouped_imgnames]
+    grouped_oldnames = [ut.take(old_img2_names, gnames) for gnames in grouped_imgnames]
 
     # The task is now to map each name in unique_nids to one of these names
     # subject to the contraint that each name can only be used once.  This is
@@ -114,6 +115,7 @@ def reasign_names2(ibs, gname_name_pairs, aid_list=None):
         >>> changed_pairs = reasign_names2(gname_name_pairs)
     """
     from os.path import basename
+
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
     annot_gnames = ibs.get_annot_image_names(aid_list)
@@ -147,9 +149,16 @@ def reasign_names2(ibs, gname_name_pairs, aid_list=None):
     return changed_pairs
 
 
-def testdata_oldnames(n_incon_groups=10, n_con_groups=2, n_per_con=5,
-                      n_per_incon=5, con_sep=4, n_empty_groups=0):
+def testdata_oldnames(
+    n_incon_groups=10,
+    n_con_groups=2,
+    n_per_con=5,
+    n_per_incon=5,
+    con_sep=4,
+    n_empty_groups=0,
+):
     import numpy as np
+
     rng = np.random.RandomState(42)
 
     rng.randint(1, con_sep + 1)
@@ -158,11 +167,11 @@ def testdata_oldnames(n_incon_groups=10, n_con_groups=2, n_per_con=5,
     incon_labels = list(range(n_incon_labels))
 
     # Build up inconsistent groups that may share labels with other groups
-    n_per_incon_list = [rng.randint(min(2, n_per_incon), n_per_incon + 1)
-                        for _ in range(n_incon_groups)]
+    n_per_incon_list = [
+        rng.randint(min(2, n_per_incon), n_per_incon + 1) for _ in range(n_incon_groups)
+    ]
     incon_groups = [
-        rng.choice(incon_labels, n, replace=True).tolist()
-        for n in n_per_incon_list
+        rng.choice(incon_labels, n, replace=True).tolist() for n in n_per_incon_list
     ]
 
     # Build up consistent groups that may have multiple lables, but does not
@@ -243,6 +252,7 @@ def simple_munkres(part_oldnames):
     """
     import numpy as np
     import scipy.optimize
+
     unique_old_names = ut.unique(ut.flatten(part_oldnames))
     num_new_names = len(part_oldnames)
     num_old_names = len(unique_old_names)
@@ -284,6 +294,7 @@ def simple_munkres(part_oldnames):
 
     if False:
         import pandas as pd
+
         columns = unique_old_names + ['_%r' % x for x in range(num_pad)]
         print('Profit Matrix')
         print(pd.DataFrame(profit_matrix, columns=columns))
@@ -291,13 +302,11 @@ def simple_munkres(part_oldnames):
         print('Cost Matrix')
         print(pd.DataFrame(cost_matrix, columns=columns))
 
-    assignment_ = [cx2_name.get(rx2_cx[rx], None)
-                   for rx in range(num_new_names)]
+    assignment_ = [cx2_name.get(rx2_cx[rx], None) for rx in range(num_new_names)]
     return assignment_
 
 
-def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
-                             verbose=False):
+def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbose=False):
     r"""
     Solves a a maximum bipirtite matching problem to find a consistent
     name assignment that minimizes the number of annotations with different
@@ -475,26 +484,29 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
     # Partition nontrivial_oldnames into smaller disjoint sets
     nontrivial_oldnames_sets = list(map(set, nontrivial_oldnames))
     import networkx as nx
+
     g = nx.Graph()
     g.add_nodes_from(range(len(nontrivial_oldnames_sets)))
     for u, group1 in enumerate(nontrivial_oldnames_sets):
-        rest = nontrivial_oldnames_sets[u + 1:]
+        rest = nontrivial_oldnames_sets[u + 1 :]
         for v, group2 in enumerate(rest, start=u + 1):
             if group1.intersection(group2):
                 g.add_edge(u, v)
     nontrivial_partition = list(nx.connected_components(g))
     if verbose:
-        print('  * partitioned non-trivial into %d subgroups' %
-              (len(nontrivial_partition)))
+        print(
+            '  * partitioned non-trivial into %d subgroups' % (len(nontrivial_partition))
+        )
         part_size_stats = ut.get_stats(map(len, nontrivial_partition))
         stats_str = ut.repr2(part_size_stats, precision=2, strkeys=True)
-        print('  * partition size stats = %s'  % (stats_str,))
+        print('  * partition size stats = %s' % (stats_str,))
 
     # Rectify nontrivial cases
-    for part_idxs in ut.ProgIter(nontrivial_partition,
-                                 labels='rectify parts', enabled=verbose):
+    for part_idxs in ut.ProgIter(
+        nontrivial_partition, labels='rectify parts', enabled=verbose
+    ):
         part_oldnames = ut.take(nontrivial_oldnames, part_idxs)
-        part_newidxs  = ut.take(nontrivial_new_idxs, part_idxs)
+        part_newidxs = ut.take(nontrivial_new_idxs, part_idxs)
         # Rectify this part
         assignment_ = simple_munkres(part_oldnames)
         for new_idx, new_name in zip(part_newidxs, assignment_):
@@ -510,8 +522,9 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
     return assignment
 
 
-def find_consistent_labeling_old(grouped_oldnames, extra_prefix='_extra_name',
-                                 verbose=False):
+def find_consistent_labeling_old(
+    grouped_oldnames, extra_prefix='_extra_name', verbose=False
+):
     import numpy as np
     import scipy.optimize
 
@@ -562,8 +575,9 @@ def find_consistent_labeling_old(grouped_oldnames, extra_prefix='_extra_name',
         # impossible to uniquely map to the old db
         num_extra = num_new_names - num_old_names
         if num_extra > 0:
-            extra_oldnames = ['%s%d' % (extra_prefix, count,) for count in
-                              range(num_extra)]
+            extra_oldnames = [
+                '%s%d' % (extra_prefix, count,) for count in range(num_extra)
+            ]
         elif num_extra < 0:
             pass
         else:
@@ -602,8 +616,7 @@ def find_consistent_labeling_old(grouped_oldnames, extra_prefix='_extra_name',
 
         # Map output to be aligned with input
         rx2_cx = dict(indexes)
-        assignment_ = [assignable_names[rx2_cx[rx]]
-                       for rx in range(num_new_names)]
+        assignment_ = [assignable_names[rx2_cx[rx]] for rx in range(num_new_names)]
 
         # Reintegrate trivial values
         for idx, g in zip(orig_idxs, assignment_):
@@ -623,6 +636,8 @@ if __name__ == '__main__':
         python -m wbia.scripts.name_recitifer --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

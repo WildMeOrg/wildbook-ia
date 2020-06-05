@@ -7,21 +7,22 @@ from os.path import join
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.control.controller_inject import make_ibs_register_decorator
+
 print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_wbia_flask_api(__name__)
+register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
-ANNOT_ROWID   = 'annot_rowid'
-CHIP_ROWID    = 'chip_rowid'
-FEAT_VECS     = 'feature_vecs'
-FEAT_KPTS     = 'feature_keypoints'
+ANNOT_ROWID = 'annot_rowid'
+CHIP_ROWID = 'chip_rowid'
+FEAT_VECS = 'feature_vecs'
+FEAT_KPTS = 'feature_keypoints'
 FEAT_NUM_FEAT = 'feature_num_feats'
-CONFIG_ROWID  = 'config_rowid'
+CONFIG_ROWID = 'config_rowid'
 
 # ---------------------
 # ROOT LEAF FUNCTIONS
@@ -33,8 +34,14 @@ NEW_DEPC = True
 @register_ibs_method
 @accessor_decors.getter_1to1
 # register_api('/api/chip/fpath/', methods=['GET'])
-def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
-                         check_external_storage=False, num_retries=1):
+def get_annot_chip_fpath(
+    ibs,
+    aid_list,
+    ensure=True,
+    config2_=None,
+    check_external_storage=False,
+    num_retries=1,
+):
     r"""
     Returns the cached chip uri based off of the current
     configuration.
@@ -46,8 +53,9 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
         Method: GET
         URL:    /api/chip/fpath/
     """
-    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                              ensure=ensure, read_extern=False)
+    return ibs.depc_annot.get(
+        'chips', aid_list, 'img', config=config2_, ensure=ensure, read_extern=False
+    )
 
 
 @register_ibs_method
@@ -85,13 +93,12 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
         >>> ut.assert_almost_eq(chip_sum_list, target, 2000)
         >>> print(chip_sum_list)
     """
-    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                              ensure=ensure)
+    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_, ensure=ensure)
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-#@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
+# @cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
 # @register_api('/api/chip/sizes/', methods=['GET'])
 def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
     r"""
@@ -122,7 +129,9 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
         >>> print(result)
         [(545, 372), (603, 336), (520, 390)]
     """
-    return ibs.depc_annot.get('chips', aid_list, ('width', 'height'), config=config2_, ensure=ensure)
+    return ibs.depc_annot.get(
+        'chips', aid_list, ('width', 'height'), config=config2_, ensure=ensure
+    )
 
 
 @register_ibs_method
@@ -178,8 +187,9 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
     thumb_dpath = ibs.thumb_dpath
     thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-    thumbpath_list = [join(thumb_dpath, six.text_type(uuid) + thumb_suffix)
-                      for uuid in annot_uuid_list]
+    thumbpath_list = [
+        join(thumb_dpath, six.text_type(uuid) + thumb_suffix) for uuid in annot_uuid_list
+    ]
     return thumbpath_list
 
 
@@ -216,25 +226,27 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
         >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
         >>> print(result)
     """
-    #isiterable = isinstance(aid_list, (list, tuple, np.ndarray))
-    #if not isiterable:
+    # isiterable = isinstance(aid_list, (list, tuple, np.ndarray))
+    # if not isiterable:
     #   aid_list = [aid_list]
     # HACK TO MAKE CHIPS COMPUTE
-    #cid_list = ibs.get _annot_chip_rowids(aid_list, ensure=True)  # NOQA
-    #thumbsize = 256
+    # cid_list = ibs.get _annot_chip_rowids(aid_list, ensure=True)  # NOQA
+    # thumbsize = 256
     if thumbsize is None:
         thumbsize = ibs.cfg.other_cfg.thumb_size
-    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize,
-                                                config2_=config2_)
-    #print(thumb_gpaths)
+    thumb_gpaths = ibs.get_annot_chip_thumbpath(
+        aid_list, thumbsize=thumbsize, config2_=config2_
+    )
+    # print(thumb_gpaths)
     chip_paths = ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=config2_)
     chipsize_list = ibs.get_annot_chip_sizes(aid_list, ensure=False, config2_=config2_)
     thumbtup_list = [
         (thumb_path, chip_path, chipsize, [], [], [])
-        for (thumb_path, chip_path, chipsize) in
-        zip(thumb_gpaths, chip_paths, chipsize_list,)
+        for (thumb_path, chip_path, chipsize) in zip(
+            thumb_gpaths, chip_paths, chipsize_list,
+        )
     ]
-    #if not isiterable:
+    # if not isiterable:
     #    return thumbtup_list[0]
     return thumbtup_list
 
@@ -274,8 +286,9 @@ def get_annot_chip_thumb_path2(ibs, aid_list, thumbsize=None, config=None):
     if thumbsize is not None:
         config = {} if config is None else config.copy()
         config['thumbsize'] = thumbsize
-    imgpath_list = ibs.depc_annot.get('chipthumb', aid_list, 'img',
-                                      config=config, read_extern=False)
+    imgpath_list = ibs.depc_annot.get(
+        'chipthumb', aid_list, 'img', config=config, read_extern=False
+    )
     return imgpath_list
 
 
@@ -293,8 +306,8 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
     # FIXME: Should config2_ be passed down?
     # Not sure why it isn't currently
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-    #print(thumbpath_list)
-    #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
+    # print(thumbpath_list)
+    # ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
     ut.remove_existing_fpaths(thumbpath_list, quiet=False, lbl='chip_thumbs')
     ibs.depc_annot.delete_property('chips', aid_list, config=config2_)
     return
@@ -303,7 +316,9 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
 @register_ibs_method
 @accessor_decors.getter_1to1
 # @register_api('/api/pchip/', methods=['GET'])
-def get_part_chips(ibs, part_rowid_list, config2_=None, ensure=True, verbose=False, eager=True):
+def get_part_chips(
+    ibs, part_rowid_list, config2_=None, ensure=True, verbose=False, eager=True
+):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object
@@ -342,8 +357,9 @@ def get_part_chips(ibs, part_rowid_list, config2_=None, ensure=True, verbose=Fal
         >>> ut.assert_almost_eq(chip_sum_list, target, 2000)
         >>> print(chip_sum_list)
     """
-    return ibs.depc_part.get('pchips', part_rowid_list, 'img', config=config2_,
-                              ensure=ensure)
+    return ibs.depc_part.get(
+        'pchips', part_rowid_list, 'img', config=config2_, ensure=ensure
+    )
 
 
 @register_ibs_method
@@ -365,6 +381,7 @@ def testdata_ibs():
     r"""
     """
     import wbia
+
     ibs = wbia.opendb('testdb1')
     config2_ = None
     return ibs, config2_
@@ -378,6 +395,8 @@ if __name__ == '__main__':
         python -m wbia.control.manual_chip_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

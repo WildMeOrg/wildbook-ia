@@ -8,6 +8,7 @@ from wbia.plottool import interact_helpers as ih
 from wbia.plottool.viz_featrow import draw_feat_row
 from wbia.plottool.viz_keypoints import show_keypoints
 from wbia.plottool import abstract_interaction
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -42,6 +43,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
 
     def plot(self, fnum=None, pnum=(1, 1, 1), **kwargs):
         import wbia.plottool as pt
+
         fnum = pt.ensure_fnum(fnum)
         pt.figure(fnum=fnum, docla=True, doclf=True)
         show_keypoints(self.chip, self.kpts, fnum=fnum, pnum=pnum, **kwargs)
@@ -68,6 +70,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
 
     def on_click_inside(self, event, ax):
         import wbia.plottool as pt
+
         viztype = ph.get_plotdat(ax, 'viztype', None)
         print('[ik] viztype=%r' % viztype)
         if viztype is None:
@@ -80,6 +83,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
                 print('...nearest')
                 x, y = event.xdata, event.ydata
                 import vtool as vt
+
                 fx = vt.nearest_point(x, y, kpts)[0]
                 self._select_ith_kpt(fx)
         elif viztype == 'warped':
@@ -87,9 +91,9 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
             if hs_fx is not None:
                 kp = self.kpts[hs_fx]  # FIXME
                 sift = self.vecs[hs_fx]
-                df2.draw_keypoint_gradient_orientations(self.chip, kp,
-                                                        sift=sift, mode='vec',
-                                                        fnum=pt.next_fnum())
+                df2.draw_keypoint_gradient_orientations(
+                    self.chip, kp, sift=sift, mode='vec', fnum=pt.next_fnum()
+                )
                 pt.draw()
         elif viztype.startswith('colorbar'):
             pass
@@ -122,6 +126,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
     """
     if isinstance(chip, six.string_types):
         import vtool as vt
+
         chip = vt.imread(chip)
     fig = ih.begin_interaction('keypoint', fnum)
     annote_ptr = [1]
@@ -149,13 +154,13 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
 
     def _on_keypoints_click(event):
         print('[viz] clicked keypoint view')
-        if event is None  or event.xdata is None or event.inaxes is None:
+        if event is None or event.xdata is None or event.inaxes is None:
             annote_ptr[0] = (annote_ptr[0] + 1) % 3
             mode = annote_ptr[0]
             ell = mode == 1
             pts = mode == 2
             print('... default kpts view mode=%r' % mode)
-            _viz_keypoints(fnum, ell=ell, pts=pts, **kwargs)    # MAYBE: remove kwargs
+            _viz_keypoints(fnum, ell=ell, pts=pts, **kwargs)  # MAYBE: remove kwargs
         else:
             ax = event.inaxes
             viztype = ph.get_plotdat(ax, 'viztype', None)
@@ -168,36 +173,38 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                     print('...nearest')
                     x, y = event.xdata, event.ydata
                     import vtool as vt
+
                     fx = vt.nearest_point(x, y, kpts)[0]
                     _select_ith_kpt(fx)
             elif viztype == 'warped':
                 hs_fx = ph.get_plotdat(ax, 'fx', None)
-                #kpts = ph.get_plotdat(ax, 'kpts', [])
+                # kpts = ph.get_plotdat(ax, 'kpts', [])
                 if hs_fx is not None:
                     # Ugly. Interactions should be changed to classes.
                     kp = self.kpts[hs_fx]  # FIXME
                     sift = self.vecs[hs_fx]
-                    df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift, mode='vec',
-                                                            fnum=df2.next_fnum())
+                    df2.draw_keypoint_gradient_orientations(
+                        chip, kp, sift=sift, mode='vec', fnum=df2.next_fnum()
+                    )
             elif viztype.startswith('colorbar'):
                 pass
                 # Hack to get a specific scoring feature
-                #sortx = self.fs.argsort()
-                #idx = np.clip(int(np.round(y * len(sortx))), 0, len(sortx) - 1)
-                #mx = sortx[idx]
-                #(fx1, fx2) = self.fm[mx]
-                #(fx1, fx2) = self.fm[mx]
-                #print('... selected score at rank idx=%r' % (idx,))
-                #print('... selected score with fs=%r' % (self.fs[mx],))
-                #print('... resolved to mx=%r' % mx)
-                #print('... fx1, fx2 = %r, %r' % (fx1, fx2,))
-                #self.select_ith_match(mx)
+                # sortx = self.fs.argsort()
+                # idx = np.clip(int(np.round(y * len(sortx))), 0, len(sortx) - 1)
+                # mx = sortx[idx]
+                # (fx1, fx2) = self.fm[mx]
+                # (fx1, fx2) = self.fm[mx]
+                # print('... selected score at rank idx=%r' % (idx,))
+                # print('... selected score with fs=%r' % (self.fs[mx],))
+                # print('... resolved to mx=%r' % mx)
+                # print('... fx1, fx2 = %r, %r' % (fx1, fx2,))
+                # self.select_ith_match(mx)
             else:
                 print('...unhandled')
         ph.draw()
 
     # Draw without keypoints the first time
-    _viz_keypoints(fnum, **kwargs)   # MAYBE: remove kwargs
+    _viz_keypoints(fnum, **kwargs)  # MAYBE: remove kwargs
     ih.connect_callback(fig, 'button_press_event', _on_keypoints_click)
     if not nodraw:
         ph.draw()
@@ -211,6 +218,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.interact_keypoints --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

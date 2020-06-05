@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import utool as ut
 import numpy as np
 from wbia.algo.hots.bayes import make_name_model, temp_model, draw_tree_model
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -54,26 +56,28 @@ def demo_bayesnet(cfg={}):
     method = cfg.pop('method', 'bp')
     other_evidence = {k: v for k, v in cfg.items() if not k.startswith('_')}
     if rand_scores:
-        #import randomdotorg
-        #import sys
-        #r = randomdotorg.RandomDotOrg('ExampleCode')
-        #seed = int((1 - 2 * r.random()) * sys.maxint)
+        # import randomdotorg
+        # import sys
+        # r = randomdotorg.RandomDotOrg('ExampleCode')
+        # seed = int((1 - 2 * r.random()) * sys.maxint)
         toy_data = get_toy_data_1v1(num_annots, nid_sequence=[0, 0, 1, 0, 1, 2])
         print('toy_data = ' + ut.repr3(toy_data, nl=1))
-        diag_scores, = ut.dict_take(
-            toy_data, 'diag_scores'.split(', '))
+        (diag_scores,) = ut.dict_take(toy_data, 'diag_scores'.split(', '))
         discr_domain, discr_p_same = learn_prob_score(num_scores)[0:2]
+
         def discretize_scores(scores):
             # Assign continuous scores to discrete index
             score_idxs = np.abs(1 - (discr_domain / scores[:, None])).argmin(axis=1)
             return score_idxs
+
         score_evidence = discretize_scores(diag_scores)
     else:
         score_evidence = []
         discr_p_same = None
         discr_domain = None
     model, evidence, query_results = temp_model(
-        num_annots=num_annots, num_names=num_names,
+        num_annots=num_annots,
+        num_names=num_names,
         num_scores=num_scores,
         score_evidence=score_evidence,
         mode=1,
@@ -107,14 +111,14 @@ def classify_k(cfg={}):
     toy_data = get_toy_data_1v1(num_annots, nid_sequence=nid_sequence)
     force_evidence = None
     force_evidence = 0
-    diag_scores, = ut.dict_take(
-        toy_data, 'diag_scores'.split(', '))
+    (diag_scores,) = ut.dict_take(toy_data, 'diag_scores'.split(', '))
 
-    #print('diag_scores = %r' % (diag_scores,))
-    #diag_labels = pairwise_matches.compress(is_diag)
-    #diag_pairs = ut.compress(pairwise_aidxs, is_diag)
+    # print('diag_scores = %r' % (diag_scores,))
+    # diag_labels = pairwise_matches.compress(is_diag)
+    # diag_pairs = ut.compress(pairwise_aidxs, is_diag)
 
     discr_domain, discr_p_same = learn_prob_score(num_scores)[0:2]
+
     def discretize_scores(scores):
         # Assign continuous scores to closest discrete index
         score_idxs = np.abs(1 - (discr_domain / scores[:, None])).argmin(axis=1)
@@ -127,13 +131,14 @@ def classify_k(cfg={}):
             score_evidence[x] = 0
 
     model, evidence, query_results = temp_model(
-        num_annots=num_annots, num_names=num_annots,
+        num_annots=num_annots,
+        num_names=num_annots,
         num_scores=num_scores,
         mode=1,
         score_evidence=score_evidence,
         p_score_given_same=discr_p_same,
         score_basis=discr_domain,
-        #verbose=True
+        # verbose=True
     )
     print(query_results['top_assignments'][0])
     toy_data1 = toy_data
@@ -149,16 +154,17 @@ def classify_k(cfg={}):
 
     for _ in range(num_iter):
         print('\n\n ---------- \n\n')
-        #toy_data1['all_nids'].max() + 1
+        # toy_data1['all_nids'].max() + 1
         num_names_gen = len(toy_data1['all_aids']) + 1
         num_names_gen = toy_data1['all_nids'].max() + 2
         toy_data2 = get_toy_data_1v1(
-            1, num_names_gen,
+            1,
+            num_names_gen,
             initial_aids=toy_data1['all_aids'],
             initial_nids=toy_data1['all_nids'],
-            nid_sequence=nid_sequence)
-        diag_scores2, = ut.dict_take(
-            toy_data2, 'diag_scores'.split(', '))
+            nid_sequence=nid_sequence,
+        )
+        (diag_scores2,) = ut.dict_take(toy_data2, 'diag_scores'.split(', '))
         print('toy_data2 = ' + ut.repr3(toy_data2, nl=1))
 
         score_evidence2 = discretize_scores(diag_scores2).tolist()
@@ -170,33 +176,35 @@ def classify_k(cfg={}):
         if using_soft:
             # Demo with soft evidence
             model, evidence, query_results2 = temp_model(
-                num_annots=num_annots2, num_names=num_annots2,
+                num_annots=num_annots2,
+                num_names=num_annots2,
                 num_scores=num_scores,
                 mode=1,
                 name_evidence=soft_evidence1,
-                #score_evidence=score_evidence1 + score_evidence2,
+                # score_evidence=score_evidence1 + score_evidence2,
                 score_evidence=score_evidence2,
                 p_score_given_same=discr_p_same,
                 score_basis=discr_domain,
-                #verbose=True,
+                # verbose=True,
                 hack_score_only=len(score_evidence2),
             )
 
         if 1:
             # Demo with full evidence
             model, evidence, query_results2 = temp_model(
-                num_annots=num_annots2, num_names=num_annots2,
+                num_annots=num_annots2,
+                num_names=num_annots2,
                 num_scores=num_scores,
                 mode=1,
                 score_evidence=full_evidence + score_evidence2,
                 p_score_given_same=discr_p_same,
                 score_basis=discr_domain,
-                verbose=True
+                verbose=True,
             )
         factor_list2 = query_results2['factor_list']
         if using_soft:
             soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list2]
-        score_evidence1 += ([None] * len(score_evidence2))
+        score_evidence1 += [None] * len(score_evidence2)
         full_evidence = full_evidence + score_evidence2
         num_annots2 += 1
         toy_data1 = toy_data2
@@ -205,15 +213,18 @@ def classify_k(cfg={}):
 def show_toy_distributions(toy_params):
     import vtool as vt
     import wbia.plottool as pt
+
     pt.ensureqt()
     xdata = np.linspace(0, 8, 1000)
     tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
     fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])
     pt.plot_probabilities(
-        [tp_pdf, fp_pdf], ['TP', 'TF'],
+        [tp_pdf, fp_pdf],
+        ['TP', 'TF'],
         prob_colors=[pt.TRUE_BLUE, pt.FALSE_RED],
         xdata=xdata,
-        figtitle='Toy Distributions')
+        figtitle='Toy Distributions',
+    )
 
 
 def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
@@ -242,6 +253,7 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
         >>> ut.show_if_requested()
     """
     import vtool as vt
+
     tup_ = get_toy_annots(num_annots, num_names, **kwargs)
     aids, nids, aids1, nids1, all_aids, all_nids = tup_
     rng = vt.ensure_rng(None)
@@ -252,7 +264,7 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
 
     ut.fix_embed_globals()
 
-    #def add_to_globals(globals_, subdict):
+    # def add_to_globals(globals_, subdict):
     #    globals_.update(subdict)
 
     unique_nids = list(nid2_nexemp.keys())
@@ -262,7 +274,7 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
         score_list = []
         nexemplar_list = []
         for nid in unique_nids:
-            label = (aid2_nid[aid] == nid)
+            label = aid2_nid[aid] == nid
             num_exemplars = nid2_nexemp.get(nid, 0)
             if num_exemplars == 0:
                 continue
@@ -290,18 +302,21 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
     lbl_list = [aid2_nid[aid] == nid for aid, nid in aidnid_pairs]
 
     from sklearn import svm
-    #clf1 = svm.LinearSVC()
+
+    # clf1 = svm.LinearSVC()
     print('Learning classifiers')
 
     clf3 = svm.SVC(probability=True)
     clf3.fit(feat_list, lbl_list)
-    #prob_true, prob_false = clf3.predict_proba(feat_list).T
+    # prob_true, prob_false = clf3.predict_proba(feat_list).T
 
     clf1 = svm.LinearSVC()
     clf1.fit(score_list, lbl_list)
 
     # Score new annots against the training database
-    tup_ = get_toy_annots(num_annots * 2, num_names, initial_aids=all_aids, initial_nids=all_nids)
+    tup_ = get_toy_annots(
+        num_annots * 2, num_names, initial_aids=all_aids, initial_nids=all_nids
+    )
     aids, nids, aids1, nids1, all_aids, all_nids = tup_
     aid2_nid = dict(zip(aids, nids))
     toclass_features = [annot_to_class_feats2(aid, aid2_nid) for aid in aids]
@@ -354,7 +369,14 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
     return toy_data
 
 
-def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=None, nid_sequence=None, seed=None):
+def get_toy_annots(
+    num_annots,
+    num_names=None,
+    initial_aids=None,
+    initial_nids=None,
+    nid_sequence=None,
+    seed=None,
+):
     r"""
     Args:
         num_annots (int):
@@ -384,6 +406,7 @@ def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=N
         >>> print(result)
     """
     import vtool as vt
+
     if num_names is None:
         num_names = num_annots
     print('Generating toy data with num_annots=%r' % (num_annots,))
@@ -406,10 +429,17 @@ def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=N
             nids = rng.randint(0, num_names, num_annots)
         elif unused_from_sequence > 0 and unused_from_sequence < num_annots:
             num_remain = num_annots - unused_from_sequence
-            nids = np.append(nid_sequence[-unused_from_sequence:], rng.randint(0, num_names, num_remain))
+            nids = np.append(
+                nid_sequence[-unused_from_sequence:],
+                rng.randint(0, num_names, num_remain),
+            )
         else:
             nids = nid_sequence[-unused_from_sequence]
-            nids = np.array(ut.take(nid_sequence, range(len(initial_aids), len(initial_aids) + num_annots)))
+            nids = np.array(
+                ut.take(
+                    nid_sequence, range(len(initial_aids), len(initial_aids) + num_annots)
+                )
+            )
 
     if first_step:
         aids1 = aids
@@ -421,6 +451,7 @@ def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=N
     all_nids = np.append(initial_nids, nids)
     all_aids = np.append(initial_aids, aids)
     import utool
+
     with utool.embed_on_exception_context:
         ut.assert_eq(len(aids), len(nids), 'len new')
         ut.assert_eq(len(aids1), len(nids1), 'len comp')
@@ -430,15 +461,15 @@ def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=N
 
 toy_params = {
     True: {'mu': 1.5, 'sigma': 3.0},
-    False: {'mu': 0.5, 'sigma': .4}
-    #True: {'mu': 3.5, 'sigma': 1.1},
-    #False: {'mu': .3, 'sigma': .7}
+    False: {'mu': 0.5, 'sigma': 0.4}
+    # True: {'mu': 3.5, 'sigma': 1.1},
+    # False: {'mu': .3, 'sigma': .7}
     #'p': .7},
     #'p': .2}
 }
 
 
-#@ut.cached_func('_toy_bayes_data3')
+# @ut.cached_func('_toy_bayes_data3')
 def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
     r"""
     CommandLine:
@@ -473,6 +504,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> num_names = 400
     """
     import vtool as vt
+
     tup_ = get_toy_annots(num_annots, num_names, **kwargs)
     aids, nids, aids1, nids1, all_aids, all_nids = tup_
     rng = vt.ensure_rng(None)
@@ -481,7 +513,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         if aidx1 == aidx2:
             score = -1
         else:
-            #rng = np.random.RandomState(int((aidx1 + 13) * (aidx2 + 13)))
+            # rng = np.random.RandomState(int((aidx1 + 13) * (aidx2 + 13)))
             nid1 = all_nids[int(aidx1)]
             nid2 = all_nids[int(aidx2)]
             params = toy_params[nid1 == nid2]
@@ -491,25 +523,26 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         return score
 
     pairwise_nids = list([tup[::-1] for tup in ut.iprod(nids, nids1)])
-    pairwise_matches = np.array(
-        [nid1 == nid2 for nid1, nid2 in pairwise_nids])
+    pairwise_matches = np.array([nid1 == nid2 for nid1, nid2 in pairwise_nids])
 
     pairwise_aidxs = list([tup[::-1] for tup in ut.iprod(aids, aids1)])
 
     pairwise_features = np.array(
-        [pairwise_feature(aidx1, aidx2) for aidx1, aidx2 in pairwise_aidxs])
+        [pairwise_feature(aidx1, aidx2) for aidx1, aidx2 in pairwise_aidxs]
+    )
 
-    #pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
+    # pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
     is_diag = [r < c for r, c, in pairwise_aidxs]
     diag_scores = pairwise_features.compress(is_diag)
     diag_aidxs = ut.compress(pairwise_aidxs, is_diag)
     import utool
+
     with utool.embed_on_exception_context:
         diag_nids = ut.compress(pairwise_nids, is_diag)
     diag_labels = pairwise_matches.compress(is_diag)
 
-    #import utool
-    #utool.embed()
+    # import utool
+    # utool.embed()
 
     toy_data = {
         'aids': aids,
@@ -554,28 +587,28 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
     num_annots_train = 200
     num_names_train = 5
     toy_data = get_toy_data_1v1(num_annots_train, num_names_train)
-    #pairwise_aidxs, pairwise_scores, pairwise_matches = ut.dict_take(
+    # pairwise_aidxs, pairwise_scores, pairwise_matches = ut.dict_take(
     #    toy_data, 'pairwise_aidxs, pairwise_scores, pairwise_matches'.split(', '))
 
     diag_scores, diag_labels = ut.dict_take(
-        toy_data, 'diag_scores, diag_labels'.split(', '))
-    #is_diag = [r < c for r, c, in pairwise_aidxs]
-    #diag_scores = pairwise_scores.compress(is_diag)
-    #diag_labels = pairwise_matches.compress(is_diag)
+        toy_data, 'diag_scores, diag_labels'.split(', ')
+    )
+    # is_diag = [r < c for r, c, in pairwise_aidxs]
+    # diag_scores = pairwise_scores.compress(is_diag)
+    # diag_labels = pairwise_matches.compress(is_diag)
 
     # Learn P(S_{ij} | M_{ij})
     import vtool as vt
-    encoder = vt.ScoreNormalizer(
-        reverse=True, monotonize=True,
-        adjust=4,
-    )
+
+    encoder = vt.ScoreNormalizer(reverse=True, monotonize=True, adjust=4,)
     encoder.fit(X=diag_scores, y=diag_labels, verbose=True)
 
     if False:
         import wbia.plottool as pt
+
         pt.ensureqt()
         encoder.visualize()
-        #show_toy_distributions()
+        # show_toy_distributions()
 
     def discretize_probs(encoder):
         p_tp_given_score = encoder.p_tp_given_score / encoder.p_tp_given_score.sum()
@@ -586,6 +619,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
         discr_p_same = discr_p_same / discr_p_same.sum()
         discr_domain = encoder.score_domain.take(idxs)
         return discr_domain, discr_p_same
+
     discr_domain, discr_p_same = discretize_probs(encoder)
     if ret_enc:
         return discr_domain, discr_p_same, encoder
@@ -610,26 +644,25 @@ def classify_one_new_unknown():
     """
     if False:
         constkw = dict(
-            num_annots=5, num_names=3,
+            num_annots=5,
+            num_names=3,
             name_evidence=[0]
-            #name_evidence=[0, 0, 1, 1, None],
-            #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
-            #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
+            # name_evidence=[0, 0, 1, 1, None],
+            # name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
+            # name_evidence=[0, {0: .99}, {1: .99}, 1, None],
         )
         temp_model(score_evidence=[1, 0, 0, 0, 0, 1], mode=1, **constkw)
 
-    #from wbia.unstable.demobayes import *
-    constkw = dict(
-        num_annots=4, num_names=4,
-    )
+    # from wbia.unstable.demobayes import *
+    constkw = dict(num_annots=4, num_names=4,)
     model, evidence = temp_model(
         mode=1,
         # lll and llh have strikingly different
         # probability of M marginals
         score_evidence=[0, 0, 1],
-        other_evidence={
-        },
-        **constkw)
+        other_evidence={},
+        **constkw
+    )
 
 
 def tst_triangle_property():
@@ -643,10 +676,7 @@ def tst_triangle_property():
         >>> result = test_triangle_property()
         >>> ut.show_if_requested()
     """
-    constkw = dict(
-        num_annots=3, num_names=3,
-        name_evidence=[],
-    )
+    constkw = dict(num_annots=3, num_names=3, name_evidence=[],)
     temp_model(
         mode=1,
         other_evidence={
@@ -655,7 +685,8 @@ def tst_triangle_property():
             #'Na': 'fred',
             #'Nb': 'sue',
         },
-        **constkw)
+        **constkw
+    )
 
 
 def demo_structure():
@@ -670,7 +701,7 @@ def demo_structure():
         >>> ut.show_if_requested()
     """
     constkw = dict(score_evidence=[], name_evidence=[], mode=3)
-    model, = temp_model(num_annots=4, num_names=4, **constkw)
+    (model,) = temp_model(num_annots=4, num_names=4, **constkw)
     draw_tree_model(model)
 
 
@@ -686,6 +717,7 @@ def make_bayes_notebook():
         >>> print(result)
     """
     from wbia.templates import generate_notebook
+
     initialize = ut.codeblock(
         r'''
         # STARTBLOCK
@@ -713,6 +745,7 @@ def make_bayes_notebook():
         demo_conflicting_evidence,
         demo_annot_idependence_overlap,
     ]
+
     def format_cell(cell):
         if ut.is_funclike(cell):
             header = '# ' + ut.to_title_caps(ut.get_funcname(cell))
@@ -759,18 +792,21 @@ def demo_single_add():
         >>> ut.show_if_requested()
     """
     # Initially there are only two annotations that have a strong match
-    name_evidence = [{0: .9}]  # Soft label
+    name_evidence = [{0: 0.9}]  # Soft label
     name_evidence = [0]  # Hard label
     temp_model(num_annots=2, num_names=5, score_evidence=[1], name_evidence=name_evidence)
     # Adding a new annotation does not change the original probabilites
     temp_model(num_annots=3, num_names=5, score_evidence=[1], name_evidence=name_evidence)
     # Adding evidence that Na matches Nc does not influence the probability
     # that Na matches Nb. However the probability that Nb matches Nc goes up.
-    temp_model(num_annots=3, num_names=5, score_evidence=[1, 1], name_evidence=name_evidence)
+    temp_model(
+        num_annots=3, num_names=5, score_evidence=[1, 1], name_evidence=name_evidence
+    )
     # However, once Nb is scored against Nb that does increase the likelihood
     # that all 3 are fred goes up significantly.
-    temp_model(num_annots=3, num_names=5, score_evidence=[1, 1, 1],
-               name_evidence=name_evidence)
+    temp_model(
+        num_annots=3, num_names=5, score_evidence=[1, 1, 1], name_evidence=name_evidence
+    )
 
 
 def demo_conflicting_evidence():
@@ -780,14 +816,14 @@ def demo_conflicting_evidence():
     """
     # Initialized with two annots. Each are pretty sure they are someone else
     constkw = dict(num_annots=2, num_names=5, score_evidence=[])
-    temp_model(name_evidence=[{0: .9}, {1: .9}], **constkw)
+    temp_model(name_evidence=[{0: 0.9}, {1: 0.9}], **constkw)
     # Having evidence that they are different increases this confidence.
-    temp_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 0}, **constkw)
+    temp_model(name_evidence=[{0: 0.9}, {1: 0.9}], other_evidence={'Sab': 0}, **constkw)
     # However,, confusion is introduced if there is evidence that they are the same
-    temp_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 1}, **constkw)
+    temp_model(name_evidence=[{0: 0.9}, {1: 0.9}], other_evidence={'Sab': 1}, **constkw)
     # When Na is forced to be fred, this doesnt change Nbs evaulatation by more
     # than a few points
-    temp_model(name_evidence=[0, {1: .9}], other_evidence={'Sab': 1}, **constkw)
+    temp_model(name_evidence=[0, {1: 0.9}], other_evidence={'Sab': 1}, **constkw)
 
 
 def demo_ambiguity():
@@ -805,13 +841,13 @@ def demo_ambiguity():
         >>> ut.show_if_requested()
     """
     constkw = dict(
-        num_annots=3, num_names=3,
+        num_annots=3,
+        num_names=3,
         name_evidence=[0],
-        #name_evidence=[],
-        #name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
+        # name_evidence=[],
+        # name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
     )
-    temp_model(score_evidence=[0, 0, 1], mode=1,
-               **constkw)
+    temp_model(score_evidence=[0, 0, 1], mode=1, **constkw)
 
 
 def demo_annot_idependence_overlap():
@@ -882,11 +918,12 @@ def demo_annot_idependence_overlap():
     """
     # We will end up making annots a and b fred and c and d sue
     constkw = dict(
-        num_annots=4, num_names=4,
+        num_annots=4,
+        num_names=4,
         name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}, {3: '+eps'}],
-        #name_evidence=[{0: .9}, None, None, {1: .9}]
-        #name_evidence=[0, None, None, None]
-        #name_evidence=[0, None, None, None]
+        # name_evidence=[{0: .9}, None, None, {1: .9}]
+        # name_evidence=[0, None, None, None]
+        # name_evidence=[0, None, None, None]
     )
     temp_model(score_evidence=[1, 1, 1, None, None, None], **constkw)
     temp_model(score_evidence=[1, 1, 0, None, None, None], **constkw)
@@ -898,19 +935,20 @@ def demo_modes():
     Look at the last result of the different names demo under differet modes
     """
     constkw = dict(
-        num_annots=4, num_names=8,
+        num_annots=4,
+        num_names=8,
         score_evidence=[1, 0, 0, 0, 0, 1],
-        #name_evidence=[{0: .9}, None, None, {1: .9}],
-        #name_evidence=[0, None, None, 1],
+        # name_evidence=[{0: .9}, None, None, {1: .9}],
+        # name_evidence=[0, None, None, 1],
         name_evidence=[0, None, None, None],
-        #other_evidence={
+        # other_evidence={
         #    'Sad': 0,
         #    'Sab': 1,
         #    'Scd': 1,
         #    'Sac': 0,
         #    'Sbc': 0,
         #    'Sbd': 0,
-        #}
+        # }
     )
     # The first mode uses a hidden Match layer
     temp_model(mode=1, **constkw)
@@ -936,22 +974,22 @@ def demo_name_annot_complexity():
     """
     constkw = dict(score_evidence=[], name_evidence=[], mode=1)
     # Initially there are 2 annots and 4 names
-    model, = temp_model(num_annots=2, num_names=4, **constkw)
+    (model,) = temp_model(num_annots=2, num_names=4, **constkw)
     draw_tree_model(model)
     # Adding a name causes the probability of the other names to go down
-    model, = temp_model(num_annots=2, num_names=5, **constkw)
+    (model,) = temp_model(num_annots=2, num_names=5, **constkw)
     draw_tree_model(model)
     # Adding an annotation wihtout matches dos not effect probabilities of
     # names
-    model, = temp_model(num_annots=3, num_names=5, **constkw)
+    (model,) = temp_model(num_annots=3, num_names=5, **constkw)
     draw_tree_model(model)
-    model, = temp_model(num_annots=4, num_names=10, **constkw)
+    (model,) = temp_model(num_annots=4, num_names=10, **constkw)
     draw_tree_model(model)
     # Given A annots, the number of score nodes is (A ** 2 - A) / 2
-    model, = temp_model(num_annots=5, num_names=5, **constkw)
+    (model,) = temp_model(num_annots=5, num_names=5, **constkw)
     draw_tree_model(model)
-    #model, = temp_model(num_annots=6, num_names=5, score_evidence=[], name_evidence=[], mode=1)
-    #draw_tree_model(model)
+    # model, = temp_model(num_annots=6, num_names=5, score_evidence=[], name_evidence=[], mode=1)
+    # draw_tree_model(model)
 
 
 def demo_model_idependencies():
@@ -970,29 +1008,34 @@ def demo_model_idependencies():
         >>> ut.show_if_requested()
     """
     num_names = ut.get_argval('--num-names', default=3)
-    model = temp_model(num_annots=num_names, num_names=num_names, score_evidence=[], name_evidence=[])[0]
+    model = temp_model(
+        num_annots=num_names, num_names=num_names, score_evidence=[], name_evidence=[]
+    )[0]
     # This model has the following independenceis
     idens = model.get_independencies()
 
-    iden_strs = [', '.join(sorted(iden.event1)) +
-                 ' _L ' +
-                 ','.join(sorted(iden.event2)) +
-                 ' | ' +
-                 ', '.join(sorted(iden.event3))
-                 for iden in idens.independencies]
+    iden_strs = [
+        ', '.join(sorted(iden.event1))
+        + ' _L '
+        + ','.join(sorted(iden.event2))
+        + ' | '
+        + ', '.join(sorted(iden.event3))
+        for iden in idens.independencies
+    ]
     print('general idependencies')
     print(ut.align(ut.align('\n'.join(sorted(iden_strs)), '_'), '|'))
-    #ut.embed()
-    #model.is_active_trail('Na', 'Nb', 'Sab')
+    # ut.embed()
+    # model.is_active_trail('Na', 'Nb', 'Sab')
+
 
 # Might not be valid, try and collapse S and M
-#xs = list(map(str, idens.independencies))
-#import re
-#xs = [re.sub(', M..', '', x) for x in xs]
-#xs = [re.sub('M..,?', '', x) for x in xs]
-#xs = [x for x in xs if not x.startswith('( _')]
-#xs = [x for x in xs if not x.endswith('| )')]
-#print('\n'.join(sorted(list(set(xs)))))
+# xs = list(map(str, idens.independencies))
+# import re
+# xs = [re.sub(', M..', '', x) for x in xs]
+# xs = [re.sub('M..,?', '', x) for x in xs]
+# xs = [x for x in xs if not x.startswith('( _')]
+# xs = [x for x in xs if not x.endswith('| )')]
+# print('\n'.join(sorted(list(set(xs)))))
 
 
 if __name__ == '__main__':
@@ -1004,6 +1047,8 @@ if __name__ == '__main__':
     if ut.VERBOSE:
         print('[hs] demobayes')
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np  # NOQA
 import utool as ut
+
 # import logging
 import itertools as it
 import copy
@@ -9,6 +10,7 @@ import six
 import collections
 from wbia import constants as const
 from wbia.algo.graph import nx_dynamic_graph
+
 # from wbia.algo.graph import _dep_mixins
 from wbia.algo.graph import mixin_viz
 from wbia.algo.graph import mixin_helpers
@@ -26,6 +28,7 @@ from wbia.algo.graph.state import UNINFERABLE
 from wbia.algo.graph.state import SAME, DIFF, NULL
 import networkx as nx
 import logging
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -70,8 +73,7 @@ class Feedback(object):
                 for edge, data in items.iterrows():
                     infr.add_feedback(edge=edge, verbose=verbose, **data)
             else:
-                raise ValueError(
-                    'Cannot interpret pd.DataFrame without edge index')
+                raise ValueError('Cannot interpret pd.DataFrame without edge index')
         else:
             # Dangerous if item length > 3
             for item in items:
@@ -91,8 +93,7 @@ class Feedback(object):
                     raise ValueError('invalid edge')
                     # Case where items=[(u, v, state), (u, v, state)]
                 if len(item) > 3:
-                    raise ValueError('pass in data as a dataframe or '
-                                     'use kwargs')
+                    raise ValueError('pass in data as a dataframe or ' 'use kwargs')
                 infr.add_feedback(edge, *args, verbose=verbose, **kwargs)
 
     def edge_decision(infr, edge):
@@ -113,11 +114,12 @@ class Feedback(object):
             >>> print('decision = %r' % (decision,))
             >>> assert decision == UNREV
         """
-        evidence_decision = infr.get_edge_attr(edge, 'evidence_decision',
-                                               on_missing='default',
-                                               default=UNREV)
-        meta_decision = infr.get_edge_attr(edge, 'meta_decision',
-                                           on_missing='default', default=NULL)
+        evidence_decision = infr.get_edge_attr(
+            edge, 'evidence_decision', on_missing='default', default=UNREV
+        )
+        meta_decision = infr.get_edge_attr(
+            edge, 'meta_decision', on_missing='default', default=NULL
+        )
         decision = _rectify_decision(evidence_decision, meta_decision)
         return decision
 
@@ -127,9 +129,11 @@ class Feedback(object):
         """
         edges = list(edges)
         evidence_decisions = infr.gen_edge_values(
-            'evidence_decision', edges, on_missing='default', default=UNREV)
+            'evidence_decision', edges, on_missing='default', default=UNREV
+        )
         meta_decisions = infr.gen_edge_values(
-            'meta_decision', edges, on_missing='default', default=NULL)
+            'meta_decision', edges, on_missing='default', default=NULL
+        )
         for ed, md in zip(evidence_decisions, meta_decisions):
             yield _rectify_decision(ed, md)
 
@@ -142,10 +146,21 @@ class Feedback(object):
         ibs.set_annot_multiple([aid], [attrs['multiple']])
 
     @profile
-    def add_feedback(infr, edge, evidence_decision=None, tags=None,
-                     user_id=None, meta_decision=None, confidence=None,
-                     timestamp_c1=None, timestamp_c2=None, timestamp_s1=None,
-                     timestamp=None, verbose=None, priority=None):
+    def add_feedback(
+        infr,
+        edge,
+        evidence_decision=None,
+        tags=None,
+        user_id=None,
+        meta_decision=None,
+        confidence=None,
+        timestamp_c1=None,
+        timestamp_c2=None,
+        timestamp_s1=None,
+        timestamp=None,
+        verbose=None,
+        priority=None,
+    ):
         r"""
         Doctest:
             >>> from wbia.algo.graph.core import *  # NOQA
@@ -185,15 +200,23 @@ class Feedback(object):
 
         msg = 'add_feedback ({}, {}), '.format(aid1, aid2)
         loc = locals()
-        msg += ', '.join([
-            str(val)
-            # key + '=' + str(val)
-            for key, val in (
-                (key, loc[key])
-                for key in ['evidence_decision', 'tags', 'user_id',
-                            'confidence', 'meta_decision'])
-            if val is not None
-        ])
+        msg += ', '.join(
+            [
+                str(val)
+                # key + '=' + str(val)
+                for key, val in (
+                    (key, loc[key])
+                    for key in [
+                        'evidence_decision',
+                        'tags',
+                        'user_id',
+                        'confidence',
+                        'meta_decision',
+                    ]
+                )
+                if val is not None
+            ]
+        )
         infr.print(msg, 2, color='white')
 
         if meta_decision == NULL:
@@ -243,8 +266,9 @@ class Feedback(object):
         infr.set_edge_attr(edge, {'decision': decision})
 
         if infr.params['inference.enabled']:
-            assert infr.dirty is False, (
-                'need to recompute before dynamic inference continues')
+            assert (
+                infr.dirty is False
+            ), 'need to recompute before dynamic inference continues'
             # Update priority queue based on the new edge
             action = infr.add_review_edge(edge, decision)
             if infr.test_mode:
@@ -268,16 +292,22 @@ class Feedback(object):
         infr.verbose = prev_verbose
 
     def _print_debug_ccs(infr):
-        assert all([ut.allsame(infr.node_labels(*cc))
-                    for cc in infr.positive_components()])
-        sorted_ccs = sorted([
-            set(cc) for cc in infr.pos_graph.connected_components()
-        ])
-        msg = '[' + ', '.join([
-            repr(cc)
-            if infr.is_consistent(cc) else
-            ut.highlight_text(repr(cc), 'red')
-            for cc in sorted_ccs]) + ']'
+        assert all(
+            [ut.allsame(infr.node_labels(*cc)) for cc in infr.positive_components()]
+        )
+        sorted_ccs = sorted([set(cc) for cc in infr.pos_graph.connected_components()])
+        msg = (
+            '['
+            + ', '.join(
+                [
+                    repr(cc)
+                    if infr.is_consistent(cc)
+                    else ut.highlight_text(repr(cc), 'red')
+                    for cc in sorted_ccs
+                ]
+            )
+            + ']'
+        )
         print(msg)
 
     @ut.classproperty
@@ -289,9 +319,15 @@ class Feedback(object):
     def feedback_data_keys(Infr):
         """ edge attribute keys used for feedback """
         return [
-            'evidence_decision', 'tags', 'user_id',
-            'meta_decision', 'timestamp_c1', 'timestamp_c2',
-            'timestamp_s1', 'timestamp', 'confidence'
+            'evidence_decision',
+            'tags',
+            'user_id',
+            'meta_decision',
+            'timestamp_c1',
+            'timestamp_c2',
+            'timestamp_s1',
+            'timestamp',
+            'confidence',
         ]
 
     @profile
@@ -330,8 +366,8 @@ class Feedback(object):
             set2 = set(attr_lists.keys())
             if set1 != set2:
                 raise AssertionError(
-                    'Bad feedback keys: ' +
-                    ut.repr2(ut.set_overlap_items(set1, set2, 'got', 'want'), nl=1)
+                    'Bad feedback keys: '
+                    + ut.repr2(ut.set_overlap_items(set1, set2, 'got', 'want'), nl=1)
                     # ut.repr2(sorted(feedback_item.keys()), sv=True) + ' ' +
                     # ut.repr2(sorted(attr_lists.keys()), sv=True)
                 )
@@ -351,8 +387,10 @@ class Feedback(object):
 
         # take evidence_decision and meta_decision into account
         decisions = [
-            _rectify_decision(ed, md) for ed, md in
-            zip(attr_lists['evidence_decision'], attr_lists['meta_decision'])
+            _rectify_decision(ed, md)
+            for ed, md in zip(
+                attr_lists['evidence_decision'], attr_lists['meta_decision']
+            )
         ]
 
         for state, es in ut.group_items(edges, decisions).items():
@@ -365,8 +403,9 @@ class Feedback(object):
             infr.apply_nondynamic_update()
 
     def _rectify_feedback(infr, feedback):
-        return {edge: infr._rectify_feedback_item(vals)
-                for edge, vals in feedback.items()}
+        return {
+            edge: infr._rectify_feedback_item(vals) for edge, vals in feedback.items()
+        }
 
     def _rectify_feedback_item(infr, vals):
         """ uses most recently use strategy """
@@ -468,14 +507,11 @@ class Feedback(object):
         """ Sets all annotation node name labels to be unknown """
         infr.print('clear_name_labels()', 1)
         # make distinct names for all nodes
-        distinct_names = {
-            node: -aid for node, aid in infr.get_node_attrs('aid').items()
-        }
+        distinct_names = {node: -aid for node, aid in infr.get_node_attrs('aid').items()}
         infr.set_node_attrs('name_label', distinct_names)
 
 
 class NameRelabel(object):
-
     def node_label(infr, aid):
         return infr.pos_graph.node_label(aid)
 
@@ -500,6 +536,7 @@ class NameRelabel(object):
         """
         infr.print('rectifying name lists', 3)
         from wbia.scripts import name_recitifer
+
         newlabel_to_oldnames = ut.group_items(old_names, new_labels)
         unique_newlabels = list(newlabel_to_oldnames.keys())
         grouped_oldnames_ = ut.take(newlabel_to_oldnames, unique_newlabels)
@@ -507,10 +544,11 @@ class NameRelabel(object):
         still_unknown = [len(g) == 1 and g[0] is None for g in grouped_oldnames_]
         # Remove nones for name rectifier
         grouped_oldnames = [
-            [n for n in oldgroup if n is not None]
-            for oldgroup in grouped_oldnames_]
+            [n for n in oldgroup if n is not None] for oldgroup in grouped_oldnames_
+        ]
         new_names = name_recitifer.find_consistent_labeling(
-            grouped_oldnames, verbose=infr.verbose >= 3, extra_prefix=None)
+            grouped_oldnames, verbose=infr.verbose >= 3, extra_prefix=None
+        )
 
         unknown_labels = ut.compress(unique_newlabels, still_unknown)
 
@@ -528,6 +566,7 @@ class NameRelabel(object):
         """
         # Determine which names can be reused
         from wbia.scripts import name_recitifer
+
         infr.print('grouping names for rectification', 3)
         grouped_oldnames_ = [
             list(nx.get_node_attributes(subgraph, 'name_label').values())
@@ -535,17 +574,17 @@ class NameRelabel(object):
         ]
         # Make sure negatives dont get priority
         grouped_oldnames = [
-            [n for n in group if len(group) == 1 or n > 0]
-            for group in grouped_oldnames_
+            [n for n in group if len(group) == 1 or n > 0] for group in grouped_oldnames_
         ]
-        infr.print('begin rectification of %d grouped old names' % (
-            len(grouped_oldnames)), 2)
+        infr.print(
+            'begin rectification of %d grouped old names' % (len(grouped_oldnames)), 2
+        )
         new_labels = name_recitifer.find_consistent_labeling(
-            grouped_oldnames, verbose=infr.verbose >= 3)
+            grouped_oldnames, verbose=infr.verbose >= 3
+        )
         infr.print('done rectifying new names', 2)
         new_flags = [
-            not isinstance(n, int) and n.startswith('_extra_name')
-            for n in new_labels
+            not isinstance(n, int) and n.startswith('_extra_name') for n in new_labels
         ]
 
         for idx in ut.where(new_flags):
@@ -609,13 +648,13 @@ class NameRelabel(object):
             if graph is infr.graph:
                 # Use union find labels
                 new_labels = {
-                    count:
-                    infr.node_label(next(iter(subgraph.nodes())))
+                    count: infr.node_label(next(iter(subgraph.nodes())))
                     for count, subgraph in enumerate(cc_subgraphs)
                 }
             else:
-                new_labels = {count: infr._next_nid()
-                              for count, subgraph in enumerate(cc_subgraphs)}
+                new_labels = {
+                    count: infr._next_nid() for count, subgraph in enumerate(cc_subgraphs)
+                }
 
         for count, subgraph in enumerate(cc_subgraphs):
             new_nid = new_labels[count]
@@ -647,16 +686,12 @@ class NameRelabel(object):
         num_inconsistent = len(infr.recovery_ccs)
         num_names_max = infr.pos_graph.number_of_components()
 
-        status = dict(
-            num_names_max=num_names_max,
-            num_inconsistent=num_inconsistent,
-        )
+        status = dict(num_names_max=num_names_max, num_inconsistent=num_inconsistent,)
         infr.print('done checking status', 3)
         return status
 
 
 class MiscHelpers(object):
-
     def _rectify_nids(infr, aids, nids):
         if nids is None:
             if infr.ibs is None:
@@ -733,7 +768,9 @@ class MiscHelpers(object):
         n_new = len(list(ut.flatten(splits['new'])))
         infr.print(
             'removing {} aids split {} old PCCs into {} new PCCs'.format(
-                len(aids), n_old, n_new))
+                len(aids), n_old, n_new
+            )
+        )
 
         return splits
         # print(ub.repr2(delta, nl=2))
@@ -880,6 +917,7 @@ class AltConstructors(object):
     @classmethod
     def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None, verbose=False):
         import networkx as nx
+
         G = AnnotInference._graph_cls()
         assert not any([a1 == a2 for a1, a2 in aid_pairs]), 'cannot have self-edges'
         G.add_edges_from(aid_pairs)
@@ -896,14 +934,12 @@ class AltConstructors(object):
             nids = None
         else:
             nids = [-a for a in aids]
-        infr = AnnotInference(ibs, aids, nids, autoinit=False,
-                              verbose=verbose)
+        infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
         infr.initialize_graph(graph=G)
         # hack
         orig_name_labels = [infr.pos_graph.node_label(a) for a in aids]
         infr.orig_name_labels = orig_name_labels
-        infr.set_node_attrs('orig_name_label',
-                            ut.dzip(aids, orig_name_labels))
+        infr.set_node_attrs('orig_name_label', ut.dzip(aids, orig_name_labels))
         if infer:
             infr.apply_nondynamic_update()
         return infr
@@ -923,20 +959,23 @@ class AltConstructors(object):
         return infr
 
     def status(infr, extended=False):
-        status_dict = ut.odict([
-            ('nNodes', len(infr.aids)),
-            ('nEdges', infr.graph.number_of_edges()),
-            ('nCCs', infr.pos_graph.number_of_components()),
-            ('nPostvEdges', infr.pos_graph.number_of_edges()),
-            ('nNegtvEdges', infr.neg_graph.number_of_edges()),
-            ('nIncmpEdges', infr.incomp_graph.number_of_edges()),
-            ('nUnrevEdges', infr.unreviewed_graph.number_of_edges()),
-            ('nPosRedunCCs', len(infr.pos_redun_nids)),
-            ('nNegRedunPairs', infr.neg_redun_metagraph.number_of_edges()),
-            ('nInconsistentCCs', len(infr.nid_to_errors)),
-            #('nUnkwnEdges', infr.unknown_graph.number_of_edges()),
-        ])
+        status_dict = ut.odict(
+            [
+                ('nNodes', len(infr.aids)),
+                ('nEdges', infr.graph.number_of_edges()),
+                ('nCCs', infr.pos_graph.number_of_components()),
+                ('nPostvEdges', infr.pos_graph.number_of_edges()),
+                ('nNegtvEdges', infr.neg_graph.number_of_edges()),
+                ('nIncmpEdges', infr.incomp_graph.number_of_edges()),
+                ('nUnrevEdges', infr.unreviewed_graph.number_of_edges()),
+                ('nPosRedunCCs', len(infr.pos_redun_nids)),
+                ('nNegRedunPairs', infr.neg_redun_metagraph.number_of_edges()),
+                ('nInconsistentCCs', len(infr.nid_to_errors)),
+                # ('nUnkwnEdges', infr.unknown_graph.number_of_edges()),
+            ]
+        )
         if extended:
+
             def count_within_between(edges):
                 n_within = 0
                 n_between = 0
@@ -983,39 +1022,40 @@ class AltConstructors(object):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotInference(ut.NiceRepr,
-                     # Old internal stuffs
-                     AltConstructors,
-                     MiscHelpers,
-                     Feedback,
-                     NameRelabel,
-                     # New core algorithm stuffs
-                     mixin_dynamic.NonDynamicUpdate,
-                     mixin_dynamic.Recovery,
-                     mixin_dynamic.Consistency,
-                     mixin_dynamic.Redundancy,
-                     mixin_dynamic.DynamicUpdate,
-                     mixin_priority.Priority,
-                     mixin_matching.CandidateSearch,
-                     mixin_matching.InfrLearning,
-                     mixin_matching.AnnotInfrMatching,
-                     # General helpers
-                     mixin_helpers.AssertInvariants,
-                     mixin_helpers.DummyEdges,
-                     mixin_helpers.Convenience,
-                     mixin_helpers.AttrAccess,
-                     # Simulation and Loops
-                     mixin_simulation.SimulationHelpers,
-                     mixin_loops.InfrReviewers,
-                     mixin_loops.InfrLoops,
-                     # Visualization
-                     mixin_viz.GraphVisualization,
-                     # plugging into IBEIS
-                     mixin_groundtruth.Groundtruth,
-                     mixin_wbia.IBEISIO,
-                     mixin_wbia.IBEISGroundtruth,
-                     # _dep_mixins._AnnotInfrDepMixin,
-                     ):
+class AnnotInference(
+    ut.NiceRepr,
+    # Old internal stuffs
+    AltConstructors,
+    MiscHelpers,
+    Feedback,
+    NameRelabel,
+    # New core algorithm stuffs
+    mixin_dynamic.NonDynamicUpdate,
+    mixin_dynamic.Recovery,
+    mixin_dynamic.Consistency,
+    mixin_dynamic.Redundancy,
+    mixin_dynamic.DynamicUpdate,
+    mixin_priority.Priority,
+    mixin_matching.CandidateSearch,
+    mixin_matching.InfrLearning,
+    mixin_matching.AnnotInfrMatching,
+    # General helpers
+    mixin_helpers.AssertInvariants,
+    mixin_helpers.DummyEdges,
+    mixin_helpers.Convenience,
+    mixin_helpers.AttrAccess,
+    # Simulation and Loops
+    mixin_simulation.SimulationHelpers,
+    mixin_loops.InfrReviewers,
+    mixin_loops.InfrLoops,
+    # Visualization
+    mixin_viz.GraphVisualization,
+    # plugging into IBEIS
+    mixin_groundtruth.Groundtruth,
+    mixin_wbia.IBEISIO,
+    mixin_wbia.IBEISGroundtruth,
+    # _dep_mixins._AnnotInfrDepMixin,
+):
     """
     class for maintaining state of an identification
 
@@ -1129,6 +1169,7 @@ class AnnotInference(ut.NiceRepr,
         # nodes in infr.graph.
         if isinstance(ibs, six.string_types):
             import wbia
+
             ibs = wbia.opendb(ibs)
 
         # setup logging
@@ -1138,6 +1179,7 @@ class AnnotInference(ut.NiceRepr,
         if do_logging:
             if ibs is not None:
                 from os.path import join
+
                 # import ubelt as ub
                 # logdir = ibs.get_logdir_local()
                 logdir = '.'
@@ -1228,21 +1270,11 @@ class AnnotInference(ut.NiceRepr,
                     NEGTV: np.inf,  # GGR2 - 0.8605
                     INCMP: np.inf,
                 },
-                'photobomb_state': {
-                    'pb': np.inf,
-                    'nopb': np.inf,
-                }
+                'photobomb_state': {'pb': np.inf, 'nopb': np.inf,},
             },
             'zebra_plains': {
-                'match_state': {
-                    POSTV: np.inf,
-                    NEGTV: np.inf,
-                    INCMP: np.inf,
-                },
-                'photobomb_state': {
-                    'pb': np.inf,
-                    'nopb': np.inf,
-                }
+                'match_state': {POSTV: np.inf, NEGTV: np.inf, INCMP: np.inf,},
+                'photobomb_state': {'pb': np.inf, 'nopb': np.inf,},
             },
             'giraffe_reticulated': {
                 'match_state': {
@@ -1250,10 +1282,7 @@ class AnnotInference(ut.NiceRepr,
                     NEGTV: np.inf,  # GGR2 - 0.8876
                     INCMP: np.inf,
                 },
-                'photobomb_state': {
-                    'pb': np.inf,
-                    'nopb': np.inf,
-                }
+                'photobomb_state': {'pb': np.inf, 'nopb': np.inf,},
             },
         }
         infr.task_thresh = None
@@ -1268,24 +1297,19 @@ class AnnotInference(ut.NiceRepr,
         infr.params = {
             'manual.n_peek': 1,
             'manual.autosave': True,
-
             'ranking.enabled': True,
             'ranking.ntop': 5,
-
             'algo.max_outer_loops': None,
             'algo.quickstart': False,
             'algo.hardcase': False,
-
             # Dynamic Inference
             'inference.enabled': True,
             'inference.update_attrs': True,
-
             # Termination / Refresh
             'refresh.window': 20,
             'refresh.patience': 72,
             'refresh.thresh': 0.052,
             'refresh.method': 'binomial',
-
             # Redundancy
             # if redun.enabled is True, then redundant edges will be ignored by
             # # the priority queue and extra edges needed to achieve minimum
@@ -1299,11 +1323,9 @@ class AnnotInference(ut.NiceRepr,
             'redun.enforce_neg': True,
             # prevents user interaction in final phase
             'redun.neg.only_auto': True,
-
             # Only review CCs connected by confidence less than this value
             # a good values is 'pretty_sure'
             'queue.conf.thresh': None,
-
             # Autoreviewer params
             'autoreview.enabled': True,
             'autoreview.prioritize_nonpos': True,
@@ -1369,16 +1391,20 @@ class AnnotInference(ut.NiceRepr,
             {'method': 'binomial', 'patience': 72, 'thresh': 0.052, 'window': 20}
         """
         prefix_ = prefix + '.'
-        subparams = {k[len(prefix_):]: v for k, v in infr.params.items()
-                     if k.startswith(prefix_)}
+        subparams = {
+            k[len(prefix_) :]: v for k, v in infr.params.items() if k.startswith(prefix_)
+        }
         return subparams
 
     def copy(infr):
         # shallow copy ibs
         infr2 = AnnotInference(
-            infr.ibs, copy.deepcopy(infr.aids),
-            copy.deepcopy(infr.orig_name_labels), autoinit=False,
-            verbose=infr.verbose)
+            infr.ibs,
+            copy.deepcopy(infr.aids),
+            copy.deepcopy(infr.orig_name_labels),
+            autoinit=False,
+            verbose=infr.verbose,
+        )
 
         # shallow algorithm classes
         infr2.verifiers = infr.verifiers
@@ -1426,8 +1452,9 @@ class AnnotInference(ut.NiceRepr,
         read only. Do not commit any reviews made from here.
         """
         orig_name_labels = list(infr.gen_node_values('orig_name_label', aids))
-        infr2 = AnnotInference(infr.ibs, aids, orig_name_labels,
-                               autoinit=False, verbose=infr.verbose)
+        infr2 = AnnotInference(
+            infr.ibs, aids, orig_name_labels, autoinit=False, verbose=infr.verbose
+        )
         # deep copy the graph structure
         infr2.graph = infr.graph.subgraph(aids).copy()
         infr2.readonly = True
@@ -1440,8 +1467,7 @@ class AnnotInference(ut.NiceRepr,
         # infr2._viz_init_nodes = infr._viz_image_config
         # infr2._viz_image_config_dirty = infr._viz_image_config_dirty
         infr2.edge_truth = {
-            e: infr.edge_truth[e] for e in infr2.graph.edges()
-            if e in infr.edge_truth
+            e: infr.edge_truth[e] for e in infr2.graph.edges() if e in infr.edge_truth
         }
 
         # TODO: internal/external feedback
@@ -1473,6 +1499,7 @@ class AnnotInference(ut.NiceRepr,
 
 def testdata_infr(defaultdb='PZ_MTEST'):
     import wbia
+
     ibs = wbia.opendb(defaultdb=defaultdb)
     aids = [1, 2, 3, 4, 5, 6]
     infr = AnnotInference(ibs, aids, autoinit=True)
@@ -1490,6 +1517,8 @@ if __name__ == '__main__':
         python -m wbia.algo.graph.core --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

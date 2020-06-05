@@ -25,14 +25,17 @@ Ignore:
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import six
+
 try:
     from wbia import dtool as dt
 except ImportError:
     pass
 import numpy as np
 import utool as ut
+
 # from wbia.plottool import colorfuncs
 from six.moves import reduce
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -51,6 +54,7 @@ def ensure_nonhex_color(orig_color):
     if isinstance(orig_color, six.string_types) and orig_color.startswith('#'):
         hex_color = orig_color
         import matplotlib.colors as colors
+
         color = colors.hex2color(hex_color[0:7])
         if len(hex_color) > 8:
             alpha_hex = hex_color[7:9]
@@ -62,9 +66,20 @@ def ensure_nonhex_color(orig_color):
 
 
 @profile
-def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
-            ax=None, pos=None, img_dict=None, title=None, layoutkw=None,
-            verbose=None, **kwargs):
+def show_nx(
+    graph,
+    with_labels=True,
+    fnum=None,
+    pnum=None,
+    layout='agraph',
+    ax=None,
+    pos=None,
+    img_dict=None,
+    title=None,
+    layoutkw=None,
+    verbose=None,
+    **kwargs
+):
     r"""
     Args:
         graph (networkx.Graph):
@@ -112,6 +127,7 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
     """
     import wbia.plottool as pt
     import networkx as nx
+
     if ax is None:
         fnum = pt.ensure_fnum(fnum)
         pt.figure(fnum=fnum, pnum=pnum)
@@ -127,8 +143,7 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
 
     if verbose:
         print('Getting layout')
-    layout_info = get_nx_layout(graph, layout, layoutkw=layoutkw,
-                                verbose=verbose)
+    layout_info = get_nx_layout(graph, layout, layoutkw=layoutkw, verbose=verbose)
 
     if verbose:
         print('Drawing graph')
@@ -142,17 +157,17 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         ax.axesPatch.set_facecolor('white')
         ax.autoscale()
         ax.autoscale_view(True, True, True)
-    #axes.facecolor
+    # axes.facecolor
 
     node_size = layout_info['node'].get('size')
     node_pos = layout_info['node'].get('pos')
     if node_size is not None:
         size_arr = np.array(ut.take(node_size, graph.nodes()))
-        half_size_arr = size_arr / 2.
+        half_size_arr = size_arr / 2.0
         pos_arr = np.array(ut.take(node_pos, graph.nodes()))
         # autoscale does not seem to work
-        #ul_pos = pos_arr - half_size_arr
-        #br_pos = pos_arr + half_size_arr
+        # ul_pos = pos_arr - half_size_arr
+        # br_pos = pos_arr + half_size_arr
         # hack because edges are cut off.
         # need to take into account extent of edges as well
         ul_pos = pos_arr - half_size_arr * 1.5
@@ -161,7 +176,7 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         xmax, ymax = br_pos.max(axis=0)
         ax.set_xlim(xmin, xmax)
         ax.set_ylim(ymin, ymax)
-    #pt.plt.axis('off')
+    # pt.plt.axis('off')
     ax.set_xticks([])
     ax.set_yticks([])
 
@@ -172,13 +187,16 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         pos_list = ut.dict_take(node_pos, node_list)
         img_list = ut.dict_take(img_dict, node_list)
         size_list = ut.dict_take(node_size, node_list)
-        #color_list = ut.dict_take(nx.get_node_attributes(graph, 'color'), node_list, None)
-        color_list = ut.dict_take(nx.get_node_attributes(graph, 'framecolor'), node_list, None)
-        framewidth_list = ut.dict_take(nx.get_node_attributes(graph, 'framewidth'),
-                                       node_list, framewidth)
-        pt.netx_draw_images_at_positions(img_list, pos_list, size_list,
-                                         color_list,
-                                         framewidth_list=framewidth_list)
+        # color_list = ut.dict_take(nx.get_node_attributes(graph, 'color'), node_list, None)
+        color_list = ut.dict_take(
+            nx.get_node_attributes(graph, 'framecolor'), node_list, None
+        )
+        framewidth_list = ut.dict_take(
+            nx.get_node_attributes(graph, 'framewidth'), node_list, framewidth
+        )
+        pt.netx_draw_images_at_positions(
+            img_list, pos_list, size_list, color_list, framewidth_list=framewidth_list
+        )
         # Hack in older interface
         imgdat = {}
         imgdat['node_list'] = node_list
@@ -192,8 +210,9 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
     return layout_info
 
 
-def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
-                                  framewidth_list):
+def netx_draw_images_at_positions(
+    img_list, pos_list, size_list, color_list, framewidth_list
+):
     """
     Overlays images on a networkx graph
 
@@ -206,12 +225,18 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
     """
     import vtool as vt
     import wbia.plottool as pt
+
     # Ensure all images have been read
-    img_list_ = [vt.convert_colorspace(vt.imread(img), 'RGB')
-                 if isinstance(img, six.string_types) else img
-                 for img in img_list]
-    size_list_ = [vt.get_size(img) if size is None else size
-                  for size, img in zip(size_list, img_list)]
+    img_list_ = [
+        vt.convert_colorspace(vt.imread(img), 'RGB')
+        if isinstance(img, six.string_types)
+        else img
+        for img in img_list
+    ]
+    size_list_ = [
+        vt.get_size(img) if size is None else size
+        for size, img in zip(size_list, img_list)
+    ]
 
     for pos, img, size in zip(pos_list, img_list_, size_list_):
         bbox = vt.bbox_from_center_wh(pos, size)
@@ -223,11 +248,12 @@ def parse_html_graphviz_attrs():
     # Parse the documentation table
     import bs4
     import requests
-    r  = requests.get(r"http://www.graphviz.org/doc/info/attrs.html")
+
+    r = requests.get(r'http://www.graphviz.org/doc/info/attrs.html')
     data = r.text
     soup = bs4.BeautifulSoup(data, 'html5lib')
 
-    for table in soup.findAll("table"):
+    for table in soup.findAll('table'):
         if len(list(table.descendants)) > 2000:
             break
 
@@ -240,6 +266,7 @@ def parse_html_graphviz_attrs():
             data.append(row)
 
     import pandas as pd
+
     pd.options.display.max_rows = 20
     pd.options.display.max_columns = 40
     pd.options.display.width = 160
@@ -268,13 +295,11 @@ def parse_html_graphviz_attrs():
             supported_progs.append(all_progs)
 
     # Find subset that supports dot or neato
-    dot_or_neato = [len({'dot', 'neato'}.intersection(p)) > 0
-                    for p in supported_progs]
+    dot_or_neato = [len({'dot', 'neato'}.intersection(p)) > 0 for p in supported_progs]
     df = full_df[dot_or_neato]
     df = full_df
 
-    neato_ = [len({'neato'}.intersection(p)) > 0
-                    for p in supported_progs]
+    neato_ = [len({'neato'}.intersection(p)) > 0 for p in supported_progs]
     df = full_df
 
     # types are:
@@ -294,49 +319,228 @@ def parse_html_graphviz_attrs():
 
 
 class GRAPHVIZ_KEYS(object):
-    N = {'URL', 'area', 'color', 'colorscheme', 'comment', 'distortion',
-         'fillcolor', 'fixedsize', 'fontcolor', 'fontname', 'fontsize',
-         'gradientangle', 'group', 'height', 'href', 'id', 'image', 'imagepos',
-         'imagescale', 'label', 'labelloc', 'layer', 'margin', 'nojustify',
-         'ordering', 'orientation', 'penwidth', 'peripheries', 'pin', 'pos',
-         'rects', 'regular', 'root', 'samplepoints', 'shape', 'shapefile',
-         'showboxes', 'sides', 'skew', 'sortv', 'style', 'target', 'tooltip',
-         'vertices', 'width', 'xlabel', 'xlp', 'z'}
+    N = {
+        'URL',
+        'area',
+        'color',
+        'colorscheme',
+        'comment',
+        'distortion',
+        'fillcolor',
+        'fixedsize',
+        'fontcolor',
+        'fontname',
+        'fontsize',
+        'gradientangle',
+        'group',
+        'height',
+        'href',
+        'id',
+        'image',
+        'imagepos',
+        'imagescale',
+        'label',
+        'labelloc',
+        'layer',
+        'margin',
+        'nojustify',
+        'ordering',
+        'orientation',
+        'penwidth',
+        'peripheries',
+        'pin',
+        'pos',
+        'rects',
+        'regular',
+        'root',
+        'samplepoints',
+        'shape',
+        'shapefile',
+        'showboxes',
+        'sides',
+        'skew',
+        'sortv',
+        'style',
+        'target',
+        'tooltip',
+        'vertices',
+        'width',
+        'xlabel',
+        'xlp',
+        'z',
+    }
 
-    E = {'URL', 'arrowhead', 'arrowsize', 'arrowtail', 'color', 'colorscheme',
-         'comment', 'constraint', 'decorate', 'dir', 'edgeURL', 'edgehref',
-         'edgetarget', 'edgetooltip', 'fillcolor', 'fontcolor', 'fontname',
-         'fontsize', 'headURL', 'head_lp', 'headclip', 'headhref', 'headlabel',
-         'headport', 'headtarget', 'headtooltip', 'href', 'id', 'label',
-         'labelURL', 'labelangle', 'labeldistance', 'labelfloat',
-         'labelfontcolor', 'labelfontname', 'labelfontsize', 'labelhref',
-         'labeltarget', 'labeltooltip', 'layer', 'len', 'lhead', 'lp', 'ltail',
-         'minlen', 'nojustify', 'penwidth', 'pos', 'samehead', 'sametail',
-         'showboxes', 'style', 'tailURL', 'tail_lp', 'tailclip', 'tailhref',
-         'taillabel', 'tailport', 'tailtarget', 'tailtooltip', 'target',
-         'tooltip', 'weight', 'xlabel', 'xlp'}
+    E = {
+        'URL',
+        'arrowhead',
+        'arrowsize',
+        'arrowtail',
+        'color',
+        'colorscheme',
+        'comment',
+        'constraint',
+        'decorate',
+        'dir',
+        'edgeURL',
+        'edgehref',
+        'edgetarget',
+        'edgetooltip',
+        'fillcolor',
+        'fontcolor',
+        'fontname',
+        'fontsize',
+        'headURL',
+        'head_lp',
+        'headclip',
+        'headhref',
+        'headlabel',
+        'headport',
+        'headtarget',
+        'headtooltip',
+        'href',
+        'id',
+        'label',
+        'labelURL',
+        'labelangle',
+        'labeldistance',
+        'labelfloat',
+        'labelfontcolor',
+        'labelfontname',
+        'labelfontsize',
+        'labelhref',
+        'labeltarget',
+        'labeltooltip',
+        'layer',
+        'len',
+        'lhead',
+        'lp',
+        'ltail',
+        'minlen',
+        'nojustify',
+        'penwidth',
+        'pos',
+        'samehead',
+        'sametail',
+        'showboxes',
+        'style',
+        'tailURL',
+        'tail_lp',
+        'tailclip',
+        'tailhref',
+        'taillabel',
+        'tailport',
+        'tailtarget',
+        'tailtooltip',
+        'target',
+        'tooltip',
+        'weight',
+        'xlabel',
+        'xlp',
+    }
 
-    G = {'Damping', 'K', 'URL', '_background', 'bb', 'bgcolor', 'center',
-         'charset', 'clusterrank', 'colorscheme', 'comment', 'compound',
-         'concentrate', 'defaultdist', 'dim', 'dimen', 'diredgeconstraints',
-         'dpi', 'epsilon', 'esep', 'fontcolor', 'fontname', 'fontnames',
-         'fontpath', 'fontsize', 'forcelabels', 'gradientangle', 'href', 'id',
-         'imagepath', 'inputscale', 'label', 'label_scheme', 'labeljust',
-         'labelloc', 'landscape', 'layerlistsep', 'layers', 'layerselect',
-         'layersep', 'layout', 'levels', 'levelsgap', 'lheight', 'lp',
-         'lwidth', 'margin', 'maxiter', 'mclimit', 'mindist', 'mode', 'model',
-         'mosek', 'newrank', 'nodesep', 'nojustify', 'normalize',
-         'notranslate', 'nslimit\nnslimit1', 'ordering', 'orientation',
-         'outputorder', 'overlap', 'overlap_scaling', 'overlap_shrink', 'pack',
-         'packmode', 'pad', 'page', 'pagedir', 'quadtree', 'quantum',
-         'rankdir', 'ranksep', 'ratio', 'remincross', 'repulsiveforce',
-         'resolution', 'root', 'rotate', 'rotation', 'scale', 'searchsize',
-         'sep', 'showboxes', 'size', 'smoothing', 'sortv', 'splines', 'start',
-         'style', 'stylesheet', 'target', 'truecolor', 'viewport',
-         'voro_margin', 'xdotversion'}
+    G = {
+        'Damping',
+        'K',
+        'URL',
+        '_background',
+        'bb',
+        'bgcolor',
+        'center',
+        'charset',
+        'clusterrank',
+        'colorscheme',
+        'comment',
+        'compound',
+        'concentrate',
+        'defaultdist',
+        'dim',
+        'dimen',
+        'diredgeconstraints',
+        'dpi',
+        'epsilon',
+        'esep',
+        'fontcolor',
+        'fontname',
+        'fontnames',
+        'fontpath',
+        'fontsize',
+        'forcelabels',
+        'gradientangle',
+        'href',
+        'id',
+        'imagepath',
+        'inputscale',
+        'label',
+        'label_scheme',
+        'labeljust',
+        'labelloc',
+        'landscape',
+        'layerlistsep',
+        'layers',
+        'layerselect',
+        'layersep',
+        'layout',
+        'levels',
+        'levelsgap',
+        'lheight',
+        'lp',
+        'lwidth',
+        'margin',
+        'maxiter',
+        'mclimit',
+        'mindist',
+        'mode',
+        'model',
+        'mosek',
+        'newrank',
+        'nodesep',
+        'nojustify',
+        'normalize',
+        'notranslate',
+        'nslimit\nnslimit1',
+        'ordering',
+        'orientation',
+        'outputorder',
+        'overlap',
+        'overlap_scaling',
+        'overlap_shrink',
+        'pack',
+        'packmode',
+        'pad',
+        'page',
+        'pagedir',
+        'quadtree',
+        'quantum',
+        'rankdir',
+        'ranksep',
+        'ratio',
+        'remincross',
+        'repulsiveforce',
+        'resolution',
+        'root',
+        'rotate',
+        'rotation',
+        'scale',
+        'searchsize',
+        'sep',
+        'showboxes',
+        'size',
+        'smoothing',
+        'sortv',
+        'splines',
+        'start',
+        'style',
+        'stylesheet',
+        'target',
+        'truecolor',
+        'viewport',
+        'voro_margin',
+        'xdotversion',
+    }
 
 
 try:
+
     class GraphVizLayoutConfig(dt.Config):
         r"""
         Ignore:
@@ -384,30 +588,43 @@ try:
         def get_param_info_list():
             param_info_list = [
                 # GENERAL
-                ut.ParamInfo('splines', 'spline', valid_values=[
-                    'none', 'line', 'polyline', 'curved', 'ortho', 'spline']),
+                ut.ParamInfo(
+                    'splines',
+                    'spline',
+                    valid_values=[
+                        'none',
+                        'line',
+                        'polyline',
+                        'curved',
+                        'ortho',
+                        'spline',
+                    ],
+                ),
                 ut.ParamInfo('pack', True),
                 ut.ParamInfo('packmode', 'cluster'),
-                #ut.ParamInfo('nodesep', ?),
+                # ut.ParamInfo('nodesep', ?),
                 # NOT DOT
-                ut.ParamInfo('overlap', 'prism', valid_values=[
-                    'true', 'false', 'prism', 'ipsep']),
+                ut.ParamInfo(
+                    'overlap', 'prism', valid_values=['true', 'false', 'prism', 'ipsep']
+                ),
                 ut.ParamInfo('sep', 1 / 8),
                 ut.ParamInfo('esep', 1 / 8),  # stricly  less than sep
                 # NEATO ONLY
                 ut.ParamInfo('mode', 'major', valid_values=['heir', 'KK', 'ipsep']),
-                #kwargs['diredgeconstraints'] = 'heir'
-                #kwargs['inputscale'] = kwargs.get('inputscale', 72)
-                #kwargs['Damping'] = kwargs.get('Damping', .1)
+                # kwargs['diredgeconstraints'] = 'heir'
+                # kwargs['inputscale'] = kwargs.get('inputscale', 72)
+                # kwargs['Damping'] = kwargs.get('Damping', .1)
                 # DOT ONLY
                 ut.ParamInfo('rankdir', 'LR', valid_values=['LR', 'RL', 'TB', 'BT']),
                 ut.ParamInfo('ranksep', 2.5),
                 ut.ParamInfo('nodesep', 2.0),
                 ut.ParamInfo('clusterrank', 'local', valid_values=['local', 'global'])
                 # OUTPUT ONLY
-                #kwargs['dpi'] = kwargs.get('dpi', 1.0)
+                # kwargs['dpi'] = kwargs.get('dpi', 1.0)
             ]
             return param_info_list
+
+
 except Exception:
     pass
 
@@ -421,6 +638,7 @@ def get_explicit_graph(graph):
 
     def get_nx_base(graph):
         import networkx as nx
+
         if isinstance(graph, nx.MultiDiGraph):
             base_class = nx.MultiDiGraph
         elif isinstance(graph, nx.MultiGraph):
@@ -439,7 +657,8 @@ def get_explicit_graph(graph):
 
     explicit_nodes = graph.nodes(data=True)
     explicit_edges = [
-        (n1, n2, data) for (n1, n2, data) in graph.edges(data=True)
+        (n1, n2, data)
+        for (n1, n2, data) in graph.edges(data=True)
         if data.get('implicit', False) is not True
     ]
     explicit_graph.add_nodes_from(explicit_nodes)
@@ -455,10 +674,20 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
     layout_info = {}
 
     if layout == 'custom':
-        edge_keys = list(reduce(set.union, [
-            set(edge[-1].keys()) for edge in graph.edges(data=True)], set([])))
-        node_keys = list(reduce(set.union, [
-            set(node[-1].keys()) for node in graph.nodes(data=True)], set([])))
+        edge_keys = list(
+            reduce(
+                set.union,
+                [set(edge[-1].keys()) for edge in graph.edges(data=True)],
+                set([]),
+            )
+        )
+        node_keys = list(
+            reduce(
+                set.union,
+                [set(node[-1].keys()) for node in graph.nodes(data=True)],
+                set([]),
+            )
+        )
         graph_keys = list(graph.graph.keys())
         layout_info = {
             'graph': {k: graph.graph.get(k) for k in graph_keys},
@@ -473,7 +702,7 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
                     node: (node_info['width'][node], node_info['height'][node])
                     for node in graph.nodes()
                 }
-                #node_info['size'] = list(zip(node_info['width'],
+                # node_info['size'] = list(zip(node_info['width'],
                 #                             node_info['height']))
 
     elif layout == 'agraph':
@@ -491,6 +720,7 @@ def apply_graph_layout_attrs(graph, layout_info):
         isNone = v is None
         isNoneStr = isinstance(v, six.string_types) and v.lower() == 'none'
         return isNone or isNoneStr
+
     for key, vals in layout_info['node'].items():
         vals = {n: v for n, v in vals.items() if not noneish(n)}
         nx.set_node_attributes(graph, name=key, values=vals)
@@ -506,10 +736,12 @@ def patch_pygraphviz():
     Hacks around a python3 problem in 1.3.1 of pygraphviz
     """
     import pygraphviz
+
     if pygraphviz.__version__ != '1.3.1':
         return
     if hasattr(pygraphviz.agraph.AGraph, '_run_prog_patch'):
         return
+
     def _run_prog(self, prog='nop', args=''):
         """Apply graphviz program to graph and return the result as a string.
 
@@ -519,24 +751,24 @@ def patch_pygraphviz():
 
         Use keyword args to add additional arguments to graphviz programs.
         """
-        from pygraphviz.agraph import (shlex, subprocess, PipeReader, warnings)
+        from pygraphviz.agraph import shlex, subprocess, PipeReader, warnings
+
         runprog = r'"%s"' % self._get_prog(prog)
         cmd = ' '.join([runprog, args])
         dotargs = shlex.split(cmd)
-        p = subprocess.Popen(dotargs,
-                             shell=False,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             close_fds=False)
-        (child_stdin,
-         child_stdout,
-         child_stderr) = (p.stdin, p.stdout, p.stderr)
+        p = subprocess.Popen(
+            dotargs,
+            shell=False,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            close_fds=False,
+        )
+        (child_stdin, child_stdout, child_stderr) = (p.stdin, p.stdout, p.stderr)
         # Use threading to avoid blocking
         data = []
         errors = []
-        threads = [PipeReader(data, child_stdout),
-                   PipeReader(errors, child_stderr)]
+        threads = [PipeReader(data, child_stdout), PipeReader(errors, child_stderr)]
         for t in threads:
             t.start()
 
@@ -547,12 +779,13 @@ def patch_pygraphviz():
             t.join()
 
         if not data:
-            raise IOError(b"".join(errors))
+            raise IOError(b''.join(errors))
 
         if len(errors) > 0:
-            warnings.warn(str(b"".join(errors)), RuntimeWarning)
+            warnings.warn(str(b''.join(errors)), RuntimeWarning)
 
-        return b"".join(data)
+        return b''.join(data)
+
     # Patch error in pygraphviz
     pygraphviz.agraph.AGraph._run_prog_patch = _run_prog
     pygraphviz.agraph.AGraph._run_prog_orig = pygraphviz.agraph.AGraph._run_prog
@@ -563,6 +796,7 @@ def make_agraph(graph_):
     # FIXME; make this not an inplace operation
     import networkx as nx
     import pygraphviz
+
     patch_pygraphviz()
     # Convert to agraph format
 
@@ -570,8 +804,7 @@ def make_agraph(graph_):
     is_large = num_nodes > LARGE_GRAPH
 
     if is_large:
-        print('Making agraph for large graph %d nodes. '
-              'May take time' % (num_nodes))
+        print('Making agraph for large graph %d nodes. ' 'May take time' % (num_nodes))
 
     ut.nx_ensure_agraph_color(graph_)
     # Reduce size to be in inches not pixels
@@ -603,8 +836,8 @@ def make_agraph(graph_):
     else:
         groupid_to_nodes = {}
     # Initialize agraph format
-    #import utool
-    #utool.embed()
+    # import utool
+    # utool.embed()
     ut.nx_delete_None_edge_attr(graph_)
     agraph = nx.nx_agraph.to_agraph(graph_)
     # Add subgraphs labels
@@ -631,11 +864,12 @@ def make_agraph(graph_):
         agraph.add_subgraph(nodes, name, **subgraph_attrs)
 
     import re
+
     for node in graph_.nodes():
         anode = pygraphviz.Node(agraph, node)
         # TODO: Generally fix node positions
         ptstr_ = anode.attr['pos']
-        if (ptstr_ is not None and len(ptstr_) > 0 and not ptstr_.endswith('!')):
+        if ptstr_ is not None and len(ptstr_) > 0 and not ptstr_.endswith('!'):
             ptstr = ptstr_.strip('[]').strip(' ').strip('()')
             ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
             pt_list = list(map(float, ptstr_list))
@@ -668,9 +902,10 @@ def _groupby_prelayout(graph_, layoutkw, groupby):
     specified layout.
     """
     import networkx as nx
-    has_pins = any([
-        v.lower() == 'true'
-        for v in nx.get_node_attributes(graph_, 'pin').values()])
+
+    has_pins = any(
+        [v.lower() == 'true' for v in nx.get_node_attributes(graph_, 'pin').values()]
+    )
 
     has_pins &= all('pos' in d for n, d in graph_.nodes(data=True))
     if not has_pins:
@@ -681,8 +916,10 @@ def _groupby_prelayout(graph_, layoutkw, groupby):
 
         def subgraph_grid(subgraphs, hpad=None, vpad=None):
             n_cols = int(np.ceil(np.sqrt(len(subgraphs))))
-            columns = [ut.stack_graphs(chunk, vert=False, pad=hpad)
-                       for chunk in ut.ichunks(subgraphs, n_cols)]
+            columns = [
+                ut.stack_graphs(chunk, vert=False, pad=hpad)
+                for chunk in ut.ichunks(subgraphs, n_cols)
+            ]
             new_graph = ut.stack_graphs(columns, vert=True, pad=vpad)
             return new_graph
 
@@ -714,8 +951,9 @@ def _groupby_prelayout(graph_, layoutkw, groupby):
         # print('WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING')
 
 
-def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
-                     return_agraph=False, groupby=None, **layoutkw):
+def nx_agraph_layout(
+    orig_graph, inplace=False, verbose=None, return_agraph=False, groupby=None, **layoutkw
+):
     r"""
     Uses graphviz and custom code to determine position attributes of nodes and
     edges.
@@ -777,14 +1015,14 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         assert np.all(nx.get_node_attributes(graph1, 'pos')['1'] == nx.get_node_attributes(graph4, 'pos')['1'])
         assert np.all(nx.get_node_attributes(graph2, 'pos')['1'] == nx.get_node_attributes(graph3, 'pos')['1'])
     """
-    #import networkx as nx
+    # import networkx as nx
     import pygraphviz
 
     # graph_ = get_explicit_graph(orig_graph).copy()
     graph_ = get_explicit_graph(orig_graph)
 
-    #only_explicit = True
-    #if only_explicit:
+    # only_explicit = True
+    # if only_explicit:
     num_nodes = len(graph_)
     is_large = num_nodes > LARGE_GRAPH
 
@@ -795,7 +1033,8 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
 
     if groupby is not None:
         pinned_groups, graph_ = _groupby_prelayout(
-            graph_, layoutkw=layoutkw, groupby=groupby)
+            graph_, layoutkw=layoutkw, groupby=groupby
+        )
 
     prog = layoutkw.pop('prog', 'dot')
 
@@ -806,8 +1045,7 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         layoutkw['notranslate'] = 'true'  # for neato postprocessing
 
     if True:
-        argparts = ['-G%s=%s' % (key, str(val))
-                    for key, val in layoutkw.items()]
+        argparts = ['-G%s=%s' % (key, str(val)) for key, val in layoutkw.items()]
         splines = layoutkw['splines']
     else:
         # layoutkw is allowed to overwrite graph.graph['graph']
@@ -835,21 +1073,23 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     agraph = make_agraph(graph_)
 
     # Run layout
-    #print('prog = %r' % (prog,))
+    # print('prog = %r' % (prog,))
 
     if verbose > 3:
         print('BEFORE LAYOUT\n' + str(agraph))
 
     if is_large:
-        print('Preforming agraph layout on graph with %d nodes.'
-              'May take time' % (num_nodes))
+        print(
+            'Preforming agraph layout on graph with %d nodes.'
+            'May take time' % (num_nodes)
+        )
 
-    #import warnings
-    #warnings.filterwarnings("error")
-    #import warnings
-    #flag = False
+    # import warnings
+    # warnings.filterwarnings("error")
+    # import warnings
+    # flag = False
 
-    #for node in graph_.nodes():
+    # for node in graph_.nodes():
     #    anode = pygraphviz.Node(agraph, node)
     #    ptstr_ = anode.attr['pos']
     #    print('ptstr_ = %r' % (ptstr_,))
@@ -866,10 +1106,10 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         # import utool
         # utool.embed()
         raise
-    #except RuntimeWarning as ex:
+    # except RuntimeWarning as ex:
     #    ut.printex(ex, iswarning=True)
     #    flag = True
-    #if flag:
+    # if flag:
     #    import utool
     #    utool.embed()
 
@@ -887,7 +1127,7 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     node_layout_attrs = ut.ddict(dict)
     edge_layout_attrs = ut.ddict(dict)
 
-    #for node in agraph.nodes():
+    # for node in agraph.nodes():
     for node in graph_.nodes():
         anode = pygraphviz.Node(agraph, node)
         node_attrs = parse_anode_layout_attrs(anode)
@@ -907,7 +1147,7 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         layout_edges = set(ut.nx_edges(graph_, keys=True))
         orig_edges = set(ut.nx_edges(orig_graph, keys=True))
         implicit_edges = list(orig_edges - layout_edges)
-        #all_edges = list(set.union(orig_edges, layout_edges))
+        # all_edges = list(set.union(orig_edges, layout_edges))
         needs_implicit = len(implicit_edges) > 0
         if needs_implicit:
             # Pin down positions
@@ -926,26 +1166,25 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
             # Route the implicit edges (must use neato)
 
             control_node = pygraphviz.Node(agraph, node)
-            #print('control_node = %r' % (control_node,))
+            # print('control_node = %r' % (control_node,))
             node1_attr1 = parse_anode_layout_attrs(control_node)
-            #print('node1_attr1 = %r' % (node1_attr1,))
+            # print('node1_attr1 = %r' % (node1_attr1,))
 
             implicit_kw = layoutkw.copy()
             implicit_kw['overlap'] = 'true'
-            #del implicit_kw['overlap']  # can cause node positions to change
-            argparts = ['-G%s=%s' % (key, str(val))
-                        for key, val in implicit_kw.items()]
+            # del implicit_kw['overlap']  # can cause node positions to change
+            argparts = ['-G%s=%s' % (key, str(val)) for key, val in implicit_kw.items()]
             args = ' '.join(argparts)
 
             if is_large:
-                print('[nx_agraph_layout] About to draw implicit layout '
-                      'for large graph.')
+                print(
+                    '[nx_agraph_layout] About to draw implicit layout ' 'for large graph.'
+                )
 
             agraph.layout(prog='neato', args='-n ' + args)
 
             if is_large:
-                print('[nx_agraph_layout] done with implicit layout for '
-                      'large graph.')
+                print('[nx_agraph_layout] done with implicit layout for ' 'large graph.')
 
             if False:
                 agraph.draw(ut.truepath('~/implicit_test_graphviz_draw.png'))
@@ -953,18 +1192,18 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
                 print('AFTER IMPLICIT LAYOUT\n' + str(agraph))
 
             control_node = pygraphviz.Node(agraph, node)
-            #print('control_node = %r' % (control_node,))
+            # print('control_node = %r' % (control_node,))
             node1_attr2 = parse_anode_layout_attrs(control_node)
-            #print('node1_attr2 = %r' % (node1_attr2,))
+            # print('node1_attr2 = %r' % (node1_attr2,))
 
             # graph positions shifted
             # This is not the right place to divide by 72
-            translation = (node1_attr1['pos'] - node1_attr2['pos'] )
-            #print('translation = %r' % (translation,))
-            #translation = np.array([0, 0])
-            #print('translation = %r' % (translation,))
+            translation = node1_attr1['pos'] - node1_attr2['pos']
+            # print('translation = %r' % (translation,))
+            # translation = np.array([0, 0])
+            # print('translation = %r' % (translation,))
 
-            #for iedge in all_edges:
+            # for iedge in all_edges:
             for iedge in implicit_edges:
                 aedge = pygraphviz.Edge(agraph, *iedge)
                 iedge_attrs = parse_aedge_layout_attrs(aedge, translation)
@@ -975,9 +1214,7 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         # Remove temporary pins put in place by groups
         ut.nx_delete_node_attr(graph_, 'pin')
 
-    graph_layout_attrs = dict(
-        splines=splines
-    )
+    graph_layout_attrs = dict(splines=splines)
 
     layout_info = {
         'graph': graph_layout_attrs,
@@ -1009,10 +1246,10 @@ def parse_point(ptstr):
 
 def parse_anode_layout_attrs(anode):
     node_attrs = {}
-    #try:
+    # try:
     xx, yy = anode.attr['pos'].strip('!').split(',')
     xy = np.array((float(xx), float(yy)))
-    #except Exception:
+    # except Exception:
     #    xy = np.array((0.0, 0.0))
     adpi = 72.0
     width = float(anode.attr['width']) * adpi
@@ -1033,10 +1270,10 @@ def parse_aedge_layout_attrs(aedge, translation=None):
         translation = np.array([0, 0])
     edge_attrs = {}
     apos = aedge.attr['pos']
-    #print('apos = %r' % (apos,))
+    # print('apos = %r' % (apos,))
     end_pt = None
     start_pt = None
-    #if '-' in apos:
+    # if '-' in apos:
     #    import utool
     #    utool.embed()
 
@@ -1048,17 +1285,16 @@ def parse_aedge_layout_attrs(aedge, translation=None):
     strpos_list = apos.split(' ')
     strtup_list = [ea.split(',') for ea in strpos_list]
 
-    ctrl_ptstrs = [ea for ea in  strtup_list if ea[0] not in 'es']
-    end_ptstrs = [ea[1:] for ea in  strtup_list[0:2] if ea[0] == 'e']
-    start_ptstrs = [ea[1:] for ea in  strtup_list[0:2] if ea[0] == 's']
+    ctrl_ptstrs = [ea for ea in strtup_list if ea[0] not in 'es']
+    end_ptstrs = [ea[1:] for ea in strtup_list[0:2] if ea[0] == 'e']
+    start_ptstrs = [ea[1:] for ea in strtup_list[0:2] if ea[0] == 's']
     assert len(end_ptstrs) <= 1
     assert len(start_ptstrs) <= 1
     if len(end_ptstrs) == 1:
         end_pt = np.array([float(f) for f in end_ptstrs[0]])
     if len(start_ptstrs) == 1:
         start_pt = np.array([float(f) for f in start_ptstrs[0]])
-    ctrl_pts = np.array([tuple([float(f) for f in ea])
-                         for ea in ctrl_ptstrs])
+    ctrl_pts = np.array([tuple([float(f) for f in ea]) for ea in ctrl_ptstrs])
     adata = aedge.attr
     ctrl_pts = ctrl_pts
     edge_attrs['pos'] = apos
@@ -1069,10 +1305,8 @@ def parse_aedge_layout_attrs(aedge, translation=None):
     edge_attrs['label'] = adata.get('label', None)
     edge_attrs['headlabel'] = adata.get('headlabel', None)
     edge_attrs['taillabel'] = adata.get('taillabel', None)
-    edge_attrs['head_lp'] = safeadd(parse_point(adata.get('head_lp', None)),
-                                    translation)
-    edge_attrs['tail_lp'] = safeadd(parse_point(adata.get('tail_lp', None)),
-                                    translation)
+    edge_attrs['head_lp'] = safeadd(parse_point(adata.get('head_lp', None)), translation)
+    edge_attrs['tail_lp'] = safeadd(parse_point(adata.get('tail_lp', None)), translation)
     return edge_attrs
 
 
@@ -1096,6 +1330,7 @@ def _get_node_size(graph, node, node_size):
         if 'image' in nattrs:
             img_fpath = nattrs['image']
             import vtool as vt
+
             width, height = vt.image.open_image_size(img_fpath)
         else:
             height = width = 1100 / 50 * scale
@@ -1103,8 +1338,16 @@ def _get_node_size(graph, node, node_size):
 
 
 @profile
-def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
-                  hacknode=False, verbose=None, **kwargs):
+def draw_network2(
+    graph,
+    layout_info,
+    ax,
+    as_directed=None,
+    hacknoedge=False,
+    hacknode=False,
+    verbose=None,
+    **kwargs
+):
     """
     Kwargs:
         use_image, arrow_width, fontsize, fontweight, fontname, fontfamilty,
@@ -1131,8 +1374,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
     # TODO: get font properties from nodes as well
     font_prop = pt.parse_fontkw(**kwargs)
-    #print('font_prop = %r' % (font_prop,))
-    #print('font_prop.get_name() = %r' % (font_prop.get_name() ,))
+    # print('font_prop = %r' % (font_prop,))
+    # print('font_prop.get_name() = %r' % (font_prop.get_name() ,))
 
     node_pos = layout_info['node'].get('pos', {})
     node_size = layout_info['node'].get('size', {})
@@ -1144,10 +1387,14 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
     # Draw nodes
     large_graph = len(graph) > LARGE_GRAPH
-    #for edge, pts in ut.ProgIter(edge_pos.items(), length=len(edge_pos), enabled=large_graph, lbl='drawing edges'):
+    # for edge, pts in ut.ProgIter(edge_pos.items(), length=len(edge_pos), enabled=large_graph, lbl='drawing edges'):
 
-    for node, nattrs in ut.ProgIter(graph.nodes(data=True), length=len(graph),
-                                    lbl='drawing nodes', enabled=large_graph):
+    for node, nattrs in ut.ProgIter(
+        graph.nodes(data=True),
+        length=len(graph),
+        lbl='drawing nodes',
+        enabled=large_graph,
+    ):
         # shape = nattrs.get('shape', 'circle')
         if nattrs is None:
             nattrs = {}
@@ -1167,7 +1414,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             alpha_ = alpha
 
         node_color = ensure_nonhex_color(node_color)
-        #intcolor = int(node_color.replace('#', '0x'), 16)
+        # intcolor = int(node_color.replace('#', '0x'), 16)
         node_color = node_color[0:3]
         patch_kw = dict(alpha=alpha_, color=node_color)
         node_shape = nattrs.get('shape', 'ellipse')
@@ -1199,41 +1446,43 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 height -= rpad * 2
                 boxstyle = patches.BoxStyle.Round(pad=rpad)
                 patch = patches.FancyBboxPatch(
-                    xy_bl, width, height, boxstyle=boxstyle, **patch_kw)
+                    xy_bl, width, height, boxstyle=boxstyle, **patch_kw
+                )
             else:
                 bbox = list(xy_bl) + [width, height]
                 if isdiag:
                     import vtool as vt
-                    center_xy  = vt.bbox_center(bbox)
-                    _xy =  np.array(center_xy)
+
+                    center_xy = vt.bbox_center(bbox)
+                    _xy = np.array(center_xy)
                     newverts_ = [
-                        _xy + [         0, -height / 2],
-                        _xy + [-width / 2,           0],
-                        _xy + [         0,  height / 2],
-                        _xy + [ width / 2,           0],
+                        _xy + [0, -height / 2],
+                        _xy + [-width / 2, 0],
+                        _xy + [0, height / 2],
+                        _xy + [width / 2, 0],
                     ]
                     patch = patches.Polygon(newverts_, **patch_kw)
                 else:
                     patch = patches.Rectangle(
-                        xy_bl, width, height, angle=angle,
-                        **patch_kw)
+                        xy_bl, width, height, angle=angle, **patch_kw
+                    )
 
             patch.center = xy
-        #if style == 'rounded'
-        #elif node_shape in ['roundbox']:
+        # if style == 'rounded'
+        # elif node_shape in ['roundbox']:
         elif node_shape == 'stack':
             width, height = _get_node_size(graph, node, node_size)
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
             depth = nattrs.get('depth', 4)
             stackkw = patch_kw.copy()
-            stackkw['linewidths'] = .2
+            stackkw['linewidths'] = 0.2
             stackkw['edgecolor'] = 'k'
-            #xshift = -width * (.1 / (depth ** (1 / 3))) / 3
-            #yshift = height * (.1 / (depth ** (1 / 3))) / 2
-            #xshift = -width * (.05) / 6
-            #yshift = height * (.05) / 2
-            xshift = -200 * (.05) / 6
-            yshift = 200 * (.05) / 2
+            # xshift = -width * (.1 / (depth ** (1 / 3))) / 3
+            # yshift = height * (.1 / (depth ** (1 / 3))) / 2
+            # xshift = -width * (.05) / 6
+            # yshift = height * (.05) / 2
+            xshift = -200 * (0.05) / 6
+            yshift = 200 * (0.05) / 2
             stackkw['shift'] = np.array([xshift, yshift])
             patch = pt.cartoon_stacked_rects(xy_bl, width, height, num=depth, **stackkw)
             patch.xy = xy
@@ -1254,7 +1503,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 framecolor = nattrs.get('framecolor', node_color)
                 framecolor = ensure_nonhex_color(framecolor)
 
-                #print('framecolor = %r' % (framecolor,))
+                # print('framecolor = %r' % (framecolor,))
                 if framecolor is None:
                     framecolor = pt.BLACK
                     framealpha = 0.0
@@ -1266,14 +1515,20 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                     else:
                         framewidth = 3.0
                 lw = framewidth
-                frame = pt.make_bbox(bbox, bbox_color=framecolor, ax=ax, lw=lw,
-                                     align=framealign, alpha=framealpha)
+                frame = pt.make_bbox(
+                    bbox,
+                    bbox_color=framecolor,
+                    ax=ax,
+                    lw=lw,
+                    align=framealign,
+                    alpha=framealpha,
+                )
                 if zorder is not None:
                     frame.set_zorder(zorder)
-                #frame.set_zorder()
+                # frame.set_zorder()
                 patch_dict['patch_frame_dict'][node] = frame
-        #import utool
-        #utool.embed()
+        # import utool
+        # utool.embed()
         picker = nattrs.get('picker', True)
         patch.set_picker(picker)
         if zorder is not None:
@@ -1284,13 +1539,15 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         x, y = xy
         text = str(node)
         if label is not None:
-            #text += ': ' + str(label)
+            # text += ': ' + str(label)
             text = label
         if kwargs.get('node_labels', hacknode or not using_image):
-            text_args = ((x, y, text), dict(ax=ax, ha='center', va='center',
-                                            fontproperties=font_prop))
+            text_args = (
+                (x, y, text),
+                dict(ax=ax, ha='center', va='center', fontproperties=font_prop),
+            )
             text_pseudo_objects.append((text_args, zorder))
-        patch_dict['node_patch_dict'][node] = (patch)
+        patch_dict['node_patch_dict'][node] = patch
 
     def get_default_edge_data(graph, edge):
         data = graph.get_edge_data(*edge)
@@ -1309,8 +1566,12 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     edge_pos = layout_info['edge'].get('ctrl_pts', None)
     n_invis_edge = 0
     if edge_pos is not None:
-        for edge, pts in ut.ProgIter(edge_pos.items(), length=len(edge_pos),
-                                     enabled=large_graph, lbl='drawing edges'):
+        for edge, pts in ut.ProgIter(
+            edge_pos.items(),
+            length=len(edge_pos),
+            enabled=large_graph,
+            lbl='drawing edges',
+        ):
             data = get_default_edge_data(graph, edge)
 
             if data.get('style', None) == 'invis':
@@ -1322,7 +1583,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             defaultcolor = pt.BLACK[0:3]
             if alpha is None:
                 if data.get('implicit', False):
-                    alpha = .5
+                    alpha = 0.5
                     defaultcolor = pt.GREEN[0:3]
                 else:
                     alpha = 1.0
@@ -1332,13 +1593,13 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             color = ensure_nonhex_color(color)
             color = color[0:3]
 
-            #layout_info['edge']['ctrl_pts'][edge]
-            #layout_info['edge']['start_pt'][edge]
+            # layout_info['edge']['ctrl_pts'][edge]
+            # layout_info['edge']['start_pt'][edge]
 
             offset = 0 if graph.is_directed() else 0
-            #color = data.get('color', color)[0:3]
+            # color = data.get('color', color)[0:3]
             start_point = pts[offset]
-            other_points = pts[offset + 1:].tolist()  # [0:3]
+            other_points = pts[offset + 1 :].tolist()  # [0:3]
             verts = [start_point] + other_points
 
             MOVETO = mpl.path.Path.MOVETO
@@ -1348,7 +1609,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             if splines in ['line', 'polyline', 'ortho']:
                 CODE = LINETO
             elif splines == 'curved':
-                #CODE = mpl.path.Path.CURVE3
+                # CODE = mpl.path.Path.CURVE3
                 # CODE = mpl.path.Path.CURVE3
                 CODE = mpl.path.Path.CURVE4
             elif splines == 'spline':
@@ -1376,20 +1637,21 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 # HACK
                 graphsize = max(figsize)
                 lw = graphsize / 8
-                width =  graphsize / 15
+                width = graphsize / 15
                 width = ut.get_argval('--arrow-width', default=width)
                 lw = ut.get_argval('--line-width', default=lw)
-                #print('width = %r' % (width,))
+                # print('width = %r' % (width,))
             else:
-                width = .5
+                width = 0.5
                 lw = 1.0
                 try:
                     import vtool as vt
+
                     # Compute arrow width using estimated graph size
                     if node_size is not None and node_pos is not None:
                         xys = np.array(ut.take(node_pos, node_pos.keys())).T
                         whs = np.array(ut.take(node_size, node_pos.keys())).T
-                        bboxes = vt.bbox_from_xywh(xys, whs, [.5, .5])
+                        bboxes = vt.bbox_from_xywh(xys, whs, [0.5, 0.5])
                         extents = vt.extent_from_bbox(bboxes)
                         tl_pts = np.array([extents[0], extents[2]]).T
                         br_pts = np.array([extents[1], extents[3]]).T
@@ -1399,7 +1661,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                         graph_dim = np.sqrt(graph_w ** 2 + graph_h ** 2)
 
                         # width = graph_dim * .0005
-                        width = graph_dim * .005
+                        width = graph_dim * 0.005
                 except Exception:
                     pass
             arrow_width = kwargs.get('arrow_width', width)
@@ -1416,8 +1678,9 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             # added
             full_lw = lw
 
-            #effects = data.get('stroke', None)
+            # effects = data.get('stroke', None)
             from matplotlib import patheffects
+
             path_effects = []
 
             sketch_params = data.get('sketch')
@@ -1425,11 +1688,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 if sketch_params is True:
                     # scale, length, randomness
                     # sketch_params = (10.0, 128.0, 16.0)
-                    sketch_params = dict(
-                        scale=10.0,
-                        length=128.0,
-                        randomness=16.0,
-                    )
+                    sketch_params = dict(scale=10.0, length=128.0, randomness=16.0,)
 
             stroke_info = data.get('stroke', None)
             if stroke_info not in [None, False]:
@@ -1438,7 +1697,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 elif isinstance(stroke_info, dict):
                     strokekw = stroke_info.copy()
                 else:
-                    #linewidth=3, foreground='r'
+                    # linewidth=3, foreground='r'
                     assert False
                 if strokekw is not None:
                     # Hack to increase lw
@@ -1459,19 +1718,23 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                     offset = ut.ensure_iterable(shadowkw.pop('offset', (2, -2)))
                     if len(offset) == 1:
                         offset = offset * 2
-                    shadowkw_ = dict(offset=offset, shadow_color=shadow_color,
-                                     alpha=.3, rho=.3, linewidth=linewidth *
-                                     scale)
+                    shadowkw_ = dict(
+                        offset=offset,
+                        shadow_color=shadow_color,
+                        alpha=0.3,
+                        rho=0.3,
+                        linewidth=linewidth * scale,
+                    )
                     shadowkw_.update(shadowkw)
                     path_effects += [patheffects.SimpleLineShadow(**shadowkw_)]
 
-            #for vert, code in path.iter_segments():
+            # for vert, code in path.iter_segments():
             #    print('code = %r' % (code,))
             #    print('vert = %r' % (vert,))
             #    if code == MOVETO:
             #        pass
 
-            #for verts, code in path.cleaned().iter_segments():
+            # for verts, code in path.cleaned().iter_segments():
             #    print('code = %r' % (code,))
             #    print('verts = %r' % (verts,))
             #    pass
@@ -1479,17 +1742,21 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
             picker = data.get('picker', 5)
             zorder = data.get('zorder', 5)
-            patch = mpl.patches.PathPatch(path, facecolor='none', lw=lw,
-                                          path_effects=path_effects,
-                                          edgecolor=color,
-                                          picker=picker,
-                                          #facecolor=color,
-                                          linestyle=linestyle,
-                                          alpha=alpha,
-                                          joinstyle='bevel',
-                                          hatch=hatch,
-                                          # sketch_params=sketch_params,
-                                          zorder=zorder)
+            patch = mpl.patches.PathPatch(
+                path,
+                facecolor='none',
+                lw=lw,
+                path_effects=path_effects,
+                edgecolor=color,
+                picker=picker,
+                # facecolor=color,
+                linestyle=linestyle,
+                alpha=alpha,
+                joinstyle='bevel',
+                hatch=hatch,
+                # sketch_params=sketch_params,
+                zorder=zorder,
+            )
             if sketch_params is not None:
                 patch.set_sketch_params(**sketch_params)
 
@@ -1498,25 +1765,37 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
             if as_directed:
                 if end_pt is not None:
-                    dxy = (np.array(end_pt) - other_points[-1])
-                    dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
+                    dxy = np.array(end_pt) - other_points[-1]
+                    dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * 0.1
                     dx, dy = dxy
                     rx, ry = end_pt[0], end_pt[1]
-                    patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=arrow_width,
-                                                    length_includes_head=True,
-                                                    color=color,
-                                                    head_starts_at_zero=False)
+                    patch1 = mpl.patches.FancyArrow(
+                        rx,
+                        ry,
+                        dx,
+                        dy,
+                        width=arrow_width,
+                        length_includes_head=True,
+                        color=color,
+                        head_starts_at_zero=False,
+                    )
                 else:
-                    dxy = (np.array(other_points[-1]) - other_points[-2])
-                    dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
+                    dxy = np.array(other_points[-1]) - other_points[-2]
+                    dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * 0.1
                     dx, dy = dxy
                     rx, ry = other_points[-1][0], other_points[-1][1]
-                    patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=arrow_width,
-                                                    length_includes_head=True,
-                                                    color=color,
-                                                    head_starts_at_zero=True)
-                #ax.add_patch(patch1)
-                patch_dict['arrow_patch_list'][edge] = (patch1)
+                    patch1 = mpl.patches.FancyArrow(
+                        rx,
+                        ry,
+                        dx,
+                        dy,
+                        width=arrow_width,
+                        length_includes_head=True,
+                        color=color,
+                        head_starts_at_zero=True,
+                    )
+                # ax.add_patch(patch1)
+                patch_dict['arrow_patch_list'][edge] = patch1
 
             taillabel = layout_info['edge'].get('taillabel', {}).get(edge, None)
             headlabel = layout_info['edge'].get('headlabel', {}).get(edge, None)
@@ -1528,8 +1807,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 headlabel = None
             if isinstance(label, six.string_types) and label == 'None':
                 label = None
-            #ha = 'left'
-            #ha = 'right'
+            # ha = 'left'
+            # ha = 'right'
             ha = 'center'
             va = 'center'
             labelcolor = color  # TODO allow for different colors
@@ -1540,22 +1819,40 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
             if taillabel:
                 taillabel_pos = layout_info['edge']['tail_lp'][edge]
-                ax.annotate(taillabel, xy=taillabel_pos, xycoords='data',
-                            color=labelcolor,
-                            va=va, ha=ha, fontproperties=font_prop)
+                ax.annotate(
+                    taillabel,
+                    xy=taillabel_pos,
+                    xycoords='data',
+                    color=labelcolor,
+                    va=va,
+                    ha=ha,
+                    fontproperties=font_prop,
+                )
             if headlabel:
                 headlabel_pos = layout_info['edge']['head_lp'][edge]
-                ax.annotate(headlabel, xy=headlabel_pos, xycoords='data',
-                            color=labelcolor,
-                            va=va, ha=ha, fontproperties=font_prop)
+                ax.annotate(
+                    headlabel,
+                    xy=headlabel_pos,
+                    xycoords='data',
+                    color=labelcolor,
+                    va=va,
+                    ha=ha,
+                    fontproperties=font_prop,
+                )
             if label:
                 label_pos = layout_info['edge']['lp'][edge]
-                ax.annotate(label, xy=label_pos, xycoords='data',
-                            color=labelcolor,
-                            va=va, ha=ha, fontproperties=font_prop)
+                ax.annotate(
+                    label,
+                    xy=label_pos,
+                    xycoords='data',
+                    color=labelcolor,
+                    va=va,
+                    ha=ha,
+                    fontproperties=font_prop,
+                )
             patch_dict['edge_patch_dict'][edge] = patch
 
-            #ax.add_patch(patch)
+            # ax.add_patch(patch)
 
     if verbose:
         print('Adding %r node patches ' % (len(patch_dict['node_patch_dict'],)))
@@ -1570,13 +1867,17 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
     use_collections = False
     if use_collections:
-        edge_coll = mpl.collections.PatchCollection(patch_dict['edge_patch_dict'].values())
-        node_coll = mpl.collections.PatchCollection(patch_dict['node_patch_dict'].values())
-        #coll.set_facecolor(fcolor)
-        #coll.set_alpha(alpha)
-        #coll.set_linewidth(lw)
-        #coll.set_edgecolor(color)
-        #coll.set_transform(ax.transData)
+        edge_coll = mpl.collections.PatchCollection(
+            patch_dict['edge_patch_dict'].values()
+        )
+        node_coll = mpl.collections.PatchCollection(
+            patch_dict['node_patch_dict'].values()
+        )
+        # coll.set_facecolor(fcolor)
+        # coll.set_alpha(alpha)
+        # coll.set_linewidth(lw)
+        # coll.set_edgecolor(color)
+        # coll.set_transform(ax.transData)
         ax.add_collection(node_coll)
         ax.add_collection(edge_coll)
     else:
@@ -1641,6 +1942,8 @@ if __name__ == '__main__':
         python -m wbia.plottool.nx_helpers --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

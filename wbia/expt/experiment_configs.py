@@ -8,6 +8,7 @@ Rename to pipe_cfgdef
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
+
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -32,6 +33,7 @@ def augbase(basedict, updatedict):
 
 def apply_param(cfg, **kwargs):
     import copy
+
     cfg = copy.deepcopy(cfg)
     for _ in cfg:
         _.update(**kwargs)
@@ -57,33 +59,23 @@ def apply_Ell(cfg):
 def apply_EllQRH(cfg):
     return apply_param(cfg, query_rotation_heuristic=True, affine_invariance=True)
 
-exclude_vars = list(locals().keys())   # this line is before tests
+
+exclude_vars = list(locals().keys())  # this line is before tests
 
 default = [{}]
 
-baseline = [{
-    'resize_dim': 'area',
-    'dim_size': 450,
-}]
-#baseline = [{}]
+baseline = [{'resize_dim': 'area', 'dim_size': 450,}]
+# baseline = [{}]
 
-smk = [{
-    'proot': 'smk'
-}]
+smk = [{'proot': 'smk'}]
 
 ScoreMech = candidacy_namescore = [
-    {
-        'score_method':      ['nsum'],
-        'prescore_method':   ['nsum'],
-    },
-    #{
+    {'score_method': ['nsum'], 'prescore_method': ['nsum'],},
+    # {
     #    'score_method':      ['nsum'],
     #    'prescore_method':   ['csum'],
-    #},
-    {
-        'score_method':      ['csum'],
-        'prescore_method':   ['csum'],
-    }
+    # },
+    {'score_method': ['csum'], 'prescore_method': ['csum'],},
 ]
 
 
@@ -120,29 +112,14 @@ def best(metadata):
 
 
 featscoremetch = [
-    {
-        'lnbnn_on': True,
-        'fg_on': [True, False],
-    },
-    {
-        'lnbnn_on': False,
-        'ratio_thresh': 0,
-        'fg_on': [True, False],
-    },
-    {
-        'lnbnn_on': False,
-        'dist_on': True,
-        'fg_on': [True, False],
-    },
-    {
-        'lnbnn_on': False,
-        'const_on': True,
-        'fg_on': [True, False],
-    },
-    #{
+    {'lnbnn_on': True, 'fg_on': [True, False],},
+    {'lnbnn_on': False, 'ratio_thresh': 0, 'fg_on': [True, False],},
+    {'lnbnn_on': False, 'dist_on': True, 'fg_on': [True, False],},
+    {'lnbnn_on': False, 'const_on': True, 'fg_on': [True, False],},
+    # {
     #    'lnbnn_on': False,
     #    'lograt_on': True,
-    #},
+    # },
 ]
 
 
@@ -163,14 +140,39 @@ def get_candidacy_dbnames():
         #'GIR_Tanya',
     ]
 
+
 # Test all combinations of invariance
 invar = candinvar = candidacy_invariance = [
-    {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
-    {'affine_invariance':  [True], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
-    {'affine_invariance': [False], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
-    {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
-    {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
-    {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+    {
+        'affine_invariance': [True],
+        'rotation_invariance': [False],
+        'query_rotation_heuristic': [False],
+    },
+    {
+        'affine_invariance': [True],
+        'rotation_invariance': [True],
+        'query_rotation_heuristic': [False],
+    },
+    {
+        'affine_invariance': [False],
+        'rotation_invariance': [True],
+        'query_rotation_heuristic': [False],
+    },
+    {
+        'affine_invariance': [False],
+        'rotation_invariance': [False],
+        'query_rotation_heuristic': [False],
+    },
+    {
+        'affine_invariance': [True],
+        'rotation_invariance': [False],
+        'query_rotation_heuristic': [True],
+    },
+    {
+        'affine_invariance': [False],
+        'rotation_invariance': [False],
+        'query_rotation_heuristic': [True],
+    },
 ]
 
 # Special value used to specify the current IBEIS configuration

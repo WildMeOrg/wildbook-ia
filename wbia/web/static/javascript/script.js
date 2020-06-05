@@ -103,4 +103,3 @@ function add_part() {
     $('#ia-detection-part-class option[value="' + value + '"]').prop("selected", true);
     $('.ia-detection-form-part-value').trigger('change');
 }
-

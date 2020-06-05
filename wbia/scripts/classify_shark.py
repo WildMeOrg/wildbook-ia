@@ -7,14 +7,17 @@ import sklearn.datasets
 import sklearn.svm
 import sklearn.metrics
 from sklearn import preprocessing
+
 try:
     from ibeis_cnn.models import abstract_models
+
     AbstractCategoricalModel = abstract_models.AbstractCategoricalModel
 except ImportError:
     AbstractCategoricalModel = object
     print('no ibeis_cnn')
 
 from os.path import join
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -32,17 +35,15 @@ def shark_net(dry=False):
     """
     from wbia.scripts import classify_shark
     import wbia
+
     ibs = wbia.opendb('WS_ALL')  # NOQA
-    config = {
-        'dim_size': (224, 224),
-        'resize_dim': 'wh'
-    }
+    config = {'dim_size': (224, 224), 'resize_dim': 'wh'}
 
     # ------------
     # Define dataset
     # ------------
     target_type = 'binary'
-    #target_type = 'multiclass3'
+    # target_type = 'multiclass3'
     # ut.delete(ibs.get_neuralnet_dir())  # to reset
     dataset = classify_shark.get_shark_dataset(target_type, 'chip')
 
@@ -53,12 +54,12 @@ def shark_net(dry=False):
         batch_size = 128
         suffix = 'resnet'
         # suffix = 'lenet'
-        #suffix = 'incep'
+        # suffix = 'incep'
     else:
         suffix = 'lenet'
         batch_size = 64
-        #suffix = 'resnet'
-        #batch_size = 32
+        # suffix = 'resnet'
+        # batch_size = 32
 
     model_name = 'injur-shark-' + suffix
 
@@ -68,7 +69,8 @@ def shark_net(dry=False):
             output_dims=len(dataset.getprop('target_names')),
             data_shape=config['dim_size'] + (3,),
             batch_size=batch_size,
-            arch_dpath='.')
+            arch_dpath='.',
+        )
         model.init_arch()
         model.load_model_state()
     else:
@@ -91,17 +93,15 @@ def shark_net(dry=False):
         state_fpath = model.get_model_state_fpath()
         model.load_model_state(fpath=state_fpath)
 
-        #X_test, y_test = dataset.subset('test')
-        #X_test, y_test = dataset.subset('valid')
-        #X_test, y_test = dataset.subset('learn')
+        # X_test, y_test = dataset.subset('test')
+        # X_test, y_test = dataset.subset('valid')
+        # X_test, y_test = dataset.subset('learn')
         X_test, y_test = dataset.subset('test')
-        #y_pred = model.predict(X_test)
+        # y_pred = model.predict(X_test)
         test_outptuts = model._predict(X_test)
         y_pred = test_outptuts['predictions']
         print(model.name)
-        report = sklearn.metrics.classification_report(
-            y_true=y_test, y_pred=y_pred,
-        )
+        report = sklearn.metrics.classification_report(y_true=y_test, y_pred=y_pred,)
         print(report)
 
         state_fpath = '/home/joncrall/Desktop/manually_saved/arch_injur-shark-resnet_o2_d27_c2942_jzuddodd/model_state_arch_jzuddodd.pkl'
@@ -111,20 +111,20 @@ def shark_net(dry=False):
     hyperparams = dict(
         era_size=30,
         max_epochs=1000,
-        rate_schedule=.1,
+        rate_schedule=0.1,
         augment_on=True,
         class_weight='balanced',
         stopping_patience=200,
     )
-    model.learn_state.weight_decay = .000002
-    model.learn_state.learning_rate = .005
+    model.learn_state.weight_decay = 0.000002
+    model.learn_state.learning_rate = 0.005
     ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
     model.monitor_config['weight_dump_freq'] = 100
     model.monitor_config['case_dump_freq'] = 100
 
-    #model.build_backprop_func()
-    #model.build_forward_func()
+    # model.build_backprop_func()
+    # model.build_forward_func()
 
     # ---------------
     # Setup and learn
@@ -133,9 +133,9 @@ def shark_net(dry=False):
     X_learn, y_learn = dataset.subset('learn')
     X_valid, y_valid = dataset.subset('valid')
     X_test, y_test = dataset.subset('test')
-    #model.ensure_data_params(X_learn, y_learn)
-    #X_train = X_learn  # NOQA
-    #y_train = y_learn  # NOQA
+    # model.ensure_data_params(X_learn, y_learn)
+    # X_train = X_learn  # NOQA
+    # y_train = y_learn  # NOQA
     valid_idx = None  # NOQA
 
     if dry or ut.get_argflag('--dry'):
@@ -159,15 +159,19 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
     def def_lenet(model):
         import ibeis_cnn.__LASAGNE__ as lasange
         from ibeis_cnn import custom_layers
+
         print('[model] init_arch')
 
-        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 3.))
+        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1.0 / 3.0))
         W = lasange.init.Orthogonal('relu')
 
         bundles = custom_layers.make_bundles(
-            nonlinearity=lrelu, batch_norm=True,
-            filter_size=(3, 3), stride=(1, 1),
-            pool_size=(2, 2), pool_stride=(2, 2),
+            nonlinearity=lrelu,
+            batch_norm=True,
+            filter_size=(3, 3),
+            stride=(1, 1),
+            pool_size=(2, 2),
+            pool_stride=(2, 2),
             W=W,
         )
         b = ut.DynStruct(copy_dict=bundles)
@@ -176,37 +180,36 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
             b.InputBundle(shape=model.input_shape, noise=False),
             # Convolutional layers
             b.ConvBundle(num_filters=16, pool=True),
-
             b.ConvBundle(num_filters=16),
             b.ConvBundle(num_filters=16, pool=True),
-
             b.ConvBundle(num_filters=16),
             b.ConvBundle(num_filters=32, pool=True),
-
             b.ConvBundle(num_filters=32),
             b.ConvBundle(num_filters=32, pool=True),
-
             b.ConvBundle(num_filters=32),
-
             # Fully connected layers
-            b.DenseBundle(num_units=64, dropout=.5),
-            b.DenseBundle(num_units=64, dropout=.5),
-            b.SoftmaxBundle(num_units=model.output_dims)
+            b.DenseBundle(num_units=64, dropout=0.5),
+            b.DenseBundle(num_units=64, dropout=0.5),
+            b.SoftmaxBundle(num_units=model.output_dims),
         ]
         return network_layers_def
 
     def def_resnet(model):
         import ibeis_cnn.__LASAGNE__ as lasange
         from ibeis_cnn import custom_layers
+
         print('[model] init_arch')
-        nonlinearity = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 3.))
+        nonlinearity = lasange.nonlinearities.LeakyRectify(leakiness=(1.0 / 3.0))
         W = lasange.init.HeNormal(gain='relu')
-        #W = lasange.init.GlorotUniform()
+        # W = lasange.init.GlorotUniform()
 
         bundles = custom_layers.make_bundles(
             nonlinearity=nonlinearity,
-            filter_size=(3, 3), stride=(1, 1),
-            W=W, pool_size=(2, 2), pool_stride=(2, 2)
+            filter_size=(3, 3),
+            stride=(1, 1),
+            W=W,
+            pool_size=(2, 2),
+            pool_stride=(2, 2),
         )
         b = ut.DynStruct(copy_dict=bundles)
 
@@ -214,31 +217,26 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
             b.InputBundle(shape=model.input_shape, noise=False),
             # Convolutional layers
             b.ConvBundle(num_filters=16, pool=False),
-
             b.ResidualBundle(num_filters=16, stride=(2, 2), preactivate=False),
             b.ResidualBundle(num_filters=16),
-
             b.ResidualBundle(num_filters=16, stride=(2, 2)),
             b.ResidualBundle(num_filters=16),
-
             b.ResidualBundle(num_filters=16, stride=(2, 2)),
             b.ResidualBundle(num_filters=16),
-
             b.ResidualBundle(num_filters=16, stride=(2, 2)),
             b.ResidualBundle(num_filters=16, dropout=None),
-
-            b.ResidualBundle(num_filters=16, stride=(2, 2), dropout=.5),
-            b.ResidualBundle(num_filters=16, postactivate=True, dropout=.5),
-
+            b.ResidualBundle(num_filters=16, stride=(2, 2), dropout=0.5),
+            b.ResidualBundle(num_filters=16, postactivate=True, dropout=0.5),
             # Fully connected layers
             b.GlobalPool(),
-            b.SoftmaxBundle(num_units=model.output_dims)
+            b.SoftmaxBundle(num_units=model.output_dims),
         ]
         return network_layers_def
 
     def def_inception(model):
         import ibeis_cnn.__LASAGNE__ as lasange
         from ibeis_cnn import custom_layers
+
         print('[model] init_arch')
 
         N = 16
@@ -248,16 +246,19 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
             dict(t='c', s=(1, 1), r=0, n=N),
             dict(t='c', s=(3, 3), r=N // 2, n=N // 2),
             dict(t='c', s=(3, 3), r=N // 4, n=N // 4, d=2),
-            dict(t='p', s=(3, 3), n=N // 2)
+            dict(t='p', s=(3, 3), n=N // 2),
         ]
 
-        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 3.))
+        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1.0 / 3.0))
         W = lasange.init.Orthogonal('relu')
 
         bundles = custom_layers.make_bundles(
-            nonlinearity=lrelu, batch_norm=True,
-            filter_size=(3, 3), stride=(1, 1),
-            pool_size=(3, 3), pool_stride=(2, 2),
+            nonlinearity=lrelu,
+            batch_norm=True,
+            filter_size=(3, 3),
+            stride=(1, 1),
+            pool_size=(3, 3),
+            pool_stride=(2, 2),
             branches=incep_branches,
             W=W,
         )
@@ -268,23 +269,23 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
             b.InputBundle(shape=model.input_shape, noise=False),
             b.ConvBundle(num_filters=16, filter_size=(3, 3), pool=False),
             b.ConvBundle(num_filters=12, filter_size=(3, 3), pool=True),
-
-            b.InceptionBundle(dropout=.3, pool=True),
-            b.InceptionBundle(dropout=.3, pool=True),
-
-            b.InceptionBundle(dropout=.4, pool=True),
-            b.InceptionBundle(dropout=.5,
-                              branches=[
-                                  dict(t='c', s=(1, 1), r=0, n=model.output_dims),
-                                  dict(t='c', s=(3, 3), r=N // 2, n=model.output_dims),
-                                  dict(t='c', s=(3, 3), r=N // 4, n=model.output_dims, d=2),
-                                  dict(t='p', s=(3, 3), n=model.output_dims)
-                              ]),
+            b.InceptionBundle(dropout=0.3, pool=True),
+            b.InceptionBundle(dropout=0.3, pool=True),
+            b.InceptionBundle(dropout=0.4, pool=True),
+            b.InceptionBundle(
+                dropout=0.5,
+                branches=[
+                    dict(t='c', s=(1, 1), r=0, n=model.output_dims),
+                    dict(t='c', s=(3, 3), r=N // 2, n=model.output_dims),
+                    dict(t='c', s=(3, 3), r=N // 4, n=model.output_dims, d=2),
+                    dict(t='p', s=(3, 3), n=model.output_dims),
+                ],
+            ),
             b.GlobalPool(),
             b.SoftmaxBundle(num_units=model.output_dims)
             # Fully connected layers
-            #b.DenseBundle(num_units=64, dropout=.5),
-            #b.DenseBundle(num_units=64, dropout=.5),
+            # b.DenseBundle(num_units=64, dropout=.5),
+            # b.DenseBundle(num_units=64, dropout=.5),
         ]
         return network_layers_def
 
@@ -313,16 +314,16 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
             >>> ut.show_if_requested()
         """
         from ibeis_cnn import custom_layers
-        #if ut.get_computer_name() == 'Leviathan':
+
+        # if ut.get_computer_name() == 'Leviathan':
         if model.name.endswith('incep'):
             network_layers_def = model.def_inception()
         elif model.name.endswith('lenet'):
             network_layers_def = model.def_lenet()
         elif model.name.endswith('resnet'):
             network_layers_def = model.def_resnet()
-        network_layers = custom_layers.evaluate_layer_list(
-            network_layers_def)
-        #model.network_layers = network_layers
+        network_layers = custom_layers.evaluate_layer_list(network_layers_def)
+        # model.network_layers = network_layers
         output_layer = network_layers[-1]
         model.output_layer = output_layer
         return output_layer
@@ -330,7 +331,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
     def special_output():
         pass
 
-    #def special_loss_function(output_activations):
+    # def special_loss_function(output_activations):
     #    output_injur1 = output_activations[:, 0]
     #    output_injur2 = output_activations[:, 1]
     #    output_healthy = (1 - ((1 - output_injur1) * (1 - output_injur2))
@@ -357,6 +358,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         >>> ut.show_if_requested()
         """
         from ibeis_cnn import augment
+
         rng = np.random
         affperterb_ranges = dict(
             zoom_range=(1.3, 1.2),
@@ -368,13 +370,17 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
             enable_flip=True,
         )
         Xb_, yb_ = augment.augment_affine(
-            Xb, yb, rng=rng, inplace=True, data_per_label=1,
+            Xb,
+            yb,
+            rng=rng,
+            inplace=True,
+            data_per_label=1,
             affperterb_ranges=affperterb_ranges,
-            aug_prop=.5,
+            aug_prop=0.5,
         )
         return Xb_, yb_
 
-    #def fit_interactive(X_train, y_train, X_valid, y_valid):
+    # def fit_interactive(X_train, y_train, X_valid, y_valid):
     #    pass
 
 
@@ -387,6 +393,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     """
     from ibeis_cnn.dataset import DataSet
     from wbia.scripts import classify_shark
+
     tup = classify_shark.get_shark_labels_and_metadata(target_type)
     ibs, annots, target, target_names, config, metadata, enc = tup
     data_shape = config['dim_size'] + (3,)
@@ -397,7 +404,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     trail_hashstr = ut.hashstr27(trail_cfgstr)
     visual_uuids = annots.visual_uuids
     metadata['visual_uuid'] = np.array(visual_uuids)
-    #metadata['nids'] = np.array(annots.nids)
+    # metadata['nids'] = np.array(annots.nids)
     chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
     cfgstr = chips_hashstr + '_' + trail_hashstr
     name = 'injur-shark'
@@ -407,11 +414,13 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
         name += '-hog'
 
     training_dpath = ibs.get_neuralnet_dir()
-    dataset = DataSet(cfgstr,
-                      data_shape=data_shape,
-                      num_data=length,
-                      training_dpath=training_dpath,
-                      name=name)
+    dataset = DataSet(
+        cfgstr,
+        data_shape=data_shape,
+        num_data=length,
+        training_dpath=training_dpath,
+        name=name,
+    )
 
     print(dataset.dataset_id)
 
@@ -425,6 +434,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
         dataset.load()
     except IOError:
         import vtool as vt
+
         dataset.ensure_dirs()
 
         if data_type == 'hog':
@@ -433,8 +443,9 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
             # Save data where dataset expects it to be
             dataset.save(data, labels, metadata, data_per_label=1)
         else:
-            chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
-                                          eager=False, config=config)
+            chip_gen = ibs.depc_annot.get(
+                'chips', annots.aids, 'img', eager=False, config=config
+            )
             iter_ = iter(ut.ProgIter(chip_gen, length=length, lbl='load chip'))
             shape = (length,) + data_shape
             data = vt.fromiter_nd(iter_, shape=shape, dtype=np.uint8)  # NOQA
@@ -443,18 +454,20 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
             dataset.save(data, labels, metadata, data_per_label=1)
 
     from ibeis_cnn.dataset import stratified_label_shuffle_split
+
     if not dataset.has_split('learn'):
         nids = np.array(dataset.metadata['nids'])
         # Partition into a testing and training dataset
         y = dataset.labels
         train_idx, test_idx = stratified_label_shuffle_split(
-            y, nids, [.8, .2], rng=22019)
+            y, nids, [0.8, 0.2], rng=22019
+        )
         nids_train = nids.take(train_idx, axis=0)
         y_train = y.take(train_idx, axis=0)
         # Partition training into learning and validation
         learn_idx, valid_idx = stratified_label_shuffle_split(
-            y_train, nids_train,
-            [.8, .2], y_idx=train_idx, rng=90120)
+            y_train, nids_train, [0.8, 0.2], y_idx=train_idx, rng=90120
+        )
         assert len(np.intersect1d(learn_idx, test_idx)) == 0
         assert len(np.intersect1d(valid_idx, test_idx)) == 0
         assert len(np.intersect1d(learn_idx, valid_idx)) == 0
@@ -470,13 +483,14 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
         y = dataset.labels
         nids = np.array(dataset.metadata['nids'])
         train_idx, test_idx = stratified_label_shuffle_split(
-            y, nids, [.8, .2], rng=22019)
+            y, nids, [0.8, 0.2], rng=22019
+        )
         nids_train = nids.take(train_idx, axis=0)
         y_train = y.take(train_idx, axis=0)
         # Partition training into learning and validation
         learn_idx, valid_idx = stratified_label_shuffle_split(
-            y_train, nids_train,
-            [.8, .2], y_idx=train_idx, rng=90120)
+            y_train, nids_train, [0.8, 0.2], y_idx=train_idx, rng=90120
+        )
         dataset._split_idxs = {}
         dataset._split_idxs['learn'] = learn_idx
         dataset._split_idxs['valid'] = valid_idx
@@ -494,31 +508,35 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     >>> data_type = 'hog'
     """
     import wbia
+
     if ibs is None:
         ibs = wbia.opendb('WS_ALL')
     if config is None:
         config = {
             #'dim_size': (256, 256),
             'dim_size': (224, 224),
-            'resize_dim': 'wh'
+            'resize_dim': 'wh',
         }
     all_annots = ibs.annots(config=config)
 
     isempty = ut.not_list(ut.lmap(len, ibs.images().aids))
-    #if False:
+    # if False:
     #    x = ibs.images().compress(isempty)
     num_empty_images = sum(isempty)
     print('Images without annotations: %r' % (num_empty_images,))
 
-    print('Building labels for %r annotations from %r images' % (
-        len(all_annots), len(ut.unique(all_annots.gids))))
+    print(
+        'Building labels for %r annotations from %r images'
+        % (len(all_annots), len(ut.unique(all_annots.gids)))
+    )
 
     TARGET_TYPE = 'binary'
-    #TARGET_TYPE = 'multiclass3'
+    # TARGET_TYPE = 'multiclass3'
     if target_type is None:
         target_type = TARGET_TYPE
 
     from wbia.scripts import getshark
+
     category_tags = getshark.get_injur_categories(all_annots)
     print('Base Category Tags tags')
     print(ut.repr3(ut.dict_hist(ut.flatten(category_tags))))
@@ -578,12 +596,13 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     print(ut.repr3(co_occur))
 
     print('Co-Occurrence Percent')
-    co_occur_percent = ut.odict([(keys,  [100 * val / hist[k] for k in keys]) for
-                                 keys, val in co_occur.items()])
+    co_occur_percent = ut.odict(
+        [(keys, [100 * val / hist[k] for k in keys]) for keys, val in co_occur.items()]
+    )
     print(ut.repr3(co_occur_percent, precision=2, nl=1))
 
     multi_annots = all_annots.compress(is_multi_tag)  # NOQA
-    #ibs.set_image_imagesettext(multi_annots.gids, ['MultiTaged'] * is_multi_tag.sum())
+    # ibs.set_image_imagesettext(multi_annots.gids, ['MultiTaged'] * is_multi_tag.sum())
 
     print('can\'t use %r annots due to no labels' % (is_no_tag.sum(),))
     print('can\'t use %r annots due to inconsistent labels' % (is_multi_tag.sum(),))
@@ -612,6 +631,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
 # @ut.reloadable_class
 class ClfProblem(object):
     """ Harness for researching a classification problem """
+
     def __init__(problem, ds):
         problem.ds = ds
 
@@ -634,16 +654,20 @@ class ClfProblem(object):
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
-                              decision_function_shape='ovr')
+        clf = sklearn.svm.SVC(
+            kernel=str('linear'),
+            C=0.17,
+            class_weight='balanced',
+            decision_function_shape='ovr',
+        )
 
         # C, penalty, loss
-        #param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
+        # param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
         #              'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1], }
-        #param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
+        # param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
         #              'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1], }
-        #clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
-        #clf = clf.fit(X_train_pca, y_train)
+        # clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
+        # clf = clf.fit(X_train_pca, y_train)
         clf.fit(x_train, y_train)
         return clf
 
@@ -653,8 +677,12 @@ class ClfProblem(object):
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
-                              decision_function_shape='ovr')
+        clf = sklearn.svm.SVC(
+            kernel=str('linear'),
+            C=0.17,
+            class_weight='balanced',
+            decision_function_shape='ovr',
+        )
         clf.fit(x_train, y_train)
 
     def gridsearch_linear_svm_params(problem, train_idx):
@@ -702,23 +730,27 @@ class ClfProblem(object):
                 #'C': np.logspace(np.log10(1e-3), np.log10(.1), 30, base=10)
                 #'C': np.linspace(.1, .3, 20),
                 #'C': np.linspace(1.0, .22, 20),
-                'C': np.linspace(.25, .01, 40),
+                'C': np.linspace(0.25, 0.01, 40),
                 #'loss': ['l2', 'l1'],
                 #'penalty': ['l2', 'l1'],
             }
-            _clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
-                                   decision_function_shape='ovr')
-            clf = sklearn.grid_search.GridSearchCV(_clf, param_grid, n_jobs=6,
-                                                   iid=False, cv=5, verbose=3)
+            _clf = sklearn.svm.SVC(
+                kernel=str('linear'),
+                C=0.17,
+                class_weight='balanced',
+                decision_function_shape='ovr',
+            )
+            clf = sklearn.grid_search.GridSearchCV(
+                _clf, param_grid, n_jobs=6, iid=False, cv=5, verbose=3
+            )
             clf.fit(x_train, y_train)
-            #(NOTE grid.predict only uses the best estimator)
+            # (NOTE grid.predict only uses the best estimator)
             print('clf.best_params_ = %r' % (clf.best_params_,))
-            print("Best parameters set found on development set:")
+            print('Best parameters set found on development set:')
             print(clf.best_params_)
-            print("Grid scores on development set:")
+            print('Grid scores on development set:')
             for params, mean_score, scores in clf.grid_scores_:
-                print("%0.3f (+/-%0.03f) for %r"
-                      % (mean_score, scores.std() * 2, params))
+                print('%0.3f (+/-%0.03f) for %r' % (mean_score, scores.std() * 2, params))
             xdata = np.array([t[0]['C'] for t in clf.grid_scores_])
             ydata = np.array([t[1] for t in clf.grid_scores_])
 
@@ -727,65 +759,66 @@ class ClfProblem(object):
             y_data_max = ydata_mean + y_data_std
             y_data_min = ydata_mean - y_data_std
 
-            #pt.plot(xdata, ydata, '-rx')
+            # pt.plot(xdata, ydata, '-rx')
             import wbia.plottool as pt
+
             pt.figure(fnum=pt.ensure_fnum(None))
             ax = pt.gca()
-            ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
+            ax.fill_between(xdata, y_data_min, y_data_max, alpha=0.2, color=pt.LIGHT_BLUE)
             pt.draw_hist_subbin_maxima(ydata, xdata)
 
-            #y_data_std = np.array([t[2].std() for t in grid.grid_scores_])
-            #ydata_mean = c_ydata
-            #y_data_max = ydata_mean + y_data_std
-            #y_data_min = ydata_mean - y_data_std
+            # y_data_std = np.array([t[2].std() for t in grid.grid_scores_])
+            # ydata_mean = c_ydata
+            # y_data_max = ydata_mean + y_data_std
+            # y_data_min = ydata_mean - y_data_std
             ##import wbia.plottool as pt
             ##pt.figure(fnum=pt.ensure_fnum(None))
-            #ax = pt.gca()
-            #ax.fill_between(c_xdata, c_ydata, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
-            #ax.fill_between(c_xdata, c_ydata, y_data_min, alpha=.2, color=pt.LIGHT_BLUE)
+            # ax = pt.gca()
+            # ax.fill_between(c_xdata, c_ydata, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
+            # ax.fill_between(c_xdata, c_ydata, y_data_min, alpha=.2, color=pt.LIGHT_BLUE)
             ##pt.figure(fnum=pt.ensure_fnum(None))
-            #hist = c_ydata
-            #centers = c_xdata
-            #pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
+            # hist = c_ydata
+            # centers = c_xdata
+            # pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
 
-            #clf.best_params_ = {u'C': 0.07143785714285722}
-            #Best parameters set found on development set:
-            #{u'C': 0.07143785714285722}
-            #Grid scores on development set:
-            #0.729 (+/-0.016) for {u'C': 1.0}
-            #0.729 (+/-0.019) for {u'C': 0.92857214285714285}
-            #0.733 (+/-0.017) for {u'C': 0.85714428571428569}
-            #0.734 (+/-0.015) for {u'C': 0.78571642857142865}
-            #0.736 (+/-0.016) for {u'C': 0.71428857142857138}
-            #0.739 (+/-0.020) for {u'C': 0.64286071428571434}
-            #0.742 (+/-0.020) for {u'C': 0.57143285714285719}
-            #0.743 (+/-0.021) for {u'C': 0.50000500000000003}
-            #0.746 (+/-0.023) for {u'C': 0.42857714285714288}
-            #0.749 (+/-0.023) for {u'C': 0.35714928571428572}
-            #0.755 (+/-0.025) for {u'C': 0.28572142857142857}
-            #0.760 (+/-0.027) for {u'C': 0.21429357142857142}
-            #0.762 (+/-0.025) for {u'C': 0.14286571428571437}
-            #0.770 (+/-0.036) for {u'C': 0.07143785714285722}
-            #0.664 (+/-0.031) for {u'C': 1.0000000000000001e-05}
+            # clf.best_params_ = {u'C': 0.07143785714285722}
+            # Best parameters set found on development set:
+            # {u'C': 0.07143785714285722}
+            # Grid scores on development set:
+            # 0.729 (+/-0.016) for {u'C': 1.0}
+            # 0.729 (+/-0.019) for {u'C': 0.92857214285714285}
+            # 0.733 (+/-0.017) for {u'C': 0.85714428571428569}
+            # 0.734 (+/-0.015) for {u'C': 0.78571642857142865}
+            # 0.736 (+/-0.016) for {u'C': 0.71428857142857138}
+            # 0.739 (+/-0.020) for {u'C': 0.64286071428571434}
+            # 0.742 (+/-0.020) for {u'C': 0.57143285714285719}
+            # 0.743 (+/-0.021) for {u'C': 0.50000500000000003}
+            # 0.746 (+/-0.023) for {u'C': 0.42857714285714288}
+            # 0.749 (+/-0.023) for {u'C': 0.35714928571428572}
+            # 0.755 (+/-0.025) for {u'C': 0.28572142857142857}
+            # 0.760 (+/-0.027) for {u'C': 0.21429357142857142}
+            # 0.762 (+/-0.025) for {u'C': 0.14286571428571437}
+            # 0.770 (+/-0.036) for {u'C': 0.07143785714285722}
+            # 0.664 (+/-0.031) for {u'C': 1.0000000000000001e-05}
 
-            #0.774 (+/-0.039) for {u'C': 0.017433288221999882}
-            #0.775 (+/-0.039) for {u'C': 0.020433597178569417}
-            #0.774 (+/-0.039) for {u'C': 0.023950266199874861}
-            #0.777 (+/-0.038) for {u'C': 0.02807216203941177}
-            #0.775 (+/-0.036) for {u'C': 0.032903445623126679}
-            #0.773 (+/-0.033) for {u'C': 0.038566204211634723}
+            # 0.774 (+/-0.039) for {u'C': 0.017433288221999882}
+            # 0.775 (+/-0.039) for {u'C': 0.020433597178569417}
+            # 0.774 (+/-0.039) for {u'C': 0.023950266199874861}
+            # 0.777 (+/-0.038) for {u'C': 0.02807216203941177}
+            # 0.775 (+/-0.036) for {u'C': 0.032903445623126679}
+            # 0.773 (+/-0.033) for {u'C': 0.038566204211634723}
 
-            #0.722 (+/-0.060) for {u'C': 0.001}
-            #0.770 (+/-0.047) for {u'C': 0.01}
-            #0.775 (+/-0.047) for {u'C': 0.1}
-            #0.774 (+/-0.047) for {u'C': 0.12}
-            #0.773 (+/-0.045) for {u'C': 0.15}
-            #0.773 (+/-0.046) for {u'C': 0.17}
-            #0.772 (+/-0.047) for {u'C': 0.2}
-            #0.760 (+/-0.043) for {u'C': 0.5}
-            #0.748 (+/-0.043) for {u'C': 1.0}
-            #0.707 (+/-0.043) for {u'C': 100}
-            #0.702 (+/-0.047) for {u'C': 1000}
+            # 0.722 (+/-0.060) for {u'C': 0.001}
+            # 0.770 (+/-0.047) for {u'C': 0.01}
+            # 0.775 (+/-0.047) for {u'C': 0.1}
+            # 0.774 (+/-0.047) for {u'C': 0.12}
+            # 0.773 (+/-0.045) for {u'C': 0.15}
+            # 0.773 (+/-0.046) for {u'C': 0.17}
+            # 0.772 (+/-0.047) for {u'C': 0.2}
+            # 0.760 (+/-0.043) for {u'C': 0.5}
+            # 0.748 (+/-0.043) for {u'C': 1.0}
+            # 0.707 (+/-0.043) for {u'C': 100}
+            # 0.702 (+/-0.047) for {u'C': 1000}
 
     def classifier_test(problem, clf, test_idx):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
@@ -800,7 +833,7 @@ class ClfProblem(object):
         result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
         return result
 
-    def stratified_2sample_idxs(problem, frac=.2, split_frac=.75):
+    def stratified_2sample_idxs(problem, frac=0.2, split_frac=0.75):
         target = problem.ds.target
         target_labels = problem.ds.target_labels
 
@@ -827,16 +860,18 @@ class ClfProblem(object):
             # Ensure that an individual does not appear in both the train
             # and the test dataset
             from ibeis_cnn.dataset import stratified_kfold_label_split
+
             labels = problem.ds.nids
             _iter = stratified_kfold_label_split(y, labels, n_folds=n_folds, rng=rng)
         else:
             xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=rng)
             import sklearn.cross_validation
+
             skf = sklearn.cross_validation.StratifiedKFold(y, **xvalkw)
             _iter = skf
-            #import sklearn.model_selection
-            #skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-            #_iter = skf.split(X=np.empty(len(y)), y=y)
+            # import sklearn.model_selection
+            # skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+            # _iter = skf.split(X=np.empty(len(y)), y=y)
         msg = 'cross-val test on %s' % (problem.ds.name)
         progiter = ut.ProgIter(_iter, length=n_folds, lbl=msg)
         for train_idx, test_idx in progiter:
@@ -852,6 +887,7 @@ class ClfSingleResult(object):
         >>> # DISABLE_DOCTEST
         >>> result = ClfSingleResult()
     """
+
     def __init__(result, ds=None, test_idx=None, y_true=None, y_pred=None, y_conf=None):
         result.ds = ds
         result.test_idx = test_idx
@@ -861,6 +897,7 @@ class ClfSingleResult(object):
 
     def compile_results(result):
         import pandas as pd
+
         y_true = result.y_true
         y_pred = result.y_pred
         y_conf = result.y_conf
@@ -879,18 +916,14 @@ class ClfSingleResult(object):
 
     def print_report(result):
         report = sklearn.metrics.classification_report(
-            result.y_true, result.y_pred,
-            target_names=result.ds.target_names)
+            result.y_true, result.y_pred, target_names=result.ds.target_names
+        )
         print(report)
 
 
 def get_model_state(clf):
-    model_attr_names = [
-        a for a in dir(clf)
-        if a.endswith('_') and not a.startswith('__')
-    ]
-    model_state = {a: getattr(clf, a)
-                   for a in model_attr_names}
+    model_attr_names = [a for a in dir(clf) if a.endswith('_') and not a.startswith('__')]
+    model_state = {a: getattr(clf, a) for a in model_attr_names}
     return model_state
 
 
@@ -946,7 +979,7 @@ def predict_ws_injury_interim_svm(ibs, aids, **kwargs):
     config = {
         #'dim_size': (256, 256),
         'dim_size': (224, 224),
-        'resize_dim': 'wh'
+        'resize_dim': 'wh',
     }
 
     # Load the SVM
@@ -991,13 +1024,13 @@ def shark_svm():
     from wbia.scripts import classify_shark
 
     target_type = 'binary'
-    #target_type = 'multiclass3'
-    #dataset = classify_shark.get_shark_dataset(target_type)
+    # target_type = 'multiclass3'
+    # dataset = classify_shark.get_shark_dataset(target_type)
 
     ds = classify_shark.get_shark_dataset(target_type, 'hog')
     # Make resemble old dataset
     # FIXME; make ibeis_cnn dataset work here too
-    #annots = ds.getprop('annots')
+    # annots = ds.getprop('annots')
     ds.enc = ds.getprop('enc')
     ds.aids = ds.getprop('annots').aids
     ds.nids = ds.getprop('annots').nids
@@ -1037,9 +1070,9 @@ def shark_svm():
     #                                                   command=command))
 
     model_dpath = ut.ensuredir((ds.dataset_dpath, 'svms'))
-    #n_folds = 10
+    # n_folds = 10
     n_folds = 10
-    #ensemble_dpath = ut.ensuredir((model_dpath, 'svms_%d_fold' % (n_folds,)))
+    # ensemble_dpath = ut.ensuredir((model_dpath, 'svms_%d_fold' % (n_folds,)))
 
     train_idx = ds._split_idxs['train']
     test_idx = ds._split_idxs['test']
@@ -1048,11 +1081,10 @@ def shark_svm():
     nids_train = ut.take(ds.nids, train_idx)
 
     # Ensure that an individual does not appear in both train and test
-    #_iter = stratified_kfold_label_split(y_train, nids_train, y_idx=train_idx,
+    # _iter = stratified_kfold_label_split(y_train, nids_train, y_idx=train_idx,
     #                                     n_folds=n_folds, rng=rng)
 
     class MyLabelCV(object):
-
         def __init__(self, y_train, nids_train, n_folds):
             self.nids_train = nids_train
             self.y_train = y_train
@@ -1063,9 +1095,11 @@ def shark_svm():
 
         def __iter__(self):
             from ibeis_cnn.dataset import stratified_kfold_label_split
+
             rng = 1809629827
-            for _ in stratified_kfold_label_split(self.y_train, self.nids_train,
-                                                  n_folds=self.n_folds, rng=rng):
+            for _ in stratified_kfold_label_split(
+                self.y_train, self.nids_train, n_folds=self.n_folds, rng=rng
+            ):
                 yield _
 
     clf_fpath = join(model_dpath, '%s_svc_folds_%s.cPkl' % (target_type, n_folds))
@@ -1099,6 +1133,7 @@ def shark_svm():
             import sklearn
             import sklearn.grid_search
             import sklearn.svm
+
             # C controls the margin of the hyperplane.
             # Smaller C = Larger Hyperplane
             # So, the larger the C the less willing the SVM will be to get
@@ -1106,36 +1141,67 @@ def shark_svm():
 
             param_grid = {
                 #'C': np.linspace(.1, .2, 10),
-                'C': [.0001, .001, .005, .01, .08, .1, .12, .15, .17, .2, .22, .5, 1.0, 100, 1000, 10000]
+                'C': [
+                    0.0001,
+                    0.001,
+                    0.005,
+                    0.01,
+                    0.08,
+                    0.1,
+                    0.12,
+                    0.15,
+                    0.17,
+                    0.2,
+                    0.22,
+                    0.5,
+                    1.0,
+                    100,
+                    1000,
+                    10000,
+                ]
                 #'C': np.linspace(.1, .2, 3),
             }
-            clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
-                                  decision_function_shape='ovr')
+            clf = sklearn.svm.SVC(
+                kernel=str('linear'),
+                C=0.17,
+                class_weight='balanced',
+                decision_function_shape='ovr',
+            )
             cv = MyLabelCV(y_train, nids_train, n_folds=n_folds)
-            grid = sklearn.grid_search.GridSearchCV(clf, param_grid=param_grid, cv=cv,
-                                                    refit=False, n_jobs=min(n_folds, 6),
-                                                    verbose=10)
+            grid = sklearn.grid_search.GridSearchCV(
+                clf,
+                param_grid=param_grid,
+                cv=cv,
+                refit=False,
+                n_jobs=min(n_folds, 6),
+                verbose=10,
+            )
             x_train = ds.data.take(train_idx, axis=0)
             y_train = ds.target.take(train_idx, axis=0)
             grid.fit(x_train, y_train)
 
             for params, mean_score, scores in grid.grid_scores_:
-                print("%0.3f (+/-%0.03f) for %r"
-                      % (mean_score, scores.std() * 2, params))
+                print('%0.3f (+/-%0.03f) for %r' % (mean_score, scores.std() * 2, params))
 
             c_xdata = np.array([t[0]['C'] for t in grid.grid_scores_])
             c_ydata = np.array([t[1] for t in grid.grid_scores_])
             import vtool as vt
-            #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(c_ydata, c_xdata, maxima_thresh=None)
+
+            # maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(c_ydata, c_xdata, maxima_thresh=None)
             submaxima_x, submaxima_y = vt.argsubmaxima(c_ydata, c_xdata)
-            #pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
+            # pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
             C = submaxima_x[0]
             print('C = %r' % (C,))
         else:
             print('C = %r' % (C,))
 
-        clf_all = sklearn.svm.SVC(kernel=str('linear'), C=C, class_weight='balanced',
-                                  decision_function_shape='ovr', verbose=10)
+        clf_all = sklearn.svm.SVC(
+            kernel=str('linear'),
+            C=C,
+            class_weight='balanced',
+            decision_function_shape='ovr',
+            verbose=10,
+        )
         X_train = ds.data.take(train_idx, axis=0)
         clf_all.fit(X_train, y_train)
         ut.save_data(clf_fpath, clf_all.__dict__)
@@ -1161,7 +1227,8 @@ def shark_svm():
     result_list = [result]
 
     import pandas as pd
-    #import wbia.plottool as pt
+
+    # import wbia.plottool as pt
     # Combine information from results
     df = pd.concat([r.df for r in result_list])
     df['hardness'] = 1 / df['easiness']
@@ -1170,31 +1237,36 @@ def shark_svm():
     df['failed'] = df['pred'] != df['target']
 
     report = sklearn.metrics.classification_report(
-        y_true=df['target'], y_pred=df['pred'],
-        target_names=result.ds.target_names)
+        y_true=df['target'], y_pred=df['pred'], target_names=result.ds.target_names
+    )
     print(report)
 
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
     print('Confusion Matrix:')
-    print(pd.DataFrame(confusion, columns=[m for m in result.ds.target_names],
-                       index=['gt ' + m for m in result.ds.target_names]))
+    print(
+        pd.DataFrame(
+            confusion,
+            columns=[m for m in result.ds.target_names],
+            index=['gt ' + m for m in result.ds.target_names],
+        )
+    )
 
-    #inspect_results(ds, result_list)
+    # inspect_results(ds, result_list)
 
     if False:
         if False:
-            #train_idx, test_idx = problem.stratified_2sample_idxs()
+            # train_idx, test_idx = problem.stratified_2sample_idxs()
             train_idx = ds._split_idxs['train']
             test_idx = ds._split_idxs['test']
 
-            #import sklearn.metrics
-            #model_dpath = join(ds.dataset_dpath, 'svms')
-            #model_fpath = join(model_dpath, target_type + '_svc.cPkl')
-            #if ut.checkpath(model_fpath):
+            # import sklearn.metrics
+            # model_dpath = join(ds.dataset_dpath, 'svms')
+            # model_fpath = join(model_dpath, target_type + '_svc.cPkl')
+            # if ut.checkpath(model_fpath):
             #    clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
             #                          decision_function_shape='ovr')
             #    clf.__dict__.update(**ut.load_data(model_fpath))
-            #else:
+            # else:
             #    clf = problem.fit_new_classifier(train_idx)
             #    ut.ensuredir(model_dpath)
             #    ut.save_data(model_fpath, clf.__dict__)
@@ -1234,12 +1306,15 @@ def shark_svm():
 def inspect_results(ds, result_list):
     import pandas as pd
     import wbia.plottool as pt
-    pd.set_option("display.max_rows", 20)
+
+    pd.set_option('display.max_rows', 20)
     pt.qt4ensure()
 
-    isect_sets = [set(s1).intersection(set(s2)) for s1, s2 in ut.combinations([
-        result.df.index for result in result_list], 2)]
-    assert all([len(s) == 0 for s in isect_sets]), ('cv sets should not intersect')
+    isect_sets = [
+        set(s1).intersection(set(s2))
+        for s1, s2 in ut.combinations([result.df.index for result in result_list], 2)
+    ]
+    assert all([len(s) == 0 for s in isect_sets]), 'cv sets should not intersect'
 
     # Combine information from results
     df = pd.concat([result.df for result in result_list])
@@ -1249,14 +1324,19 @@ def inspect_results(ds, result_list):
     df['failed'] = df['pred'] != df['target']
 
     report = sklearn.metrics.classification_report(
-        y_true=df['target'], y_pred=df['pred'],
-        target_names=result.ds.target_names)
+        y_true=df['target'], y_pred=df['pred'], target_names=result.ds.target_names
+    )
     print(report)
 
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
     print('Confusion Matrix:')
-    print(pd.DataFrame(confusion, columns=[m for m in result.ds.target_names],
-                       index=['gt ' + m for m in result.ds.target_names]))
+    print(
+        pd.DataFrame(
+            confusion,
+            columns=[m for m in result.ds.target_names],
+            index=['gt ' + m for m in result.ds.target_names],
+        )
+    )
 
     def target_partition(target):
         df_chunk = df if target is None else df[df['target'] == target]
@@ -1300,20 +1380,20 @@ def inspect_results(ds, result_list):
 
     # Look at hardest test cases
     if True:
-        #n = 4
-        fracs = [0.0, .7, .8, .9, 1.0]
+        # n = 4
+        fracs = [0.0, 0.7, 0.8, 0.9, 1.0]
         view_targets = ds.target_labels
         n = 8 // len(view_targets)
     else:
         view_targets = [ut.listfind(ds.target_names.tolist(), 'healthy')]
-        #fracs = [0.0, .7, .8, .9, 1.0]
-        fracs = [0.45, .5, .55, .6, .62]
-        fracs = [0.72, .82, .84, .88]
-        fracs = [0.73, .83, .835, .89]
-        fracs = [0.73, .83, .835, .89]
-        fracs = [0.735, .833, .837, .934]
-        fracs = [0.2, .65, .75, .85, .95]
-        fracs = [0.3, .4, .67, .77, .87, .92]
+        # fracs = [0.0, .7, .8, .9, 1.0]
+        fracs = [0.45, 0.5, 0.55, 0.6, 0.62]
+        fracs = [0.72, 0.82, 0.84, 0.88]
+        fracs = [0.73, 0.83, 0.835, 0.89]
+        fracs = [0.73, 0.83, 0.835, 0.89]
+        fracs = [0.735, 0.833, 0.837, 0.934]
+        fracs = [0.2, 0.65, 0.75, 0.85, 0.95]
+        fracs = [0.3, 0.4, 0.67, 0.77, 0.87, 0.92]
         n = 8 // len(view_targets)
 
     if False:
@@ -1323,19 +1403,22 @@ def inspect_results(ds, result_list):
         critical_fracs = [_pt / len(_df) for _pt, _df in zip(critical_points, target_dfs)]
         n = 8 * 5
         frac = critical_fracs[0]
-        frac += .1
+        frac += 0.1
         _df = target_dfs[0]
         df_part = grab_subchunk2(_df, frac, n)
         df_chunks = [df_part.iloc[x] for x in ut.ichunks(range(len(df_part)), 8)]
     else:
-        df_chunks = [grab_subchunk(frac, n, target)
-                     for frac in fracs for target in view_targets]
+        df_chunks = [
+            grab_subchunk(frac, n, target) for frac in fracs for target in view_targets
+        ]
 
     ibs = ds.ibs
     config = ds.config
     from ibeis_cnn import draw_results
-    inter = draw_results.make_InteractClasses(ibs, config, df_chunks,
-                                              nCols=len(view_targets))
+
+    inter = draw_results.make_InteractClasses(
+        ibs, config, df_chunks, nCols=len(view_targets)
+    )
     inter.start()
 
 
@@ -1346,6 +1429,8 @@ if __name__ == '__main__':
         python -m wbia.scripts.classify_shark --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

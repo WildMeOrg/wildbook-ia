@@ -20,23 +20,24 @@ import re
 import time
 import os
 from os.path import dirname, join, basename, splitext
+
 print, rrr, profile = ut.inject2(__name__)
 
 
-#PREFERED_BROWSER = 'chrome'
-#webbrowser._tryorder
+# PREFERED_BROWSER = 'chrome'
+# webbrowser._tryorder
 PREFERED_BROWSER = None
 if ut.get_computer_name() == 'hyrule':
     PREFERED_BROWSER = 'firefox'
 
 
 # FIXME add as controller config
-#ALLOW_SYSTEM_TOMCAT = ut.get_argflag('--allow-system-tomcat')
+# ALLOW_SYSTEM_TOMCAT = ut.get_argflag('--allow-system-tomcat')
 
 
 def get_tomcat_startup_tmpdir():
     dpath_list = [
-        #os.environ.get('CATALINA_TMPDIR', None),
+        # os.environ.get('CATALINA_TMPDIR', None),
         ut.ensure_app_resource_dir('wbia', 'tomcat', 'wbia_startup_tmpdir'),
     ]
     tomcat_startup_dir = ut.search_candidate_paths(dpath_list, verbose=True)
@@ -66,7 +67,7 @@ def find_tomcat(verbose=ut.NOT_QUIET):
     """
     # Tomcat folder must be named one of these and contain specific files
     fname_list = ['Tomcat', 'tomcat']
-    #required_subpaths = ['webapps', 'bin', 'bin/catalina.sh']
+    # required_subpaths = ['webapps', 'bin', 'bin/catalina.sh']
     required_subpaths = ['webapps']
 
     # Places for local install of tomcat
@@ -74,7 +75,7 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         # Number one preference is the CATALINA_HOME directory
         os.environ.get('CATALINA_HOME', None),
         # We put tomcat here if we can't find it
-        ut.get_app_resource_dir('wbia', 'tomcat')
+        ut.get_app_resource_dir('wbia', 'tomcat'),
     ]
     if ut.is_developer():
         # For my machine to use local catilina
@@ -88,8 +89,8 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         else:
             dpath_list = ['/var/lib', '/usr/share', '/opt', '/lib']
     return_path = ut.search_candidate_paths(
-        dpath_list, fname_list, priority_paths, required_subpaths,
-        verbose=verbose)
+        dpath_list, fname_list, priority_paths, required_subpaths, verbose=verbose
+    )
     tomcat_dpath = return_path
     print('tomcat_dpath = %r ' % (tomcat_dpath,))
     return tomcat_dpath
@@ -161,6 +162,7 @@ def find_installed_tomcat(check_unpacked=True, strict=True):
             return None
     if check_unpacked:
         import wbia
+
         # Check that webapps was unpacked
         wb_target = wbia.const.WILDBOOK_TARGET
         webapps_dpath = join(tomcat_dpath, 'webapps')
@@ -223,11 +225,11 @@ def find_or_download_wilbook_warfile(ensure=True, redownload=False):
             ~/Downloads/pachy_wbia.war wget
     http://dev.wildme.org/wbia_data_dir/wbia.war
     """
-    #war_url = 'http://dev.wildme.org/wbia_data_dir/wbia.war'
+    # war_url = 'http://dev.wildme.org/wbia_data_dir/wbia.war'
     war_url = 'http://springbreak.wildbook.org/tools/latest.war'
-    war_fpath = ut.grab_file_url(war_url, appname='wbia',
-                                 ensure=ensure, redownload=redownload,
-                                 fname='wbia.war')
+    war_fpath = ut.grab_file_url(
+        war_url, appname='wbia', ensure=ensure, redownload=redownload, fname='wbia.war'
+    )
     return war_fpath
 
 
@@ -265,8 +267,9 @@ def ensure_wb_mysql():
         >>> result = ensure_wb_mysql()
     """
     print('Execute the following code to install mysql')
-    print(ut.codeblock(
-        r'''
+    print(
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
         # Install
         sudo apt-get install mysql-server-5.6 -y
@@ -292,7 +295,9 @@ def ensure_wb_mysql():
         # mysql -u root -proot status
         # mysql -u root -proot
         # ENDBLOCK bash
-        '''))
+        """
+        )
+    )
 
 
 def ensure_local_war(verbose=ut.NOT_QUIET):
@@ -310,8 +315,7 @@ def ensure_local_war(verbose=ut.NOT_QUIET):
     """
     # TODO: allow custom specified tomcat directory
     try:
-        output = subprocess.check_output(['java', '-version'],
-                                         stderr=subprocess.STDOUT)
+        output = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)
         _java_version = output.split('\n')[0]
         _java_version = _java_version.replace('java version ', '')
         java_version = _java_version.replace('"', '')
@@ -323,7 +327,8 @@ def ensure_local_war(verbose=ut.NOT_QUIET):
     if output is None:
         raise ImportError(
             'Cannot find java on this machine. '
-            'Please install java: http://www.java.com/en/download/')
+            'Please install java: http://www.java.com/en/download/'
+        )
 
     tomcat_dpath = find_or_download_tomcat()
     assert tomcat_dpath is not None, 'Could not find tomcat'
@@ -371,6 +376,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
         >>> print(result)
     """
     import requests
+
     # Ensure that the war file has been unpacked
     tomcat_dpath, webapps_dpath, wb_target = ensure_local_war()
 
@@ -383,8 +389,8 @@ def install_wildbook(verbose=ut.NOT_QUIET):
         with ut.ChdirContext(tomcat_startup_dir):
             # Starting and stoping catalina should be sufficient to unpack the
             # war
-            startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
-            #shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
+            startup_fpath = join(tomcat_dpath, 'bin', 'startup.sh')
+            # shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
             ut.cmd(ut.quote_single_command(startup_fpath))
             print('It is NOT ok if the startup.sh fails\n')
 
@@ -405,10 +411,15 @@ def install_wildbook(verbose=ut.NOT_QUIET):
                 print('Seem able to ping the server')
 
             # assert tht the war was unpacked
-            ut.assertpath(unpacked_war_dpath, (
-                'Wildbook war might have not unpacked correctly.  This may '
-                'be ok. Try again. If it fails a second time, then there is a '
-                'problem.'), verbose=True)
+            ut.assertpath(
+                unpacked_war_dpath,
+                (
+                    'Wildbook war might have not unpacked correctly.  This may '
+                    'be ok. Try again. If it fails a second time, then there is a '
+                    'problem.'
+                ),
+                verbose=True,
+            )
 
             # Don't shutdown just yet. Need to create assets
 
@@ -420,13 +431,13 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     if not ut.checkpath(asset_flag_fpath):
         if not fresh_install:
             startup_wildbook_server()
-        #web_url = startup_wildbook_server(verbose=False)
+        # web_url = startup_wildbook_server(verbose=False)
         print('Creating asset store')
         wb_url = 'http://localhost:8080/' + wb_target
         response = requests.get(wb_url + '/createAssetStore.jsp')
         if response is None or response.status_code != 200:
             print('There may be an error starting the server')
-            #if response.status_code == 500:
+            # if response.status_code == 500:
             print(response.text)
             assert False, 'response error'
         else:
@@ -438,7 +449,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     elif fresh_install:
         shutdown_wildbook_server(verbose=False)
 
-    #127.0.0.1:8080/wildbook_data_dir/test.txt
+    # 127.0.0.1:8080/wildbook_data_dir/test.txt
     print('Wildbook is installed and waiting to be started')
 
 
@@ -467,9 +478,9 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
     """
     mysql_mode = not ut.get_argflag('--nomysql')
 
-    #if ut.get_argflag('--vd'):
+    # if ut.get_argflag('--vd'):
     #    ut.vd(unpacked_war_dpath)
-    #find_installed_tomcat
+    # find_installed_tomcat
     # Make sure permissions are correctly set in wildbook
     # Comment out the line that requires authentication
     permission_fpath = join(unpacked_war_dpath, 'WEB-INF/web.xml')
@@ -484,17 +495,16 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         re.search(re.escape(line), permission_text)
         prefix = ut.named_field('prefix', '\\s*')
         suffix = ut.named_field('suffix', '\\s*\n')
-        pattern = ('^' + prefix + re.escape(line) + suffix)
-        match = re.search(pattern, permission_text,
-                          flags=re.MULTILINE | re.DOTALL)
+        pattern = '^' + prefix + re.escape(line) + suffix
+        match = re.search(pattern, permission_text, flags=re.MULTILINE | re.DOTALL)
         if match is None:
             continue
         newline = '<!--%s -->' % (line,)
         repl = ut.bref_field('prefix') + newline + ut.bref_field('suffix')
-        new_permission_text = re.sub(pattern, repl, permission_text,
-                                     flags=re.MULTILINE | re.DOTALL)
-        assert new_permission_text != permission_text, (
-            'text should have changed')
+        new_permission_text = re.sub(
+            pattern, repl, permission_text, flags=re.MULTILINE | re.DOTALL
+        )
+        assert new_permission_text != permission_text, 'text should have changed'
     if new_permission_text != permission_text:
         print('Need to write new permission texts')
         ut.writeto(permission_fpath, new_permission_text)
@@ -502,14 +512,15 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         print('Permission file seems to be ok')
 
     # Make sure we are using a non-process based database
-    jdoconfig_fpath = join(unpacked_war_dpath,
-                           'WEB-INF/classes/bundles/jdoconfig.properties')
+    jdoconfig_fpath = join(
+        unpacked_war_dpath, 'WEB-INF/classes/bundles/jdoconfig.properties'
+    )
     print('Fixing backend database config')
     print('jdoconfig_fpath = %r' % (jdoconfig_fpath,))
     ut.assertpath(jdoconfig_fpath)
     jdoconfig_text = ut.readfrom(jdoconfig_fpath)
-    #ut.vd(dirname(jdoconfig_fpath))
-    #ut.editfile(jdoconfig_fpath)
+    # ut.vd(dirname(jdoconfig_fpath))
+    # ut.editfile(jdoconfig_fpath)
 
     if mysql_mode:
         jdoconfig_text = ut.toggle_comment_lines(jdoconfig_text, 'mysql', False)
@@ -522,18 +533,27 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         jdoconfig_text = re.sub(
             'datanucleus.ConnectionUserName = .*$',
             'datanucleus.ConnectionUserName = ' + mysql_user,
-            jdoconfig_text, flags=re.MULTILINE)
+            jdoconfig_text,
+            flags=re.MULTILINE,
+        )
         jdoconfig_text = re.sub(
             'datanucleus.ConnectionPassword = .*$',
             'datanucleus.ConnectionPassword = ' + mysql_passwd,
-            jdoconfig_text, flags=re.MULTILINE)
+            jdoconfig_text,
+            flags=re.MULTILINE,
+        )
         jdoconfig_text = re.sub(
             'datanucleus.ConnectionURL *= *jdbc:mysql:.*$',
             'datanucleus.ConnectionURL = jdbc:mysql://localhost:3306/' + mysql_dbname,
-            jdoconfig_text, flags=re.MULTILINE)
+            jdoconfig_text,
+            flags=re.MULTILINE,
+        )
         jdoconfig_text = re.sub(
-            '^.*jdbc:mysql://localhost:3306/shepherd.*$', '',
-            jdoconfig_text, flags=re.MULTILINE)
+            '^.*jdbc:mysql://localhost:3306/shepherd.*$',
+            '',
+            jdoconfig_text,
+            flags=re.MULTILINE,
+        )
     else:
         # Use SQLIIte
         jdoconfig_text = ut.toggle_comment_lines(jdoconfig_text, 'derby', 1)
@@ -542,21 +562,23 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
     ut.writeto(jdoconfig_fpath, jdoconfig_text)
 
     # Need to make sure wildbook can store information in a reasonalbe place
-    #tomcat_data_dir = join(tomcat_startup_dir, 'webapps', 'wildbook_data_dir')
+    # tomcat_data_dir = join(tomcat_startup_dir, 'webapps', 'wildbook_data_dir')
     tomcat_data_dir = join(webapps_dpath, 'wildbook_data_dir')
     ut.ensuredir(tomcat_data_dir)
     ut.writeto(join(tomcat_data_dir, 'test.txt'), 'A hosted test file')
     asset_store_fpath = join(unpacked_war_dpath, 'createAssetStore.jsp')
     asset_store_text = ut.read_from(asset_store_fpath)
-    #data_path_pat = ut.named_field('data_path', 'new File(".*?").toPath')
-    new_line = 'LocalAssetStore as = new LocalAssetStore("example Local AssetStore", new File("%s").toPath(), "%s", true);' % (
-        tomcat_data_dir,
-        'http://localhost:8080/' + basename(tomcat_data_dir)
+    # data_path_pat = ut.named_field('data_path', 'new File(".*?").toPath')
+    new_line = (
+        'LocalAssetStore as = new LocalAssetStore("example Local AssetStore", new File("%s").toPath(), "%s", true);'
+        % (tomcat_data_dir, 'http://localhost:8080/' + basename(tomcat_data_dir))
     )
     # HACKY
-    asset_store_text2 = re.sub('^LocalAssetStore as = .*$', new_line, asset_store_text, flags=re.MULTILINE)
+    asset_store_text2 = re.sub(
+        '^LocalAssetStore as = .*$', new_line, asset_store_text, flags=re.MULTILINE
+    )
     ut.writeto(asset_store_fpath, asset_store_text2)
-    #ut.editfile(asset_store_fpath)
+    # ut.editfile(asset_store_fpath)
 
 
 @ut.tracefunc_xml
@@ -567,13 +589,15 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
     #    with lockfile.LockFile(lock_fpath):
     #        update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun)
     """
-    wildbook_properteis_dpath = join(wildbook_tomcat_path,
-                                     'WEB-INF/classes/bundles/')
-    print('[ibs.update_wildbook_ia_config()] Wildbook properties=%r' % (
-        wildbook_properteis_dpath, ))
+    wildbook_properteis_dpath = join(wildbook_tomcat_path, 'WEB-INF/classes/bundles/')
+    print(
+        '[ibs.update_wildbook_ia_config()] Wildbook properties=%r'
+        % (wildbook_properteis_dpath,)
+    )
     # The src file is non-standard. It should be remove here as well
-    wildbook_config_fpath_dst = join(wildbook_properteis_dpath,
-                                     'commonConfiguration.properties')
+    wildbook_config_fpath_dst = join(
+        wildbook_properteis_dpath, 'commonConfiguration.properties'
+    )
     ut.assert_exists(wildbook_properteis_dpath)
     # for come reason the .default file is not there, that should be ok though
     orig_content = ut.read_from(wildbook_config_fpath_dst)
@@ -581,27 +605,40 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
     # Make sure wildbook knows where to find us
     if False:
         # Old way of telling WB where to find IA
-        content = re.sub('IBEIS_DB_path = .*',
-                         'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
-        content = re.sub('IBEIS_image_path = .*',
-                         'IBEIS_image_path = ' + ibs.get_imgdir(), content)
+        content = re.sub(
+            'IBEIS_DB_path = .*', 'IBEIS_DB_path = ' + ibs.get_db_core_path(), content
+        )
+        content = re.sub(
+            'IBEIS_image_path = .*', 'IBEIS_image_path = ' + ibs.get_imgdir(), content
+        )
 
     web_port = ibs.get_web_port_via_scan()
     if web_port is None:
         raise ValueError('IA web server is not running on any expected port')
-    ia_hostport = 'http://localhost:%s' % (web_port, )
+    ia_hostport = 'http://localhost:%s' % (web_port,)
     ia_rest_prefix = ut.named_field('prefix', 'IBEISIARestUrl.*')
     host_port = ut.named_field('host_port', 'http://.*?:[0-9]+')
-    content = re.sub(ia_rest_prefix + host_port, ut.bref_field('prefix') + ia_hostport, content)
+    content = re.sub(
+        ia_rest_prefix + host_port, ut.bref_field('prefix') + ia_hostport, content
+    )
 
     # Write to the configuration if it is different
     if orig_content != content:
         need_sudo = not ut.is_file_writable(wildbook_config_fpath_dst)
         if need_sudo:
-            quoted_content = '"%s"' % (content, )
+            quoted_content = '"%s"' % (content,)
             print('Attempting to gain sudo access to update wildbook config')
-            command = ['sudo', 'sh', '-c', '\'', 'echo',
-                       quoted_content, '>', wildbook_config_fpath_dst, '\'']
+            command = [
+                'sudo',
+                'sh',
+                '-c',
+                "'",
+                'echo',
+                quoted_content,
+                '>',
+                wildbook_config_fpath_dst,
+                "'",
+            ]
             # ut.cmd(command, sudo=True)
             command = ' '.join(command)
             if not dryrun:
@@ -630,10 +667,11 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
     """
     # TODO: allow custom specified tomcat directory
     import wbia
+
     tomcat_dpath = find_installed_tomcat()
 
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
-        startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
+        startup_fpath = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(1)
     wb_url = 'http://localhost:8080/' + wbia.const.WILDBOOK_TARGET
@@ -664,14 +702,14 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
     # TODO: allow custom specified tomcat directory
     tomcat_dpath = find_installed_tomcat(check_unpacked=False, strict=False)
     # TODO: allow custom specified tomcat directory
-    #tomcat_dpath = find_installed_tomcat(check_unpacked=False)
-    #catalina_out_fpath = join(tomcat_dpath, 'logs', 'catalina.out')
+    # tomcat_dpath = find_installed_tomcat(check_unpacked=False)
+    # catalina_out_fpath = join(tomcat_dpath, 'logs', 'catalina.out')
     if tomcat_dpath is not None:
         with ut.ChdirContext(get_tomcat_startup_tmpdir()):
             shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
-            #ut.cmd(shutdown_fpath)
+            # ut.cmd(shutdown_fpath)
             ut.cmd(ut.quote_single_command(shutdown_fpath))
-            time.sleep(.5)
+            time.sleep(0.5)
 
 
 def monitor_wildbook_logs(verbose=ut.NOT_QUIET):
@@ -689,10 +727,11 @@ def monitor_wildbook_logs(verbose=ut.NOT_QUIET):
     """
     # TODO: allow custom specified tomcat directory
     import wbia
+
     tomcat_dpath = find_installed_tomcat()
 
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
-        startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
+        startup_fpath = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(1)
     wb_url = 'http://localhost:8080/' + wbia.const.WILDBOOK_TARGET
@@ -716,6 +755,7 @@ def tryout_wildbook_login():
     """
     # Use selenimum to login to wildbook
     import wbia
+
     manaul_login = False
     wb_target = wbia.const.WILDBOOK_TARGET
     wb_url = 'http://localhost:8080/' + wb_target
@@ -728,7 +768,7 @@ def tryout_wildbook_login():
         if False:
             driver.get(wb_url)
             print('Finding Login Button')
-            #login_button = driver.find_element_by_partial_link_text('Log in')
+            # login_button = driver.find_element_by_partial_link_text('Log in')
             login_button = driver.find_element_by_partial_link_text('welcome.jps')
             login_button.click()
         else:
@@ -745,6 +785,7 @@ def tryout_wildbook_login():
         submit_login_button.click()
         # Accept agreement
         import selenium.common.exceptions
+
         try:
             accept_aggrement_button = driver.find_element_by_name('acceptUserAgreement')
             accept_aggrement_button.click()
@@ -773,6 +814,8 @@ if __name__ == '__main__':
         python -m wbia.control.wildbook_manager --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

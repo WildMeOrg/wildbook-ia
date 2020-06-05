@@ -5,7 +5,8 @@ import wbia.plottool as pt
 from wbia.plottool import plot_helpers as ph
 from wbia.viz import viz_helpers as vh
 from wbia.viz import viz_image
-(print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
+
+(print, rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
 def HARDCODE_SHOW_PB_PAIR():
@@ -23,6 +24,7 @@ def HARDCODE_SHOW_PB_PAIR():
     # Then a function to show these ams
     import wbia
     import wbia.viz
+
     has_any = ut.get_argval('--has_any', default=['photobomb'])
     index = ut.get_argval('--index', default=0)
 
@@ -34,14 +36,20 @@ def HARDCODE_SHOW_PB_PAIR():
     aid_pairs = ibs.get_annotmatch_aids(selected_ams)
     aid1, aid2 = aid_pairs[index]
     import wbia.plottool as pt
+
     fnum = 1
     if ut.get_argflag('--match'):
         request = ibs.depc_annot.new_request('vsone', [aid1], [aid2])
         res_list2 = request.execute()
         match = res_list2[0]
-        match.show_single_annotmatch(qreq_=request, vert=False,
-                                     colorbar_=False, notitle=True,
-                                     draw_lbl=False, draw_border=False)
+        match.show_single_annotmatch(
+            qreq_=request,
+            vert=False,
+            colorbar_=False,
+            notitle=True,
+            draw_lbl=False,
+            draw_border=False,
+        )
     else:
         chip1, chip2 = ibs.get_annot_chips([aid1, aid2])
         pt.imshow(chip1, pnum=(1, 2, 1), fnum=fnum)
@@ -50,6 +58,7 @@ def HARDCODE_SHOW_PB_PAIR():
 
 def testdata_showchip():
     import wbia
+
     ibs = wbia.opendb(defaultdb='PZ_MTEST')
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=None)
     if aid_list is None:
@@ -60,7 +69,7 @@ def testdata_showchip():
     kwargs['notitle'] = ut.get_argflag('--notitle')
     kwargs['pts'] = ut.get_argflag('--drawpts')
     kwargs['ell'] = True or ut.get_argflag('--drawell')
-    kwargs['ell_alpha'] = ut.get_argval('--ellalpha', default=.4)
+    kwargs['ell_alpha'] = ut.get_argval('--ellalpha', default=0.4)
     kwargs['ell_linewidth'] = ut.get_argval('--ell_linewidth', default=2)
     kwargs['draw_lbls'] = ut.get_argval('--draw_lbls', default=True)
     print('kwargs = ' + ut.repr4(kwargs, nl=True))
@@ -94,13 +103,23 @@ def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=Tru
     in_image = False
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
     import vtool as vt
+
     stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True, vert=vert)
     pt.imshow(stacked_chips, fnum=None, pnum=None)
 
 
-#@ut.indent_func
-def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
-                weight_label=None, weights=None, config2_=None, **kwargs):
+# @ut.indent_func
+def show_chip(
+    ibs,
+    aid,
+    in_image=False,
+    annote=True,
+    title_suffix='',
+    weight_label=None,
+    weights=None,
+    config2_=None,
+    **kwargs
+):
     r""" Driver function to show chips
 
     Args:
@@ -163,9 +182,9 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     """
     if ut.VERBOSE:
         print('[viz] show_chip(aid=%r)' % (aid,))
-    #ibs.assert_valid_aids((aid,))
+    # ibs.assert_valid_aids((aid,))
     # Get chip
-    #print('in_image = %r' % (in_image,))
+    # print('in_image = %r' % (in_image,))
     chip = vh.get_chips(ibs, aid, in_image=in_image, config2_=config2_)
     # Create chip title
     chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]
@@ -183,21 +202,30 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         # Get and draw keypoints
         if 'color' not in kwargs:
             if weight_label == 'fg_weights':
-                if weights is None and ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
+                if weights is None and ibs.has_species_detector(
+                    ibs.get_annot_species_texts(aid)
+                ):
                     weight_label = 'fg_weights'
-                    weights = ibs.get_annot_fgweights([aid], ensure=True, config2_=config2_)[0]
+                    weights = ibs.get_annot_fgweights(
+                        [aid], ensure=True, config2_=config2_
+                    )[0]
             if weights is not None:
                 cmap_ = 'hot'
-                #if weight_label == 'dstncvs':
+                # if weight_label == 'dstncvs':
                 #    cmap_ = 'rainbow'
                 color = pt.scores_to_color(weights, cmap_=cmap_, reverse_cmap=False)
                 kwargs['color'] = color
                 kwargs['ell_color'] = color
                 kwargs['pts_color'] = color
 
-        kpts_ = vh.get_kpts(ibs, aid, in_image, config2_=config2_,
-                            kpts_subset=kwargs.get('kpts_subset', None),
-                            kpts=kwargs.pop('kpts', None))
+        kpts_ = vh.get_kpts(
+            ibs,
+            aid,
+            in_image,
+            config2_=config2_,
+            kpts_subset=kwargs.get('kpts_subset', None),
+            kpts=kwargs.pop('kpts', None),
+        )
         pt.viz_keypoints._annotate_kpts(kpts_, **kwargs)
         if kwargs.get('draw_lbls', True):
             pt.upperleft_text(chip_text, color=kwargs.get('text_color', None))
@@ -208,7 +236,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         gid = ibs.get_annot_gids(aid)
         aid_list = ibs.get_image_aids(gid)
         annotekw = viz_image.get_annot_annotations(
-            ibs, aid_list, sel_aids=[aid], draw_lbls=kwargs.get('draw_lbls', True))
+            ibs, aid_list, sel_aids=[aid], draw_lbls=kwargs.get('draw_lbls', True)
+        )
         # Put annotation centers in the axis
         ph.set_plotdat(ax, 'annotation_bbox_list', annotekw['bbox_list'])
         ph.set_plotdat(ax, 'aid_list', aid_list)
@@ -217,11 +246,12 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         zoom_ = ut.get_argval('--zoom', type_=float, default=None)
         if zoom_ is not None:
             import vtool as vt
+
             # Zoom into the chip for some image context
             rotated_verts = ibs.get_annot_rotated_verts(aid)
             bbox = ibs.get_annot_bboxes(aid)
-            #print(bbox)
-            #print(rotated_verts)
+            # print(bbox)
+            # print(rotated_verts)
             rotated_bbox = vt.bbox_from_verts(rotated_verts)
             imgw, imgh = ibs.get_image_sizes(gid)
 
@@ -232,8 +262,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
             maxx = min((rotated_bbox[0] + rotated_bbox[2]) + pad_length, imgw)
             maxy = min((rotated_bbox[1] + rotated_bbox[3]) + pad_length, imgh)
 
-            #maxy = imgh - maxy
-            #miny = imgh - miny
+            # maxy = imgh - maxy
+            # miny = imgh - miny
 
             ax = pt.gca()
             ax.set_xlim(minx, maxx)
@@ -242,7 +272,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     else:
         ph.set_plotdat(ax, 'chipshape', chip.shape)
 
-    #if 'featweights' in vars() and 'color' in kwargs:
+    # if 'featweights' in vars() and 'color' in kwargs:
     if weights is not None and weight_label is not None:
         ## HACK HACK HACK
         if len(weights) > 0:
@@ -259,6 +289,8 @@ if __name__ == '__main__':
         python -m wbia.viz.viz_chip --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

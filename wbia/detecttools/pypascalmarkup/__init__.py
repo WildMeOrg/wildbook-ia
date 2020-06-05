@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import, division
 from six.moves import map
 from datetime import date
 import cv2
-#import numpy as np
+
+# import numpy as np
 import os
 
 
@@ -16,11 +18,12 @@ def _kwargs(kwargs, key, value):
 
 
 class PascalVOC_Markup_Annotation(object):  # NOQA
-
     def __init__(an, fullpath, folder, filename, **kwargs):
         _kwargs(kwargs, 'database_name', 'Image Database')
         _kwargs(kwargs, 'database_year', str(date.today().year))
-        _kwargs(kwargs, 'source', 'Unknown')  # images source (e.g., flickr, reservation, etc.)
+        _kwargs(
+            kwargs, 'source', 'Unknown'
+        )  # images source (e.g., flickr, reservation, etc.)
         _kwargs(kwargs, 'segmented', '0')  # image has an associated semgnetation
         _kwargs(kwargs, 'color', True)  # open the image with color
         _kwargs(kwargs, 'alpha', False)  # open the image with alpha
@@ -32,7 +35,7 @@ class PascalVOC_Markup_Annotation(object):  # NOQA
         an.database_year = kwargs['database_year']
         an.source = kwargs['source']
 
-        #filepath = os.path.join(folder, filename)
+        # filepath = os.path.join(folder, filename)
         if not os.path.exists(fullpath):
             raise IOError('Image file not found')
 
@@ -96,8 +99,12 @@ class PascalVOC_Markup_Object(object):  # NOQA
         (xmax, xmin, ymax, ymin) = bbox_XxYy
         _kwargs(kwargs, 'pose', 'Unspecified')  # Left, Right, Front, Rear
         _kwargs(kwargs, 'interest', 'Unspecified')  # None
-        _kwargs(kwargs, 'truncated', '0')  # boolean flag, if there exists a partial object in the image
-        _kwargs(kwargs, 'difficult', '0')  # boolean flag, if difficult case from previous years
+        _kwargs(
+            kwargs, 'truncated', '0'
+        )  # boolean flag, if there exists a partial object in the image
+        _kwargs(
+            kwargs, 'difficult', '0'
+        )  # boolean flag, if difficult case from previous years
 
         ob.name = name
         ob.pose = kwargs['pose']
@@ -149,7 +156,6 @@ class PascalVOC_Markup_Object(object):  # NOQA
 
 
 class PascalVOC_Markup_Part(object):  # NOQA
-
     def __init__(pt, name, bbox):
         (xmin, ymin, xmax, ymax) = bbox
         pt.name = name
@@ -182,12 +188,9 @@ class PascalVOC_Markup_Part(object):  # NOQA
         return template
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
-    information = {
-        'database_name':    'IBEIS',
-        'source':           'olpajeta'
-    }
+    information = {'database_name': 'IBEIS', 'source': 'olpajeta'}
 
     annotation = PascalVOC_Markup_Annotation('.', 'test.png', **information)
     annotation.add_object('person', (100, 100, 400, 400))

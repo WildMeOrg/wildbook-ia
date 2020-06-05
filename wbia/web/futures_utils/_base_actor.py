@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO:
     Actors need to be able to reference each other.
@@ -32,8 +33,7 @@ class ActorExecutor(_base.Executor):
         analagous to _base.Executor.submit, but sends a message to the actor
         controlled by this Executor, and returns a Future.
         """
-        raise NotImplementedError(
-            'use ProcessActorExecutor or ThreadActorExecutor')
+        raise NotImplementedError('use ProcessActorExecutor or ThreadActorExecutor')
 
 
 class Actor(object):

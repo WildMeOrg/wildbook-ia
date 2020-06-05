@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import
 import utool as ut
 
@@ -26,8 +27,7 @@ def groundtruth_merge_loop(infr):
 
     for gt_nid, aids in group.items():
         pos_sub = infr.pos_graph.subgraph(aids)
-        aug_edges = nxu.edge_augmentation(
-            pos_sub, k=1, partial=True)
+        aug_edges = nxu.edge_augmentation(pos_sub, k=1, partial=True)
         fix_edges.extend(aug_edges)
 
     if infr.test_mode:

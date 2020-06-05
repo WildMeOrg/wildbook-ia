@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # class FitHarnessOld(object):
 #     def __init__(harn, train_loader, vali_loader, test_loader):
 #         harn.train_loader = train_loader

@@ -18,18 +18,19 @@ import os
 
 (print, rrr, profile) = ut.inject2(__name__)
 
-CLASS_INJECT_KEY, register_ibs_method = (
-    controller_inject.make_ibs_register_decorator(__name__))
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__
+)
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 THROW_TEST_AOI_TURKING = False
 THROW_TEST_AOI_TURKING_PERCENTAGE = 0.05
 THROW_TEST_AOI_TURKING_ERROR_MODES = {
-    'addition'   : [1, 2, 3],
-    'deletion'   : [1, 2, 3],
-    'alteration' : [1, 2, 3],
-    'translation' : [1, 2, 3],
+    'addition': [1, 2, 3],
+    'deletion': [1, 2, 3],
+    'alteration': [1, 2, 3],
+    'translation': [1, 2, 3],
 }
 
 
@@ -38,16 +39,12 @@ GLOBAL_FEEDBACK_BUFFER = []
 GLOBAL_FEEDBACK_CONFIG_DICT = {
     'ranks_top': 3,
     'ranks_bot': 2,
-
     'score_thresh': None,
     'max_num': None,
-
     'filter_reviewed': True,
     'filter_photobombs': False,
-
     'filter_true_matches': True,
     'filter_false_matches': False,
-
     'filter_nonmatch_between_ccs': True,
     'filter_dup_namepairs': True,
 }
@@ -95,7 +92,7 @@ def login(refer=None, *args, **kwargs):
                 'hendrik.weideman',
                 'angela.su',
                 'joshua.beard',
-            ]
+            ],
         ),
         'uic': (
             'UIC',
@@ -117,7 +114,7 @@ def login(refer=None, *args, **kwargs):
                 'nathan.seitz',
                 'luis.love',
                 'ashley.riley',
-            ]
+            ],
         ),
         'princeton': (
             'Princeton',
@@ -143,19 +140,8 @@ def login(refer=None, *args, **kwargs):
                 'drew.blount',
             ],
         ),
-        'kitware': (
-            'Kitware',
-            [
-                'jon.crall',
-            ],
-        ),
-        'ctrl-h': (
-            'CTRL-H',
-            [
-                'jon.hannis',
-                'melinda.hannis',
-            ],
-        ),
+        'kitware': ('Kitware', ['jon.crall',],),
+        'ctrl-h': ('CTRL-H', ['jon.hannis', 'melinda.hannis',],),
     }
     organization_dict_json = json.dumps(organization_dict)
 
@@ -180,12 +166,14 @@ def view(**kwargs):
     pid_list = ibs.get_valid_part_rowids()
     nid_list = ibs.get_valid_nids()
 
-    return appf.template('view',
-                         num_imgsetids=len(imgsetids_list),
-                         num_gids=len(gid_list),
-                         num_aids=len(aid_list),
-                         num_pids=len(pid_list),
-                         num_nids=len(nid_list))
+    return appf.template(
+        'view',
+        num_imgsetids=len(imgsetids_list),
+        num_gids=len(gid_list),
+        num_aids=len(aid_list),
+        num_pids=len(pid_list),
+        num_nids=len(nid_list),
+    )
 
 
 @register_route('/view/viewpoints/', methods=['GET'])
@@ -200,7 +188,7 @@ def view_viewpoints(**kwargs):
     species_rowid_list = ibs.get_species_rowids_from_text(species_tag_list)
     species_set = set(species_tag_list)
     species_nice_dict = {
-        species_tag : ibs.get_species_nice(species_rowid)
+        species_tag: ibs.get_species_nice(species_rowid)
         for species_tag, species_rowid in list(zip(species_tag_list, species_rowid_list))
     }
 
@@ -214,40 +202,64 @@ def view_viewpoints(**kwargs):
             viewpoint_dict[species][viewpoint] += 1
 
     viewpoint_tag_list = const.VIEWTEXT_TO_VIEWPOINT_RADIANS.keys()
-    pie_label_list = [ str(const.VIEWPOINTALIAS_NICE[_]) for _ in viewpoint_tag_list ]
+    pie_label_list = [str(const.VIEWPOINTALIAS_NICE[_]) for _ in viewpoint_tag_list]
     pie_values_list = [
         (
             species_nice_dict[species],
-            [viewpoint_dict[species][_] for _ in viewpoint_tag_list]
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_list],
         )
         for species in species_tag_list
     ]
 
-    viewpoint_order_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
-    pie_left_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
-    pie_right_list = ['right', 'backright', 'back', 'backleft', 'left', 'frontleft', 'front', 'frontright']
+    viewpoint_order_list = [
+        'left',
+        'frontleft',
+        'front',
+        'frontright',
+        'right',
+        'backright',
+        'back',
+        'backleft',
+    ]
+    pie_left_list = [
+        'left',
+        'frontleft',
+        'front',
+        'frontright',
+        'right',
+        'backright',
+        'back',
+        'backleft',
+    ]
+    pie_right_list = [
+        'right',
+        'backright',
+        'back',
+        'backleft',
+        'left',
+        'frontleft',
+        'front',
+        'frontright',
+    ]
     viewpoint_tag_dict = {
-        'zebra_grevys' : pie_right_list,
-        'zebra_plains' : pie_left_list,
-        'giraffe_masai' : pie_left_list,
+        'zebra_grevys': pie_right_list,
+        'zebra_plains': pie_left_list,
+        'giraffe_masai': pie_left_list,
     }
-    pie_label_corrected_list = list(map(
-        str,
-        ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315']
-    ))
+    pie_label_corrected_list = list(
+        map(str, ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315'])
+    )
     pie_values_corrected_list = [
         (
             species_nice_dict[species],
-            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]]
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]],
         )
         for species in species_tag_list
     ]
 
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
-    return appf.template('view', 'viewpoints',
-                         __wrapper_header__=False,
-                         **embedded)
+    return appf.template('view', 'viewpoints', __wrapper_header__=False, **embedded)
 
 
 @register_route('/view/advanced/0/', methods=['GET'])
@@ -255,13 +267,14 @@ def view_advanced0(**kwargs):
     def _date_list(gid_list):
         unixtime_list = ibs.get_image_unixtime(gid_list)
         datetime_list = [
-            ut.unixtime_to_datetimestr(unixtime)
-            if unixtime is not None else
-            'UNKNOWN'
+            ut.unixtime_to_datetimestr(unixtime) if unixtime is not None else 'UNKNOWN'
             for unixtime in unixtime_list
         ]
-        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        datetime_split_list = [datetime.split(' ') for datetime in datetime_list]
+        date_list = [
+            datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN'
+            for datetime_split in datetime_split_list
+        ]
         return date_list
 
     def filter_annots_imageset(aid_list):
@@ -309,8 +322,7 @@ def view_advanced0(**kwargs):
             return nid_list
         aids_list = ibs.get_name_aids(nid_list)
         imgsetids_list = [
-            set(ut.flatten(ibs.get_annot_imgsetids(aid_list)))
-            for aid_list in aids_list
+            set(ut.flatten(ibs.get_annot_imgsetids(aid_list))) for aid_list in aids_list
         ]
         nid_list = [
             nid
@@ -363,7 +375,9 @@ def view_advanced0(**kwargs):
         else:
             assert ibs.dbname == 'GGR2-IBEIS'
             # aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
-            aid_list = ibs.check_ggr_valid_aids(aid_list, species='giraffe_reticulated', threshold=0.75)
+            aid_list = ibs.check_ggr_valid_aids(
+                aid_list, species='giraffe_reticulated', threshold=0.75
+            )
 
         return aid_list
 
@@ -378,7 +392,14 @@ def view_advanced0(**kwargs):
     date_list = _date_list(gid_list)
 
     # flagged_date_list = None
-    flagged_date_list = ['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31', '2018/01/27', '2018/01/28']
+    flagged_date_list = [
+        '2015/03/01',
+        '2015/03/02',
+        '2016/01/30',
+        '2016/01/31',
+        '2018/01/27',
+        '2018/01/28',
+    ]
 
     gid_list_unique = list(set(gid_list))
     date_list_unique = _date_list(gid_list_unique)
@@ -408,7 +429,9 @@ def view_advanced0(**kwargs):
     previous_seen_set = set()
     last_date = None
     date_seen_dict = {}
-    for index, (unixtime, aid, nid, date) in enumerate(sorted(zip(unixtime_list, aid_list, nid_list, date_list))):
+    for index, (unixtime, aid, nid, date) in enumerate(
+        sorted(zip(unixtime_list, aid_list, nid_list, date_list))
+    ):
         if flagged_date_list is not None and date not in flagged_date_list:
             continue
 
@@ -483,12 +506,12 @@ def view_advanced0(**kwargs):
 
     date_seen_dict.pop('UNKNOWN', None)
     bar_label_list = sorted(date_seen_dict.keys())
-    bar_value_list1 = [ date_taken_dict[date][0] for date in bar_label_list ]
-    bar_value_list2 = [ date_taken_dict[date][1] for date in bar_label_list ]
-    bar_value_list3 = [ date_seen_dict[date][0] for date in bar_label_list ]
-    bar_value_list4 = [ date_seen_dict[date][1] for date in bar_label_list ]
-    bar_value_list5 = [ date_seen_dict[date][2] for date in bar_label_list ]
-    bar_value_list6 = [ date_seen_dict[date][3] for date in bar_label_list ]
+    bar_value_list1 = [date_taken_dict[date][0] for date in bar_label_list]
+    bar_value_list2 = [date_taken_dict[date][1] for date in bar_label_list]
+    bar_value_list3 = [date_seen_dict[date][0] for date in bar_label_list]
+    bar_value_list4 = [date_seen_dict[date][1] for date in bar_label_list]
+    bar_value_list5 = [date_seen_dict[date][2] for date in bar_label_list]
+    bar_value_list6 = [date_seen_dict[date][3] for date in bar_label_list]
 
     # label_list += ['Models'] + [''] * (len(index_list) - len(label_list) - 1)
     # value_list += [0] * (len(index_list) - len(value_list))
@@ -503,10 +526,7 @@ def view_advanced0(**kwargs):
     nid_list = filter_names_imageset(nid_list)
     # contributor_list = ibs.get_valid_contributor_rowids()
     note_list = ibs.get_image_notes(gid_list)
-    note_list = [
-        ','.join(note.split(',')[:-1])
-        for note in note_list
-    ]
+    note_list = [','.join(note.split(',')[:-1]) for note in note_list]
     contributor_list = set(note_list)
     # nid_list = ibs.get_valid_nids()
     aid_list_count = filter_annots_general(ibs, aid_list)
@@ -517,6 +537,7 @@ def view_advanced0(**kwargs):
 
     # Calculate the Petersen-Lincoln index form the last two days
     from wbia.other import dbinfo as dbinfo_
+
     try:
         try:
             raise KeyError()
@@ -549,27 +570,30 @@ def view_advanced0(**kwargs):
             if gps[0] == -1.0 and gps[1] == -1.0:
                 continue
             nid_track_dict[nid].append(gps)
-        gps_list_tracks = [ nid_track_dict[nid] for nid in sorted(nid_track_dict.keys()) ]
+        gps_list_tracks = [nid_track_dict[nid] for nid in sorted(nid_track_dict.keys())]
     else:
-        __nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list_count)
+        __nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(
+            aid_list=aid_list_count
+        )
         gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
 
-    gps_list_markers = [ gps for gps in gps_list_markers ]
-    gps_list_markers_tuple_all = [ (gps, gid) for gps, gid in list(zip(gps_list_markers_all, gid_list))  ]
+    gps_list_markers = [gps for gps in gps_list_markers]
+    gps_list_markers_tuple_all = [
+        (gps, gid) for gps, gid in list(zip(gps_list_markers_all, gid_list))
+    ]
     gps_list_markers_all = [_[0] for _ in gps_list_markers_tuple_all]
     gid_list_markers_all = [_[1] for _ in gps_list_markers_tuple_all]
     gps_list_tracks = [
-        [ gps for gps in gps_list_track ]
-        for gps_list_track in gps_list_tracks
+        [gps for gps in gps_list_track] for gps_list_track in gps_list_tracks
     ]
 
     ALLOW_IMAGE_DATE_COLOR = False
     VERSION = 1
     # Colors for GPS
-    color_none = [0, "#777777"]
-    color_day1 = [1, "#CA4141"]
-    color_day2 = [2, "#428BCA"]
-    color_resight = [3, "#9A41CA"]
+    color_none = [0, '#777777']
+    color_day1 = [1, '#CA4141']
+    color_day2 = [2, '#428BCA']
+    color_resight = [3, '#9A41CA']
     combined_list_markers_all = []
     dataset_color_dict = {}
     if VERSION == 1:
@@ -676,8 +700,9 @@ def view_advanced0(**kwargs):
     JITTER_AMOUNT = 0.0001
     if JITTER_GPS:
         gps_list_markers_all = [
-            gps if color_ == color_none[1] else
-            [
+            gps
+            if color_ == color_none[1]
+            else [
                 gps[0] + random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT),
                 gps[1] + random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT),
             ]
@@ -686,13 +711,10 @@ def view_advanced0(**kwargs):
 
     valid_aids = ibs.get_valid_aids()
     # valid_aids = filter_annots_imageset(valid_aids)
-    used_gids = list(set( ibs.get_annot_gids(valid_aids) ))
+    used_gids = list(set(ibs.get_annot_gids(valid_aids)))
     # used_contributor_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
     note_list = ibs.get_image_notes(used_gids)
-    note_list = [
-        ','.join(note.split(',')[:-1])
-        for note in note_list
-    ]
+    note_list = [','.join(note.split(',')[:-1]) for note in note_list]
     used_contributor_tags = set(note_list)
 
     # Get Age and sex (By Annot)
@@ -718,7 +740,14 @@ def view_advanced0(**kwargs):
     age_list = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     age_unreviewed = 0
     age_ambiguous = 0
-    for nid, sex, min_ages, max_ages in list(zip(nid_list_count, name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list)):
+    for nid, sex, min_ages, max_ages in list(
+        zip(
+            nid_list_count,
+            name_sex_list,
+            name_age_months_est_mins_list,
+            name_age_months_est_maxs_list,
+        )
+    ):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
             # print('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
             age_ambiguous += 1
@@ -751,14 +780,8 @@ def view_advanced0(**kwargs):
     if DEMOGRAPHICS_INCLUDE_UNREVIEWED_AMBIGOUS:
         age_total += age_unreviewed + age_ambiguous
     age_total = np.nan if age_total == 0 else age_total
-    age_fmt_str = (lambda x: '% 4d (% 2.02f%%)' % (x, 100 * x / age_total, ))
-    age_str_list = [
-        [
-            age_fmt_str(age)
-            for age in age_list_
-        ]
-        for age_list_ in age_list
-    ]
+    age_fmt_str = lambda x: '% 4d (% 2.02f%%)' % (x, 100 * x / age_total,)
+    age_str_list = [[age_fmt_str(age) for age in age_list_] for age_list_ in age_list]
     age_str_list.append(age_fmt_str(age_unreviewed))
     age_str_list.append(age_fmt_str(age_ambiguous))
 
@@ -771,62 +794,65 @@ def view_advanced0(**kwargs):
     if 'Core' in path_dict:
         path_dict.pop('Core')
 
-    return appf.template('view', 'advanced0',
-                         line_index_list=index_list,
-                         line_label_list=label_list,
-                         line_value_list=value_list,
-                         prediction_list=prediction_list,
-                         pl_index=pl_index,
-                         pl_error=pl_error,
-                         gps_list_markers=gps_list_markers,
-                         gps_list_markers_all=gps_list_markers_all,
-                         color_list_markers_all=color_list_markers_all,
-                         gps_list_tracks=gps_list_tracks,
-                         dataset_color_dict=dataset_color_dict,
-                         dataset_color_label_list=dataset_color_label_list,
-                         path_dict=path_dict,
-                         bar_label_list=bar_label_list,
-                         bar_value_list1=bar_value_list1,
-                         bar_value_list2=bar_value_list2,
-                         bar_value_list3=bar_value_list3,
-                         bar_value_list4=bar_value_list4,
-                         bar_value_list5=bar_value_list5,
-                         bar_value_list6=bar_value_list6,
-                         age_list=age_list,
-                         age_str_list=age_str_list,
-                         age_ambiguous=age_ambiguous,
-                         age_unreviewed=age_unreviewed,
-                         age_total=age_total,
-                         dbinfo_str=dbinfo_str,
-                         imgsetid_list=imgsetid_list,
-                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
-                         num_imgsetids=len(imgsetid_list),
-                         gid_list=gid_list,
-                         gid_list_str=','.join(map(str, gid_list)),
-                         num_gids=len(gid_list),
-                         contributor_list=contributor_list,
-                         contributor_list_str=','.join(map(str, contributor_list)),
-                         num_contribs=len(contributor_list),
-                         gid_list_count=gid_list_count,
-                         gid_list_count_str=','.join(map(str, gid_list_count)),
-                         num_gids_count=len(gid_list_count),
-                         aid_list=aid_list,
-                         aid_list_str=','.join(map(str, aid_list)),
-                         num_aids=len(aid_list),
-                         aid_list_count=aid_list_count,
-                         aid_list_count_str=','.join(map(str, aid_list_count)),
-                         num_aids_count=len(aid_list_count),
-                         nid_list=nid_list,
-                         nid_list_str=','.join(map(str, nid_list)),
-                         num_nids=len(nid_list),
-                         nid_list_count=nid_list_count,
-                         nid_list_count_str=','.join(map(str, nid_list_count)),
-                         num_nids_count=len(nid_list_count),
-                         used_gids=used_gids,
-                         num_used_gids=len(used_gids),
-                         used_contribs=used_contributor_tags,
-                         num_used_contribs=len(used_contributor_tags),
-                         __wrapper_header__=False)
+    return appf.template(
+        'view',
+        'advanced0',
+        line_index_list=index_list,
+        line_label_list=label_list,
+        line_value_list=value_list,
+        prediction_list=prediction_list,
+        pl_index=pl_index,
+        pl_error=pl_error,
+        gps_list_markers=gps_list_markers,
+        gps_list_markers_all=gps_list_markers_all,
+        color_list_markers_all=color_list_markers_all,
+        gps_list_tracks=gps_list_tracks,
+        dataset_color_dict=dataset_color_dict,
+        dataset_color_label_list=dataset_color_label_list,
+        path_dict=path_dict,
+        bar_label_list=bar_label_list,
+        bar_value_list1=bar_value_list1,
+        bar_value_list2=bar_value_list2,
+        bar_value_list3=bar_value_list3,
+        bar_value_list4=bar_value_list4,
+        bar_value_list5=bar_value_list5,
+        bar_value_list6=bar_value_list6,
+        age_list=age_list,
+        age_str_list=age_str_list,
+        age_ambiguous=age_ambiguous,
+        age_unreviewed=age_unreviewed,
+        age_total=age_total,
+        dbinfo_str=dbinfo_str,
+        imgsetid_list=imgsetid_list,
+        imgsetid_list_str=','.join(map(str, imgsetid_list)),
+        num_imgsetids=len(imgsetid_list),
+        gid_list=gid_list,
+        gid_list_str=','.join(map(str, gid_list)),
+        num_gids=len(gid_list),
+        contributor_list=contributor_list,
+        contributor_list_str=','.join(map(str, contributor_list)),
+        num_contribs=len(contributor_list),
+        gid_list_count=gid_list_count,
+        gid_list_count_str=','.join(map(str, gid_list_count)),
+        num_gids_count=len(gid_list_count),
+        aid_list=aid_list,
+        aid_list_str=','.join(map(str, aid_list)),
+        num_aids=len(aid_list),
+        aid_list_count=aid_list_count,
+        aid_list_count_str=','.join(map(str, aid_list_count)),
+        num_aids_count=len(aid_list_count),
+        nid_list=nid_list,
+        nid_list_str=','.join(map(str, nid_list)),
+        num_nids=len(nid_list),
+        nid_list_count=nid_list_count,
+        nid_list_count_str=','.join(map(str, nid_list_count)),
+        num_nids_count=len(nid_list_count),
+        used_gids=used_gids,
+        num_used_gids=len(used_gids),
+        used_contribs=used_contributor_tags,
+        num_used_contribs=len(used_contributor_tags),
+        __wrapper_header__=False,
+    )
 
 
 @register_route('/view/advanced/1/', methods=['GET'])
@@ -837,7 +863,7 @@ def view_advanced1(**kwargs):
     species_rowid_list = ibs.get_species_rowids_from_text(species_tag_list)
     species_set = set(species_tag_list)
     species_nice_dict = {
-        species_tag : ibs.get_species_nice(species_rowid)
+        species_tag: ibs.get_species_nice(species_rowid)
         for species_tag, species_rowid in list(zip(species_tag_list, species_rowid_list))
     }
 
@@ -855,30 +881,47 @@ def view_advanced1(**kwargs):
             viewpoint_dict[species][viewpoint] += 1
 
     viewpoint_tag_list = const.VIEWTEXT_TO_VIEWPOINT_RADIANS.keys()
-    pie_label_list = [ str(const.VIEWPOINTALIAS_NICE[_]) for _ in viewpoint_tag_list ]
+    pie_label_list = [str(const.VIEWPOINTALIAS_NICE[_]) for _ in viewpoint_tag_list]
     pie_values_list = [
         (
             species_nice_dict[species],
-            [viewpoint_dict[species][_] for _ in viewpoint_tag_list]
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_list],
         )
         for species in species_tag_list
     ]
 
-    pie_left_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
-    pie_right_list = ['right', 'backright', 'back', 'backleft', 'left', 'frontleft', 'front', 'frontright']
+    pie_left_list = [
+        'left',
+        'frontleft',
+        'front',
+        'frontright',
+        'right',
+        'backright',
+        'back',
+        'backleft',
+    ]
+    pie_right_list = [
+        'right',
+        'backright',
+        'back',
+        'backleft',
+        'left',
+        'frontleft',
+        'front',
+        'frontright',
+    ]
     viewpoint_tag_dict = {
-        'zebra_grevys' : pie_right_list,
-        'zebra_plains' : pie_left_list,
-        'giraffe_masai' : pie_left_list,
+        'zebra_grevys': pie_right_list,
+        'zebra_plains': pie_left_list,
+        'giraffe_masai': pie_left_list,
     }
-    pie_label_corrected_list = list(map(
-        str,
-        ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315']
-    ))
+    pie_label_corrected_list = list(
+        map(str, ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315'])
+    )
     pie_values_corrected_list = [
         (
             species_nice_dict[species],
-            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]]
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]],
         )
         for species in species_tag_list
     ]
@@ -889,10 +932,7 @@ def view_advanced1(**kwargs):
     viewpoints_list = ut.unflat_map(ibs.get_annot_viewpoints, aids_list)
     dataset_tag_list = ['GGR', 'GZGC']
     pie_label_images_list = ['Correct Viewpoint', '+/- 45 Viewpoint', 'Unused']
-    pie_values_images_dict = {
-        dataset_tag : [0, 0, 0]
-        for dataset_tag in dataset_tag_list
-    }
+    pie_values_images_dict = {dataset_tag: [0, 0, 0] for dataset_tag in dataset_tag_list}
     allowed_viewpoint_dict = {
         'GGR': ['right', 'frontright', 'backright'],
         'GZGC': ['left', 'frontleft', 'backleft'],
@@ -913,15 +953,14 @@ def view_advanced1(**kwargs):
         if not found:
             pie_values_images_dict[dataset_tag][2] += 1
 
-    pie_values_images_list = [
-        (_, pie_values_images_dict[_])
-        for _ in dataset_tag_list
-    ]
+    pie_values_images_list = [(_, pie_values_images_dict[_]) for _ in dataset_tag_list]
 
     nid_list = ibs.get_valid_nids()
     aids_list = ibs.get_name_aids(nid_list)
-    species_list = map(list, map(set, ut.unflat_map(ibs.get_annot_species_texts, aids_list)))
-    species_list = [ None if len(_) != 1 else _[0] for _ in species_list ]
+    species_list = map(
+        list, map(set, ut.unflat_map(ibs.get_annot_species_texts, aids_list))
+    )
+    species_list = [None if len(_) != 1 else _[0] for _ in species_list]
 
     num_bins = 15
     histogram_dict = {}
@@ -936,7 +975,7 @@ def view_advanced1(**kwargs):
 
     histogram_bins = list(range(1, num_bins + 1))
     bar_label_list = [
-        '%s+' % (bin_, ) if bin_ == histogram_bins[-1] else '%s' % (bin_, )
+        '%s+' % (bin_,) if bin_ == histogram_bins[-1] else '%s' % (bin_,)
         for bin_ in histogram_bins
     ]
     bar_values_dict = {}
@@ -951,9 +990,7 @@ def view_advanced1(**kwargs):
 
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
-    return appf.template('view', 'advanced1',
-                         __wrapper_header__=False,
-                         **embedded)
+    return appf.template('view', 'advanced1', __wrapper_header__=False, **embedded)
 
 
 @register_route('/view/advanced/2/', methods=['GET'])
@@ -961,13 +998,14 @@ def view_advanced2(**kwargs):
     def _date_list(gid_list):
         unixtime_list = ibs.get_image_unixtime(gid_list)
         datetime_list = [
-            ut.unixtime_to_datetimestr(unixtime)
-            if unixtime is not None else
-            'UNKNOWN'
+            ut.unixtime_to_datetimestr(unixtime) if unixtime is not None else 'UNKNOWN'
             for unixtime in unixtime_list
         ]
-        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        datetime_split_list = [datetime.split(' ') for datetime in datetime_list]
+        date_list = [
+            datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN'
+            for datetime_split in datetime_split_list
+        ]
         return date_list
 
     def filter_annots_imageset(aid_list):
@@ -1030,7 +1068,9 @@ def view_advanced2(**kwargs):
             # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
         else:
             assert ibs.dbname == 'GGR2-IBEIS'
-            aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
+            aid_list = ibs.check_ggr_valid_aids(
+                aid_list, species='zebra_grevys', threshold=0.75
+            )
 
         return aid_list
 
@@ -1054,7 +1094,9 @@ def view_advanced2(**kwargs):
     line_value_list = []
     seen_set = set()
     last_date = None
-    for unixtime, aid, nid, date, species in sorted(list(zip(unixtime_list, aid_list, nid_list, date_list, species_list))):
+    for unixtime, aid, nid, date, species in sorted(
+        list(zip(unixtime_list, aid_list, nid_list, date_list, species_list))
+    ):
         # if flagged_date_list is not None and date not in flagged_date_list:
         #     continue
 
@@ -1083,9 +1125,7 @@ def view_advanced2(**kwargs):
 
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
-    return appf.template('view', 'advanced2',
-                         __wrapper_header__=False,
-                         **embedded)
+    return appf.template('view', 'advanced2', __wrapper_header__=False, **embedded)
 
 
 @register_route('/view/advanced/3/', methods=['GET'])
@@ -1115,8 +1155,8 @@ def view_advanced3(**kwargs):
         else:
             note_ = note.strip().split(',')
             car, letter = note_[0:2]
-            car = car.split(' ')[-1].strip('\'')
-            letter = letter.split(' ')[-1].strip('\'')
+            car = car.split(' ')[-1].strip("'")
+            letter = letter.split(' ')[-1].strip("'")
 
         if car not in contrib_dict[dataset_tag]:
             contrib_dict[dataset_tag][car] = {}
@@ -1170,24 +1210,22 @@ def view_advanced3(**kwargs):
 
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
-    return appf.template('view', 'advanced3',
-                         __wrapper_header__=False,
-                         **embedded)
+    return appf.template('view', 'advanced3', __wrapper_header__=False, **embedded)
 
 
 @register_route('/view/advanced/4/', methods=['GET'])
 def view_advanced4(**kwargs):
-
     def _date_list(gid_list):
         unixtime_list = ibs.get_image_unixtime(gid_list)
         datetime_list = [
-            ut.unixtime_to_datetimestr(unixtime)
-            if unixtime is not None else
-            'UNKNOWN'
+            ut.unixtime_to_datetimestr(unixtime) if unixtime is not None else 'UNKNOWN'
             for unixtime in unixtime_list
         ]
-        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        datetime_split_list = [datetime.split(' ') for datetime in datetime_list]
+        date_list = [
+            datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN'
+            for datetime_split in datetime_split_list
+        ]
         return date_list
 
     def filter_species_of_interest(gid_list):
@@ -1292,8 +1330,12 @@ def view_advanced4(**kwargs):
         'GGR': ['right', 'frontright', 'backright'],
         'GZGC': ['left', 'frontleft', 'backleft'],
     }
-    dataset_dict['GZGC'] = filter_viewpoints_of_interest(dataset_dict['GZGC'], allowed_viewpoint_dict['GZGC'])
-    dataset_dict['GGR'] = filter_viewpoints_of_interest(dataset_dict['GGR'], allowed_viewpoint_dict['GGR'])
+    dataset_dict['GZGC'] = filter_viewpoints_of_interest(
+        dataset_dict['GZGC'], allowed_viewpoint_dict['GZGC']
+    )
+    dataset_dict['GGR'] = filter_viewpoints_of_interest(
+        dataset_dict['GGR'], allowed_viewpoint_dict['GGR']
+    )
 
     num_viewpoint_gzgc = len(dataset_dict['GZGC'])
     num_viewpoint_ggr = len(dataset_dict['GGR'])
@@ -1305,8 +1347,12 @@ def view_advanced4(**kwargs):
         'GGR': ['good', 'perfect'],
         'GZGC': ['ok', 'good', 'perfect'],
     }
-    dataset_dict['GZGC'] = filter_bad_quality(dataset_dict['GZGC'], allowed_quality_dict['GZGC'])
-    dataset_dict['GGR'] = filter_bad_quality(dataset_dict['GGR'], allowed_quality_dict['GZGC'])
+    dataset_dict['GZGC'] = filter_bad_quality(
+        dataset_dict['GZGC'], allowed_quality_dict['GZGC']
+    )
+    dataset_dict['GGR'] = filter_bad_quality(
+        dataset_dict['GGR'], allowed_quality_dict['GZGC']
+    )
 
     num_quality_gzgc = len(dataset_dict['GZGC'])
     num_quality_ggr = len(dataset_dict['GGR'])
@@ -1358,17 +1404,14 @@ def view_advanced4(**kwargs):
     ]
 
     diff_list_ggr = [
-        stage_list_ggr[i] - stage_list_ggr[i + 1]
-        for i in range(len(stage_list_ggr) - 1)
+        stage_list_ggr[i] - stage_list_ggr[i + 1] for i in range(len(stage_list_ggr) - 1)
     ]
 
     bar_value_list = map(list, list(zip(diff_list_gzgc, diff_list_ggr)))
 
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
-    return appf.template('view', 'advanced4',
-                         __wrapper_header__=False,
-                         **embedded)
+    return appf.template('view', 'advanced4', __wrapper_header__=False, **embedded)
 
 
 @register_route('/view/map/', methods=['GET'])
@@ -1382,7 +1425,7 @@ def view_map(**kwargs):
     gps_list = []
     color_list = []
 
-    color = "#CA4141"
+    color = '#CA4141'
 
     JITTER_GPS = True
     JITTER_AMOUNT = 0.0001
@@ -1417,7 +1460,10 @@ def view_imagesets(**kwargs):
     imgsetid = request.args.get('imgsetid', '')
     if len(imgsetid) > 0:
         imgsetid_list = imgsetid.strip().split(',')
-        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+        imgsetid_list = [
+            None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
+            for imgsetid_ in imgsetid_list
+        ]
     else:
         imgsetid_list = ibs.get_valid_imgsetids()
         filtered = False
@@ -1425,8 +1471,8 @@ def view_imagesets(**kwargs):
     start_time_posix_list = ibs.get_imageset_start_time_posix(imgsetid_list)
     datetime_list = [
         ut.unixtime_to_datetimestr(start_time_posix)
-        if start_time_posix is not None else
-        'Unknown'
+        if start_time_posix is not None
+        else 'Unknown'
         for start_time_posix in start_time_posix_list
     ]
 
@@ -1434,14 +1480,13 @@ def view_imagesets(**kwargs):
     all_gid_list = ibs.get_valid_gids()
     all_aid_list = ibs.get_valid_aids()
 
-    gids_list = [ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ]
+    gids_list = [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
     num_gids = list(map(len, gids_list))
 
     ######################################################################################
     all_gid_aids_list = ibs.get_image_aids(all_gid_list)
     gid_aid_mapping = {
-        gid: aid_list
-        for gid, aid_list in zip(all_gid_list, all_gid_aids_list)
+        gid: aid_list for gid, aid_list in zip(all_gid_list, all_gid_aids_list)
     }
 
     aids_list = [
@@ -1453,8 +1498,7 @@ def view_imagesets(**kwargs):
     ######################################################################################
     all_gid_reviewed_list = appf.imageset_image_processed(ibs, all_gid_list)
     gid_reviewed_mapping = {
-        gid: reviewed
-        for gid, reviewed in zip(all_gid_list, all_gid_reviewed_list)
+        gid: reviewed for gid, reviewed in zip(all_gid_list, all_gid_reviewed_list)
     }
     images_reviewed_list = [
         [gid_reviewed_mapping.get(gid, False) for gid in gid_list]
@@ -1464,8 +1508,7 @@ def view_imagesets(**kwargs):
     ######################################################################################
     all_aid_reviewed_list = appf.imageset_annot_viewpoint_processed(ibs, all_aid_list)
     aid_reviewed_mapping = {
-        aid: reviewed
-        for aid, reviewed in zip(all_aid_list, all_aid_reviewed_list)
+        aid: reviewed for aid, reviewed in zip(all_aid_list, all_aid_reviewed_list)
     }
     annots_reviewed_viewpoint_list = [
         [aid_reviewed_mapping.get(aid, False) for aid in aid_list]
@@ -1475,8 +1518,7 @@ def view_imagesets(**kwargs):
     ######################################################################################
     all_aid_reviewed_list = appf.imageset_annot_quality_processed(ibs, all_aid_list)
     aid_reviewed_mapping = {
-        aid: reviewed
-        for aid, reviewed in zip(all_aid_list, all_aid_reviewed_list)
+        aid: reviewed for aid, reviewed in zip(all_aid_list, all_aid_reviewed_list)
     }
     annots_reviewed_quality_list = [
         [aid_reviewed_mapping.get(aid, False) for aid in aid_list]
@@ -1484,34 +1526,56 @@ def view_imagesets(**kwargs):
     ]
 
     ######################################################################################
-    image_processed_list           = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
-    annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
-    annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
-    reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in list(zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list)) ]
+    image_processed_list = [
+        images_reviewed.count(True) for images_reviewed in images_reviewed_list
+    ]
+    annot_processed_viewpoint_list = [
+        annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list
+    ]
+    annot_processed_quality_list = [
+        annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list
+    ]
+    reviewed_list = [
+        all(images_reviewed)
+        and all(annots_reviewed_viewpoint)
+        and all(annot_processed_quality)
+        for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in list(
+            zip(
+                images_reviewed_list,
+                annots_reviewed_viewpoint_list,
+                annots_reviewed_quality_list,
+            )
+        )
+    ]
     is_normal_list = ut.not_list(ibs.is_special_imageset(imgsetid_list))
 
-    imageset_list = list(zip(
-        is_normal_list,
-        imgsetid_list,
-        imageset_text_list,
-        num_gids,
-        image_processed_list,
-        num_aids,
-        annot_processed_viewpoint_list,
-        annot_processed_quality_list,
-        start_time_posix_list,
-        datetime_list,
-        reviewed_list,
-    ))
+    imageset_list = list(
+        zip(
+            is_normal_list,
+            imgsetid_list,
+            imageset_text_list,
+            num_gids,
+            image_processed_list,
+            num_aids,
+            annot_processed_viewpoint_list,
+            annot_processed_quality_list,
+            start_time_posix_list,
+            datetime_list,
+            reviewed_list,
+        )
+    )
     imageset_list.sort(key=lambda t: t[0])
 
-    return appf.template('view', 'imagesets',
-                         filtered=filtered,
-                         imgsetid_list=imgsetid_list,
-                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
-                         num_imgsetids=len(imgsetid_list),
-                         imageset_list=imageset_list,
-                         num_imagesets=len(imageset_list))
+    return appf.template(
+        'view',
+        'imagesets',
+        filtered=filtered,
+        imgsetid_list=imgsetid_list,
+        imgsetid_list_str=','.join(map(str, imgsetid_list)),
+        num_imgsetids=len(imgsetid_list),
+        imageset_list=imageset_list,
+        num_imagesets=len(imageset_list),
+    )
 
 
 @register_route('/view/graphs/', methods=['GET'])
@@ -1532,18 +1596,20 @@ def view_graphs(sync=False, **kwargs):
         ibs.delete_empty_nids()
 
         nid_list = ibs.get_valid_nids()
-        print('Delete nids: %d' % (len(nid_list), ))
+        print('Delete nids: %d' % (len(nid_list),))
 
         species_list = ['zebra_grevys', 'giraffe_reticulated']
         for species in species_list:
             assert ibs.dbname == 'GGR2-IBEIS'
-            aid_list = ibs.check_ggr_valid_aids(aid_list_, species=species, threshold=0.75)
+            aid_list = ibs.check_ggr_valid_aids(
+                aid_list_, species=species, threshold=0.75
+            )
             ibs.set_annot_names_to_different_new_names(aid_list, notify_wildbook=False)
 
             infr = wbia.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
             infr.reset_feedback('staging', apply=True)
             num_pccs = len(list(infr.positive_components()))
-            print('\tproposing PCCs for %r: %d' % (species, num_pccs, ))
+            print('\tproposing PCCs for %r: %d' % (species, num_pccs,))
 
             infr.relabel_using_reviews(rectify=True)
             infr.write_wbia_staging_feedback()
@@ -1552,7 +1618,7 @@ def view_graphs(sync=False, **kwargs):
 
         ibs.delete_empty_nids()
         nid_list = ibs.get_valid_nids()
-        print('Final nids: %d' % (len(nid_list), ))
+        print('Final nids: %d' % (len(nid_list),))
 
         # Reset sex for new names from old names
         nid_list_ = ibs.get_annot_nids(aid_list_)
@@ -1575,7 +1641,7 @@ def view_graphs(sync=False, **kwargs):
         graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
         if graph_client is None:
             continue
-        graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
+        graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid),)
         graph_uuid_str = graph_uuid_str.replace(': ', ':')
         graph_status, graph_exception = graph_client.refresh_status()
         infr_status = graph_client.infr_status
@@ -1583,21 +1649,29 @@ def view_graphs(sync=False, **kwargs):
             infr_status = {}
         if graph_exception is not None:
             import traceback
+
             trace = traceback.format_tb(graph_exception.__traceback__)
             trace = '\n\n'.join(trace)
-            graph_exception = 'Exception: %s\n%s' % (graph_exception, trace, )
+            graph_exception = 'Exception: %s\n%s' % (graph_exception, trace,)
         if graph_client.review_dict is None:
             num_edges = None
         else:
             edge_list = list(graph_client.review_dict.keys())
             num_edges = len(edge_list)
-        phase = 'Phase %s (%s)' % (infr_status.get('phase', None), infr_status.get('loop_phase', None))
+        phase = 'Phase %s (%s)' % (
+            infr_status.get('phase', None),
+            infr_status.get('loop_phase', None),
+        )
         state = 0
         if infr_status.get('is_inconsistent', False):
             state = -1
         elif infr_status.get('is_converged', False):
             state = 1
-        reviews = '%s (%s - %s)' % (num_edges, infr_status.get('num_meaningful', None), infr_status.get('num_pccs', None))
+        reviews = '%s (%s - %s)' % (
+            num_edges,
+            infr_status.get('num_meaningful', None),
+            infr_status.get('num_pccs', None),
+        )
         graph = (
             graph_uuid,
             graph_client.imagesets,
@@ -1607,7 +1681,7 @@ def view_graphs(sync=False, **kwargs):
             reviews,
             graph_uuid_str,
             phase,
-            state
+            state,
         )
         graph_list.append(graph)
 
@@ -1643,20 +1717,22 @@ def view_jobs(**kwargs):
         if jov_status == 'corrupted':
             job_state -= 1
         job_exception = None
-        job_list.append((
-            jobid,
-            job['jobcounter'],
-            job['action'],
-            job['endpoint'],
-            job['function'],
-            jov_status,
-            job_state,
-            job['time_received'],
-            job['time_started'],
-            job['time_completed'],
-            job['time_runtime'],
-            job['time_turnaround'],
-        ))
+        job_list.append(
+            (
+                jobid,
+                job['jobcounter'],
+                job['action'],
+                job['endpoint'],
+                job['function'],
+                jov_status,
+                job_state,
+                job['time_received'],
+                job['time_started'],
+                job['time_completed'],
+                job['time_runtime'],
+                job['time_turnaround'],
+            )
+        )
 
     num_jobs = len(job_list)
 
@@ -1687,60 +1763,77 @@ def view_images(**kwargs):
     page = max(0, int(request.args.get('page', 1)))
     if len(gid) > 0:
         gid_list = gid.strip().split(',')
-        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+        gid_list = [
+            None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list
+        ]
     elif len(imgsetid) > 0:
         imgsetid_list = imgsetid.strip().split(',')
-        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
-        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid_ in imgsetid_list ])
+        imgsetid_list = [
+            None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
+            for imgsetid_ in imgsetid_list
+        ]
+        gid_list = ut.flatten(
+            [ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid_ in imgsetid_list]
+        )
     else:
         gid_list = ibs.get_valid_gids()
         filtered = False
     # Page
     gid_list = sorted(gid_list)
     page_start = min(len(gid_list), (page - 1) * appf.PAGE_SIZE)
-    page_end   = min(len(gid_list), page * appf.PAGE_SIZE)
+    page_end = min(len(gid_list), page * appf.PAGE_SIZE)
     page_total = int(math.ceil(len(gid_list) / appf.PAGE_SIZE))
     page_previous = None if page_start == 0 else page - 1
     page_next = None if page_end == len(gid_list) else page + 1
     gid_list = gid_list[page_start:page_end]
-    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(gid_list), page_previous, page_next, ))
+    print(
+        '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
+        % (page_start, page_end, len(gid_list), page_previous, page_next,)
+    )
     image_unixtime_list = ibs.get_image_unixtime(gid_list)
     datetime_list = [
         ut.unixtime_to_datetimestr(image_unixtime)
         if image_unixtime is not None
-        else
-        'Unknown'
+        else 'Unknown'
         for image_unixtime in image_unixtime_list
     ]
-    image_list = list(zip(
-        gid_list,
-        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_image_imgsetids(gid_list) ],
-        ibs.get_image_gnames(gid_list),
-        image_unixtime_list,
-        datetime_list,
-        ibs.get_image_gps(gid_list),
-        ibs.get_image_party_tag(gid_list),
-        ibs.get_image_contributor_tag(gid_list),
-        ibs.get_image_notes(gid_list),
-        appf.imageset_image_processed(ibs, gid_list),
-    ))
+    image_list = list(
+        zip(
+            gid_list,
+            [
+                ','.join(map(str, imgsetid_list_))
+                for imgsetid_list_ in ibs.get_image_imgsetids(gid_list)
+            ],
+            ibs.get_image_gnames(gid_list),
+            image_unixtime_list,
+            datetime_list,
+            ibs.get_image_gps(gid_list),
+            ibs.get_image_party_tag(gid_list),
+            ibs.get_image_contributor_tag(gid_list),
+            ibs.get_image_notes(gid_list),
+            appf.imageset_image_processed(ibs, gid_list),
+        )
+    )
     # image_list.sort(key=lambda t: t[3])
-    return appf.template('view', 'images',
-                         filtered=filtered,
-                         imgsetid_list=imgsetid_list,
-                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
-                         num_imgsetids=len(imgsetid_list),
-                         gid_list=gid_list,
-                         gid_list_str=','.join(map(str, gid_list)),
-                         num_gids=len(gid_list),
-                         image_list=image_list,
-                         num_images=len(image_list),
-                         page=page,
-                         page_start=page_start,
-                         page_end=page_end,
-                         page_total=page_total,
-                         page_previous=page_previous,
-                         page_next=page_next)
+    return appf.template(
+        'view',
+        'images',
+        filtered=filtered,
+        imgsetid_list=imgsetid_list,
+        imgsetid_list_str=','.join(map(str, imgsetid_list)),
+        num_imgsetids=len(imgsetid_list),
+        gid_list=gid_list,
+        gid_list_str=','.join(map(str, gid_list)),
+        num_gids=len(gid_list),
+        image_list=image_list,
+        num_images=len(image_list),
+        page=page,
+        page_start=page_start,
+        page_end=page_end,
+        page_total=page_total,
+        page_previous=page_previous,
+        page_next=page_next,
+    )
 
 
 @register_route('/view/annotations/', methods=['GET'])
@@ -1755,68 +1848,89 @@ def view_annotations(**kwargs):
     page = max(0, int(request.args.get('page', 1)))
     if len(aid) > 0:
         aid_list = aid.strip().split(',')
-        aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
+        aid_list = [
+            None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list
+        ]
     elif len(gid) > 0:
         gid_list = gid.strip().split(',')
-        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+        gid_list = [
+            None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list
+        ]
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     elif len(imgsetid) > 0:
         imgsetid_list = imgsetid.strip().split(',')
-        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
-        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ])
+        imgsetid_list = [
+            None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
+            for imgsetid_ in imgsetid_list
+        ]
+        gid_list = ut.flatten(
+            [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
+        )
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     else:
         aid_list = ibs.get_valid_aids()
         filtered = False
     # Page
     page_start = min(len(aid_list), (page - 1) * appf.PAGE_SIZE)
-    page_end   = min(len(aid_list), page * appf.PAGE_SIZE)
+    page_end = min(len(aid_list), page * appf.PAGE_SIZE)
     page_total = int(math.ceil(len(aid_list) / appf.PAGE_SIZE))
     page_previous = None if page_start == 0 else page - 1
     page_next = None if page_end == len(aid_list) else page + 1
     aid_list = aid_list[page_start:page_end]
-    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(aid_list), page_previous, page_next, ))
-    annotation_list = list(zip(
-        aid_list,
-        ibs.get_annot_gids(aid_list),
-        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list) ],
-        ibs.get_annot_image_names(aid_list),
-        ibs.get_annot_names(aid_list),
-        ibs.get_annot_exemplar_flags(aid_list),
-        ibs.get_annot_species_texts(aid_list),
-        ibs.get_annot_viewpoints(aid_list),
-        ibs.get_annot_quality_texts(aid_list),
-        ibs.get_annot_sex_texts(aid_list),
-        ibs.get_annot_age_months_est(aid_list),
-        ibs.get_annot_reviewed(aid_list),
-        ibs.get_annot_interest(aid_list),
-        # [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in list(zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list))) ],
-    ))
+    print(
+        '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
+        % (page_start, page_end, len(aid_list), page_previous, page_next,)
+    )
+    annotation_list = list(
+        zip(
+            aid_list,
+            ibs.get_annot_gids(aid_list),
+            [
+                ','.join(map(str, imgsetid_list_))
+                for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list)
+            ],
+            ibs.get_annot_image_names(aid_list),
+            ibs.get_annot_names(aid_list),
+            ibs.get_annot_exemplar_flags(aid_list),
+            ibs.get_annot_species_texts(aid_list),
+            ibs.get_annot_viewpoints(aid_list),
+            ibs.get_annot_quality_texts(aid_list),
+            ibs.get_annot_sex_texts(aid_list),
+            ibs.get_annot_age_months_est(aid_list),
+            ibs.get_annot_reviewed(aid_list),
+            ibs.get_annot_interest(aid_list),
+            # [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in list(zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list))) ],
+        )
+    )
     annotation_list.sort(key=lambda t: t[0])
-    return appf.template('view', 'annotations',
-                         filtered=filtered,
-                         imgsetid_list=imgsetid_list,
-                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
-                         num_imgsetids=len(imgsetid_list),
-                         gid_list=gid_list,
-                         gid_list_str=','.join(map(str, gid_list)),
-                         num_gids=len(gid_list),
-                         aid_list=aid_list,
-                         aid_list_str=','.join(map(str, aid_list)),
-                         num_aids=len(aid_list),
-                         annotation_list=annotation_list,
-                         num_annotations=len(annotation_list),
-                         page=page,
-                         page_start=page_start,
-                         page_end=page_end,
-                         page_total=page_total,
-                         page_previous=page_previous,
-                         page_next=page_next)
+    return appf.template(
+        'view',
+        'annotations',
+        filtered=filtered,
+        imgsetid_list=imgsetid_list,
+        imgsetid_list_str=','.join(map(str, imgsetid_list)),
+        num_imgsetids=len(imgsetid_list),
+        gid_list=gid_list,
+        gid_list_str=','.join(map(str, gid_list)),
+        num_gids=len(gid_list),
+        aid_list=aid_list,
+        aid_list_str=','.join(map(str, aid_list)),
+        num_aids=len(aid_list),
+        annotation_list=annotation_list,
+        num_annotations=len(annotation_list),
+        page=page,
+        page_start=page_start,
+        page_end=page_end,
+        page_total=page_total,
+        page_previous=page_previous,
+        page_next=page_next,
+    )
 
 
 @register_route('/view/parts/', methods=['GET'])
-def view_parts(pid_list=None, aid_list=None, gid_list=None, imgsetid_list=None,
-               page=1, **kwargs):
+def view_parts(
+    pid_list=None, aid_list=None, gid_list=None, imgsetid_list=None, page=1, **kwargs
+):
     ibs = current_app.ibs
 
     filtered = True
@@ -1832,17 +1946,20 @@ def view_parts(pid_list=None, aid_list=None, gid_list=None, imgsetid_list=None,
 
     # Page
     page_start = min(len(pid_list), (page - 1) * appf.PAGE_SIZE)
-    page_end   = min(len(pid_list), page * appf.PAGE_SIZE)
+    page_end = min(len(pid_list), page * appf.PAGE_SIZE)
     page_total = int(math.ceil(len(pid_list) / appf.PAGE_SIZE))
     page_previous = None if page_start == 0 else page - 1
     page_next = None if page_end == len(pid_list) else page + 1
 
     pid_list = pid_list[page_start:page_end]
-    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(pid_list), page_previous, page_next, ))
+    print(
+        '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
+        % (page_start, page_end, len(pid_list), page_previous, page_next,)
+    )
 
-    pid_list      = [] if pid_list      is None else pid_list
-    aid_list      = [] if aid_list      is None else aid_list
-    gid_list      = [] if gid_list      is None else gid_list
+    pid_list = [] if pid_list is None else pid_list
+    aid_list = [] if aid_list is None else aid_list
+    gid_list = [] if gid_list is None else gid_list
     imgsetid_list = [] if imgsetid_list is None else imgsetid_list
 
     imgsetid_list_str = ','.join(map(str, imgsetid_list))
@@ -1855,13 +1972,15 @@ def view_parts(pid_list=None, aid_list=None, gid_list=None, imgsetid_list=None,
     num_aids = len(aid_list)
     num_pids = len(pid_list)
 
-    part_list = list(zip(
-        pid_list,
-        ibs.get_part_aids(pid_list),
-        ibs.get_part_gids(pid_list),
-        ibs.get_part_types(pid_list),
-        ibs.get_part_reviewed(pid_list),
-    ))
+    part_list = list(
+        zip(
+            pid_list,
+            ibs.get_part_aids(pid_list),
+            ibs.get_part_gids(pid_list),
+            ibs.get_part_types(pid_list),
+            ibs.get_part_reviewed(pid_list),
+        )
+    )
     part_list.sort(key=lambda t: t[0])
 
     embedded = dict(globals(), **locals())
@@ -1882,20 +2001,31 @@ def view_names(**kwargs):
     page = max(0, int(request.args.get('page', 1)))
     if len(nid) > 0:
         nid_list = nid.strip().split(',')
-        nid_list = [ None if nid_ == 'None' or nid_ == '' else int(nid_) for nid_ in nid_list ]
+        nid_list = [
+            None if nid_ == 'None' or nid_ == '' else int(nid_) for nid_ in nid_list
+        ]
     if len(aid) > 0:
         aid_list = aid.strip().split(',')
-        aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
+        aid_list = [
+            None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list
+        ]
         nid_list = ibs.get_annot_name_rowids(aid_list)
     elif len(gid) > 0:
         gid_list = gid.strip().split(',')
-        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+        gid_list = [
+            None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list
+        ]
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         nid_list = ibs.get_annot_name_rowids(aid_list)
     elif len(imgsetid) > 0:
         imgsetid_list = imgsetid.strip().split(',')
-        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
-        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ])
+        imgsetid_list = [
+            None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
+            for imgsetid_ in imgsetid_list
+        ]
+        gid_list = ut.flatten(
+            [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
+        )
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         nid_list = ibs.get_annot_name_rowids(aid_list)
     else:
@@ -1904,54 +2034,73 @@ def view_names(**kwargs):
     # Page
     appf.PAGE_SIZE_ = int(appf.PAGE_SIZE / 5)
     page_start = min(len(nid_list), (page - 1) * appf.PAGE_SIZE_)
-    page_end   = min(len(nid_list), page * appf.PAGE_SIZE_)
+    page_end = min(len(nid_list), page * appf.PAGE_SIZE_)
     page_total = int(math.ceil(len(nid_list) / appf.PAGE_SIZE_))
     page_previous = None if page_start == 0 else page - 1
     page_next = None if page_end == len(nid_list) else page + 1
     nid_list = nid_list[page_start:page_end]
-    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(nid_list), page_previous, page_next, ))
+    print(
+        '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
+        % (page_start, page_end, len(nid_list), page_previous, page_next,)
+    )
     aids_list = ibs.get_name_aids(nid_list)
-    annotations_list = [ list(zip(
-        aid_list_,
-        ibs.get_annot_gids(aid_list_),
-        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list_) ],
-        ibs.get_annot_image_names(aid_list_),
-        ibs.get_annot_names(aid_list_),
-        ibs.get_annot_exemplar_flags(aid_list_),
-        ibs.get_annot_species_texts(aid_list_),
-        ibs.get_annot_viewpoints(aid_list_),
-        ibs.get_annot_quality_texts(aid_list_),
-        ibs.get_annot_sex_texts(aid_list_),
-        ibs.get_annot_age_months_est(aid_list_),
-        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in list(zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list_), appf.imageset_annot_quality_processed(ibs, aid_list_))) ],
-    )) for aid_list_ in aids_list ]
-    name_list = list(zip(
-        nid_list,
-        annotations_list
-    ))
+    annotations_list = [
+        list(
+            zip(
+                aid_list_,
+                ibs.get_annot_gids(aid_list_),
+                [
+                    ','.join(map(str, imgsetid_list_))
+                    for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list_)
+                ],
+                ibs.get_annot_image_names(aid_list_),
+                ibs.get_annot_names(aid_list_),
+                ibs.get_annot_exemplar_flags(aid_list_),
+                ibs.get_annot_species_texts(aid_list_),
+                ibs.get_annot_viewpoints(aid_list_),
+                ibs.get_annot_quality_texts(aid_list_),
+                ibs.get_annot_sex_texts(aid_list_),
+                ibs.get_annot_age_months_est(aid_list_),
+                [
+                    reviewed_viewpoint and reviewed_quality
+                    for reviewed_viewpoint, reviewed_quality in list(
+                        zip(
+                            appf.imageset_annot_viewpoint_processed(ibs, aid_list_),
+                            appf.imageset_annot_quality_processed(ibs, aid_list_),
+                        )
+                    )
+                ],
+            )
+        )
+        for aid_list_ in aids_list
+    ]
+    name_list = list(zip(nid_list, annotations_list))
     name_list.sort(key=lambda t: t[0])
-    return appf.template('view', 'names',
-                         filtered=filtered,
-                         imgsetid_list=imgsetid_list,
-                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
-                         num_imgsetids=len(imgsetid_list),
-                         gid_list=gid_list,
-                         gid_list_str=','.join(map(str, gid_list)),
-                         num_gids=len(gid_list),
-                         aid_list=aid_list,
-                         aid_list_str=','.join(map(str, aid_list)),
-                         num_aids=len(aid_list),
-                         nid_list=nid_list,
-                         nid_list_str=','.join(map(str, nid_list)),
-                         num_nids=len(nid_list),
-                         name_list=name_list,
-                         num_names=len(name_list),
-                         page=page,
-                         page_start=page_start,
-                         page_end=page_end,
-                         page_total=page_total,
-                         page_previous=page_previous,
-                         page_next=page_next)
+    return appf.template(
+        'view',
+        'names',
+        filtered=filtered,
+        imgsetid_list=imgsetid_list,
+        imgsetid_list_str=','.join(map(str, imgsetid_list)),
+        num_imgsetids=len(imgsetid_list),
+        gid_list=gid_list,
+        gid_list_str=','.join(map(str, gid_list)),
+        num_gids=len(gid_list),
+        aid_list=aid_list,
+        aid_list_str=','.join(map(str, aid_list)),
+        num_aids=len(aid_list),
+        nid_list=nid_list,
+        nid_list_str=','.join(map(str, nid_list)),
+        num_nids=len(nid_list),
+        name_list=name_list,
+        num_names=len(name_list),
+        page=page,
+        page_start=page_start,
+        page_end=page_end,
+        page_total=page_total,
+        page_previous=page_previous,
+        page_next=page_next,
+    )
 
 
 @register_route('/action/', methods=['GET'])
@@ -1963,16 +2112,16 @@ def action(**kwargs):
 
     job_id_list = ibs.get_job_id_list()
     job_action_list = [None] * len(job_id_list)
-    job_status_list = [
-        ibs.get_job_status(job_id)['jobstatus']
-        for job_id in job_id_list
-    ]
+    job_status_list = [ibs.get_job_status(job_id)['jobstatus'] for job_id in job_id_list]
     action_list = list(zip(job_id_list, job_action_list, job_status_list))
 
-    return appf.template('action', None,
-                         imgsetid=imgsetid,
-                         action_list=action_list,
-                         num_actions=len(action_list))
+    return appf.template(
+        'action',
+        None,
+        imgsetid=imgsetid,
+        action_list=action_list,
+        num_actions=len(action_list),
+    )
 
 
 @register_route('/action/detect/', methods=['GET'])
@@ -2011,6 +2160,7 @@ def _make_review_image_info(ibs, gid):
     """
     # Shows how to use new object-like interface to populate data
     import numpy as np
+
     image = ibs.images([gid])[0]
     annots = image.annots
     width, height = image.sizes
@@ -2021,14 +2171,14 @@ def _make_review_image_info(ibs, gid):
         bbox = np.array(annot_.bboxes)
         bbox_percent = bbox / bbox_denom * 100
         temp = {
-            'left'   :  bbox_percent[0],
-            'top'    :  bbox_percent[1],
-            'width'  :  bbox_percent[2],
-            'height' :  bbox_percent[3],
-            'label'  :  annot_.species,
-            'id'     :  annot_.aids,
-            'theta'  :  annot_.thetas,
-            'tags'   :  annot_.case_tags,
+            'left': bbox_percent[0],
+            'top': bbox_percent[1],
+            'width': bbox_percent[2],
+            'height': bbox_percent[3],
+            'label': annot_.species,
+            'id': annot_.aids,
+            'theta': annot_.thetas,
+            'tags': annot_.case_tags,
         }
     annotation_list.append(temp)
 
@@ -2042,7 +2192,7 @@ def turk_cameratrap(**kwargs):
     finished = gid is None
     if not finished:
         image_src = routes_ajax.image_src(gid, resize=False)
-        positive  = ibs.get_image_cameratrap(gid) not in [False, None]
+        positive = ibs.get_image_cameratrap(gid) not in [False, None]
     else:
         image_src = None
         positive = False
@@ -2073,41 +2223,46 @@ def precompute_web_viewpoint_thumbnails(ibs, aid_list=None, **kwargs):
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
 
-    kwargs['dim_size'] = max(
-        int(appf.TARGET_WIDTH),
-        int(appf.TARGET_HEIGHT),
-    )
+    kwargs['dim_size'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT),)
     ibs._parallel_chips = True
     ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=kwargs)
 
 
 @register_route('/turk/detection/', methods=['GET'])
-def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
-                   previous=None, previous_only_aid=None, staged_super=False,
-                   progress=None, **kwargs):
+def turk_detection(
+    gid=None,
+    only_aid=None,
+    refer_aid=None,
+    imgsetid=None,
+    previous=None,
+    previous_only_aid=None,
+    staged_super=False,
+    progress=None,
+    **kwargs,
+):
 
     ibs = current_app.ibs
 
     staged_reviews_required = 3
 
     default_list = [
-        ('autointerest',            False),
-        ('interest_bypass',         False),
-        ('metadata',                True),
-        ('metadata_viewpoint',      True),
-        ('metadata_quality',        True),
-        ('metadata_flags',          True),
-        ('metadata_flags_aoi',      True),
+        ('autointerest', False),
+        ('interest_bypass', False),
+        ('metadata', True),
+        ('metadata_viewpoint', True),
+        ('metadata_quality', True),
+        ('metadata_flags', True),
+        ('metadata_flags_aoi', True),
         ('metadata_flags_multiple', True),
-        ('metadata_species',        True),
-        ('metadata_label',          True),
-        ('metadata_quickhelp',      True),
-        ('parts',                   True),
-        ('modes_rectangle',         True),
-        ('modes_diagonal',          True),
-        ('modes_diagonal2',         True),
-        ('staged',                  False),
-        ('canonical',               False),
+        ('metadata_species', True),
+        ('metadata_label', True),
+        ('metadata_quickhelp', True),
+        ('parts', True),
+        ('modes_rectangle', True),
+        ('modes_diagonal', True),
+        ('modes_diagonal2', True),
+        ('staged', False),
+        ('canonical', False),
     ]
 
     config_kwargs = kwargs.get('config', {})
@@ -2116,8 +2271,7 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
         for key, default in default_list
     }
     config_str_list = [
-        '%s=%s' % (key, 'true' if config[key] else 'false', )
-        for key in config.keys()
+        '%s=%s' % (key, 'true' if config[key] else 'false',) for key in config.keys()
     ]
     config_str = '&'.join(config_str_list)
 
@@ -2131,21 +2285,20 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
 
     if not is_canonical:
         gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-        reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged,
-                                                      reviews_required=staged_reviews_required)
+        reviewed_list = appf.imageset_image_processed(
+            ibs, gid_list, is_staged=is_staged, reviews_required=staged_reviews_required
+        )
 
         try:
-            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
+            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list),)
         except ZeroDivisionError:
             progress = '100.0'
 
         if is_staged:
             staged_progress = appf.imageset_image_staged_progress(
-                ibs,
-                gid_list,
-                reviews_required=staged_reviews_required
+                ibs, gid_list, reviews_required=staged_reviews_required
             )
-            staged_progress = '%0.2f' % (100.0 * staged_progress, )
+            staged_progress = '%0.2f' % (100.0 * staged_progress,)
         else:
             staged_progress = None
 
@@ -2161,9 +2314,13 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
 
     finished = gid is None
     review = 'review' in request.args.keys()
-    display_instructions = False  # request.cookies.get('ia-detection_instructions_seen', 1) == 1
+    display_instructions = (
+        False  # request.cookies.get('ia-detection_instructions_seen', 1) == 1
+    )
     display_new_features = request.cookies.get('ia-detection_new_features_seen', 1) == 1
-    display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
+    display_species_examples = (
+        False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
+    )
 
     if not finished:
         # image_src = routes_ajax.image_src(gid, resize=False)
@@ -2202,8 +2359,28 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
         # Get annotation bounding boxes
         mapping_dict = {}
         annotation_list = []
-        zipped = list(zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list))
-        for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
+        zipped = list(
+            zip(
+                aid_list,
+                annot_bbox_list,
+                annot_theta_list,
+                species_list,
+                viewpoint_list,
+                quality_list,
+                multiple_list,
+                interest_list,
+            )
+        )
+        for (
+            aid,
+            annot_bbox,
+            annot_theta,
+            species,
+            viewpoint,
+            quality,
+            multiple,
+            interest,
+        ) in zipped:
             if quality in [-1, None]:
                 quality = 0
             elif quality <= 2:
@@ -2211,28 +2388,32 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
             elif quality > 2:
                 quality = 2
 
-            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
+            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(
+                viewpoint
+            )
 
             temp = {}
-            temp['id']         = aid
-            temp['left']       = 100.0 * (annot_bbox[0] / width)
-            temp['top']        = 100.0 * (annot_bbox[1] / height)
-            temp['width']      = 100.0 * (annot_bbox[2] / width)
-            temp['height']     = 100.0 * (annot_bbox[3] / height)
-            temp['theta']      = float(annot_theta)
+            temp['id'] = aid
+            temp['left'] = 100.0 * (annot_bbox[0] / width)
+            temp['top'] = 100.0 * (annot_bbox[1] / height)
+            temp['width'] = 100.0 * (annot_bbox[2] / width)
+            temp['height'] = 100.0 * (annot_bbox[3] / height)
+            temp['theta'] = float(annot_theta)
             temp['viewpoint1'] = viewpoint1
             temp['viewpoint2'] = viewpoint2
             temp['viewpoint3'] = viewpoint3
-            temp['quality']    = quality
-            temp['multiple']   = 'true' if multiple == 1 else 'false'
-            temp['interest']   = 'true' if interest == 1 else 'false'
-            temp['species']    = species
+            temp['quality'] = quality
+            temp['multiple'] = 'true' if multiple == 1 else 'false'
+            temp['interest'] = 'true' if interest == 1 else 'false'
+            temp['species'] = species
 
             mapping_dict[aid] = len(annotation_list)
             annotation_list.append(temp)
 
         # Get parts
-        part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list, is_staged=is_staged))
+        part_rowid_list = ut.flatten(
+            ibs.get_annot_part_rowids(aid_list, is_staged=is_staged)
+        )
 
         if is_staged:
             # Filter part_rowids for current user
@@ -2252,8 +2433,26 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
         # Get annotation bounding boxes
 
         part_list = []
-        zipped = list(zip(part_rowid_list, part_aid_list, part_bbox_list, part_theta_list, part_viewpoint_list, part_quality_list, part_type_list))
-        for part_rowid, part_aid, part_bbox, part_theta, part_viewpoint, part_quality, part_type in zipped:
+        zipped = list(
+            zip(
+                part_rowid_list,
+                part_aid_list,
+                part_bbox_list,
+                part_theta_list,
+                part_viewpoint_list,
+                part_quality_list,
+                part_type_list,
+            )
+        )
+        for (
+            part_rowid,
+            part_aid,
+            part_bbox,
+            part_theta,
+            part_viewpoint,
+            part_quality,
+            part_type,
+        ) in zipped:
 
             if is_canonical:
                 if part_type != appf.CANONICAL_PART_TYPE:
@@ -2266,30 +2465,36 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
             elif part_quality > 2:
                 part_quality = 2
 
-            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(part_viewpoint)
+            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(
+                part_viewpoint
+            )
 
             temp = {}
-            temp['id']         = part_rowid
-            temp['parent']     = mapping_dict[part_aid]
-            temp['left']       = 100.0 * (part_bbox[0] / width)
-            temp['top']        = 100.0 * (part_bbox[1] / height)
-            temp['width']      = 100.0 * (part_bbox[2] / width)
-            temp['height']     = 100.0 * (part_bbox[3] / height)
-            temp['theta']      = float(part_theta)
+            temp['id'] = part_rowid
+            temp['parent'] = mapping_dict[part_aid]
+            temp['left'] = 100.0 * (part_bbox[0] / width)
+            temp['top'] = 100.0 * (part_bbox[1] / height)
+            temp['width'] = 100.0 * (part_bbox[2] / width)
+            temp['height'] = 100.0 * (part_bbox[3] / height)
+            temp['theta'] = float(part_theta)
             temp['viewpoint1'] = viewpoint1
-            temp['quality']    = part_quality
-            temp['type']       = part_type
+            temp['quality'] = part_quality
+            temp['type'] = part_type
             part_list.append(temp)
 
         if len(species_list) > 0:
-            species = max(set(species_list), key=species_list.count)  # Get most common species
+            species = max(
+                set(species_list), key=species_list.count
+            )  # Get most common species
         elif appf.default_species(ibs) is not None:
             species = appf.default_species(ibs)
         else:
             species = KEY_DEFAULTS[SPECIES_KEY]
 
         staged_aid_list = ibs.get_image_aids(gid, is_staged=True)
-        staged_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(staged_aid_list, is_staged=True))
+        staged_part_rowid_list = ut.flatten(
+            ibs.get_annot_part_rowids(staged_aid_list, is_staged=True)
+        )
 
         imgesetid_list = list(set(ibs.get_image_imgsetids(gid)) - set([imgsetid]))
         imagesettext_list = ibs.get_imageset_text(imgesetid_list)
@@ -2328,10 +2533,12 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
                 THROW_TEST_AOI_TURKING_ERROR_MODES[throw_test_aoi_turking_mode]
             )
             throw_test_aoi_turking_severity = min(
-                throw_test_aoi_turking_severity,
-                len(annotation_list)
+                throw_test_aoi_turking_severity, len(annotation_list)
             )
-            args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
+            args = (
+                throw_test_aoi_turking_mode,
+                throw_test_aoi_turking_severity,
+            )
             print('throw_test_aoi_turking: %r mode with %r severity' % args)
 
             index_list = list(range(len(annotation_list)))
@@ -2339,7 +2546,10 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
             index_list = index_list[:throw_test_aoi_turking_severity]
             index_list = sorted(index_list, reverse=True)
 
-            args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
+            args = (
+                throw_test_aoi_turking_mode,
+                throw_test_aoi_turking_severity,
+            )
             if throw_test_aoi_turking_mode == 'addition':
 
                 for index in index_list:
@@ -2364,19 +2574,17 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
                         'viewpoint3': -1,
                     }
                     annotation_list.append(annotation)
-                    THROW_TEST_AOI_TURKING_MANIFEST.append({
-                        'action': 'addition',
-                        'values': annotation,
-                    })
+                    THROW_TEST_AOI_TURKING_MANIFEST.append(
+                        {'action': 'addition', 'values': annotation,}
+                    )
             elif throw_test_aoi_turking_mode == 'deletion':
                 if len(part_list) == 0:
 
                     for index in index_list:
                         annotation = annotation_list.pop(index)
-                        THROW_TEST_AOI_TURKING_MANIFEST.append({
-                            'action': 'deletion',
-                            'values': annotation,
-                        })
+                        THROW_TEST_AOI_TURKING_MANIFEST.append(
+                            {'action': 'deletion', 'values': annotation,}
+                        )
                 else:
                     THROW_TEST_AOI_TURKING_AVAILABLE = False
             elif throw_test_aoi_turking_mode == 'alteration':
@@ -2404,14 +2612,16 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
                         height += delta
 
                     annotation_list[index]['height'] = min(max(height, 0.0), 100.0)
-                    annotation_list[index]['width']  = min(max(width, 0.0), 100.0)
-                    annotation_list[index]['left']   = min(max(left, 0.0), 100.0)
-                    annotation_list[index]['top']    = min(max(top, 0.0), 100.0)
+                    annotation_list[index]['width'] = min(max(width, 0.0), 100.0)
+                    annotation_list[index]['left'] = min(max(left, 0.0), 100.0)
+                    annotation_list[index]['top'] = min(max(top, 0.0), 100.0)
 
-                    THROW_TEST_AOI_TURKING_MANIFEST.append({
-                        'action': 'alteration-%s' % (direction, ),
-                        'values': annotation_list[index],
-                    })
+                    THROW_TEST_AOI_TURKING_MANIFEST.append(
+                        {
+                            'action': 'alteration-%s' % (direction,),
+                            'values': annotation_list[index],
+                        }
+                    )
             elif throw_test_aoi_turking_mode == 'translation':
                 for index in index_list:
                     direction_list = ['left', 'right', 'up', 'down']
@@ -2435,14 +2645,16 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
                         top += delta
 
                     annotation_list[index]['height'] = min(max(height, 0.0), 100.0)
-                    annotation_list[index]['width']  = min(max(width, 0.0), 100.0)
-                    annotation_list[index]['left']   = min(max(left, 0.0), 100.0)
-                    annotation_list[index]['top']    = min(max(top, 0.0), 100.0)
+                    annotation_list[index]['width'] = min(max(width, 0.0), 100.0)
+                    annotation_list[index]['left'] = min(max(left, 0.0), 100.0)
+                    annotation_list[index]['top'] = min(max(top, 0.0), 100.0)
 
-                    THROW_TEST_AOI_TURKING_MANIFEST.append({
-                        'action': 'translation-%s' % (direction, ),
-                        'values': annotation_list[index],
-                    })
+                    THROW_TEST_AOI_TURKING_MANIFEST.append(
+                        {
+                            'action': 'translation-%s' % (direction,),
+                            'values': annotation_list[index],
+                        }
+                    )
             else:
                 raise ValueError('Invalid throw_test_aoi_turking_mode')
             print(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
@@ -2453,12 +2665,12 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
     species_nice_list = ibs.get_species_nice(species_rowids)
 
     combined_list = sorted(zip(species_nice_list, species_rowids))
-    species_nice_list = [ combined[0] for combined in combined_list ]
-    species_rowids = [ combined[1] for combined in combined_list ]
+    species_nice_list = [combined[0] for combined in combined_list]
+    species_rowids = [combined[1] for combined in combined_list]
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_list = list(zip(species_nice_list, species_text_list))
-    species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
+    species_list = [('Unspecified', const.UNKNOWN)] + species_list
 
     # Collect mapping of species to parts
     part_rowid_list = ibs.get_valid_part_rowids()
@@ -2467,9 +2679,7 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
     part_types_list = ibs.get_part_types(part_rowid_list)
     zipped = list(zip(part_species_text_list, part_types_list))
 
-    species_part_dict = {
-        const.UNKNOWN: set([])
-    }
+    species_part_dict = {const.UNKNOWN: set([])}
     for part_species_text, part_type_list in zipped:
         if part_species_text not in species_part_dict:
             species_part_dict[part_species_text] = set([const.UNKNOWN])
@@ -2506,50 +2716,55 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
     if is_canonical:
         settings['ia-detection-setting-parts-show'] = True
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
-    return appf.template('turk', 'detection',
-                         imgsetid=imgsetid,
-                         gid=gid,
-                         only_aid=only_aid,
-                         config_str=config_str,
-                         config=config,
-                         refer_aid=refer_aid,
-                         species=species,
-                         image_src=image_src,
-                         previous=previous,
-                         previous_only_aid=previous_only_aid,
-                         imagesettext=imagesettext,
-                         imagesettext_list_str=imagesettext_list_str,
-                         original_filename=original_filename,
-                         progress=progress,
-                         staged_progress=staged_progress,
-                         finished=finished,
-                         species_list=species_list,
-                         species_part_dict_json=species_part_dict_json,
-                         annotation_list=annotation_list,
-                         part_list=part_list,
-                         display_instructions=display_instructions,
-                         display_new_features=display_new_features,
-                         display_species_examples=display_species_examples,
-                         settings=settings,
-                         THROW_TEST_AOI_TURKING_AVAILABLE=THROW_TEST_AOI_TURKING_AVAILABLE,
-                         THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
-                         is_staged=is_staged,
-                         is_canonical=is_canonical,
-                         num_staged_aids=num_staged_aids,
-                         num_staged_part_rowids=num_staged_part_rowids,
-                         num_staged_sessions=num_staged_sessions,
-                         num_staged_users=num_staged_users,
-                         callback_url=callback_url,
-                         callback_method='POST',
-                         EMBEDDED=True,
-                         EMBEDDED_CSS=None,
-                         EMBEDDED_JAVASCRIPT=None,
-                         review=review)
+    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid,)
+    return appf.template(
+        'turk',
+        'detection',
+        imgsetid=imgsetid,
+        gid=gid,
+        only_aid=only_aid,
+        config_str=config_str,
+        config=config,
+        refer_aid=refer_aid,
+        species=species,
+        image_src=image_src,
+        previous=previous,
+        previous_only_aid=previous_only_aid,
+        imagesettext=imagesettext,
+        imagesettext_list_str=imagesettext_list_str,
+        original_filename=original_filename,
+        progress=progress,
+        staged_progress=staged_progress,
+        finished=finished,
+        species_list=species_list,
+        species_part_dict_json=species_part_dict_json,
+        annotation_list=annotation_list,
+        part_list=part_list,
+        display_instructions=display_instructions,
+        display_new_features=display_new_features,
+        display_species_examples=display_species_examples,
+        settings=settings,
+        THROW_TEST_AOI_TURKING_AVAILABLE=THROW_TEST_AOI_TURKING_AVAILABLE,
+        THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
+        is_staged=is_staged,
+        is_canonical=is_canonical,
+        num_staged_aids=num_staged_aids,
+        num_staged_part_rowids=num_staged_part_rowids,
+        num_staged_sessions=num_staged_sessions,
+        num_staged_users=num_staged_users,
+        callback_url=callback_url,
+        callback_method='POST',
+        EMBEDDED=True,
+        EMBEDDED_CSS=None,
+        EMBEDDED_JAVASCRIPT=None,
+        review=review,
+    )
 
 
 @register_route('/turk/detection/canonical/', methods=['GET'])
-def turk_detection_canonical(aid=None, imgsetid=None, previous=None, previous_only_aid=None, **kwargs):
+def turk_detection_canonical(
+    aid=None, imgsetid=None, previous=None, previous_only_aid=None, **kwargs
+):
     ibs = current_app.ibs
 
     imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
@@ -2559,7 +2774,7 @@ def turk_detection_canonical(aid=None, imgsetid=None, previous=None, previous_on
 
     reviewed_list = appf.imageset_annot_canonical(ibs, aid_list)
     try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list),)
     except ZeroDivisionError:
         progress = '100.0'
 
@@ -2576,12 +2791,29 @@ def turk_detection_canonical(aid=None, imgsetid=None, previous=None, previous_on
     if not finished:
         gid = ibs.get_annot_gids(aid)
 
-    args = (imgsetid, gid, aid, progress, previous, previous_only_aid, )
-    print('CANONICAL IMAGESETID: %s GID: %s AID: %s (PROG = %s, PREV GID = %s, PREV AID = %s)' % args)
+    args = (
+        imgsetid,
+        gid,
+        aid,
+        progress,
+        previous,
+        previous_only_aid,
+    )
+    print(
+        'CANONICAL IMAGESETID: %s GID: %s AID: %s (PROG = %s, PREV GID = %s, PREV AID = %s)'
+        % args
+    )
 
     kwargs['canonical'] = True
-    return turk_detection(gid, only_aid=aid, imgsetid=imgsetid, progress=progress, previous=previous,
-                          previous_only_aid=previous_only_aid, **kwargs)
+    return turk_detection(
+        gid,
+        only_aid=aid,
+        imgsetid=imgsetid,
+        progress=progress,
+        previous=previous,
+        previous_only_aid=previous_only_aid,
+        **kwargs,
+    )
 
 
 @register_route('/turk/detection/dynamic/', methods=['GET'])
@@ -2598,35 +2830,42 @@ def turk_detection_dynamic(**kwargs):
     species_list = ibs.get_annot_species_texts(aid_list)
     # Get annotation bounding boxes
     annotation_list = []
-    for aid, annot_bbox, annot_theta, species in list(zip(aid_list, annot_bbox_list, annot_thetas_list, species_list)):
+    for aid, annot_bbox, annot_theta, species in list(
+        zip(aid_list, annot_bbox_list, annot_thetas_list, species_list)
+    ):
         temp = {}
-        temp['left']   = 100.0 * (annot_bbox[0] / width)
-        temp['top']    = 100.0 * (annot_bbox[1] / height)
-        temp['width']  = 100.0 * (annot_bbox[2] / width)
+        temp['left'] = 100.0 * (annot_bbox[0] / width)
+        temp['top'] = 100.0 * (annot_bbox[1] / height)
+        temp['width'] = 100.0 * (annot_bbox[2] / width)
         temp['height'] = 100.0 * (annot_bbox[3] / height)
-        temp['label']  = species
-        temp['id']     = aid
-        temp['theta']  = float(annot_theta)
+        temp['label'] = species
+        temp['id'] = aid
+        temp['theta'] = float(annot_theta)
         annotation_list.append(temp)
     if len(species_list) > 0:
-        species = max(set(species_list), key=species_list.count)  # Get most common species
+        species = max(
+            set(species_list), key=species_list.count
+        )  # Get most common species
     elif appf.default_species(ibs) is not None:
         species = appf.default_species(ibs)
     else:
         species = KEY_DEFAULTS[SPECIES_KEY]
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), gid, )
-    return appf.template('turk', 'detection_dynamic',
-                         gid=gid,
-                         refer_aid=None,
-                         species=species,
-                         image_src=image_src,
-                         annotation_list=annotation_list,
-                         callback_url=callback_url,
-                         callback_method='POST',
-                         EMBEDDED_CSS=None,
-                         EMBEDDED_JAVASCRIPT=None,
-                         __wrapper__=False)
+    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), gid,)
+    return appf.template(
+        'turk',
+        'detection_dynamic',
+        gid=gid,
+        refer_aid=None,
+        species=species,
+        image_src=image_src,
+        annotation_list=annotation_list,
+        callback_url=callback_url,
+        callback_method='POST',
+        EMBEDDED_CSS=None,
+        EMBEDDED_JAVASCRIPT=None,
+        __wrapper__=False,
+    )
 
 
 @register_route('/turk/annotation/', methods=['GET'])
@@ -2652,9 +2891,9 @@ def turk_annotation(**kwargs):
     finished = aid is None
     display_instructions = request.cookies.get('ia-annotation_instructions_seen', 1) == 0
     if not finished:
-        gid       = ibs.get_annot_gids(aid)
+        gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.annotation_src(aid)
-        species   = ibs.get_annot_species_texts(aid)
+        species = ibs.get_annot_species_texts(aid)
         viewpoint_text = ibs.get_annot_viewpoints(aid)
         viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT.get(viewpoint_text, None)
         quality_value = ibs.get_annot_qualities(aid)
@@ -2671,9 +2910,9 @@ def turk_annotation(**kwargs):
             ibs.notify_observers()
         except Exception:
             pass
-        gid       = None
+        gid = None
         image_src = None
-        species   = None
+        species = None
         viewpoint_value = -1
         quality_value = -1
         multiple_value = False
@@ -2684,36 +2923,39 @@ def turk_annotation(**kwargs):
     species_nice_list = ibs.get_species_nice(species_rowids)
 
     combined_list = sorted(zip(species_nice_list, species_rowids))
-    species_nice_list = [ combined[0] for combined in combined_list ]
-    species_rowids = [ combined[1] for combined in combined_list ]
+    species_nice_list = [combined[0] for combined in combined_list]
+    species_rowids = [combined[1] for combined in combined_list]
 
     species_text_list = ibs.get_species_texts(species_rowids)
-    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_selected_list = [species == species_ for species_ in species_text_list]
     species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
-    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+    species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
     callback_url = url_for('submit_annotation')
-    return appf.template('turk', 'annotation',
-                         imgsetid=imgsetid,
-                         src_ag=src_ag,
-                         dst_ag=dst_ag,
-                         gid=gid,
-                         aid=aid,
-                         viewpoint_value=viewpoint_value,
-                         quality_value=quality_value,
-                         multiple_value=multiple_value,
-                         image_src=image_src,
-                         previous=previous,
-                         species_list=species_list,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         display_instructions=display_instructions,
-                         callback_url=callback_url,
-                         callback_method='POST',
-                         EMBEDDED_CSS=None,
-                         EMBEDDED_JAVASCRIPT=None,
-                         review=review)
+    return appf.template(
+        'turk',
+        'annotation',
+        imgsetid=imgsetid,
+        src_ag=src_ag,
+        dst_ag=dst_ag,
+        gid=gid,
+        aid=aid,
+        viewpoint_value=viewpoint_value,
+        quality_value=quality_value,
+        multiple_value=multiple_value,
+        image_src=image_src,
+        previous=previous,
+        species_list=species_list,
+        imagesettext=imagesettext,
+        progress=progress,
+        finished=finished,
+        display_instructions=display_instructions,
+        callback_url=callback_url,
+        callback_method='POST',
+        EMBEDDED_CSS=None,
+        EMBEDDED_JAVASCRIPT=None,
+        review=review,
+    )
 
 
 @register_route('/turk/annotation/dynamic/', methods=['GET'])
@@ -2723,9 +2965,9 @@ def turk_annotation_dynamic(**kwargs):
     imgsetid = request.args.get('imgsetid', None)
 
     review = 'review' in request.args.keys()
-    gid       = ibs.get_annot_gids(aid)
+    gid = ibs.get_annot_gids(aid)
     image_src = routes_ajax.annotation_src(aid)
-    species   = ibs.get_annot_species_texts(aid)
+    species = ibs.get_annot_species_texts(aid)
     viewpoint_text = ibs.get_annot_viewpoints(aid)
     viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT.get(viewpoint_text, None)
     quality_value = ibs.get_annot_qualities(aid)
@@ -2738,33 +2980,38 @@ def turk_annotation_dynamic(**kwargs):
     species_nice_list = ibs.get_species_nice(species_rowids)
 
     combined_list = sorted(zip(species_nice_list, species_rowids))
-    species_nice_list = [ combined[0] for combined in combined_list ]
-    species_rowids = [ combined[1] for combined in combined_list ]
+    species_nice_list = [combined[0] for combined in combined_list]
+    species_rowids = [combined[1] for combined in combined_list]
 
     species_text_list = ibs.get_species_texts(species_rowids)
-    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_selected_list = [species == species_ for species_ in species_text_list]
     species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
-    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+    species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
     callback_url = url_for('submit_annotation')
-    return appf.template('turk', 'annotation_dynamic',
-                         imgsetid=imgsetid,
-                         gid=gid,
-                         aid=aid,
-                         viewpoint_value=viewpoint_value,
-                         quality_value=quality_value,
-                         image_src=image_src,
-                         species_list=species_list,
-                         callback_url=callback_url,
-                         callback_method='POST',
-                         EMBEDDED_CSS=None,
-                         EMBEDDED_JAVASCRIPT=None,
-                         review=review,
-                         __wrapper__=False)
+    return appf.template(
+        'turk',
+        'annotation_dynamic',
+        imgsetid=imgsetid,
+        gid=gid,
+        aid=aid,
+        viewpoint_value=viewpoint_value,
+        quality_value=quality_value,
+        image_src=image_src,
+        species_list=species_list,
+        callback_url=callback_url,
+        callback_method='POST',
+        EMBEDDED_CSS=None,
+        EMBEDDED_JAVASCRIPT=None,
+        review=review,
+        __wrapper__=False,
+    )
 
 
 @register_route('/turk/annotation/canonical/', methods=['GET'])
-def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=1, **kwargs):
+def turk_annotation_canonical(
+    imgsetid=None, samples=200, species=None, version=1, **kwargs
+):
     import random
 
     ibs = current_app.ibs
@@ -2791,9 +3038,13 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
 
     canonical_str = None
     if species == 'zebra_grevys':
-        canonical_str = 'Grevy\'s Zebra - right side + shoulder chevron, side stripes, and hip chevron'
+        canonical_str = (
+            "Grevy's Zebra - right side + shoulder chevron, side stripes, and hip chevron"
+        )
     elif species == 'zebra_plains':
-        canonical_str = 'Plains Zebra - left side + shoulder chevron, side stripes, and entire hip'
+        canonical_str = (
+            'Plains Zebra - left side + shoulder chevron, side stripes, and entire hip'
+        )
     elif species == 'giraffe_reticulated':
         canonical_str = 'Reticulated Giraffe - left side + entire body center mass, neck'
     elif species == 'giraffe_masai':
@@ -2801,7 +3052,9 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
     elif species == 'turtle_sea':
         canonical_str = 'Sea Turtle - right size + entire side of head'
     elif species == 'whale_fluke':
-        canonical_str = 'Whale Fluke - top or bottom + trailing edge entirely out of water'
+        canonical_str = (
+            'Whale Fluke - top or bottom + trailing edge entirely out of water'
+        )
 
     reviewed_list = []
     for canonical_flag in canonical_flag_list:
@@ -2820,8 +3073,8 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
         reviewed_list.append(reviewed)
 
     try:
-        print('Total len(reviewed_list) = %d' % (len(reviewed_list), ))
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list), )
+        print('Total len(reviewed_list) = %d' % (len(reviewed_list),))
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list),)
     except ZeroDivisionError:
         progress = '100.0'
 
@@ -2830,8 +3083,12 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
         kwargs = {
             'aoi_two_weight_filepath': 'ggr2',
         }
-        prediction_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'class', config=kwargs)
-        confidence_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'score', config=kwargs)
+        prediction_list = ibs.depc_annot.get_property(
+            'aoi_two', aid_list, 'class', config=kwargs
+        )
+        confidence_list = ibs.depc_annot.get_property(
+            'aoi_two', aid_list, 'score', config=kwargs
+        )
         confidence_list = [
             confidence if prediction == 'positive' else 1.0 - confidence
             for prediction, confidence in zip(prediction_list, confidence_list)
@@ -2858,28 +3115,33 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
 
     finished = len(aid_list_) == 0
 
-    annotation_list = list(zip(
-        aid_list_,
-        highlighted_list_,
-        confidence_list_,
-    ))
+    annotation_list = list(zip(aid_list_, highlighted_list_, confidence_list_,))
     aid_list_str = ','.join(map(str, aid_list_))
 
     annotation_list.sort(key=lambda t: t[0])
-    args = (url_for('submit_annotation_canonical'), imgsetid, version, samples, species, )
+    args = (
+        url_for('submit_annotation_canonical'),
+        imgsetid,
+        version,
+        samples,
+        species,
+    )
     callback_url = '%s?imgsetid=%s&version=%d&samples=%d&species=%s' % args
-    return appf.template('turk', 'canonical',
-                         imgsetid=imgsetid,
-                         canonical_str=canonical_str,
-                         aid_list=aid_list_,
-                         aid_list_str=aid_list_str,
-                         num_aids=len(aid_list_),
-                         annotation_list=annotation_list,
-                         num_annotations=len(annotation_list),
-                         progress=progress,
-                         finished=finished,
-                         callback_url=callback_url,
-                         callback_method='POST')
+    return appf.template(
+        'turk',
+        'canonical',
+        imgsetid=imgsetid,
+        canonical_str=canonical_str,
+        aid_list=aid_list_,
+        aid_list_str=aid_list_str,
+        num_aids=len(aid_list_),
+        annotation_list=annotation_list,
+        num_annotations=len(annotation_list),
+        progress=progress,
+        finished=finished,
+        callback_url=callback_url,
+        callback_method='POST',
+    )
 
 
 @register_route('/turk/splits/', methods=['GET'])
@@ -2891,18 +3153,19 @@ def turk_splits(aid=None, **kwargs):
         nid = ibs.get_annot_nids(aid)
         aid_list = ibs.get_name_aids(nid)
 
-        annotation_list = list(zip(
-            aid_list,
-        ))
+        annotation_list = list(zip(aid_list,))
 
     annotation_list.sort(key=lambda t: t[0])
-    callback_url = '%s' % (url_for('submit_splits'), )
-    return appf.template('turk', 'splits',
-                         aid=aid,
-                         annotation_list=annotation_list,
-                         num_annotations=len(annotation_list),
-                         callback_url=callback_url,
-                         callback_method='POST')
+    callback_url = '%s' % (url_for('submit_splits'),)
+    return appf.template(
+        'turk',
+        'splits',
+        aid=aid,
+        annotation_list=annotation_list,
+        num_annotations=len(annotation_list),
+        callback_url=callback_url,
+        callback_method='POST',
+    )
 
 
 @register_route('/turk/part/contour/', methods=['GET'])
@@ -2910,7 +3173,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     ibs = current_app.ibs
 
     default_list = [
-        ('temp',            True),
+        ('temp', True),
     ]
 
     config_kwargs = kwargs.get('config', {})
@@ -2919,8 +3182,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
         for key, default in default_list
     }
     config_str_list = [
-        '%s=%s' % (key, 'true' if config[key] else 'false', )
-        for key in config.keys()
+        '%s=%s' % (key, 'true' if config[key] else 'false',) for key in config.keys()
     ]
     config_str = '&'.join(config_str_list)
 
@@ -2933,7 +3195,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     reviewed_list = appf.imageset_part_contour_processed(ibs, part_rowid_list)
 
     try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list), )
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list),)
     except ZeroDivisionError:
         progress = '100.0'
 
@@ -2973,23 +3235,26 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
         for (settings_key, settings_default) in settings_key_list
     }
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_contour'), imgsetid, )
-    return appf.template('turk', 'contour',
-                         imgsetid=imgsetid,
-                         part_rowid=part_rowid,
-                         config_str=config_str,
-                         config=config,
-                         image_src=image_src,
-                         padding=padding,
-                         previous=previous,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         settings=settings,
-                         display_instructions=display_instructions,
-                         existing_contour_json=existing_contour_json,
-                         callback_url=callback_url,
-                         callback_method='POST')
+    callback_url = '%s?imgsetid=%s' % (url_for('submit_contour'), imgsetid,)
+    return appf.template(
+        'turk',
+        'contour',
+        imgsetid=imgsetid,
+        part_rowid=part_rowid,
+        config_str=config_str,
+        config=config,
+        image_src=image_src,
+        padding=padding,
+        previous=previous,
+        imagesettext=imagesettext,
+        progress=progress,
+        finished=finished,
+        settings=settings,
+        display_instructions=display_instructions,
+        existing_contour_json=existing_contour_json,
+        callback_url=callback_url,
+        callback_method='POST',
+    )
 
 
 @register_route('/turk/species/', methods=['GET'])
@@ -3002,18 +3267,18 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
     finished = aid is None
     display_instructions = request.cookies.get('ia-species_instructions_seen', 1) == 0
     if not finished:
-        gid       = ibs.get_annot_gids(aid)
+        gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.annotation_src(aid, resize=None)
-        species   = ibs.get_annot_species_texts(aid)
+        species = ibs.get_annot_species_texts(aid)
     else:
         try:
             ibs.update_special_imagesets()
             ibs.notify_observers()
         except Exception:
             pass
-        gid       = None
+        gid = None
         image_src = None
-        species   = None
+        species = None
 
     imagesettext = ibs.get_imageset_text(imgsetid)
     species_rowids = ibs._get_all_species_rowids()
@@ -3044,16 +3309,18 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
         print('REFRESHING!')
         combined_list = sorted(combined_list)
 
-    species_count_list = [ combined[0] for combined in combined_list ]
-    species_nice_list  = [ combined[1] for combined in combined_list ]
-    species_rowids     = [ combined[2] for combined in combined_list ]
+    species_count_list = [combined[0] for combined in combined_list]
+    species_nice_list = [combined[1] for combined in combined_list]
+    species_rowids = [combined[2] for combined in combined_list]
     species_text_list = ibs.get_species_texts(species_rowids)
 
     species_rowids_json = ut.to_json(species_rowids)
 
-    hotkey_list = [ index + 1 for index in range(len(species_nice_list)) ]
-    species_selected_list = [ species == species_ for species_ in species_text_list ]
-    species_list = list(zip(hotkey_list, species_nice_list, species_text_list, species_selected_list))
+    hotkey_list = [index + 1 for index in range(len(species_nice_list))]
+    species_selected_list = [species == species_ for species_ in species_text_list]
+    species_list = list(
+        zip(hotkey_list, species_nice_list, species_text_list, species_selected_list)
+    )
     species_extended_list = []
     other_selected = False
 
@@ -3061,7 +3328,10 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
     for index, (species_count, species_nice, species_selected) in enumerate(zipped):
         if species_selected:
             species_nice += ' (default)'
-        args = (len(current_species_rowids) - species_count, species_nice, )
+        args = (
+            len(current_species_rowids) - species_count,
+            species_nice,
+        )
         if index >= hotkeys:
             print('% 5d   : %s' % args)
         else:
@@ -3075,7 +3345,9 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
         if True in extended_flag_list:
             other_selected = True
 
-    species_list = species_list + [ (len(species_list) + 1, 'Other', const.UNKNOWN, other_selected) ]
+    species_list = species_list + [
+        (len(species_list) + 1, 'Other', const.UNKNOWN, other_selected)
+    ]
 
     example_species_list = [
         (key, const.SPECIES_MAPPING[key][1])
@@ -3084,31 +3356,42 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
     ]
 
     callback_url = url_for('submit_species')
-    return appf.template('turk', 'species',
-                         imgsetid=imgsetid,
-                         src_ag=src_ag,
-                         dst_ag=dst_ag,
-                         gid=gid,
-                         aid=aid,
-                         image_src=image_src,
-                         previous=previous,
-                         species_list=species_list,
-                         species_extended_list=species_extended_list,
-                         species_rowids_json=species_rowids_json,
-                         example_species_list=example_species_list,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         display_instructions=display_instructions,
-                         callback_url=callback_url,
-                         callback_method='POST',
-                         EMBEDDED_CSS=None,
-                         EMBEDDED_JAVASCRIPT=None,
-                         review=review)
+    return appf.template(
+        'turk',
+        'species',
+        imgsetid=imgsetid,
+        src_ag=src_ag,
+        dst_ag=dst_ag,
+        gid=gid,
+        aid=aid,
+        image_src=image_src,
+        previous=previous,
+        species_list=species_list,
+        species_extended_list=species_extended_list,
+        species_rowids_json=species_rowids_json,
+        example_species_list=example_species_list,
+        imagesettext=imagesettext,
+        progress=progress,
+        finished=finished,
+        display_instructions=display_instructions,
+        callback_url=callback_url,
+        callback_method='POST',
+        EMBEDDED_CSS=None,
+        EMBEDDED_JAVASCRIPT=None,
+        review=review,
+    )
 
 
 @register_route('/turk/part/type/', methods=['GET'])
-def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, refresh=False, previous_part_types=None, **kwargs):
+def turk_part_types(
+    part_rowid=None,
+    imgsetid=None,
+    previous=None,
+    hotkeys=8,
+    refresh=False,
+    previous_part_types=None,
+    **kwargs,
+):
     ibs = current_app.ibs
 
     imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
@@ -3120,7 +3403,7 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
     reviewed_list = appf.imageset_part_type_processed(ibs, part_rowid_list)
 
     try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(part_rowid_list), )
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(part_rowid_list),)
     except ZeroDivisionError:
         progress = '0.00'
     part_rowid = request.args.get('part_rowid', '')
@@ -3138,13 +3421,13 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
     finished = part_rowid is None
     display_instructions = request.cookies.get('ia-part-type_instructions_seen', 1) == 0
     if not finished:
-        aid       = ibs.get_part_aids(part_rowid)
-        gid       = ibs.get_annot_gids(aid)
+        aid = ibs.get_part_aids(part_rowid)
+        gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.part_src(part_rowid, pad=padding)
         part_type = ibs.get_part_types(part_rowid)
     else:
-        aid       = None
-        gid       = None
+        aid = None
+        gid = None
         image_src = None
         part_type = None
 
@@ -3199,14 +3482,16 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
         print('REFRESHING!')
         combined_list = sorted(combined_list)
 
-    part_type_count_list = [ combined[0] for combined in combined_list ]
-    part_nice_list       = [ combined[1] for combined in combined_list ]
-    part_type_list       = [ combined[2] for combined in combined_list ]
+    part_type_count_list = [combined[0] for combined in combined_list]
+    part_nice_list = [combined[1] for combined in combined_list]
+    part_type_list = [combined[2] for combined in combined_list]
     part_type_list_json = ut.to_json(part_type_list)
 
-    hotkey_list = [ index + 1 for index in range(len(part_type_list)) ]
-    part_type_selected_list = [ part_type == part_type_ for part_type_ in part_type_list ]
-    part_type_option_list = list(zip(hotkey_list, part_nice_list, part_type_list, part_type_selected_list))
+    hotkey_list = [index + 1 for index in range(len(part_type_list))]
+    part_type_selected_list = [part_type == part_type_ for part_type_ in part_type_list]
+    part_type_option_list = list(
+        zip(hotkey_list, part_nice_list, part_type_list, part_type_selected_list)
+    )
     part_type_extended_list = []
     other_selected = False
 
@@ -3214,7 +3499,10 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
     for index, (part_type_count, part_nice, part_type_selected) in enumerate(zipped):
         if part_type_selected:
             part_nice += ' (default)'
-        args = (len(current_part_types) - part_type_count, part_nice, )
+        args = (
+            len(current_part_types) - part_type_count,
+            part_nice,
+        )
         if index >= hotkeys:
             print('% 5d   : %s' % args)
         else:
@@ -3228,28 +3516,33 @@ def turk_part_types(part_rowid=None, imgsetid=None, previous=None, hotkeys=8, re
         if True in extended_flag_list:
             other_selected = True
 
-    part_type_option_list = part_type_option_list + [ (len(part_type_option_list) + 1, 'Other', const.UNKNOWN, other_selected) ]
+    part_type_option_list = part_type_option_list + [
+        (len(part_type_option_list) + 1, 'Other', const.UNKNOWN, other_selected)
+    ]
 
     callback_url = url_for('submit_part_types')
-    return appf.template('turk', 'part_type',
-                         imgsetid=imgsetid,
-                         part_rowid=part_rowid,
-                         gid=gid,
-                         aid=aid,
-                         image_src=image_src,
-                         previous=previous,
-                         part_type_option_list=part_type_option_list,
-                         part_type_extended_list=part_type_extended_list,
-                         part_type_list_json=part_type_list_json,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         display_instructions=display_instructions,
-                         callback_url=callback_url,
-                         callback_method='POST',
-                         EMBEDDED_CSS=None,
-                         EMBEDDED_JAVASCRIPT=None,
-                         review=review)
+    return appf.template(
+        'turk',
+        'part_type',
+        imgsetid=imgsetid,
+        part_rowid=part_rowid,
+        gid=gid,
+        aid=aid,
+        image_src=image_src,
+        previous=previous,
+        part_type_option_list=part_type_option_list,
+        part_type_extended_list=part_type_extended_list,
+        part_type_list_json=part_type_list_json,
+        imagesettext=imagesettext,
+        progress=progress,
+        finished=finished,
+        display_instructions=display_instructions,
+        callback_url=callback_url,
+        callback_method='POST',
+        EMBEDDED_CSS=None,
+        EMBEDDED_JAVASCRIPT=None,
+        review=review,
+    )
 
 
 @register_route('/turk/viewpoint/', methods=['GET'])
@@ -3277,13 +3570,13 @@ def turk_viewpoint(**kwargs):
     finished = aid is None
     display_instructions = request.cookies.get('ia-viewpoint_instructions_seen', 1) == 0
     if not finished:
-        gid       = ibs.get_annot_gids(aid)
+        gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.annotation_src(aid)
-        species   = ibs.get_annot_species_texts(aid)
+        species = ibs.get_annot_species_texts(aid)
     else:
-        gid       = None
+        gid = None
         image_src = None
-        species   = None
+        species = None
 
     imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -3291,29 +3584,32 @@ def turk_viewpoint(**kwargs):
     species_nice_list = ibs.get_species_nice(species_rowids)
 
     combined_list = sorted(zip(species_nice_list, species_rowids))
-    species_nice_list = [ combined[0] for combined in combined_list ]
-    species_rowids = [ combined[1] for combined in combined_list ]
+    species_nice_list = [combined[0] for combined in combined_list]
+    species_rowids = [combined[1] for combined in combined_list]
 
     species_text_list = ibs.get_species_texts(species_rowids)
-    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_selected_list = [species == species_ for species_ in species_text_list]
     species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
-    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+    species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
-    return appf.template('turk', 'viewpoint',
-                         imgsetid=imgsetid,
-                         src_ag=src_ag,
-                         dst_ag=dst_ag,
-                         gid=gid,
-                         aid=aid,
-                         value=value,
-                         image_src=image_src,
-                         previous=previous,
-                         species_list=species_list,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         display_instructions=display_instructions,
-                         review=review)
+    return appf.template(
+        'turk',
+        'viewpoint',
+        imgsetid=imgsetid,
+        src_ag=src_ag,
+        dst_ag=dst_ag,
+        gid=gid,
+        aid=aid,
+        value=value,
+        image_src=image_src,
+        previous=previous,
+        species_list=species_list,
+        imagesettext=imagesettext,
+        progress=progress,
+        finished=finished,
+        display_instructions=display_instructions,
+        review=review,
+    )
 
 
 @register_route('/turk/viewpoint2/', methods=['GET'])
@@ -3342,13 +3638,13 @@ def turk_viewpoint2(**kwargs):
     finished = aid is None
     display_instructions = request.cookies.get('ia-viewpoint_instructions_seen', 1) == 0
     if not finished:
-        gid       = ibs.get_annot_gids(aid)
+        gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.annotation_src(aid)
-        species   = ibs.get_annot_species_texts(aid)
+        species = ibs.get_annot_species_texts(aid)
     else:
-        gid       = None
+        gid = None
         image_src = None
-        species   = None
+        species = None
 
     imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -3356,31 +3652,34 @@ def turk_viewpoint2(**kwargs):
     species_nice_list = ibs.get_species_nice(species_rowids)
 
     combined_list = sorted(zip(species_nice_list, species_rowids))
-    species_nice_list = [ combined[0] for combined in combined_list ]
-    species_rowids = [ combined[1] for combined in combined_list ]
+    species_nice_list = [combined[0] for combined in combined_list]
+    species_rowids = [combined[1] for combined in combined_list]
 
     species_text_list = ibs.get_species_texts(species_rowids)
-    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_selected_list = [species == species_ for species_ in species_text_list]
     species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
-    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+    species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
-    return appf.template('turk', 'viewpoint2',
-                         imgsetid=imgsetid,
-                         src_ag=src_ag,
-                         dst_ag=dst_ag,
-                         gid=gid,
-                         aid=aid,
-                         viewpoint1=viewpoint1,
-                         viewpoint2=viewpoint2,
-                         viewpoint3=viewpoint3,
-                         image_src=image_src,
-                         previous=previous,
-                         species_list=species_list,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         display_instructions=display_instructions,
-                         review=review)
+    return appf.template(
+        'turk',
+        'viewpoint2',
+        imgsetid=imgsetid,
+        src_ag=src_ag,
+        dst_ag=dst_ag,
+        gid=gid,
+        aid=aid,
+        viewpoint1=viewpoint1,
+        viewpoint2=viewpoint2,
+        viewpoint3=viewpoint3,
+        image_src=image_src,
+        previous=previous,
+        species_list=species_list,
+        imagesettext=imagesettext,
+        progress=progress,
+        finished=finished,
+        display_instructions=display_instructions,
+        review=review,
+    )
 
 
 @register_route('/turk/viewpoint3/', methods=['GET'])
@@ -3388,22 +3687,33 @@ def turk_viewpoint3(**kwargs):
     with ut.Timer('[turk_viewpoint3]'):
         ibs = current_app.ibs
         tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
-        (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
+        (
+            aid_list,
+            reviewed_list,
+            imgsetid,
+            src_ag,
+            dst_ag,
+            progress,
+            aid,
+            previous,
+        ) = tup
 
         viewpoint = None if aid is None else ibs.get_annot_viewpoints(aid)
         viewpoint_code = const.YAWALIAS.get(viewpoint, None)
 
         review = 'review' in request.args.keys()
         finished = aid is None
-        display_instructions = request.cookies.get('ia-viewpoint3_instructions_seen', 1) == 0
+        display_instructions = (
+            request.cookies.get('ia-viewpoint3_instructions_seen', 1) == 0
+        )
         if not finished:
-            gid       = ibs.get_annot_gids(aid)
+            gid = ibs.get_annot_gids(aid)
             image_src = routes_ajax.annotation_src(aid)
-            species   = ibs.get_annot_species_texts(aid)
+            species = ibs.get_annot_species_texts(aid)
         else:
-            gid       = None
+            gid = None
             image_src = None
-            species   = None
+            species = None
 
         imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -3411,32 +3721,37 @@ def turk_viewpoint3(**kwargs):
         species_nice_list = ibs.get_species_nice(species_rowids)
 
         combined_list = sorted(zip(species_nice_list, species_rowids))
-        species_nice_list = [ combined[0] for combined in combined_list ]
-        species_rowids = [ combined[1] for combined in combined_list ]
+        species_nice_list = [combined[0] for combined in combined_list]
+        species_rowids = [combined[1] for combined in combined_list]
 
         species_text_list = ibs.get_species_texts(species_rowids)
-        species_selected_list = [ species == species_ for species_ in species_text_list ]
-        species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
-        species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+        species_selected_list = [species == species_ for species_ in species_text_list]
+        species_list = list(
+            zip(species_nice_list, species_text_list, species_selected_list)
+        )
+        species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
         axis_preference = request.cookies.get('ia-viewpoint3_axis_preference', None)
 
-        template = appf.template('turk', 'viewpoint3',
-                                 imgsetid=imgsetid,
-                                 src_ag=src_ag,
-                                 dst_ag=dst_ag,
-                                 gid=gid,
-                                 aid=aid,
-                                 viewpoint_code=viewpoint_code,
-                                 axis_preference=axis_preference,
-                                 image_src=image_src,
-                                 previous=previous,
-                                 species_list=species_list,
-                                 imagesettext=imagesettext,
-                                 progress=progress,
-                                 finished=finished,
-                                 display_instructions=display_instructions,
-                                 review=review)
+        template = appf.template(
+            'turk',
+            'viewpoint3',
+            imgsetid=imgsetid,
+            src_ag=src_ag,
+            dst_ag=dst_ag,
+            gid=gid,
+            aid=aid,
+            viewpoint_code=viewpoint_code,
+            axis_preference=axis_preference,
+            image_src=image_src,
+            previous=previous,
+            species_list=species_list,
+            imagesettext=imagesettext,
+            progress=progress,
+            finished=finished,
+            display_instructions=display_instructions,
+            review=review,
+        )
     return template
 
 
@@ -3456,33 +3771,50 @@ def commit_current_query_object_names(query_object, ibs):
     query_object.write_wbia_name_assignment()
 
 
-def precompute_current_review_match_images(ibs, query_object,
-                                           global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
-                                           view_orientation='vertical'):
+def precompute_current_review_match_images(
+    ibs,
+    query_object,
+    global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
+    view_orientation='vertical',
+):
     from wbia.web import apis_query
 
-    review_aid1_list, review_aid2_list = query_object.get_filtered_edges(GLOBAL_FEEDBACK_CONFIG_DICT)
+    review_aid1_list, review_aid2_list = query_object.get_filtered_edges(
+        GLOBAL_FEEDBACK_CONFIG_DICT
+    )
     qreq_ = query_object.qreq_
 
     assert len(review_aid1_list) == len(review_aid2_list), 'not aligned'
 
     # Precompute
     zipped = list(zip(review_aid1_list, review_aid2_list))
-    prog = ut.ProgIter(enumerate(zipped), length=len(review_aid2_list),
-                       label='Rending images')
+    prog = ut.ProgIter(
+        enumerate(zipped), length=len(review_aid2_list), label='Rending images'
+    )
     for index, (aid1, aid2) in prog:
         if index > global_feedback_limit * 2:
             break
         cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
         try:
-            apis_query.ensure_review_image(ibs, aid2, cm, qreq_,
-                                           view_orientation=view_orientation)
+            apis_query.ensure_review_image(
+                ibs, aid2, cm, qreq_, view_orientation=view_orientation
+            )
         except KeyError as ex:
-            ut.printex(ex, 'Failed to make review image. falling back',
-                       tb=True, keys=['cm.qaid', 'aid2'], iswarning=True)
-            apis_query.ensure_review_image(ibs, aid2, cm, qreq_,
-                                           view_orientation=view_orientation,
-                                           draw_matches=False)
+            ut.printex(
+                ex,
+                'Failed to make review image. falling back',
+                tb=True,
+                keys=['cm.qaid', 'aid2'],
+                iswarning=True,
+            )
+            apis_query.ensure_review_image(
+                ibs,
+                aid2,
+                cm,
+                qreq_,
+                view_orientation=view_orientation,
+                draw_matches=False,
+            )
 
 
 @register_ibs_method
@@ -3491,9 +3823,12 @@ def load_identification_query_object_worker(ibs, **kwargs):
     return 'precomputed'
 
 
-def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
-                                      global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
-                                      **kwargs):
+def _init_identification_query_object(
+    ibs,
+    debug_ignore_name_gt=False,
+    global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
+    **kwargs,
+):
     """
     CommandLine:
         python -m wbia.web.routes _init_identification_query_object
@@ -3566,9 +3901,9 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     return query_object
 
 
-def load_identification_query_object(autoinit=False,
-                                     global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
-                                     **kwargs):
+def load_identification_query_object(
+    autoinit=False, global_feedback_limit=GLOBAL_FEEDBACK_LIMIT, **kwargs
+):
     ibs = current_app.ibs
 
     if current_app.QUERY_OBJECT is None:
@@ -3592,7 +3927,7 @@ def load_identification_query_object(autoinit=False,
     query_object = current_app.QUERY_OBJECT
     while len(current_app.QUERY_OBJECT_FEEDBACK_BUFFER) > 0:
         feedback = current_app.QUERY_OBJECT_FEEDBACK_BUFFER.pop()
-        print('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
+        print('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback,))
         aid1, aid2, state, tags = feedback
         query_object.add_feedback((aid1, aid2), state, tags=tags)
         query_object.GLOBAL_FEEDBACK_COUNTER += 1
@@ -3600,7 +3935,9 @@ def load_identification_query_object(autoinit=False,
     return query_object
 
 
-def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
+def check_engine_identification_query_object(
+    global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
+):
     ibs = current_app.ibs
 
     # We need to precompute the chips in this process for OpenCV, as warp-affine
@@ -3626,12 +3963,18 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
         # current_app.QUERY_OBJECT_JOBID = query_object_jobid
 
     query_object_status_dict = ibs.get_job_status(current_app.QUERY_OBJECT_JOBID)
-    args = (current_app.QUERY_OBJECT_JOBID, query_object_status_dict, )
+    args = (
+        current_app.QUERY_OBJECT_JOBID,
+        query_object_status_dict,
+    )
     print('job id %r: %r' % args)
 
     if query_object_status_dict['jobstatus'] == 'completed':
         query_object_result = ibs.get_job_result(current_app.QUERY_OBJECT_JOBID)
-        args = (current_app.QUERY_OBJECT_JOBID, query_object_result, )
+        args = (
+            current_app.QUERY_OBJECT_JOBID,
+            query_object_result,
+        )
         print('job id %r: %r' % args)
         assert query_object_result['json_result'] == 'precomputed'
         return True
@@ -3640,9 +3983,13 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
 
 
 @register_route('/turk/identification/lnbnn/', methods=['GET'])
-def turk_identification(aid1=None, aid2=None, use_engine=False,
-                        global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
-                        **kwargs):
+def turk_identification(
+    aid1=None,
+    aid2=None,
+    use_engine=False,
+    global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
+    **kwargs,
+):
     """
     CommandLine:
         python -m wbia.web.routes turk_identification --db PZ_Master1
@@ -3687,7 +4034,9 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                 raw_review_list = []
 
                 # Get actual
-                review_cfg['max_num'] = global_feedback_limit  # Controls the top X to be randomly sampled and displayed to all concurrent users
+                review_cfg[
+                    'max_num'
+                ] = global_feedback_limit  # Controls the top X to be randomly sampled and displayed to all concurrent users
                 values = query_object.pop()
                 (review_aid1_list, review_aid2_list), review_confidence = values
                 review_aid1_list = [review_aid1_list]
@@ -3703,14 +4052,19 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                     status_dict['num_names_min'] = np.nan
                 # status_remaining = status_dict['num_names_max'] - status_dict['num_names_min']
                 status_remaining = status_dict['num_names_max'] - 0
-                print('Feedback counter    = %r / %r' % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT, ))
-                print('Status dict         = %r' % (status_dict, ))
-                print('Raw list len        = %r' % (len(raw_review_list), ))
-                print('len(query_aid_list) = %r' % (len(query_object.aids), ))
-                print('Estimated remaining = %r' % (status_remaining, ))
-                print('Reviews list len    = %r' % (len(review_aid1_list), ))
+                print(
+                    'Feedback counter    = %r / %r'
+                    % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT,)
+                )
+                print('Status dict         = %r' % (status_dict,))
+                print('Raw list len        = %r' % (len(raw_review_list),))
+                print('len(query_aid_list) = %r' % (len(query_object.aids),))
+                print('Estimated remaining = %r' % (status_remaining,))
+                print('Reviews list len    = %r' % (len(review_aid1_list),))
                 try:
-                    progress = '%0.02f' % (100.0 * (1.0 - (status_remaining / len(query_object.aids))), )
+                    progress = '%0.02f' % (
+                        100.0 * (1.0 - (status_remaining / len(query_object.aids))),
+                    )
                 except ZeroDivisionError:
                     progress = '100.0'
 
@@ -3726,7 +4080,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                         finished = False
                         if not choice:
                             index = random.randint(0, len(review_aid1_list) - 1)
-                            print('Picked random index = %r' % (index, ))
+                            print('Picked random index = %r' % (index,))
                             aid1 = review_aid1_list[index]
                             aid2 = review_aid2_list[index]
 
@@ -3748,31 +4102,55 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
 
                     with ut.Timer('[web.routes.turk_identification] ... Make images'):
                         cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
-                        view_orientation = request.args.get('view_orientation', 'vertical')
-                        with ut.Timer('[web.routes.turk_identification] ... ... Render images2'):
+                        view_orientation = request.args.get(
+                            'view_orientation', 'vertical'
+                        )
+                        with ut.Timer(
+                            '[web.routes.turk_identification] ... ... Render images2'
+                        ):
                             try:
                                 image_matches, _ = apis_query.ensure_review_image(
-                                    ibs, aid2, cm, qreq_,
-                                    view_orientation=view_orientation)
+                                    ibs,
+                                    aid2,
+                                    cm,
+                                    qreq_,
+                                    view_orientation=view_orientation,
+                                )
                             except KeyError as ex:
-                                ut.printex(ex, 'Failed to make review image', tb=True,
-                                           keys=['cm.qaid', 'aid1', 'aid2'],
-                                           iswarning=True)
+                                ut.printex(
+                                    ex,
+                                    'Failed to make review image',
+                                    tb=True,
+                                    keys=['cm.qaid', 'aid1', 'aid2'],
+                                    iswarning=True,
+                                )
                             try:
                                 image_clean, _ = apis_query.ensure_review_image(
-                                    ibs, aid2, cm, qreq_,
+                                    ibs,
+                                    aid2,
+                                    cm,
+                                    qreq_,
                                     view_orientation=view_orientation,
-                                    draw_matches=False)
+                                    draw_matches=False,
+                                )
                             except KeyError as ex:
                                 image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
-                                ut.printex(ex, 'Failed to make fallback review image', tb=True,
-                                           keys=['cm.qaid', 'aid1', 'aid2'])
+                                ut.printex(
+                                    ex,
+                                    'Failed to make fallback review image',
+                                    tb=True,
+                                    keys=['cm.qaid', 'aid1', 'aid2'],
+                                )
 
-                        with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
+                        with ut.Timer(
+                            '[web.routes.turk_identification] ... ... Embed images'
+                        ):
                             image_matches_src = appf.embed_image_html(image_matches)
                             image_clean_src = appf.embed_image_html(image_clean)
 
-                    with ut.Timer('[web.routes.turk_identification] ... Process previous'):
+                    with ut.Timer(
+                        '[web.routes.turk_identification] ... Process previous'
+                    ):
                         # Get previous
                         previous = request.args.get('previous', None)
                         if previous is not None and ';' in previous:
@@ -3814,10 +4192,11 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
     confidence_nice_list = confidence_dict.keys()
     confidence_text_list = confidence_dict.values()
     confidence_selected_list = [
-        confidence_text == 'unspecified'
-        for confidence_text in confidence_text_list
+        confidence_text == 'unspecified' for confidence_text in confidence_text_list
     ]
-    confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
+    confidence_list = list(
+        zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+    )
 
     timedelta_str = 'Unknown'
     if aid1 is not None and aid2 is not None:
@@ -3826,56 +4205,57 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
             timedelta = abs(unixtime_list[1] - unixtime_list[0])
             secs = 60.0
             mins = 60.0 * 60.0
-            hrs  = 60.0 * 60.0 * 24.0
+            hrs = 60.0 * 60.0 * 24.0
             days = 60.0 * 60.0 * 24.0 * 365.0
 
             if timedelta < secs:
-                timedelta_str = '%0.2f seconds' % (timedelta, )
+                timedelta_str = '%0.2f seconds' % (timedelta,)
             elif timedelta < mins:
                 timedelta /= secs
-                timedelta_str = '%0.2f minutes' % (timedelta, )
+                timedelta_str = '%0.2f minutes' % (timedelta,)
             elif timedelta < hrs:
                 timedelta /= mins
-                timedelta_str = '%0.2f hours' % (timedelta, )
+                timedelta_str = '%0.2f hours' % (timedelta,)
             elif timedelta < days:
                 timedelta /= hrs
-                timedelta_str = '%0.2f days' % (timedelta, )
+                timedelta_str = '%0.2f days' % (timedelta,)
             else:
                 timedelta /= days
-                timedelta_str = '%0.2f years' % (timedelta, )
+                timedelta_str = '%0.2f years' % (timedelta,)
 
     callback_url = url_for('submit_identification')
-    return appf.template('turk', 'identification',
-                         match_data='Score: ' + str(match_score),
-                         image_clean_src=image_clean_src,
-                         image_matches_src=image_matches_src,
-                         aid1=aid1,
-                         aid2=aid2,
-                         progress=progress,
-                         session=True,
-                         session_counter=session_counter,
-                         session_limit=session_limit,
-                         confidence_list=confidence_list,
-                         timedelta_str=timedelta_str,
-                         finished=finished,
-                         annot_uuid_1=str(annot_uuid_1),
-                         annot_uuid_2=str(annot_uuid_2),
-                         previous=previous,
-                         previous_version=1,
-                         replace_review_rowid=replace_review_rowid,
-                         view_orientation=view_orientation,
-                         callback_url=callback_url,
-                         callback_method='POST',
-                         EMBEDDED_CSS=None,
-                         EMBEDDED_JAVASCRIPT=None)
+    return appf.template(
+        'turk',
+        'identification',
+        match_data='Score: ' + str(match_score),
+        image_clean_src=image_clean_src,
+        image_matches_src=image_matches_src,
+        aid1=aid1,
+        aid2=aid2,
+        progress=progress,
+        session=True,
+        session_counter=session_counter,
+        session_limit=session_limit,
+        confidence_list=confidence_list,
+        timedelta_str=timedelta_str,
+        finished=finished,
+        annot_uuid_1=str(annot_uuid_1),
+        annot_uuid_2=str(annot_uuid_2),
+        previous=previous,
+        previous_version=1,
+        replace_review_rowid=replace_review_rowid,
+        view_orientation=view_orientation,
+        callback_url=callback_url,
+        callback_method='POST',
+        EMBEDDED_CSS=None,
+        EMBEDDED_JAVASCRIPT=None,
+    )
 
 
 @register_ibs_method
 def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
     total = 0
-    species_dict = {
-        'zebra': []
-    }
+    species_dict = {'zebra': []}
     species_list = ibs.get_annot_species_texts(current_aids)
     viewpoint_list = ibs.get_annot_viewpoints(current_aids)
     for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
@@ -3904,8 +4284,7 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
 
     metadata_dict_list = ibs.get_annot_metadata(aid_list)
     excluded_list = [
-        metadata_dict.get('excluded', False)
-        for metadata_dict in metadata_dict_list
+        metadata_dict.get('excluded', False) for metadata_dict in metadata_dict_list
     ]
     new_aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
     new_aid_list = list(set(new_aid_list))
@@ -3974,7 +4353,9 @@ def _princeton_kaia_imageset_filtering(ibs, year=2019, **kwargs):
 
 
 @register_ibs_method
-def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2019, **kwargs):
+def _princeton_kaia_filtering(
+    ibs, current_aids=None, desired_species=None, tier=1, year=2019, **kwargs
+):
 
     valid_imageset_rowid_list = ibs._princeton_kaia_imageset_filtering(year=year)
 
@@ -3983,9 +4364,16 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
         candidate_aid_list = list(set(ut.flatten(candidate_aids_list)))
         aids = ibs._princeton_kaia_annot_filtering(candidate_aid_list, desired_species)
 
-        config = {'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4'}
-        prediction_list = ibs.depc_annot.get_property('classifier', aids, 'class', config=config)
-        confidence_list = ibs.depc_annot.get_property('classifier', aids, 'score', config=config)
+        config = {
+            'classifier_algo': 'densenet',
+            'classifier_weight_filepath': 'canonical_zebra_grevys_v4',
+        }
+        prediction_list = ibs.depc_annot.get_property(
+            'classifier', aids, 'class', config=config
+        )
+        confidence_list = ibs.depc_annot.get_property(
+            'classifier', aids, 'score', config=config
+        )
         confidence_list = [
             confidence if prediction == 'positive' else 1.0 - confidence
             for prediction, confidence in zip(prediction_list, confidence_list)
@@ -3993,7 +4381,7 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
         flag_list = [confidence >= 0.31 for confidence in confidence_list]
 
         ca_aids = ut.compress(aids, flag_list)
-        new_aid_list  = sorted(list(set(ca_aids)))
+        new_aid_list = sorted(list(set(ca_aids)))
         return new_aid_list
 
     if tier in [6]:
@@ -4005,10 +4393,16 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
 
         gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
         imageset_rowid_list = list(set(ut.flatten(ibs.get_image_imgsetids(gid_list))))
-        imageset_rowid_list_ = list(set(imageset_rowid_list) & set(valid_imageset_rowid_list))
-        candidate_aid_list = list(set(ut.flatten(ibs.get_imageset_aids(imageset_rowid_list_))))
+        imageset_rowid_list_ = list(
+            set(imageset_rowid_list) & set(valid_imageset_rowid_list)
+        )
+        candidate_aid_list = list(
+            set(ut.flatten(ibs.get_imageset_aids(imageset_rowid_list_)))
+        )
 
-        new_aid_list = ibs._princeton_kaia_annot_filtering(candidate_aid_list, desired_species)
+        new_aid_list = ibs._princeton_kaia_annot_filtering(
+            candidate_aid_list, desired_species
+        )
 
     if current_aids is None:
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
@@ -4031,9 +4425,13 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
         new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
 
     if tier in [3]:
-        new_gid_list = list(set(ut.flatten(ibs.get_imageset_gids(valid_imageset_rowid_list))))
+        new_gid_list = list(
+            set(ut.flatten(ibs.get_imageset_gids(valid_imageset_rowid_list)))
+        )
         new_aid_list_ = ut.flatten(ibs.get_image_aids(new_gid_list))
-        new_aid_list_ = ibs._princeton_kaia_annot_filtering(new_aid_list_, desired_species)
+        new_aid_list_ = ibs._princeton_kaia_annot_filtering(
+            new_aid_list_, desired_species
+        )
 
         new_aid_list = new_aid_list + new_aid_list_
         new_aid_list = list(set(new_aid_list))
@@ -4058,10 +4456,16 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
     if tier in [5]:
         gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
         imageset_rowid_list = list(set(ut.flatten(ibs.get_image_imgsetids(gid_list))))
-        imageset_rowid_list_ = list(set(imageset_rowid_list) & set(valid_imageset_rowid_list))
-        candidate_aid_list = list(set(ut.flatten(ibs.get_imageset_aids(imageset_rowid_list_))))
+        imageset_rowid_list_ = list(
+            set(imageset_rowid_list) & set(valid_imageset_rowid_list)
+        )
+        candidate_aid_list = list(
+            set(ut.flatten(ibs.get_imageset_aids(imageset_rowid_list_)))
+        )
 
-        new_aid_list = ibs._princeton_kaia_annot_filtering(candidate_aid_list, desired_species)
+        new_aid_list = ibs._princeton_kaia_annot_filtering(
+            candidate_aid_list, desired_species
+        )
 
     return new_aid_list
 
@@ -4094,8 +4498,7 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
 
     metadata_dict_list = ibs.get_annot_metadata(aid_list)
     excluded_list = [
-        metadata_dict.get('excluded', False)
-        for metadata_dict in metadata_dict_list
+        metadata_dict.get('excluded', False) for metadata_dict in metadata_dict_list
     ]
     new_aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
 
@@ -4103,23 +4506,34 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
 
 
 @register_route('/turk/identification/graph/refer/', methods=['GET'])
-def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, option=None, **kwargs):
+def turk_identification_graph_refer(
+    imgsetid, species=None, tier=1, year=2019, option=None, **kwargs
+):
     ibs = current_app.ibs
 
     if ibs.dbname == 'ZEBRA_Kaia':
         if tier not in [0]:
             from wbia.algo.graph import mixin_loops
-            mixin_loops.PRINCETON_KAIA_EDGE_LIST = ibs._princeton_kaia_filtering(desired_species='zebra', tier=4)
+
+            mixin_loops.PRINCETON_KAIA_EDGE_LIST = ibs._princeton_kaia_filtering(
+                desired_species='zebra', tier=4
+            )
 
         assert imgsetid in [3925, 3926]
 
         assert species in ['zebra_plains', 'zebra_grevys']
-        aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=tier, year=year)
+        aid_list = ibs._princeton_kaia_filtering(
+            desired_species=species, tier=tier, year=year
+        )
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
-        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                         creation_imageset_rowid_list=[imgsetid], kaia=True)
+        return turk_identification_graph(
+            annot_uuid_list=annot_uuid_list,
+            hogwild_species=species,
+            creation_imageset_rowid_list=[imgsetid],
+            kaia=True,
+        )
     elif ibs.dbname == 'NG_Feasability' or option in ['nassau']:
         species = 'grouper_nassau'
 
@@ -4139,7 +4553,9 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
             species_list = ibs.get_annot_species(aid_list)
 
         flag_list = []
-        for aid, species_, viewpoint, quality in zip(aid_list, species_list, viewpoint_list, quality_list):
+        for aid, species_, viewpoint, quality in zip(
+            aid_list, species_list, viewpoint_list, quality_list
+        ):
             flag = True
             if species_ != species:
                 flag = False
@@ -4153,8 +4569,11 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                         creation_imageset_rowid_list=[imgsetid])
+        return turk_identification_graph(
+            annot_uuid_list=annot_uuid_list,
+            hogwild_species=species,
+            creation_imageset_rowid_list=[imgsetid],
+        )
     elif ibs.dbname == 'SSKUNK_Master' or option in ['skunk']:
         species = 'skunk_spotted'
 
@@ -4174,7 +4593,9 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
             species_list = ibs.get_annot_species(aid_list)
 
         flag_list = []
-        for aid, species_, viewpoint, quality in zip(aid_list, species_list, viewpoint_list, quality_list):
+        for aid, species_, viewpoint, quality in zip(
+            aid_list, species_list, viewpoint_list, quality_list
+        ):
             flag = True
             if species_ != species:
                 flag = False
@@ -4188,8 +4609,11 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                         creation_imageset_rowid_list=[imgsetid])
+        return turk_identification_graph(
+            annot_uuid_list=annot_uuid_list,
+            hogwild_species=species,
+            creation_imageset_rowid_list=[imgsetid],
+        )
     elif option in ['rosemary']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
 
@@ -4199,12 +4623,17 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
 
         gid_list = ibs.get_imageset_gids(imgsetid)
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-        aid_list_ = _zebra_annot_filtering(ibs, current_aids=aid_list, desired_species=species)
+        aid_list_ = _zebra_annot_filtering(
+            ibs, current_aids=aid_list, desired_species=species
+        )
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                         creation_imageset_rowid_list=[imgsetid])
+        return turk_identification_graph(
+            annot_uuid_list=annot_uuid_list,
+            hogwild_species=species,
+            creation_imageset_rowid_list=[imgsetid],
+        )
     elif ibs.dbname == 'WD_Master' or option in ['wilddog']:
         imgsetid = 1
 
@@ -4218,7 +4647,9 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         quality_list = ibs.get_annot_quality_texts(aid_list)
 
         flag_list = []
-        for aid, species_, viewpoint, quality in zip(aid_list, species_list, viewpoint_list, quality_list):
+        for aid, species_, viewpoint, quality in zip(
+            aid_list, species_list, viewpoint_list, quality_list
+        ):
             flag = True
             if species_ is None or 'wild_dog' not in species_:
                 flag = False
@@ -4232,8 +4663,11 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                         creation_imageset_rowid_list=[imgsetid])
+        return turk_identification_graph(
+            annot_uuid_list=annot_uuid_list,
+            hogwild_species=species,
+            creation_imageset_rowid_list=[imgsetid],
+        )
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
@@ -4242,12 +4676,16 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, o
         species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
 
         config = {
-            'species':     species,
-            'threshold':   0.75,
+            'species': species,
+            'threshold': 0.75,
             'enable_canonical': True,
         }
-        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                         creation_imageset_rowid_list=[imgsetid], **config)
+        return turk_identification_graph(
+            annot_uuid_list=annot_uuid_list,
+            hogwild_species=species,
+            creation_imageset_rowid_list=[imgsetid],
+            **config,
+        )
 
 
 @register_route('/turk/query/graph/v2/refer/', methods=['GET'])
@@ -4289,6 +4727,7 @@ def turk_identification_hardcase(*args, **kwargs):
 
     """
     import wbia
+
     ibs = current_app.ibs
 
     # HACKS
@@ -4301,13 +4740,20 @@ def turk_identification_hardcase(*args, **kwargs):
 
 
 @register_route('/turk/identification/graph/', methods=['GET', 'POST'])
-def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
-                              annot_uuid_list=None, hardcase=None,
-                              view_orientation='vertical', view_version=1,
-                              hogwild=False, hogwild_species=None,
-                              creation_imageset_rowid_list=None,
-                              kaia=False,
-                              **kwargs):
+def turk_identification_graph(
+    graph_uuid=None,
+    aid1=None,
+    aid2=None,
+    annot_uuid_list=None,
+    hardcase=None,
+    view_orientation='vertical',
+    view_version=1,
+    hogwild=False,
+    hogwild_species=None,
+    creation_imageset_rowid_list=None,
+    kaia=False,
+    **kwargs,
+):
     """
     CommandLine:
         python -m wbia.web.routes turk_identification_graph --db PZ_Master1
@@ -4347,7 +4793,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 hogwild_graph_uuid = graph_uuid
 
                 if len(current_app.GRAPH_CLIENT_DICT) == 0:
-                    raise ValueError('Cannot go hogwild when there are no graphs already started')
+                    raise ValueError(
+                        'Cannot go hogwild when there are no graphs already started'
+                    )
 
                 fallback_graph_uuid_list = []
                 candidate_graph_uuid_list = []
@@ -4355,7 +4803,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
                 graph_uuid_list = list(current_app.GRAPH_CLIENT_DICT.keys())
                 for graph_uuid_ in graph_uuid_list:
-                    print('Processing %r' % (graph_uuid_, ))
+                    print('Processing %r' % (graph_uuid_,))
 
                     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid_, None)
                     if graph_client is None:
@@ -4367,7 +4815,11 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                         if imagesets is not None:
                             imageset_id = imagesets[0]
                             imageset_text = ibs.get_imageset_text(imageset_id).lower()
-                            species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
+                            species = (
+                                'zebra_grevys'
+                                if 'zebra' in imageset_text
+                                else 'giraffe_reticulated'
+                            )
                             if species != hogwild_species:
                                 continue
 
@@ -4378,34 +4830,53 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                         continue
 
                     fallback_graph_uuid_list.append(graph_uuid_)
-                    print('\t len(graph_client.futures)     = %d' % (len(graph_client.futures), ))
-                    print('\t len(graph_client.review_dict) = %d' % (len(graph_client.review_dict), ))
-                    if len(graph_client.futures) < 15 and len(graph_client.review_dict) > 0:
+                    print(
+                        '\t len(graph_client.futures)     = %d'
+                        % (len(graph_client.futures),)
+                    )
+                    print(
+                        '\t len(graph_client.review_dict) = %d'
+                        % (len(graph_client.review_dict),)
+                    )
+                    if (
+                        len(graph_client.futures) < 15
+                        and len(graph_client.review_dict) > 0
+                    ):
                         candidate_graph_uuid_list.append(graph_uuid_)
 
                 if len(fallback_graph_uuid_list) == 0:
                     raise ValueError('Cannot go hogwild when all graphs are finished')
 
                 if len(candidate_graph_uuid_list) == 0:
-                    print('WARNING: candidate_graph_uuid_list was empty, picking random from fallback_graph_uuid_list')
-                    candidate_graph_uuid_list = [ random.choice(fallback_graph_uuid_list) ]
+                    print(
+                        'WARNING: candidate_graph_uuid_list was empty, picking random from fallback_graph_uuid_list'
+                    )
+                    candidate_graph_uuid_list = [random.choice(fallback_graph_uuid_list)]
 
-                print('Using Hogwild fallback_graph_uuid_list  = %r' % (fallback_graph_uuid_list, ))
-                print('Using Hogwild candidate_graph_uuid_list = %r' % (candidate_graph_uuid_list, ))
+                print(
+                    'Using Hogwild fallback_graph_uuid_list  = %r'
+                    % (fallback_graph_uuid_list,)
+                )
+                print(
+                    'Using Hogwild candidate_graph_uuid_list = %r'
+                    % (candidate_graph_uuid_list,)
+                )
 
                 assert len(candidate_graph_uuid_list) > 0
                 graph_uuid = random.choice(candidate_graph_uuid_list)
 
                 progress = 0
                 for graph_uuid_ in progress_graph_uuid_list:
-                    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid_)
+                    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(
+                        graph_uuid_
+                    )
                     infr_status = graph_client.infr_status
                     if infr_status is not None:
                         cc_status = infr_status.get('cc_status', {})
                         progress += cc_status.get('num_names_max', 0)
                 progress = int(progress)
 
-                print('Using Hogwild graph_uuid = %r' % (graph_uuid, ))
+                print('Using Hogwild graph_uuid = %r' % (graph_uuid,))
             except AssertionError:
                 hogwild = False
                 pass
@@ -4413,19 +4884,23 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         if graph_uuid is None:
             if annot_uuid_list is None:
                 import wbia
+
                 aids = wbia.testdata_aids(ibs=ibs, a=':species=primary')
                 annot_uuid_list = ibs.annots(aids).uuids
 
-            print('[routes] Starting graph turk of {} annotations'.format(
-                len(annot_uuid_list)))
+            print(
+                '[routes] Starting graph turk of {} annotations'.format(
+                    len(annot_uuid_list)
+                )
+            )
             if hardcase:
                 print('[routes] Graph is in hardcase-mode')
                 query_config_dict = {
-                    'ranking.enabled'    : False,
-                    'autoreview.enabled' : False,
-                    'redun.enabled'      : False,
-                    'queue.conf.thresh'  : 'absolutely_sure',
-                    'algo.hardcase'      : True,
+                    'ranking.enabled': False,
+                    'autoreview.enabled': False,
+                    'redun.enabled': False,
+                    'queue.conf.thresh': 'absolutely_sure',
+                    'algo.hardcase': True,
                 }
             elif kaia:
                 print('[routes] Graph is in Kaia-mode')
@@ -4446,40 +4921,46 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
             query_config_dict.update(kwargs.get('query_config_dict', {}))
 
-            print('[routes] query_config_dict = {}'.format(
-                ut.repr3(query_config_dict)))
+            print('[routes] query_config_dict = {}'.format(ut.repr3(query_config_dict)))
 
             graph_uuid = ibs.query_chips_graph_v2(
                 annot_uuid_list=annot_uuid_list,
                 query_config_dict=query_config_dict,
                 creation_imageset_rowid_list=creation_imageset_rowid_list,
-                **kwargs
+                **kwargs,
             )
 
-            print('Calculated graph_uuid {} from all {} annotations'.format(
-                graph_uuid, len(annot_uuid_list)))
+            print(
+                'Calculated graph_uuid {} from all {} annotations'.format(
+                    graph_uuid, len(annot_uuid_list)
+                )
+            )
             # HACK probably should be a config flag instead
             if query_config_dict:
                 base = url_for('turk_identification_hardcase')
             else:
                 base = url_for('turk_identification_graph')
             sep = '&' if '?' in base else '?'
-            url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid), )
+            url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid),)
             if hardcase:
                 url += '&hardcase=True'
             url = url.replace(': ', ':')
             return redirect(url)
 
-        values = ibs.review_graph_match_config_v2(graph_uuid, aid1=aid1, aid2=aid2,
-                                                  view_orientation=view_orientation,
-                                                  view_version=view_version)
+        values = ibs.review_graph_match_config_v2(
+            graph_uuid,
+            aid1=aid1,
+            aid2=aid2,
+            view_orientation=view_orientation,
+            view_version=view_version,
+        )
         finished = False
     except controller_inject.WebReviewNotReadyException:
         finished = 'engine'
     except controller_inject.WebUnavailableUUIDException as ex:
         finished = 'unavailable'
         refer_query_uuid = ex.query_uuid
-        refer_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(refer_query_uuid), )
+        refer_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(refer_query_uuid),)
         refer_graph_uuid_str = refer_graph_uuid_str.replace(': ', ':')
     except controller_inject.WebReviewFinishedException as ex:
         finished = True
@@ -4487,9 +4968,19 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         return redirect(url_for('turk'))
 
     if not finished:
-        (edge, priority, data_dict, aid1, aid2, annot_uuid_1, annot_uuid_2,
-            image_clean_src, image_matches_src, image_heatmask_src,
-            server_time_start) = values
+        (
+            edge,
+            priority,
+            data_dict,
+            aid1,
+            aid2,
+            annot_uuid_1,
+            annot_uuid_2,
+            image_clean_src,
+            image_matches_src,
+            image_heatmask_src,
+            server_time_start,
+        ) = values
 
         timedelta_str = 'Unknown'
         if aid1 is not None and aid2 is not None:
@@ -4498,23 +4989,23 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 timedelta = abs(unixtime_list[1] - unixtime_list[0])
                 secs = 60.0
                 mins = 60.0 * 60.0
-                hrs  = 60.0 * 60.0 * 24.0
+                hrs = 60.0 * 60.0 * 24.0
                 days = 60.0 * 60.0 * 24.0 * 365.0
 
                 if timedelta < secs:
-                    timedelta_str = '%0.2f seconds' % (timedelta, )
+                    timedelta_str = '%0.2f seconds' % (timedelta,)
                 elif timedelta < mins:
                     timedelta /= secs
-                    timedelta_str = '%0.2f minutes' % (timedelta, )
+                    timedelta_str = '%0.2f minutes' % (timedelta,)
                 elif timedelta < hrs:
                     timedelta /= mins
-                    timedelta_str = '%0.2f hours' % (timedelta, )
+                    timedelta_str = '%0.2f hours' % (timedelta,)
                 elif timedelta < days:
                     timedelta /= hrs
-                    timedelta_str = '%0.2f days' % (timedelta, )
+                    timedelta_str = '%0.2f days' % (timedelta,)
                 else:
                     timedelta /= days
-                    timedelta_str = '%0.2f years' % (timedelta, )
+                    timedelta_str = '%0.2f years' % (timedelta,)
 
         if progress is None:
             graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
@@ -4529,7 +5020,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
         match_data = ut.odict([])
         if 'evidence_decision' in data_dict:
-            match_data['State'] = const.EVIDENCE_DECISION.CODE_TO_NICE[data_dict['evidence_decision']]
+            match_data['State'] = const.EVIDENCE_DECISION.CODE_TO_NICE[
+                data_dict['evidence_decision']
+            ]
 
         if 'match_state' in data_dict:
             probs = data_dict['match_state']
@@ -4575,8 +5068,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             'Manual': num_manual,
         }
 
-        match_data = ut.repr2(match_data, si=True, precision=3, kvsep='=',
-                               nobr=1)
+        match_data = ut.repr2(match_data, si=True, precision=3, kvsep='=', nobr=1)
         previous = request.args.get('previous', None)
         if previous is not None and ';' in previous:
             previous = tuple(map(int, previous.split(';')))
@@ -4595,25 +5087,26 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         alert = False
         timedelta_str = None
 
-    graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
+    graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid),)
     graph_uuid_str = graph_uuid_str.replace(': ', ':')
     if kaia:
         base = url_for('submit_identification_v2_kaia')
     else:
         base = url_for('submit_identification_v2')
-    callback_url = '%s?%s' % (base, graph_uuid_str, )
+    callback_url = '%s?%s' % (base, graph_uuid_str,)
 
-    hogwild_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(hogwild_graph_uuid), )
+    hogwild_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(hogwild_graph_uuid),)
     hogwild_graph_uuid_str = hogwild_graph_uuid_str.replace(': ', ':')
 
     confidence_dict = const.CONFIDENCE.NICE_TO_CODE
     confidence_nice_list = confidence_dict.keys()
     confidence_text_list = confidence_dict.values()
     confidence_selected_list = [
-        confidence_text == 'unspecified'
-        for confidence_text in confidence_text_list
+        confidence_text == 'unspecified' for confidence_text in confidence_text_list
     ]
-    confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
+    confidence_list = list(
+        zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+    )
 
     if creation_imageset_rowid_list is None:
         creation_imageset_rowid_list = []
@@ -4621,14 +5114,26 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     gid1 = ibs.get_annot_gids(aid1)
     gid2 = ibs.get_annot_gids(aid2)
 
-    imgesetid_1_list = list(set(ibs.get_image_imgsetids(gid1)) - set(creation_imageset_rowid_list))
+    imgesetid_1_list = list(
+        set(ibs.get_image_imgsetids(gid1)) - set(creation_imageset_rowid_list)
+    )
     imagesettext_1_list = ibs.get_imageset_text(imgesetid_1_list)
-    imagesettext_1_list = [imagesettext_1 for imagesettext_1 in imagesettext_1_list if not imagesettext_1.startswith('*')]
+    imagesettext_1_list = [
+        imagesettext_1
+        for imagesettext_1 in imagesettext_1_list
+        if not imagesettext_1.startswith('*')
+    ]
     imagesettext_1_list_str = ', '.join(imagesettext_1_list)
 
-    imgesetid_2_list = list(set(ibs.get_image_imgsetids(gid2)) - set(creation_imageset_rowid_list))
+    imgesetid_2_list = list(
+        set(ibs.get_image_imgsetids(gid2)) - set(creation_imageset_rowid_list)
+    )
     imagesettext_2_list = ibs.get_imageset_text(imgesetid_2_list)
-    imagesettext_2_list = [imagesettext_2 for imagesettext_2 in imagesettext_2_list if not imagesettext_2.startswith('*')]
+    imagesettext_2_list = [
+        imagesettext_2
+        for imagesettext_2 in imagesettext_2_list
+        if not imagesettext_2.startswith('*')
+    ]
     imagesettext_2_list_str = ', '.join(imagesettext_2_list)
 
     try:
@@ -4711,7 +5216,10 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     comment2 = metadata2.get('turk', {}).get('match', {}).get('comment', '')
 
     try:
-        edge = (aid1, aid2, )
+        edge = (
+            aid1,
+            aid2,
+        )
         review_rowid_list = ibs.get_review_rowids_from_edges([edge])[0]
         assert len(review_rowid_list) > 0
         review_rowid = review_rowid_list[-1]
@@ -4722,48 +5230,51 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
     template_name = 'identification_kaia' if kaia else 'identification'
-    return appf.template('turk', template_name,
-                         match_data=match_data,
-                         image_clean_src=image_clean_src,
-                         image_matches_src=image_matches_src,
-                         aid1=aid1,
-                         aid2=aid2,
-                         alert=alert,
-                         session=False,
-                         progress=progress,
-                         timedelta_str=timedelta_str,
-                         refer_query_uuid=refer_query_uuid,
-                         refer_graph_uuid_str=refer_graph_uuid_str,
-                         finished=finished,
-                         graph_uuid=graph_uuid_,
-                         hogwild=hogwild,
-                         age1=age1,
-                         age2=age2,
-                         # sex1=sex1,
-                         # sex2=sex2,
-                         condition1=condition1,
-                         condition2=condition2,
-                         comment1=comment1,
-                         comment2=comment2,
-                         comment_match=comment_match,
-                         imagesettext_1_list_str=imagesettext_1_list_str,
-                         imagesettext_2_list_str=imagesettext_2_list_str,
-                         original_filename_1_str=original_filename_1_str,
-                         original_filename_2_str=original_filename_2_str,
-                         hogwild_species=hogwild_species,
-                         annot_uuid_1=str(annot_uuid_1),
-                         annot_uuid_2=str(annot_uuid_2),
-                         confidence_list=confidence_list,
-                         previous=previous,
-                         graph_uuid_str=graph_uuid_str,
-                         hogwild_graph_uuid_str=hogwild_graph_uuid_str,
-                         previous_version=2,
-                         replace_review_rowid=-1,
-                         view_orientation=view_orientation,
-                         callback_url=callback_url,
-                         callback_method='POST',
-                         EMBEDDED_CSS=None,
-                         EMBEDDED_JAVASCRIPT=None)
+    return appf.template(
+        'turk',
+        template_name,
+        match_data=match_data,
+        image_clean_src=image_clean_src,
+        image_matches_src=image_matches_src,
+        aid1=aid1,
+        aid2=aid2,
+        alert=alert,
+        session=False,
+        progress=progress,
+        timedelta_str=timedelta_str,
+        refer_query_uuid=refer_query_uuid,
+        refer_graph_uuid_str=refer_graph_uuid_str,
+        finished=finished,
+        graph_uuid=graph_uuid_,
+        hogwild=hogwild,
+        age1=age1,
+        age2=age2,
+        # sex1=sex1,
+        # sex2=sex2,
+        condition1=condition1,
+        condition2=condition2,
+        comment1=comment1,
+        comment2=comment2,
+        comment_match=comment_match,
+        imagesettext_1_list_str=imagesettext_1_list_str,
+        imagesettext_2_list_str=imagesettext_2_list_str,
+        original_filename_1_str=original_filename_1_str,
+        original_filename_2_str=original_filename_2_str,
+        hogwild_species=hogwild_species,
+        annot_uuid_1=str(annot_uuid_1),
+        annot_uuid_2=str(annot_uuid_2),
+        confidence_list=confidence_list,
+        previous=previous,
+        graph_uuid_str=graph_uuid_str,
+        hogwild_graph_uuid_str=hogwild_graph_uuid_str,
+        previous_version=2,
+        replace_review_rowid=-1,
+        view_orientation=view_orientation,
+        callback_url=callback_url,
+        callback_method='POST',
+        EMBEDDED_CSS=None,
+        EMBEDDED_JAVASCRIPT=None,
+    )
 
 
 @register_route('/turk/quality/', methods=['GET'])
@@ -4811,26 +5322,29 @@ def turk_quality(**kwargs):
     finished = aid is None
     display_instructions = request.cookies.get('ia-quality_instructions_seen', 1) == 0
     if not finished:
-        gid       = ibs.get_annot_gids(aid)
+        gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.annotation_src(aid)
     else:
-        gid       = None
+        gid = None
         image_src = None
     imagesettext = ibs.get_imageset_text(imgsetid)
-    return appf.template('turk', 'quality',
-                         imgsetid=imgsetid,
-                         src_ag=src_ag,
-                         dst_ag=dst_ag,
-                         gid=gid,
-                         aid=aid,
-                         value=value,
-                         image_src=image_src,
-                         previous=previous,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         display_instructions=display_instructions,
-                         review=review)
+    return appf.template(
+        'turk',
+        'quality',
+        imgsetid=imgsetid,
+        src_ag=src_ag,
+        dst_ag=dst_ag,
+        gid=gid,
+        aid=aid,
+        value=value,
+        image_src=image_src,
+        previous=previous,
+        imagesettext=imagesettext,
+        progress=progress,
+        finished=finished,
+        display_instructions=display_instructions,
+        review=review,
+    )
 
 
 GLOBAL_KAIA_CACHE = {}
@@ -4847,19 +5361,27 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             if ibs.dbname == 'GGR2-IBEIS':
                 gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
                 aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-                aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
+                aid_list = ibs.check_ggr_valid_aids(
+                    aid_list, species=species, threshold=0.75
+                )
             elif ibs.dbname == 'ZEBRA_Kaia':
                 global GLOBAL_KAIA_CACHE
                 if species not in GLOBAL_KAIA_CACHE:
                     aid_list_ = ibs.get_valid_aids()
                     nid_list_ = ibs.get_annot_nids(aid_list_)
-                    flag_list = [ nid > 0 for nid in nid_list_ ]
+                    flag_list = [nid > 0 for nid in nid_list_]
                     aid_list = ut.compress(aid_list_, flag_list)
                     nid_list = ut.compress(nid_list_, flag_list)
                     nid_list_ = list(set(nid_list_))
                     nid_list = list(set(nid_list))
-                    print('Checking %d annotations for %d names' % (len(aid_list_), len(nid_list_), ))
-                    print('Found %d annotations for %d names' % (len(aid_list), len(nid_list), ))
+                    print(
+                        'Checking %d annotations for %d names'
+                        % (len(aid_list_), len(nid_list_),)
+                    )
+                    print(
+                        'Found %d annotations for %d names'
+                        % (len(aid_list), len(nid_list),)
+                    )
                     GLOBAL_KAIA_CACHE[species] = aid_list
                 aid_list = GLOBAL_KAIA_CACHE[species]
             else:
@@ -4870,12 +5392,12 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
 
         print('!' * 100)
         print('Demographics Progress')
-        print('\t reviewed_list.count(True) = %d' % (reviewed_list.count(True), ))
-        print('\t len(reviewed_list)        = %d' % (len(aid_list), ))
+        print('\t reviewed_list.count(True) = %d' % (reviewed_list.count(True),))
+        print('\t len(reviewed_list)        = %d' % (len(aid_list),))
         print('!' * 100)
 
         try:
-            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list),)
         except ZeroDivisionError:
             progress = '0.00'
 
@@ -4896,7 +5418,9 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             value_sex = None
         value_age_min, value_age_max = list(ibs.get_annot_age_months_est([aid]))[0]
         value_age = None
-        if (value_age_min is -1 or value_age_min is None) and (value_age_max is -1 or value_age_max is None):
+        if (value_age_min is -1 or value_age_min is None) and (
+            value_age_max is -1 or value_age_max is None
+        ):
             value_age = 1
         if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
             value_age = 2
@@ -4913,13 +5437,15 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
 
         review = 'review' in request.args.keys()
         finished = aid is None
-        display_instructions = request.cookies.get('ia-demographics_instructions_seen', 1) == 0
+        display_instructions = (
+            request.cookies.get('ia-demographics_instructions_seen', 1) == 0
+        )
 
         if not finished:
-            gid       = ibs.get_annot_gids(aid)
+            gid = ibs.get_annot_gids(aid)
             image_src = routes_ajax.annotation_src(aid)
         else:
-            gid       = None
+            gid = None
             image_src = None
 
         name_aid_list = None
@@ -4929,12 +5455,9 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             quality_list = ibs.get_annot_qualities(name_aid_list)
             quality_text_list = ibs.get_annot_quality_texts(name_aid_list)
             viewpoint_list = ibs.get_annot_viewpoints(name_aid_list)
-            name_aid_combined_list = list(zip(
-                name_aid_list,
-                quality_list,
-                quality_text_list,
-                viewpoint_list,
-            ))
+            name_aid_combined_list = list(
+                zip(name_aid_list, quality_list, quality_text_list, viewpoint_list,)
+            )
             # name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
         else:
             name_aid_combined_list = []
@@ -4953,22 +5476,25 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             #     region_str = imgset_text_list[0]
             region_str = ', '.join(imgset_text_list)
 
-    return appf.template('turk', 'demographics',
-                         imgsetid=imgsetid,
-                         species=species,
-                         gid=gid,
-                         aid=aid,
-                         region_str=region_str,
-                         value_sex=value_sex,
-                         value_age=value_age,
-                         name_aid_combined_list=name_aid_combined_list,
-                         image_src=image_src,
-                         previous=previous,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         display_instructions=display_instructions,
-                         review=review)
+    return appf.template(
+        'turk',
+        'demographics',
+        imgsetid=imgsetid,
+        species=species,
+        gid=gid,
+        aid=aid,
+        region_str=region_str,
+        value_sex=value_sex,
+        value_age=value_age,
+        name_aid_combined_list=name_aid_combined_list,
+        image_src=image_src,
+        previous=previous,
+        imagesettext=imagesettext,
+        progress=progress,
+        finished=finished,
+        display_instructions=display_instructions,
+        review=review,
+    )
 
 
 @register_route('/group_review/', methods=['GET'])
@@ -4977,39 +5503,51 @@ def group_review(**kwargs):
     if len(prefill) > 0:
         ibs = current_app.ibs
         aid_list = ibs.get_valid_aids()
-        bad_species_list, bad_viewpoint_list = ibs.validate_annot_species_viewpoint_cnn(aid_list)
+        bad_species_list, bad_viewpoint_list = ibs.validate_annot_species_viewpoint_cnn(
+            aid_list
+        )
 
         GROUP_BY_PREDICTION = True
         if GROUP_BY_PREDICTION:
-            grouped_dict = ut.group_items(bad_viewpoint_list, ut.get_list_column(bad_viewpoint_list, 3))
+            grouped_dict = ut.group_items(
+                bad_viewpoint_list, ut.get_list_column(bad_viewpoint_list, 3)
+            )
             grouped_list = grouped_dict.values()
-            regrouped_items = ut.flatten(ut.sortedby(grouped_list, map(len, grouped_list)))
+            regrouped_items = ut.flatten(
+                ut.sortedby(grouped_list, map(len, grouped_list))
+            )
             candidate_aid_list = ut.get_list_column(regrouped_items, 0)
         else:
-            candidate_aid_list = [ bad_viewpoint[0] for bad_viewpoint in bad_viewpoint_list]
+            candidate_aid_list = [
+                bad_viewpoint[0] for bad_viewpoint in bad_viewpoint_list
+            ]
     elif request.args.get('aid_list', None) is not None:
         aid_list = request.args.get('aid_list', '')
         if len(aid_list) > 0:
             aid_list = aid_list.replace('[', '')
             aid_list = aid_list.replace(']', '')
             aid_list = aid_list.strip().split(',')
-            candidate_aid_list = [ int(aid_.strip()) for aid_ in aid_list ]
+            candidate_aid_list = [int(aid_.strip()) for aid_ in aid_list]
         else:
             candidate_aid_list = ''
     else:
         candidate_aid_list = ''
 
-    return appf.template(None, 'group_review', candidate_aid_list=candidate_aid_list, mode_list=appf.VALID_TURK_MODES)
+    return appf.template(
+        None,
+        'group_review',
+        candidate_aid_list=candidate_aid_list,
+        mode_list=appf.VALID_TURK_MODES,
+    )
 
 
 @register_route('/sightings/', methods=['GET'])
-def sightings(html_encode=True, complete=True, include_images=False, kaia=False, **kwargs):
+def sightings(
+    html_encode=True, complete=True, include_images=False, kaia=False, **kwargs
+):
     ibs = current_app.ibs
     sightings = ibs.report_sightings_str(
-        complete=complete,
-        include_images=include_images,
-        kaia=kaia,
-        **kwargs
+        complete=complete, include_images=include_images, kaia=kaia, **kwargs
     )
     if html_encode:
         sightings = sightings.replace('\n', '<br/>')
@@ -5028,21 +5566,24 @@ def api_root(**kwargs):
             if len(methods) == 0:
                 continue
             # if len(methods) > 1:
-                # print('methods = %r' % (methods,))
+            # print('methods = %r' % (methods,))
             method = list(methods)[0]
             if method not in rule_dict.keys(**kwargs):
                 rule_dict[method] = []
-            rule_dict[method].append((method, url, ))
+            rule_dict[method].append((method, url,))
     for method in rule_dict.keys(**kwargs):
         rule_dict[method].sort()
-    url = '%s/api/core/dbname/' % (current_app.server_url, )
+    url = '%s/api/core/dbname/' % (current_app.server_url,)
     app_auth = controller_inject.get_url_authorization(url)
-    return appf.template(None, 'api',
-                         app_url=url,
-                         app_name=controller_inject.GLOBAL_APP_NAME,
-                         app_secret=controller_inject.GLOBAL_APP_SECRET,
-                         app_auth=app_auth,
-                         rule_list=rule_dict)
+    return appf.template(
+        None,
+        'api',
+        app_url=url,
+        app_name=controller_inject.GLOBAL_APP_NAME,
+        app_secret=controller_inject.GLOBAL_APP_SECRET,
+        app_auth=app_auth,
+        rule_list=rule_dict,
+    )
 
 
 @register_route('/upload/', methods=['GET'], __route_authenticate__=False)
@@ -5065,24 +5606,24 @@ def dbinfo(**kwargs):
         dbinfo_str = ibs.get_dbinfo_str()
     except Exception:
         dbinfo_str = ''
-    dbinfo_str_formatted = '<pre>%s</pre>' % (dbinfo_str, )
+    dbinfo_str_formatted = '<pre>%s</pre>' % (dbinfo_str,)
     return dbinfo_str_formatted
 
 
 @register_route('/counts/', methods=['GET'])
 def wb_counts(**kwargs):
-    fmt_str = '''<p># Annotations: <b>%d</b></p>
+    fmt_str = """<p># Annotations: <b>%d</b></p>
 <p># MediaAssets (images): <b>%d</b></p>
 <p># MarkedIndividuals: <b>%d</b></p>
 <p># Encounters: <b>%d</b></p>
-<p># Occurrences: <b>%d</b></p>'''
+<p># Occurrences: <b>%d</b></p>"""
 
     try:
         ibs = current_app.ibs
 
         aid_list = ibs.get_valid_aids()
         nid_list = ibs.get_annot_nids(aid_list)
-        nid_list = [ nid for nid in nid_list if nid > 0 ]
+        nid_list = [nid for nid in nid_list if nid > 0]
         gid_list = ibs.get_annot_gids(aid_list)
         imgset_id_list = ibs.get_valid_imgsetids()
         aids_list = ibs.get_imageset_aids(imgset_id_list)
@@ -5109,7 +5650,13 @@ def wb_counts(**kwargs):
         num_imgset = len(valid_imgset_id_list)
         num_encounters = len(nids_list)
 
-        args = (num_aid, num_gid, num_nid, num_encounters, num_imgset, )
+        args = (
+            num_aid,
+            num_gid,
+            num_nid,
+            num_encounters,
+            num_imgset,
+        )
         counts_str = fmt_str % args
     except Exception:
         counts_str = ''
@@ -5129,12 +5676,14 @@ def wb_counts_alias2(**kwargs):
 @register_route('/404/', methods=['GET'])
 def error404(exception=None):
     import traceback
+
     exception_str = str(exception)
     traceback_str = str(traceback.format_exc())
-    print('[web] %r' % (exception_str, ))
-    print('[web] %r' % (traceback_str, ))
-    return appf.template(None, '404', exception_str=exception_str,
-                         traceback_str=traceback_str)
+    print('[web] %r' % (exception_str,))
+    print('[web] %r' % (traceback_str,))
+    return appf.template(
+        None, '404', exception_str=exception_str, traceback_str=traceback_str
+    )
 
 
 if __name__ == '__main__':
@@ -5145,6 +5694,8 @@ if __name__ == '__main__':
         python -m wbia.web.app --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()

@@ -100,12 +100,12 @@ import platform
 import sys
 import os
 
-#-----------------
+# -----------------
 # SYSTEM ENTRY POINT, NO UTOOL, BARE PYTHON
-#-----------------
+# -----------------
 
 
-USAGE = ('''
+USAGE = """
 
  --- USAGE ---
 
@@ -177,18 +177,20 @@ Register these packages with the python enviroment.
     pip install -e .
 
  --- /USAGE ---
-''')
+"""
 
 
 def define_argparse():
     """ todo, find a way to use this effectively """
     import argparse
+
     parser = argparse.ArgumentParser(description='IBEIS super setup')
     # parser.add_argument('command', help='command to run')
 
     def add_flag(group, name, help=None):
-        group.add_argument(name.replace('--', ''), action='store_true',
-                           default=False, help=help)
+        group.add_argument(
+            name.replace('--', ''), action='store_true', default=False, help=help
+        )
 
     # subparsers = parser.add_subparsers()
     # subparsers.add_parser('pull', help='pulls IBEIS repos')
@@ -221,8 +223,7 @@ def define_argparse():
     add_flag(g3, 'ignore_opencv')
 
     g2 = parser.add_argument_group('utils')
-    add_flag(g2, 'move_wildme',
-             help='changes to the wildme repos')
+    add_flag(g2, 'move_wildme', help='changes to the wildme repos')
     args = parser.parse_args()
     return args
 
@@ -238,8 +239,9 @@ def get_plat_specifier():
     """
     import setuptools  # NOQA
     import distutils
+
     plat_name = distutils.util.get_platform()
-    plat_specifier = ".%s-%s" % (plat_name, sys.version[0:3])
+    plat_specifier = '.%s-%s' % (plat_name, sys.version[0:3])
     if hasattr(sys, 'gettotalrefcount'):
         plat_specifier += '-pydebug'
     return plat_specifier
@@ -249,13 +251,16 @@ def import_module_from_fpath(module_fpath):
     """ imports module from a file path """
     import platform
     from os.path import basename, splitext
+
     python_version = platform.python_version()
     modname = splitext(basename(module_fpath))[0]
     if python_version.startswith('2.7'):
         import imp
+
         module = imp.load_source(modname, module_fpath)
     elif python_version.startswith('3'):
         import importlib.machinery
+
         loader = importlib.machinery.SourceFileLoader(modname, module_fpath)
         module = loader.load_module()
     else:
@@ -271,10 +276,10 @@ def bootstrap(WIN32):
         win32bootstrap.bootstrap_sysreq()
 
     else:
-        #import bootstrap
+        # import bootstrap
         bootstrap_fpath = os.path.abspath('_scripts/bootstrap.py')
         bootstrap = import_module_from_fpath(bootstrap_fpath)
-        #sys.path.append(os.path.abspath('_scripts'))
+        # sys.path.append(os.path.abspath('_scripts'))
         bootstrap.bootstrap_sysreq()
     sys.exit(0)
 
@@ -305,7 +310,7 @@ def in_virtual_env():
 
 def ensure_utool(CODE_DIR, pythoncmd):
     WIN32 = sys.platform.startswith('win32')
-    #UTOOL_BRANCH = ' -b <branch> <remote_repo>'
+    # UTOOL_BRANCH = ' -b <branch> <remote_repo>'
     UTOOL_BRANCH = 'next'
     UTOOL_REPO = 'https://github.com/WildbookOrg/utool.git'
     print('WARNING: utool is not found')
@@ -325,7 +330,7 @@ def ensure_utool(CODE_DIR, pythoncmd):
     cwdpath = os.path.realpath(os.getcwd())
     usr_code_dir = os.path.expanduser(CODE_DIR)
     os.chdir(usr_code_dir)
-    print("user code dir = %r" % usr_code_dir)
+    print('user code dir = %r' % usr_code_dir)
     print('cloning utool')
     if not os.path.exists('utool'):
         syscmd('git clone ' + UTOOL_REPO + ' -b ' + UTOOL_BRANCH)
@@ -345,24 +350,26 @@ def ensure_utool(CODE_DIR, pythoncmd):
     print(' '.join(sys.argv))
     sys.exit(1)
 
-#-----------------
+
+# -----------------
 #  UTOOL PYTHON
-#-----------------
+# -----------------
 
 
 def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     import utool as ut
+
     WITH_CNN = True
     WITH_PYRF = True
-    #WITH_TPL = True
+    # WITH_TPL = True
     WITH_QT = not ut.get_argflag('--no-qt')
     WITH_GUI = not ut.get_argflag('--no-gui')
     WITH_CUSTOM_TPL = True
     WITH_FLUKEMATCH = True
     WITH_CURVRANK = True
-    #-----------
+    # -----------
     # IBEIS project repos
-    #-----------
+    # -----------
     # if True:
     #     jon_repo_base = 'https://github.com/WildbookOrg'
     #     jason_repo_base = 'https://github.com/WildbookOrg'
@@ -373,14 +380,19 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     #     jon_repo_base = 'git@hyrule.cs.rpi.edu
     #     jason_repo_base = 'git@hyrule.cs.rpi.edu
 
-    wbia_rman = ut.RepoManager([
-        'https://github.com/WildbookOrg/utool.git',
-        # 'https://github.com/WildbookOrg/sandbox_utools.git',
-        'https://github.com/WildbookOrg/vtool_ibeis.git',
-        'https://github.com/WildbookOrg/dtool_ibeis.git',
-        'https://github.com/Erotemic/ubelt.git',
-        'https://github.com/WildbookOrg/detecttools.git',
-    ], CODE_DIR, label='core', pythoncmd=pythoncmd)
+    wbia_rman = ut.RepoManager(
+        [
+            'https://github.com/WildbookOrg/utool.git',
+            # 'https://github.com/WildbookOrg/sandbox_utools.git',
+            'https://github.com/WildbookOrg/vtool_ibeis.git',
+            'https://github.com/WildbookOrg/dtool_ibeis.git',
+            'https://github.com/Erotemic/ubelt.git',
+            'https://github.com/WildbookOrg/detecttools.git',
+        ],
+        CODE_DIR,
+        label='core',
+        pythoncmd=pythoncmd,
+    )
 
     tpl_rman = ut.RepoManager([], CODE_DIR, label='tpl', pythoncmd=pythoncmd)
     if not GET_ARGFLAG('--ignore-opencv'):
@@ -388,74 +400,80 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         tpl_rman.add_repo(cv_repo)
 
     if WITH_GUI:
-        wbia_rman.add_repos([
-            'https://github.com/WildbookOrg/plottool_ibeis.git',
-        ])
+        wbia_rman.add_repos(
+            ['https://github.com/WildbookOrg/plottool_ibeis.git',]
+        )
 
         if WITH_QT:
-            wbia_rman.add_repos([
-                'https://github.com/WildbookOrg/guitool_ibeis.git',
-            ])
+            wbia_rman.add_repos(
+                ['https://github.com/WildbookOrg/guitool_ibeis.git',]
+            )
             tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5', 'PyQt')))
 
     if WITH_CUSTOM_TPL:
-        flann_repo = ut.Repo('https://github.com/WildbookOrg/flann.git', CODE_DIR, modname='pyflann')
+        flann_repo = ut.Repo(
+            'https://github.com/WildbookOrg/flann.git', CODE_DIR, modname='pyflann'
+        )
         wbia_rman.add_repo(flann_repo)
-        wbia_rman.add_repos([
-            'https://github.com/WildbookOrg/hesaff.git',
-        ])
+        wbia_rman.add_repos(
+            ['https://github.com/WildbookOrg/hesaff.git',]
+        )
 
     if WITH_CNN:
-        wbia_rman.add_repos([
-            'https://github.com/WildbookOrg/ibeis_cnn.git',
-            'https://github.com/WildbookOrg/pydarknet.git',
-        ])
+        wbia_rman.add_repos(
+            [
+                'https://github.com/WildbookOrg/ibeis_cnn.git',
+                'https://github.com/WildbookOrg/pydarknet.git',
+            ]
+        )
         # NEW CNN Dependencies
-        tpl_rman.add_repos([
-            'https://github.com/pytorch/pytorch.git',
-        ])
+        tpl_rman.add_repos(
+            ['https://github.com/pytorch/pytorch.git',]
+        )
         # if GET_ARGFLAG('--libgpuarray'):
-        tpl_rman.add_repos([
-            'https://github.com/Theano/libgpuarray.git',
-        ])
+        tpl_rman.add_repos(
+            ['https://github.com/Theano/libgpuarray.git',]
+        )
         # CNN Dependencies
-        tpl_rman.add_repos([
-            'https://github.com/Theano/Theano.git',
-            # 'https://github.com/lisa-lab/pylearn2.git',
-            'https://github.com/Lasagne/Lasagne.git',
-        ])
+        tpl_rman.add_repos(
+            [
+                'https://github.com/Theano/Theano.git',
+                # 'https://github.com/lisa-lab/pylearn2.git',
+                'https://github.com/Lasagne/Lasagne.git',
+            ]
+        )
 
     if WITH_FLUKEMATCH:
-        wbia_rman.add_repos([
-            'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
-        ])
+        wbia_rman.add_repos(
+            ['https://github.com/WildbookOrg/ibeis-flukematch-module.git']
+        )
 
     if WITH_CURVRANK:
-        wbia_rman.add_repos([
-            'https://github.com/WildbookOrg/ibeis-curvrank-module.git'
-        ])
+        wbia_rman.add_repos(['https://github.com/WildbookOrg/ibeis-curvrank-module.git'])
 
     if WITH_PYRF:
-        wbia_rman.add_repos([
-            'https://github.com/WildbookOrg/pyrf.git',
-        ])
+        wbia_rman.add_repos(
+            ['https://github.com/WildbookOrg/pyrf.git',]
+        )
 
     if False:
         # Depricated
-        wbia_rman.add_repos([
-            #'https://github.com/WildbookOrg/pybing.git',
-            #'https://github.com/aweinstock314/cyth.git',
-            #'https://github.com/hjweide/pygist',
-        ])
+        wbia_rman.add_repos(
+            [
+                #'https://github.com/WildbookOrg/pybing.git',
+                #'https://github.com/aweinstock314/cyth.git',
+                #'https://github.com/hjweide/pygist',
+            ]
+        )
 
     # Add main repo (Must be checked last due to dependency issues)
-    wbia_rman.add_repos([
-        'https://github.com/WildbookOrg/wbia.git',
-    ])
+    wbia_rman.add_repos(
+        ['https://github.com/WildbookOrg/wbia.git',]
+    )
 
-    #-----------
+    # -----------
     # Custom third party build/install scripts
-    #-----------
+    # -----------
     define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3)
 
     return tpl_rman, wbia_rman
@@ -502,17 +520,17 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
     build_dname = 'cmake_builds/build' + plat_spec
 
     script_fmtdict = {
-        'pyexe'             : sys.executable,
-        'pyversion'         : 'python' + '.'.join(majorminor),
-        'pypkg_var'         : 'PYTHON' + pyon + '_PACKAGES_PATH',
-        'build_dname'       : build_dname,
-        'pyoff'             : pyoff,
-        'pyon'              : pyon,
-        'cv_pyon_var'       : 'BUILD_opencv_python' + pyon,
-        'cv_pyoff_var'      : 'BUILD_opencv_python' + pyoff,
-        'plat_spec'         : plat_spec,
-        'source_dpath'      : '../..',
-        'libext'            : ut.get_lib_ext(),
+        'pyexe': sys.executable,
+        'pyversion': 'python' + '.'.join(majorminor),
+        'pypkg_var': 'PYTHON' + pyon + '_PACKAGES_PATH',
+        'build_dname': build_dname,
+        'pyoff': pyoff,
+        'pyon': pyon,
+        'cv_pyon_var': 'BUILD_opencv_python' + pyon,
+        'cv_pyoff_var': 'BUILD_opencv_python' + pyoff,
+        'plat_spec': plat_spec,
+        'source_dpath': '../..',
+        'libext': ut.get_lib_ext(),
     }
 
     if os.environ.get('VIRTUAL_ENV', '') == '':
@@ -527,13 +545,15 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
     if not os.path.exists(opencv_dir):
         if not ut.get_argflag('--opencv'):
             opencv_dir = ''
-            print('OpenCV is not installed in the expected location: {}'.format(opencv_dir))
+            print(
+                'OpenCV is not installed in the expected location: {}'.format(opencv_dir)
+            )
             print('Running this script with --opencv will build and install it there')
 
     # define bash variables for different combinations of python distros and
     # virtual environments
     python_bash_setup = ut.codeblock(
-        r'''
+        r"""
         # STARTBLOCK bash
 
         if [[ "$VIRTUAL_ENV" == ""  ]]; then
@@ -567,16 +587,18 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         echo "LOCAL_PREFIX = $LOCAL_PREFIX"
         echo "{pypkg_var} = ${pypkg_var}"
         # ENDBLOCK bash
-        '''
+        """
     ).format(**script_fmtdict)
     script_fmtdict['python_bash_setup'] = python_bash_setup
 
-    #===================
+    # ===================
     # PYFLANN SETUP SCRIPTS
-    #===================
+    # ===================
 
-    wbia_rman['pyflann'].add_script('build', ut.codeblock(
-        r'''
+    wbia_rman['pyflann'].add_script(
+        'build',
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
         {python_bash_setup}
 
@@ -599,11 +621,14 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         make -j$NCPUS
 
         # ENDBLOCK bash
-        ''').format(repo_dir=wbia_rman['pyflann'].dpath, **script_fmtdict)
+        """
+        ).format(repo_dir=wbia_rman['pyflann'].dpath, **script_fmtdict),
     )
 
-    wbia_rman['pyflann'].add_script('install', ut.codeblock(
-        r'''
+    wbia_rman['pyflann'].add_script(
+        'install',
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
         # The pyflann source lives here
         cd {repo_dir}/src/python
@@ -619,15 +644,18 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         python -c "from vtool_ibeis._pyflann_backend import pyflann as pyflann; print(pyflann.__file__)" --verb-flann
         python -c "from vtool_ibeis._pyflann_backend import pyflann as pyflann; print(pyflann)" --verb-flann
         # ENDBLOCK bash
-        ''').format(repo_dir=wbia_rman['pyflann'].dpath)
+        """
+        ).format(repo_dir=wbia_rman['pyflann'].dpath),
     )
 
-    #===================
+    # ===================
     # HESAFF
-    #===================
+    # ===================
 
-    wbia_rman['hesaff'].add_script('build', ut.codeblock(
-        r'''
+    wbia_rman['hesaff'].add_script(
+        'build',
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
         {python_bash_setup}
         cd $CODE_DIR/hesaff
@@ -670,14 +698,18 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         fi
 
         # ENDBLOCK
-        ''').format(**script_fmtdict))
+        """
+        ).format(**script_fmtdict),
+    )
 
-    #===================
+    # ===================
     # PYDARKNET
-    #===================
+    # ===================
 
-    wbia_rman['pydarknet'].add_script('build', ut.codeblock(
-        r'''
+    wbia_rman['pydarknet'].add_script(
+        'build',
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
         {python_bash_setup}
         cd $CODE_DIR/pydarknet
@@ -726,14 +758,18 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         fi
 
         # ENDBLOCK
-        ''').format(**script_fmtdict))
+        """
+        ).format(**script_fmtdict),
+    )
 
-    #===================
+    # ===================
     # PYRF
-    #===================
+    # ===================
 
-    wbia_rman['pyrf'].add_script('build', ut.codeblock(
-        r'''
+    wbia_rman['pyrf'].add_script(
+        'build',
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
         {python_bash_setup}
         cd $CODE_DIR/pyrf
@@ -775,16 +811,20 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         fi
 
         # ENDBLOCK
-        ''').format(**script_fmtdict))
+        """
+        ).format(**script_fmtdict),
+    )
 
-    #===================
+    # ===================
     # OPENCV SETUP SCRIPTS
-    #===================
+    # ===================
     """
     ./super_setup.py --dump-scripts
     """
-    tpl_rman['cv2'].add_script('build', ut.codeblock(
-        r'''
+    tpl_rman['cv2'].add_script(
+        'build',
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
         {python_bash_setup}
         # Checkout opencv core
@@ -833,11 +873,14 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
         make -j$NCPUS
         # ENDBLOCK
-        ''').format(repo_dpath=ut.unexpanduser(tpl_rman['cv2'].dpath),
-                    **script_fmtdict))
+        """
+        ).format(repo_dpath=ut.unexpanduser(tpl_rman['cv2'].dpath), **script_fmtdict),
+    )
 
-    tpl_rman['cv2'].add_script('install', ut.codeblock(
-        r'''
+    tpl_rman['cv2'].add_script(
+        'install',
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
         {python_bash_setup}
 
@@ -857,11 +900,15 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
         # Check if we have contrib modules
         python -c "import cv2; print(cv2.xfeatures2d)"
         # ENDBLOCK
-        ''').format(**script_fmtdict))
+        """
+        ).format(**script_fmtdict),
+    )
 
     # if GET_ARGFLAG('--libgpuarray'):
-    tpl_rman['libgpuarray'].add_script('build', ut.codeblock(
-        r'''
+    tpl_rman['libgpuarray'].add_script(
+        'build',
+        ut.codeblock(
+            r"""
         # STARTBLOCK bash
 
         # Ensure the repo was checked out
@@ -900,30 +947,35 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
 
         # pip uninstall pygpu
         # ENDBLOCK
-        ''').format(repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath),
-                    **script_fmtdict))
+        """
+        ).format(
+            repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath), **script_fmtdict
+        ),
+    )
 
-    #===================
+    # ===================
     # PYQT SETUP SCRIPTS
-    #===================
+    # ===================
 
     if ut.in_virtual_env():
         try:
             fmtdict = {
                 'sys_dist_packages': ut.get_global_dist_packages_dir(),
                 'venv_site_packages': ut.get_site_packages_dir(),
-                'pyqt'              : 'PyQt4' if PY2 else 'PyQt5',
+                'pyqt': 'PyQt4' if PY2 else 'PyQt5',
                 # Need the PyQT5 SVG module for IPython to work properly
-                'debian-python-qt'  : (
-                    'python-qt4' if PY2 else
-                    'qt5-default python3-pyqt5 debian-python-qt-svg'),
-                'pip-python-qt'  : 'python-qt4' if PY2 else 'python-qt5'
+                'debian-python-qt': (
+                    'python-qt4'
+                    if PY2
+                    else 'qt5-default python3-pyqt5 debian-python-qt-svg'
+                ),
+                'pip-python-qt': 'python-qt4' if PY2 else 'python-qt5',
             }
             # sys_dist_packages = ut.get_global_dist_packages_dir()
             # sys_pyqt_dir = sys_dist_packages + '/{pyqt}'
             # Allows us to use a system qt install in a virtual environment.
             system_to_venv = ut.codeblock(
-                r'''
+                r"""
                 # STARTBLOCK bash
                 # Creates a symlink to the global PyQt in a virtual env
                 export GLOBAL_DIST_PACKAGES="{sys_dist_packages}"
@@ -948,20 +1000,22 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
                 echo "testing"
                 python -c "import {pyqt}; print({pyqt})"
                 # ENDBLOCK bash
-                ''').format(**fmtdict)
+                """
+            ).format(**fmtdict)
             # TODO: add custom build alternative
             tpl_rman['PyQt'].add_script('system_to_venv', system_to_venv)
         except NotImplementedError:
             pass
 
 
-#-----------
+# -----------
 # Verify TPL Dependencies
-#-----------
+# -----------
 
 
 def GET_ARGFLAG(arg, *args, **kwargs):
     import utool as ut
+
     return arg.lstrip('--') in sys.argv or ut.get_argflag(arg, *args, **kwargs)
 
 
@@ -989,7 +1043,11 @@ def move_wildme(wbia_rman, fmt):
                 origin = remotes['origin']
                 origin_protocol = origin['url'].split(':')[0]
                 origin_user = origin['username']
-                if origin_user != wildme_user or origin_protocol != fmt or incorrect_version:
+                if (
+                    origin_user != wildme_user
+                    or origin_protocol != fmt
+                    or incorrect_version
+                ):
                     if origin_user not in remotes:
                         # first add a remote that is the original origin
                         origin_url = origin['url']
@@ -1000,7 +1058,7 @@ def move_wildme(wbia_rman, fmt):
                     print('  * Change origin url to %r' % (wildme_url,))
                     gitorigin.set_url(wildme_url)
             except:
-                print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo, ))
+                print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo,))
 
         repo.change_url_format(fmt)
 
@@ -1018,16 +1076,18 @@ def execute_commands(tpl_rman, wbia_rman):
             print('python -c "import {0}; print({0}.__file__)"'.format(repo.modname))
             print('python -c "import {0}; print({0}.__version__)"'.format(repo.modname))
 
-    #-----------
+    # -----------
     # Execute Commands on Core Repos
-    #-----------
+    # -----------
 
     CODE_DIR, pythoncmd, WIN32, PY2, PY3 = get_sysinfo()
 
     print('wbia_rman = %r' % (wbia_rman,))
 
     wildme_ssh_flags = GET_ARGFLAG('--move-wildme') or GET_ARGFLAG('--move-wildme-ssh')
-    wildme_https_flags = GET_ARGFLAG('--move-wildme-https') or GET_ARGFLAG('--move-wildme-http')
+    wildme_https_flags = GET_ARGFLAG('--move-wildme-https') or GET_ARGFLAG(
+        '--move-wildme-http'
+    )
     if wildme_ssh_flags or wildme_https_flags:
         fmt = 'ssh' if wildme_ssh_flags else 'https'
         move_wildme(wbia_rman, fmt)
@@ -1054,6 +1114,7 @@ def execute_commands(tpl_rman, wbia_rman):
 
         for rman, mod, sname in dumps:
             from os.path import join
+
             # if mod not in rman:
             #     print('mod=%r not available in rman=%r' % (mod, rman))
             #     continue
@@ -1126,7 +1187,7 @@ def execute_commands(tpl_rman, wbia_rman):
         # tpl_rman['theano'].python_develop()
         # tpl_rman['lasagne'].python_develop()
 
-    #_===
+    # _===
 
     if GET_ARGFLAG('--fix') or GET_ARGFLAG('--check'):
         missing_dynlib = tpl_rman.check_cpp_build()
@@ -1171,8 +1232,10 @@ def execute_commands(tpl_rman, wbia_rman):
         _rman = wbia_rman.only_with_pysetup()
         # # _rman.issue('{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd),
         #               # sudo=not ut.in_virtual_env())
-        _rman.issue('{pythoncmd} -m pip install -e .'.format(pythoncmd=pythoncmd),
-                    sudo=not ut.in_virtual_env())
+        _rman.issue(
+            '{pythoncmd} -m pip install -e .'.format(pythoncmd=pythoncmd),
+            sudo=not ut.in_virtual_env(),
+        )
 
     if GET_ARGFLAG('--clean'):
         _rman = wbia_rman.only_with_pysetup()
@@ -1196,11 +1259,17 @@ def execute_commands(tpl_rman, wbia_rman):
     # Tag everything
     tag_name = GET_ARGVAL('--newtag', type_=str, default=None)
     if tag_name is not None:
-        wbia_rman.issue('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
+        wbia_rman.issue(
+            'git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(
+                **locals()
+            )
+        )
         wbia_rman.issue('git push --tags')
 
     if GET_ARGFLAG('--bext'):
-        wbia_rman.issue('{pythoncmd} setup.py build_ext --inplace'.format(pythoncmd=pythoncmd))
+        wbia_rman.issue(
+            '{pythoncmd} setup.py build_ext --inplace'.format(pythoncmd=pythoncmd)
+        )
 
     commit_msg = GET_ARGVAL('--commit', type_=str, default=None)
     if commit_msg is not None:
@@ -1212,23 +1281,25 @@ def execute_commands(tpl_rman, wbia_rman):
         try:
             wbia_rman.issue('git checkout "{branch_name}"'.format(**locals()))
         except Exception:
-            print('ERROR: Could not checkout branch: %r' % (branch_name, ))
+            print('ERROR: Could not checkout branch: %r' % (branch_name,))
 
     # Creates new branches
     newbranch_name = GET_ARGVAL('--newbranch', type_=str, default=None)
     if newbranch_name is not None:
-        #rman.issue('git stash"'.format(**locals()))
+        # rman.issue('git stash"'.format(**locals()))
         wbia_rman.issue('git checkout -b "{newbranch_name}"'.format(**locals()))
-        wbia_rman.issue('git push --set-upstream origin {newbranch_name}'.format(**locals()))
-        #rman.issue('git stash pop"'.format(**locals()))
+        wbia_rman.issue(
+            'git push --set-upstream origin {newbranch_name}'.format(**locals())
+        )
+        # rman.issue('git stash pop"'.format(**locals()))
 
     # Creates new branches
     newlocalbranch_name = GET_ARGVAL('--newlocalbranch', type_=str, default=None)
     if newlocalbranch_name is not None:
-        #rman.issue('git stash"'.format(**locals()))
+        # rman.issue('git stash"'.format(**locals()))
         wbia_rman.issue('git checkout -b "{newlocalbranch_name}"'.format(**locals()))
-        #rman.issue('git push --set-upstream origin {newlocalbranch_name}'.format(**locals()))
-        #rman.issue('git stash pop"'.format(**locals()))
+        # rman.issue('git push --set-upstream origin {newlocalbranch_name}'.format(**locals()))
+        # rman.issue('git stash pop"'.format(**locals()))
 
     # Creates new branches
     mergebranch_name = GET_ARGVAL('--merge', type_=str, default=None)
@@ -1245,26 +1316,34 @@ def execute_commands(tpl_rman, wbia_rman):
         if username is None:
             username = os.environ.get('USER', None)
         if username is None:
-            raise AssertionError('cannot find username in commandline or environment vars')
+            raise AssertionError(
+                'cannot find username in commandline or environment vars'
+            )
         usergroup = username
-        wbia_rman.issue('chown -R {username}:{usergroup} *'.format(**locals()),
-                         sudo=True)
+        wbia_rman.issue('chown -R {username}:{usergroup} *'.format(**locals()), sudo=True)
 
     upstream_branch = GET_ARGVAL('--set-upstream', type_=str, default=None)
     if upstream_branch is not None:
         # git 2.0
-        wbia_rman.issue('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
+        wbia_rman.issue(
+            'git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(
+                **locals()
+            )
+        )
 
     upstream_push = GET_ARGVAL('--upstream-push', type_=str, default=None)
     if upstream_push is not None:
-        wbia_rman.issue('git push --set-upstream origin {upstream_push}'.format(**locals()))
+        wbia_rman.issue(
+            'git push --set-upstream origin {upstream_push}'.format(**locals())
+        )
 
     if GET_ARGFLAG('--test'):
         failures = []
         for repo_dpath in wbia_rman.repo_dirs:
             # ut.getp_
-            mod_dpaths = ut.get_submodules_from_dpath(repo_dpath, recursive=False,
-                                                      only_packages=True)
+            mod_dpaths = ut.get_submodules_from_dpath(
+                repo_dpath, recursive=False, only_packages=True
+            )
             modname_list = ut.lmap(ut.get_modname_from_modpath, mod_dpaths)
             print('Checking modules = %r' % (modname_list,))
 
@@ -1286,7 +1365,13 @@ def execute_commands(tpl_rman, wbia_rman):
         # General global git command
         gg_cmd = GET_ARGVAL('--gg', None)  # global command
         if gg_cmd is not None:
-            ans = 'yes' if GET_ARGFLAG('-y') else input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
+            ans = (
+                'yes'
+                if GET_ARGFLAG('-y')
+                else input(
+                    'Are you sure you want to run: %r on all directories? ' % (gg_cmd,)
+                )
+            )
             if ans == 'yes':
                 wbia_rman.issue(gg_cmd)
 
@@ -1302,7 +1387,7 @@ def is_running_as_root():
 
 def get_sysinfo(verbose=0):
     if verbose:
-        print('USER = %r' % os.getenv("USER"))
+        print('USER = %r' % os.getenv('USER'))
 
     if is_running_as_root():
         print('Do not run super_setup.py as root')
@@ -1316,7 +1401,9 @@ def get_sysinfo(verbose=0):
     if 'CODE_DIR' in os.environ:
         CODE_DIR = os.environ.get('CODE_DIR')
     else:
-        CODE_DIR = dirname(dirname(realpath(__file__)))   # Home is where the .. is.  # '~/code'
+        CODE_DIR = dirname(
+            dirname(realpath(__file__))
+        )  # Home is where the .. is.  # '~/code'
 
     if verbose:
         print('[super_setup] code_dir: %r' % CODE_DIR)
@@ -1338,14 +1425,16 @@ def get_sysinfo(verbose=0):
 
 
 def main():
-    print('''
+    print(
+        """
     IBEIS Image Analysis (IA)
     ____ _  _ ___  ____ ____    ____ ____ ___ _  _ ___
     [__  |  | |__] |___ |__/    [__  |___  |  |  | |__]
     ___] |__| |    |___ |  \    ___] |___  |  |__| |
 
     Use --help to show usage
-    ''')
+    """
+    )
 
     show_usage = len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h']
     if show_usage:

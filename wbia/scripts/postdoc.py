@@ -18,6 +18,7 @@ from os.path import basename, join, splitext, exists  # NOQA
 import wbia.constants as const
 import vtool as vt
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 
@@ -27,6 +28,7 @@ LNBNN = 'LNBNN'
 
 def turk_pz():
     import wbia
+
     ibs = wbia.opendb('GZ_Master1')
     infr = wbia.AnnotInference(ibs, aids='all')
     infr.reset_feedback('staging', apply=True)
@@ -79,6 +81,7 @@ class GraphExpt(DBInputs):
         >>> self._precollect()
         >>> self._setup()
     """
+
     base_dpath = ut.truepath('~/Desktop/graph_expt')
 
     def _precollect(self):
@@ -97,16 +100,15 @@ class GraphExpt(DBInputs):
         self.test_train = train_aids, test_aids
 
         params = {}
-        self.pblm = vsone.OneVsOneProblem.from_aids(
-            ibs, train_aids, **params)
+        self.pblm = vsone.OneVsOneProblem.from_aids(ibs, train_aids, **params)
 
         # ut.get_nonconflicting_path(dpath, suffix='_old')
         self.const_dials = {
             # 'oracle_accuracy' : (0.98, 1.0),
             # 'oracle_accuracy' : (0.98, .98),
-            'oracle_accuracy' : (0.99, .99),
-            'k_redun'         : 2,
-            'max_outer_loops' : np.inf,
+            'oracle_accuracy': (0.99, 0.99),
+            'k_redun': 2,
+            'max_outer_loops': np.inf,
             # 'max_outer_loops' : 1,
         }
 
@@ -181,6 +183,7 @@ class GraphExpt(DBInputs):
             >>> self = GraphExpt.measure('graphsim', 'PZ_MTEST')
         """
         import wbia
+
         self.ensure_setup()
 
         ibs = self.ibs
@@ -197,13 +200,17 @@ class GraphExpt(DBInputs):
 
         # ----------
         # Graph test
-        dials1 = ut.dict_union(const_dials, {
-            'name'               : 'graph',
-            'enable_inference'   : True,
-            'match_state_thresh' : graph_thresh,
-        })
-        infr1 = wbia.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                     verbose=verbose)
+        dials1 = ut.dict_union(
+            const_dials,
+            {
+                'name': 'graph',
+                'enable_inference': True,
+                'match_state_thresh': graph_thresh,
+            },
+        )
+        infr1 = wbia.AnnotInference(
+            ibs=ibs, aids=test_aids, autoinit=True, verbose=verbose
+        )
         infr1.enable_auto_prioritize_nonpos = True
         infr1.params['refresh.window'] = 20
         infr1.params['refresh.thresh'] = 0.052
@@ -284,8 +291,7 @@ class GraphExpt(DBInputs):
         keycols = ['b']
         colors = ut.dzip(keys, keycols)
 
-        dfs = {k: pd.DataFrame(v['metrics'])
-               for k, v in sim_results.items()}
+        dfs = {k: pd.DataFrame(v['metrics']) for k, v in sim_results.items()}
 
         n_aids = sim_results['graph']['graph'].number_of_nodes()
         df = dfs['graph']
@@ -293,10 +299,10 @@ class GraphExpt(DBInputs):
         # mdf = pd.concat(dfs.values(), keys=dfs.keys())
 
         import xarray as xr
+
         panel = xr.concat(
-            [xr.DataArray(df, dims=('ts', 'metric'))
-             for df in dfs.values()],
-            dim=pd.Index(list(dfs.keys()), name='key')
+            [xr.DataArray(df, dims=('ts', 'metric')) for df in dfs.values()],
+            dim=pd.Index(list(dfs.keys()), name='key'),
         )
 
         xmax = panel.sel(metric='n_manual').values.max()
@@ -332,8 +338,8 @@ class GraphExpt(DBInputs):
         ax.legend()
 
         fig = pt.gcf()  # NOQA
-        fig.set_size_inches([W, H * .75])
-        pt.adjust_subplots(wspace=.25, fig=fig)
+        fig.set_size_inches([W, H * 0.75])
+        pt.adjust_subplots(wspace=0.25, fig=fig)
 
         fpath = join(self.dpath, 'simulation.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
@@ -385,13 +391,13 @@ class GraphExpt(DBInputs):
             for a, b in bounds:
                 x1, x2 = xdata_[a], xdata_[b]
                 # if x1 == x2:
-                x1 -= .5
-                x2 += .5
+                x1 -= 0.5
+                x2 += 0.5
                 xs.extend([x1, x1, x2, x2])
                 ys.extend([low, high, high, low])
             xs.append(xdata_[-1])
             ys.append(low)
-            ax.fill_between(xs, ys, low, alpha=.6, color=color)
+            ax.fill_between(xs, ys, low, alpha=0.6, color=color)
 
         def overlay_actions(ymax=1, kw=None):
             """
@@ -399,17 +405,14 @@ class GraphExpt(DBInputs):
             timestamps.
             """
 
-            phase = metrics_df['phase'].map(
-                lambda x: x.split('_')[0])
-            is_correct = metrics_df['test_action'].map(
-                lambda x: x.startswith('correct')).values
+            phase = metrics_df['phase'].map(lambda x: x.split('_')[0])
+            is_correct = (
+                metrics_df['test_action'].map(lambda x: x.startswith('correct')).values
+            )
             recovering = metrics_df['recovering'].values
-            is_auto = metrics_df['user_id'].map(
-                lambda x: x.startswith('algo:')).values
-            ppos = metrics_df['pred_decision'].map(
-                lambda x: x == POSTV).values
-            rpos = metrics_df['true_decision'].map(
-                lambda x: x == POSTV).values
+            is_auto = metrics_df['user_id'].map(lambda x: x.startswith('algo:')).values
+            ppos = metrics_df['pred_decision'].map(lambda x: x == POSTV).values
+            rpos = metrics_df['true_decision'].map(lambda x: x == POSTV).values
             # ymax = max(metrics_df['n_errors'])
 
             if kw is None:
@@ -424,38 +427,40 @@ class GraphExpt(DBInputs):
 
             if kw.get('user', False):
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()),
-                                 'user(algo=gold,manual=blue)')
+                pt.absolute_text(
+                    (0.2, steps[i : i + 2].mean()), 'user(algo=gold,manual=blue)'
+                )
                 stacked_interval(is_auto, 'gold', i)
                 stacked_interval(~is_auto, 'blue', i)
 
             if kw.get('pred', False):
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'pred_pos')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'pred_pos')
                 stacked_interval(ppos, 'aqua', low=steps[i], high=steps[i + 1])
                 # stacked_interval(~ppos, 'salmon', i)
 
             if kw.get('real', False):
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'real_merge')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'real_merge')
                 stacked_interval(rpos, 'lime', i)
                 # stacked_interval(~ppos, 'salmon', i)
 
             if kw.get('error', False):
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_error')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'is_error')
                 # stacked_interval(is_correct, 'blue', low=steps[i], high=steps[i + 1])
                 stacked_interval(~is_correct, 'red', i)
 
             if kw.get('recover', False):
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_recovering')
+                pt.absolute_text((0.2, steps[i : i + 2].mean()), 'is_recovering')
                 stacked_interval(recovering, 'orange', i)
 
             if kw.get('phase', False):
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()),
-                                 'phase(1=yellow, 2=aqua, 3=pink)')
+                pt.absolute_text(
+                    (0.2, steps[i : i + 2].mean()), 'phase(1=yellow, 2=aqua, 3=pink)'
+                )
                 stacked_interval(phase == 'ranking', 'yellow', i)
                 stacked_interval(phase == 'posredun', 'aqua', i)
                 stacked_interval(phase == 'negredun', 'pink', i)
@@ -464,52 +469,75 @@ class GraphExpt(DBInputs):
                 # stacked_interval(phase == 'negredun', 'blue', i)
 
         def accuracy_plot(xdata, xlabel):
-            ydatas = ut.odict([
-                ('Graph',  metrics_df['merge_remain']),
-            ])
+            ydatas = ut.odict([('Graph', metrics_df['merge_remain']),])
             pt.multi_plot(
-                xdata, ydatas, marker='', markersize=1,
-                xlabel=xlabel, ylabel='fraction of merge remaining',
-                ymin=0, rcParams=TMP_RC,
-                use_legend=True, fnum=1, pnum=pnum_(),
+                xdata,
+                ydatas,
+                marker='',
+                markersize=1,
+                xlabel=xlabel,
+                ylabel='fraction of merge remaining',
+                ymin=0,
+                rcParams=TMP_RC,
+                use_legend=True,
+                fnum=1,
+                pnum=pnum_(),
             )
 
         def error_plot(xdata, xlabel):
             # ykeys = ['n_errors']
             ykeys = ['frac_mistake_aids']
             pt.multi_plot(
-                xdata, metrics_df[ykeys].values.T,
+                xdata,
+                metrics_df[ykeys].values.T,
                 xlabel=xlabel,
                 ylabel='fraction error annots',
-                marker='', markersize=1, ymin=0, rcParams=TMP_RC,
-                fnum=1, pnum=pnum_(),
+                marker='',
+                markersize=1,
+                ymin=0,
+                rcParams=TMP_RC,
+                fnum=1,
+                pnum=pnum_(),
                 use_legend=False,
             )
 
         def refresh_plot(xdata, xlabel):
             pt.multi_plot(
-                xdata, [metrics_df['pprob_any']],
+                xdata,
+                [metrics_df['pprob_any']],
                 label_list=['P(C=1)'],
-                xlabel=xlabel, ylabel='refresh criteria',
-                marker='', ymin=0, ymax=1, rcParams=TMP_RC,
-                fnum=1, pnum=pnum_(),
+                xlabel=xlabel,
+                ylabel='refresh criteria',
+                marker='',
+                ymin=0,
+                ymax=1,
+                rcParams=TMP_RC,
+                fnum=1,
+                pnum=pnum_(),
                 use_legend=False,
             )
             ax = pt.gca()
             thresh = expt_data['refresh_thresh']
-            ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
-                    label='refresh thresh')
+            ax.plot(
+                [min(xdata), max(xdata)], [thresh, thresh], '-g', label='refresh thresh'
+            )
             ax.legend()
 
         def error_breakdown_plot(xdata, xlabel):
             ykeys = ['n_fn', 'n_fp']
             pt.multi_plot(
-                xdata, metrics_df[ykeys].values.T,
+                xdata,
+                metrics_df[ykeys].values.T,
                 label_list=ykeys,
-                xlabel=xlabel, ylabel='# of errors',
-                marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
+                xlabel=xlabel,
+                ylabel='# of errors',
+                marker='x',
+                markersize=1,
+                ymin=0,
+                rcParams=TMP_RC,
                 ymax=max(metrics_df['n_errors']),
-                fnum=1, pnum=pnum_(),
+                fnum=1,
+                pnum=pnum_(),
                 use_legend=True,
             )
 
@@ -522,12 +550,18 @@ class GraphExpt(DBInputs):
 
             ykeys = ['p_neg_redun', 'p_neg_redun1']
             pt.multi_plot(
-                xdata, metrics_df[ykeys].values.T,
+                xdata,
+                metrics_df[ykeys].values.T,
                 label_list=ykeys,
-                xlabel=xlabel, ylabel='% neg-redun-meta-edges',
-                marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
+                xlabel=xlabel,
+                ylabel='% neg-redun-meta-edges',
+                marker='x',
+                markersize=1,
+                ymin=0,
+                rcParams=TMP_RC,
                 ymax=max(metrics_df['p_neg_redun1']),
-                fnum=1, pnum=pnum_(),
+                fnum=1,
+                pnum=pnum_(),
                 use_legend=True,
             )
 
@@ -583,7 +617,7 @@ class GraphExpt(DBInputs):
         fig = pt.gcf()  # NOQA
         fig.set_size_inches([W * 2, H * 2.5])
         fig.suptitle(self.dbname)
-        pt.adjust_subplots(hspace=.25, wspace=.25, fig=fig)
+        pt.adjust_subplots(hspace=0.25, wspace=0.25, fig=fig)
         fpath = join(self.dpath, 'graphsim2.png')
         fig.savefig(fpath, dpi=DPI)
         # vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
@@ -593,6 +627,7 @@ class GraphExpt(DBInputs):
 
 def draw_match_states():
     import wbia
+
     infr = wbia.AnnotInference('PZ_Master1', 'all')
 
     if infr.ibs.dbname == 'PZ_Master1':
@@ -612,12 +647,13 @@ def draw_match_states():
         }
     import wbia.plottool as pt
     import vtool as vt
+
     for key, edge in chosen.items():
-        match = infr._make_matches_from([edge], config={
-            'match_config': {'ratio_thresh': .7}})[0]
+        match = infr._make_matches_from(
+            [edge], config={'match_config': {'ratio_thresh': 0.7}}
+        )[0]
         with pt.RenderingContext(dpi=300) as ctx:
-            match.show(heatmask=True, show_ell=False, show_ori=False,
-                       show_lines=False)
+            match.show(heatmask=True, show_ell=False, show_ori=False, show_lines=False)
         vt.imwrite('matchstate_' + key + '.jpg', ctx.image)
 
 
@@ -667,8 +703,8 @@ def entropy_potential(infr, u, v, decision):
         # is the number of PCCs that each PCC doesnt have a negative edge to
         # yet
 
-        n_neg_need1 = (n_ccs - len(neg_redun_set1) - 1)
-        n_neg_need2 = (n_ccs - len(neg_redun_set2) - 1)
+        n_neg_need1 = n_ccs - len(neg_redun_set1) - 1
+        n_neg_need2 = n_ccs - len(neg_redun_set2) - 1
         n_neg_need_before = n_neg_need1 + n_neg_need2
 
         # After we join them we take the union of their negative redundancy
@@ -705,14 +741,18 @@ def _find_good_match_states(infr, ibs, edges):
             # r = a.compress(flags)
             # flags = [q is not None and q > 4 for q in r.qual]
 
-            rights = ibs.filter_annots_general(view='right',
-                                               minqual='excellent',
-                                               require_quality=True,
-                                               require_viewpoint=True)
-            lefts = ibs.filter_annots_general(view='left',
-                                              minqual='excellent',
-                                              require_quality=True,
-                                              require_viewpoint=True)
+            rights = ibs.filter_annots_general(
+                view='right',
+                minqual='excellent',
+                require_quality=True,
+                require_viewpoint=True,
+            )
+            lefts = ibs.filter_annots_general(
+                view='left',
+                minqual='excellent',
+                require_quality=True,
+                require_viewpoint=True,
+            )
 
             if False:
                 edges = list(infr._make_rankings(3197, rights))
@@ -735,25 +775,36 @@ def prepare_cdfs(cdfs, labels):
     return cdfs, labels
 
 
-def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
+def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=0.4):
     cdfs, labels = prepare_cdfs(cdfs, labels)
     # Truncte to 20 ranks
     num_ranks = min(cdfs.shape[-1], 20)
     xdata = np.arange(1, num_ranks + 1)
     cdfs_trunc = cdfs[:, 0:num_ranks]
-    label_list = ['%6.3f%% - %s' % (cdf[0] * 100, lbl)
-                  for cdf, lbl in zip(cdfs_trunc, labels)]
+    label_list = [
+        '%6.3f%% - %s' % (cdf[0] * 100, lbl) for cdf, lbl in zip(cdfs_trunc, labels)
+    ]
 
     # ymin = .4
     num_yticks = (10 - int(ymin * 10)) + 1
 
     pt.multi_plot(
-        xdata, cdfs_trunc, label_list=label_list,
-        xlabel='rank', ylabel='match probability',
-        use_legend=True, legend_loc='lower right', num_yticks=num_yticks,
-        ymax=1, ymin=ymin, ypad=.005, xmin=.9, num_xticks=5,
-        xmax=num_ranks + 1 - .5,
-        pnum=pnum, fnum=fnum,
+        xdata,
+        cdfs_trunc,
+        label_list=label_list,
+        xlabel='rank',
+        ylabel='match probability',
+        use_legend=True,
+        legend_loc='lower right',
+        num_yticks=num_yticks,
+        ymax=1,
+        ymin=ymin,
+        ypad=0.005,
+        xmin=0.9,
+        num_xticks=5,
+        xmax=num_ranks + 1 - 0.5,
+        pnum=pnum,
+        fnum=fnum,
         rcParams=TMP_RC,
     )
     return pt.gcf()
@@ -782,6 +833,7 @@ class VerifierExpt(DBInputs):
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
+
     # base_dpath = ut.truepath('~/Desktop/pair_expts')
     base_dpath = ut.truepath('~/latex/crall-iccvw-2017/figures')
 
@@ -789,16 +841,15 @@ class VerifierExpt(DBInputs):
         'PZ_Master1',
         'GZ_Master1',
         # 'LF_ALL',
-        'MantaMatcher', 'RotanTurtles',
-        'humpbacks_fb', 'GIRM_Master1',
+        'MantaMatcher',
+        'RotanTurtles',
+        'humpbacks_fb',
+        'GIRM_Master1',
     ]
 
     task_nice_lookup = {
         'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
-        'photobomb_state': {
-            'pb': 'Photobomb',
-            'notpb': 'Not Photobomb',
-        }
+        'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb',},
     }
 
     def _setup(self, quick=False):
@@ -850,7 +901,8 @@ class VerifierExpt(DBInputs):
 
         # pblm = vsone.OneVsOneProblem.from_aids(ibs, aids, sample_method='random')
         pblm = vsone.OneVsOneProblem.from_aids(
-            ibs, aids,
+            ibs,
+            aids,
             sample_method='lnbnn+random',
             # sample_method='random',
             n_splits=10,
@@ -941,8 +993,12 @@ class VerifierExpt(DBInputs):
 
         ut.write_to(join(VerifierExpt.base_dpath, 'agg-dbstats.tex'), enc_text)
 
-        _ = ut.render_latex(enc_text, dpath=self.base_dpath, fname='agg-dbstats',
-                                preamb_extra=['\\usepackage{makecell}'])
+        _ = ut.render_latex(
+            enc_text,
+            dpath=self.base_dpath,
+            fname='agg-dbstats',
+            preamb_extra=['\\usepackage{makecell}'],
+        )
         _
         # ut.startfile(_)
 
@@ -1001,7 +1057,7 @@ class VerifierExpt(DBInputs):
                     d1[metric + '_tex'] = '\\mathbf{' + text + '}'
                     d1[metric + '_text'] = text + '*'
                 else:
-                    d1[metric + '_tex'] =  text
+                    d1[metric + '_tex'] = text
                     d1[metric + '_text'] = text
 
         for dbname in dbnames:
@@ -1042,10 +1098,7 @@ class VerifierExpt(DBInputs):
 
                 cfsm_vsm = vt.ConfusionMetrics().fit(scores, y)
                 cfsm_clf = vt.ConfusionMetrics().fit(probs, y)
-                algo_confusions = {
-                    LNBNN: cfsm_vsm,
-                    CLF: cfsm_clf
-                }
+                algo_confusions = {LNBNN: cfsm_vsm, CLF: cfsm_clf}
 
                 datas = []
                 for algo in {LNBNN, CLF}:
@@ -1061,9 +1114,11 @@ class VerifierExpt(DBInputs):
                         'color': dbprops[dbname]['color'],
                         'marker': dbprops[dbname]['marker'],
                         'tpr@fpr=0': cfms.get_metric_at_metric(
-                            'tpr', 'fpr', 0, tiebreaker='minthresh'),
+                            'tpr', 'fpr', 0, tiebreaker='minthresh'
+                        ),
                         'thresh@fpr=0': cfms.get_metric_at_metric(
-                            'thresh', 'fpr', 0, tiebreaker='minthresh'),
+                            'thresh', 'fpr', 0, tiebreaker='minthresh'
+                        ),
                     }
                     rank_curves[num][algo][dbname] = data
                     datas.append(data)
@@ -1091,6 +1146,7 @@ class VerifierExpt(DBInputs):
                     rank_thesh_df.loc[nice, algo] = data['thresh@fpr=0']
 
         from utool.experimental.pandas_highlight import to_string_monkey
+
         nums = [1]
         for rank in nums:
             print('-----')
@@ -1125,47 +1181,60 @@ class VerifierExpt(DBInputs):
                 ('Pos. @ Rank $1$', rank1_cmc_table),
             ]
 
-            all_stats = pd.concat(ut.emap(
-                _bf_best, ut.take_column(column_parts, 1)), axis=1)
+            all_stats = pd.concat(
+                ut.emap(_bf_best, ut.take_column(column_parts, 1)), axis=1
+            )
             all_stats.index.name = None
             colfmt = 'l|' + '|'.join(['rr'] * len(column_parts))
             multi_header = (
-                [None] +
-                [(2, 'c|', name) for name in ut.take_column(column_parts, 0)[0:-1]] +
-                [(2, 'c', name) for name in ut.take_column(column_parts, 0)[-1:]]
+                [None]
+                + [(2, 'c|', name) for name in ut.take_column(column_parts, 0)[0:-1]]
+                + [(2, 'c', name) for name in ut.take_column(column_parts, 0)[-1:]]
             )
 
             from wbia.scripts import _thesis_helpers
-            tabular = _thesis_helpers.Tabular(
-                all_stats, colfmt=colfmt, escape=False)
+
+            tabular = _thesis_helpers.Tabular(all_stats, colfmt=colfmt, escape=False)
             tabular.add_multicolumn_header(multi_header)
             tabular.precision = 3
             tex_text = tabular.as_tabular()
 
             # HACKS
             import re
+
             num_pat = ut.named_field('num', '[0-9]*\.?[0-9]*')
-            tex_text = re.sub(re.escape('\\mathbf{$') + num_pat + re.escape('$}'),
-                              '$\\mathbf{' + ut.bref_field('num') + '}$',
-                              tex_text)
+            tex_text = re.sub(
+                re.escape('\\mathbf{$') + num_pat + re.escape('$}'),
+                '$\\mathbf{' + ut.bref_field('num') + '}$',
+                tex_text,
+            )
             print(tex_text)
             # tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
             # tex_text = tex_text.replace('$}', '}$')
 
             ut.write_to(join(VerifierExpt.base_dpath, 'agg-results-all.tex'), tex_text)
 
-            _ = ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath,
-                                fname='agg-results-all',
-                                preamb_extra=['\\usepackage{makecell}'])
+            _ = ut.render_latex(
+                tex_text,
+                dpath=VerifierExpt.base_dpath,
+                fname='agg-results-all',
+                preamb_extra=['\\usepackage{makecell}'],
+            )
             # ut.startfile(_)
 
         if True:
             # Tables
             rank1_auc_table = rank_auc_tables[1]
             rank1_tpr_table = rank_tpr_tables[1]
-            print('\nrank1_auc_table =\n{}'.format(to_string_monkey(rank1_auc_table, 'all')))
-            print('\nrank1_tpr_table =\n{}'.format(to_string_monkey(rank1_tpr_table, 'all')))
-            print('\nrank1_cmc_table =\n{}'.format(to_string_monkey(rank1_cmc_table, 'all')))
+            print(
+                '\nrank1_auc_table =\n{}'.format(to_string_monkey(rank1_auc_table, 'all'))
+            )
+            print(
+                '\nrank1_tpr_table =\n{}'.format(to_string_monkey(rank1_tpr_table, 'all'))
+            )
+            print(
+                '\nrank1_cmc_table =\n{}'.format(to_string_monkey(rank1_cmc_table, 'all'))
+            )
 
             # Tables
             rank1_auc_table = rank_auc_tables[1]
@@ -1177,38 +1246,45 @@ class VerifierExpt(DBInputs):
                 ('Pos. @ Rank $1$', rank1_cmc_table),
             ]
 
-            all_stats = pd.concat(ut.emap(
-                _bf_best, ut.take_column(column_parts, 1)), axis=1)
+            all_stats = pd.concat(
+                ut.emap(_bf_best, ut.take_column(column_parts, 1)), axis=1
+            )
             all_stats.index.name = None
             colfmt = 'l|' + '|'.join(['rr'] * len(column_parts))
             multi_header = (
-                [None] +
-                [(2, 'c|', name) for name in ut.take_column(column_parts, 0)[0:-1]] +
-                [(2, 'c', name) for name in ut.take_column(column_parts, 0)[-1:]]
+                [None]
+                + [(2, 'c|', name) for name in ut.take_column(column_parts, 0)[0:-1]]
+                + [(2, 'c', name) for name in ut.take_column(column_parts, 0)[-1:]]
             )
 
             from wbia.scripts import _thesis_helpers
-            tabular = _thesis_helpers.Tabular(
-                all_stats, colfmt=colfmt, escape=False)
+
+            tabular = _thesis_helpers.Tabular(all_stats, colfmt=colfmt, escape=False)
             tabular.add_multicolumn_header(multi_header)
             tabular.precision = 3
             tex_text = tabular.as_tabular()
 
             # HACKS
             import re
+
             num_pat = ut.named_field('num', '[0-9]*\.?[0-9]*')
-            tex_text = re.sub(re.escape('\\mathbf{$') + num_pat + re.escape('$}'),
-                              '$\\mathbf{' + ut.bref_field('num') + '}$',
-                              tex_text)
+            tex_text = re.sub(
+                re.escape('\\mathbf{$') + num_pat + re.escape('$}'),
+                '$\\mathbf{' + ut.bref_field('num') + '}$',
+                tex_text,
+            )
             print(tex_text)
             print(tex_text)
             # tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
             # tex_text = tex_text.replace('$}', '}$')
             ut.write_to(join(VerifierExpt.base_dpath, 'agg-results.tex'), tex_text)
 
-            _ = ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath,
-                                fname='agg-results',
-                                preamb_extra=['\\usepackage{makecell}'])
+            _ = ut.render_latex(
+                tex_text,
+                dpath=VerifierExpt.base_dpath,
+                fname='agg-results',
+                preamb_extra=['\\usepackage{makecell}'],
+            )
             _
             # ut.startfile(_)
 
@@ -1237,42 +1313,50 @@ class VerifierExpt(DBInputs):
                         data2 = rank_curves[num][LNBNN][dbname]
 
                         data1['label'] = 'TPR=${tpr}$ {algo} {species}'.format(
-                            algo=CLF,
-                            tpr=data1['tpr@fpr=0_tex'], species=data1['species'])
+                            algo=CLF, tpr=data1['tpr@fpr=0_tex'], species=data1['species']
+                        )
                         data1['ls'] = '-'
                         data1['chunk_marker'] = '^'
                         data1['color'] = dbprops[dbname]['color']
 
                         data2['label'] = 'TPR=${tpr}$ {algo} {species}'.format(
                             algo=LNBNN,
-                            tpr=data2['tpr@fpr=0_tex'], species=data2['species'])
+                            tpr=data2['tpr@fpr=0_tex'],
+                            species=data2['species'],
+                        )
                         data2['ls'] = '--'
                         data2['chunk_marker'] = 'v'
                         data2['color'] = dbprops[dbname]['color']
 
                         for d in [data1, data2]:
-                            ax.plot(d['fpr'], d['tpr'], d['ls'],
-                                    color=d['color'], zorder=10)
+                            ax.plot(
+                                d['fpr'], d['tpr'], d['ls'], color=d['color'], zorder=10
+                            )
 
                         for d in [data1, data2]:
-                            ax.plot(0, d['tpr@fpr=0'], d['ls'],
-                                    marker=d['chunk_marker'],
-                                    markeredgecolor='k', markersize=8,
-                                    # fillstyle='none',
-                                    color=d['color'],
-                                    label=d['label'], zorder=100)
+                            ax.plot(
+                                0,
+                                d['tpr@fpr=0'],
+                                d['ls'],
+                                marker=d['chunk_marker'],
+                                markeredgecolor='k',
+                                markersize=8,
+                                # fillstyle='none',
+                                color=d['color'],
+                                label=d['label'],
+                                zorder=100,
+                            )
 
                     ax.set_xlabel('false positive rate')
                     ax.set_ylabel('true positive rate')
                     ax.set_ylim(0, 1)
-                    ax.set_xlim(-.05, .5)
+                    ax.set_xlim(-0.05, 0.5)
                     # ax.set_title('ROC with ranks $<= {}$'.format(num))
                     ax.legend(loc='lower right')
-                    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-                    fig.set_size_inches([W * .7, H])
+                    pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
+                    fig.set_size_inches([W * 0.7, H])
 
-                    fname = 'agg_roc_rank_{}_chunk_{}_{}.png'.format(num, fnum,
-                                                                     task_key)
+                    fname = 'agg_roc_rank_{}_chunk_{}_{}.png'.format(num, fnum, task_key)
                     fig_fpath = join(str(VerifierExpt.base_dpath), fname)
                     vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
@@ -1286,31 +1370,33 @@ class VerifierExpt(DBInputs):
                     data2 = rank_curves[num][LNBNN][dbname]
 
                     data1['label'] = 'pos@rank1=${cmc0}$ {algo} {species}'.format(
-                        algo=CLF,
-                        cmc0=data1['cmc0_tex'], species=data1['species'])
+                        algo=CLF, cmc0=data1['cmc0_tex'], species=data1['species']
+                    )
                     data1['ls'] = '-'
                     data1['chunk_marker'] = '^'
                     data1['color'] = dbprops[dbname]['color']
 
                     data2['label'] = 'pos@rank1=${cmc0}$ {algo} {species}'.format(
-                        algo=LNBNN, cmc0=data2['cmc0_tex'],
-                        species=data2['species'])
+                        algo=LNBNN, cmc0=data2['cmc0_tex'], species=data2['species']
+                    )
                     data2['ls'] = '--'
                     data2['chunk_marker'] = 'v'
                     data2['color'] = dbprops[dbname]['color']
 
                     for d in [data1, data2]:
-                        ax.plot(d['fpr'], d['tpr'], d['ls'],
-                                color=d['color'])
+                        ax.plot(d['fpr'], d['tpr'], d['ls'], color=d['color'])
 
                     for d in [data1, data2]:
-                        ax.plot(d['cmc'], d['ls'],
-                                # marker=d['chunk_marker'],
-                                # markeredgecolor='k',
-                                # markersize=8,
-                                # fillstyle='none',
-                                color=d['color'],
-                                label=d['label'])
+                        ax.plot(
+                            d['cmc'],
+                            d['ls'],
+                            # marker=d['chunk_marker'],
+                            # markeredgecolor='k',
+                            # markersize=8,
+                            # fillstyle='none',
+                            color=d['color'],
+                            label=d['label'],
+                        )
 
                 ax.set_xlabel('rank')
                 ax.set_ylabel('match probability')
@@ -1319,8 +1405,8 @@ class VerifierExpt(DBInputs):
                 ax.set_xticks([1, 5, 10, 15, 20])
                 # ax.set_title('ROC with ranks $<= {}$'.format(num))
                 ax.legend(loc='lower right')
-                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-                fig.set_size_inches([W * .7, H])
+                pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
+                fig.set_size_inches([W * 0.7, H])
 
                 fname = 'agg_cmc_chunk_{}_{}.png'.format(fnum, task_key)
                 fig_fpath = join(str(VerifierExpt.base_dpath), fname)
@@ -1360,10 +1446,14 @@ class VerifierExpt(DBInputs):
                             tpr_text = '\\mathbf{' + tpr_text + '}'
                         else:
                             tpr_text = tpr_text + '*'
-                    label = 'TPR=${tpr}$ {species}'.format(
-                        tpr=tpr_text, species=species)
-                    ax.plot(0, data['tpr@fpr=0'], marker=data['marker'],
-                            label=label, color=data['color'])
+                    label = 'TPR=${tpr}$ {species}'.format(tpr=tpr_text, species=species)
+                    ax.plot(
+                        0,
+                        data['tpr@fpr=0'],
+                        marker=data['marker'],
+                        label=label,
+                        color=data['color'],
+                    )
 
                 if algo:
                     algo = algo.rstrip() + ' '
@@ -1372,12 +1462,12 @@ class VerifierExpt(DBInputs):
                 ax.set_xlabel(algo + 'false positive rate')
                 ax.set_ylabel('true positive rate')
                 ax.set_ylim(0, 1)
-                ax.set_xlim(-.005, .5)
+                ax.set_xlim(-0.005, 0.5)
 
                 # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
                 ax.legend(loc='lower right')
-                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-                fig.set_size_inches([W * .7, H])
+                pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
+                fig.set_size_inches([W * 0.7, H])
 
             nums = [1, np.inf]
             # nums = [1]
@@ -1412,15 +1502,16 @@ class VerifierExpt(DBInputs):
                     if mpl.rcParams['text.usetex']:
                         cmc0_text = data['cmc0_tex']
                         label = 'pos@rank1=${}$ {species}'.format(
-                            cmc0_text, species=species)
+                            cmc0_text, species=species
+                        )
                     else:
                         cmc0_text = data['cmc0_text']
                         label = 'pos@rank1={} {species}'.format(
-                            cmc0_text, species=species)
+                            cmc0_text, species=species
+                        )
 
                     ranks = np.arange(1, len(data['cmc']) + 1)
-                    ax.plot(ranks, data['cmc'], marker=marker, color=color,
-                            label=label)
+                    ax.plot(ranks, data['cmc'], marker=marker, color=color, label=label)
 
                 ax.set_xlabel('rank')
                 ax.set_ylabel('match probability')
@@ -1430,8 +1521,8 @@ class VerifierExpt(DBInputs):
 
                 # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
                 ax.legend(loc='lower right')
-                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-                fig.set_size_inches([W * .7, H])
+                pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
+                fig.set_size_inches([W * 0.7, H])
 
             fig = pt.figure(fnum=1)  # NOQA
             # num doesnt actually matter here
@@ -1480,7 +1571,8 @@ class VerifierExpt(DBInputs):
                     if state == POSTV:
                         continue
                     tpr = cfms_ovr.get_metric_at_metric(
-                        'tpr', 'fpr', 0, tiebreaker='minthresh')
+                        'tpr', 'fpr', 0, tiebreaker='minthresh'
+                    )
                     # thresh = cfsm_scores_rank.get_metric_at_metric(
                     #     'thresh', 'fpr', 0, tiebreaker='minthresh')
                     print('state = {!r}'.format(state))
@@ -1493,15 +1585,16 @@ class VerifierExpt(DBInputs):
                 agg_y_true.extend(y_true.tolist())
                 agg_y_pred.extend(y_pred.tolist())
                 agg_sample_weight.extend(res.sample_weight.tolist())
-                assert (agg_class_names is None or
-                        agg_class_names == res.class_names), (
-                            'classes are inconsistent')
+                assert (
+                    agg_class_names is None or agg_class_names == res.class_names
+                ), 'classes are inconsistent'
                 agg_class_names = res.class_names
 
             from wbia.algo.verif import sklearn_utils
+
             agg_report = sklearn_utils.classification_report2(
-                agg_y_true, agg_y_pred, agg_class_names, agg_sample_weight,
-                verbose=False)
+                agg_y_true, agg_y_pred, agg_class_names, agg_sample_weight, verbose=False
+            )
             metric_df = agg_report['metrics']
             confusion_df = agg_report['confusion']
             # multiclass_mcc = agg_report['mcc']
@@ -1540,8 +1633,7 @@ class VerifierExpt(DBInputs):
             confusion_tex = ut.align(latex_str, '&', pos=None)
             print(confusion_tex)
 
-            ut.render_latex(confusion_tex, dpath=self.base_dpath,
-                            fname=confusion_fname)
+            ut.render_latex(confusion_tex, dpath=self.base_dpath, fname=confusion_fname)
 
             df = metric_df
             # df = self.task_metrics[task_key]
@@ -1555,6 +1647,7 @@ class VerifierExpt(DBInputs):
             df.columns = ut.emap(upper_one, df.columns)
 
             import re
+
             tabular = Tabular(df, colfmt='numeric')
             top, header, mid, bot = tabular.as_parts()
             lines = mid[0].split('\n')
@@ -1580,8 +1673,7 @@ class VerifierExpt(DBInputs):
         cmc_diff = new_cmc - old_cmc
         cmc_change = cmc_diff / old_cmc
         improved = cmc_diff > 0
-        print('{} / {} datasets saw CMC improvement'.format(sum(improved),
-                                                            len(cmc_diff)))
+        print('{} / {} datasets saw CMC improvement'.format(sum(improved), len(cmc_diff)))
         print('CMC average absolute diff: {}'.format(cmc_diff.mean()))
         print('CMC average percent change: {}'.format(cmc_change.mean()))
 
@@ -1589,14 +1681,12 @@ class VerifierExpt(DBInputs):
 
         print('Average TPR:\n{}'.format(rank1_tpr_table.mean(axis=0)))
 
-
         old_tpr = rank1_tpr_table[LNBNN]
         new_tpr = rank1_tpr_table[CLF]
         tpr_diff = new_tpr - old_tpr
         tpr_change = tpr_diff / old_tpr
         improved = tpr_diff > 0
-        print('{} / {} datasets saw TPR improvement'.format(sum(improved),
-                                                            len(tpr_diff)))
+        print('{} / {} datasets saw TPR improvement'.format(sum(improved), len(tpr_diff)))
         print('TPR average absolute diff: {}'.format(tpr_diff.mean()))
         print('TPR average percent change: {}'.format(tpr_change.mean()))
 
@@ -1630,16 +1720,16 @@ class VerifierExpt(DBInputs):
         nid_to_enc = ut.group_items(encounters, nids)
 
         single_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) == 1}
-        multi_encs = {nid: self.ibs._annot_groups(e)
-                      for nid, e in nid_to_enc.items() if len(e) > 1}
+        multi_encs = {
+            nid: self.ibs._annot_groups(e) for nid, e in nid_to_enc.items() if len(e) > 1
+        }
 
         multi_annots = ibs.annots(ut.flatten(ut.flatten(multi_encs.values())))
         single_annots = ibs.annots(ut.flatten(ut.flatten(single_encs.values())))
 
         def annot_stats(annots, encattr):
             encounters = annots.group2(getattr(annots, encattr))
-            nid_to_enc = ut.group_items(
-                encounters, ut.take_column(encounters.nids, 0))
+            nid_to_enc = ut.group_items(encounters, ut.take_column(encounters.nids, 0))
             nid_to_nenc = ut.map_vals(len, nid_to_enc)
             n_enc_per_name = list(nid_to_nenc.values())
             n_annot_per_enc = ut.lmap(len, encounters)
@@ -1696,14 +1786,19 @@ class VerifierExpt(DBInputs):
             except Exception:
                 return 0
 
-        outinfo = ut.odict([
-            ('Database', info['species_nice']),
-            ('Annots', enc_info['all']['n_annots']),
-            ('Names (singleton)', enc_info['single']['n_names']),
-            ('Names (resighted)', enc_info['multi']['n_names']),
-            ('Enc per name (resighted)', _ave_str2(enc_info['multi']['n_enc_per_name'])),
-            ('Annots per encounter', _ave_str2(enc_info['all']['n_annot_per_enc'])),
-        ])
+        outinfo = ut.odict(
+            [
+                ('Database', info['species_nice']),
+                ('Annots', enc_info['all']['n_annots']),
+                ('Names (singleton)', enc_info['single']['n_names']),
+                ('Names (resighted)', enc_info['multi']['n_names']),
+                (
+                    'Enc per name (resighted)',
+                    _ave_str2(enc_info['multi']['n_enc_per_name']),
+                ),
+                ('Annots per encounter', _ave_str2(enc_info['all']['n_annot_per_enc'])),
+            ]
+        )
         info['outinfo'] = outinfo
 
         df = pd.DataFrame([outinfo])
@@ -1848,11 +1943,16 @@ class VerifierExpt(DBInputs):
         cfsm_vsm = vt.ConfusionMetrics().fit(scores, y)
         cfsm_clf = res.confusions(target_class)
         roc_curves = [
-            {'label': LNBNN, 'fpr': cfsm_vsm.fpr, 'tpr': cfsm_vsm.tpr, 'auc': cfsm_vsm.auc},
+            {
+                'label': LNBNN,
+                'fpr': cfsm_vsm.fpr,
+                'tpr': cfsm_vsm.tpr,
+                'auc': cfsm_vsm.auc,
+            },
             {'label': CLF, 'fpr': cfsm_clf.fpr, 'tpr': cfsm_clf.tpr, 'auc': cfsm_clf.auc},
         ]
 
-        rank_clf_roc_curve   = ut.ddict(list)
+        rank_clf_roc_curve = ut.ddict(list)
         rank_lnbnn_roc_curve = ut.ddict(list)
 
         roc_info_lines = []
@@ -1884,9 +1984,11 @@ class VerifierExpt(DBInputs):
                     'tpr': cfsm_scores_rank.tpr,
                     'auc': cfsm_scores_rank.auc,
                     'tpr@fpr=0': cfsm_scores_rank.get_metric_at_metric(
-                        'tpr', 'fpr', 0, tiebreaker='minthresh'),
+                        'tpr', 'fpr', 0, tiebreaker='minthresh'
+                    ),
                     'thresh@fpr=0': cfsm_scores_rank.get_metric_at_metric(
-                        'thresh', 'fpr', 0, tiebreaker='minthresh'),
+                        'thresh', 'fpr', 0, tiebreaker='minthresh'
+                    ),
                 }
 
                 rank_clf_roc_curve[num] = {
@@ -1895,9 +1997,11 @@ class VerifierExpt(DBInputs):
                     'tpr': cfsm_probs_rank.tpr,
                     'auc': cfsm_probs_rank.auc,
                     'tpr@fpr=0': cfsm_probs_rank.get_metric_at_metric(
-                        'tpr', 'fpr', 0, tiebreaker='minthresh'),
+                        'tpr', 'fpr', 0, tiebreaker='minthresh'
+                    ),
                     'thresh@fpr=0': cfsm_probs_rank.get_metric_at_metric(
-                        'thresh', 'fpr', 0, tiebreaker='minthresh'),
+                        'thresh', 'fpr', 0, tiebreaker='minthresh'
+                    ),
                 }
 
             auc_text = 'AUC when restricting to the top `num` LNBNN ranks:'
@@ -1908,13 +2012,13 @@ class VerifierExpt(DBInputs):
         if True:
             tpr_info = []
             at_metric = 'tpr'
-            for at_value in [.25, .5, .75]:
+            for at_value in [0.25, 0.5, 0.75]:
                 info = ut.odict()
                 for want_metric in ['fpr', 'n_false_pos', 'n_true_pos', 'thresh']:
                     key = '{}_@_{}={:.3f}'.format(want_metric, at_metric, at_value)
                     info[key] = cfsm_clf.get_metric_at_metric(
-                        want_metric, at_metric, at_value,
-                        tiebreaker='minthresh')
+                        want_metric, at_metric, at_value, tiebreaker='minthresh'
+                    )
                     if key.startswith('n_'):
                         info[key] = int(info[key])
                 tpr_info += [(ut.repr4(info, align=True, precision=8))]
@@ -1926,13 +2030,13 @@ class VerifierExpt(DBInputs):
 
             fpr_info = []
             at_metric = 'fpr'
-            for at_value in [0, .001, .01, .1]:
+            for at_value in [0, 0.001, 0.01, 0.1]:
                 info = ut.odict()
                 for want_metric in ['tpr', 'n_false_pos', 'n_true_pos', 'thresh']:
                     key = '{}_@_{}={:.3f}'.format(want_metric, at_metric, at_value)
                     info[key] = cfsm_clf.get_metric_at_metric(
-                        want_metric, at_metric, at_value,
-                        tiebreaker='minthresh')
+                        want_metric, at_metric, at_value, tiebreaker='minthresh'
+                    )
                     if key.startswith('n_'):
                         info[key] = int(info[key])
                 fpr_info += [(ut.repr4(info, align=True, precision=8))]
@@ -1942,20 +2046,23 @@ class VerifierExpt(DBInputs):
 
             roc_info_lines += [fpr_text]
 
-        roc_info_text = ('\n\n'.join(roc_info_lines))
+        roc_info_text = '\n\n'.join(roc_info_lines)
         ut.writeto(join(self.dpath, 'roc_info.txt'), roc_info_text)
         # print(roc_info_text)
 
         fig = pt.figure(fnum=1)  # NOQA
         ax = pt.gca()
         for data in roc_curves:
-            ax.plot(data['fpr'], data['tpr'],
-                    label='AUC={:.3f} {}'.format(data['auc'], data['label']))
+            ax.plot(
+                data['fpr'],
+                data['tpr'],
+                label='AUC={:.3f} {}'.format(data['auc'], data['label']),
+            )
         ax.set_xlabel('false positive rate')
         ax.set_ylabel('true positive rate')
         # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
         ax.legend()
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
         fig.set_size_inches([W, H])
 
         fname = 'roc_{}.png'.format(task_key)
@@ -1968,14 +2075,18 @@ class VerifierExpt(DBInputs):
             fig = pt.figure(fnum=1)  # NOQA
             ax = pt.gca()
             for data in roc_curves_:
-                ax.plot(data['fpr'], data['tpr'],
-                        label='AUC={:.3f} TPR={:.3f} {}'.format(
-                            data['auc'], data['tpr@fpr=0'], data['label']))
+                ax.plot(
+                    data['fpr'],
+                    data['tpr'],
+                    label='AUC={:.3f} TPR={:.3f} {}'.format(
+                        data['auc'], data['tpr@fpr=0'], data['label']
+                    ),
+                )
             ax.set_xlabel('false positive rate')
             ax.set_ylabel('true positive rate')
             ax.set_title('ROC@rank<={num}'.format(num=num))
             ax.legend()
-            pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+            pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
             fig.set_size_inches([W, H])
 
             fname = 'rank_{}_roc_{}.png'.format(num, task_key)
@@ -1993,9 +2104,8 @@ class VerifierExpt(DBInputs):
         lnbnn_cdf = cdfs[0]
         clf_cdf = cdfs[1]
         fig = pt.figure(fnum=1)
-        plot_cmcs([lnbnn_cdf, clf_cdf], ['ranking', 'rank+clf'], fnum=1,
-                  ymin=0)
-        fig.set_size_inches([W, H * .6])
+        plot_cmcs([lnbnn_cdf, clf_cdf], ['ranking', 'rank+clf'], fnum=1, ymin=0)
+        fig.set_size_inches([W, H * 0.6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
@@ -2035,8 +2145,10 @@ class VerifierExpt(DBInputs):
             viewpoint_aware = False
 
         from wbia.scripts import thesis
+
         qaids, daids_list, info_list = thesis.Sampler._varied_inputs(
-            ibs, aids, viewpoint_aware=viewpoint_aware)
+            ibs, aids, viewpoint_aware=viewpoint_aware
+        )
         daids = daids_list[0]
         info = info_list[0]
 
@@ -2086,11 +2198,11 @@ class VerifierExpt(DBInputs):
 
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(lnbnn_name_ranks, bins=bins)[0]
-        lnbnn_cdf = (np.cumsum(hist) / sum(hist))
+        lnbnn_cdf = np.cumsum(hist) / sum(hist)
 
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(clf_name_ranks, bins=bins)[0]
-        clf_cdf = (np.cumsum(hist) / sum(hist))
+        clf_cdf = np.cumsum(hist) / sum(hist)
 
         results = [
             (lnbnn_cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})),
@@ -2126,15 +2238,17 @@ class VerifierExpt(DBInputs):
                 nbins = max(1, max(lnbnn_name_ranks)) + 1
             bins = np.arange(nbins)
             hist = np.histogram(lnbnn_name_ranks, bins=bins)[0]
-            cdf = (np.cumsum(hist) / sum(hist))
+            cdf = np.cumsum(hist) / sum(hist)
             return cdf
 
         # These are not gaurenteed to be comparable
-        viewpoint_aware = (ibs.dbname == 'RotanTurtles')
+        viewpoint_aware = ibs.dbname == 'RotanTurtles'
 
         from wbia.scripts import thesis
+
         qaids, daids_list, info_list = thesis.Sampler._varied_inputs(
-            ibs, aids, viewpoint_aware=viewpoint_aware)
+            ibs, aids, viewpoint_aware=viewpoint_aware
+        )
         daids = daids_list[0]
 
         # ---------------------------
@@ -2252,7 +2366,9 @@ class VerifierExpt(DBInputs):
         dial = {}
         grid_output['baseline'] = to_optimize(dial)
         print('SO FAR: ')
-        print(ut.align(ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2))
+        print(
+            ut.align(ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2)
+        )
 
         for dial in combos:
             score = to_optimize(dial)
@@ -2263,7 +2379,11 @@ class VerifierExpt(DBInputs):
             grid_output[hashdial] = score
 
             print('SO FAR: ')
-            print(ut.align(ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2))
+            print(
+                ut.align(
+                    ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2
+                )
+            )
 
     def measure_hard_cases(self, task_key):
         """
@@ -2323,9 +2443,13 @@ class VerifierExpt(DBInputs):
             print('No reviewed failures exist. Do pblm.qt_review_hardcases')
 
         print('There are {} failure cases'.format(len(failure_cases)))
-        print('With average hardness {}'.format(
-            ut.repr2(ut.stats_dict(failure_cases['hardness']), strkeys=True,
-                     precision=2)))
+        print(
+            'With average hardness {}'.format(
+                ut.repr2(
+                    ut.stats_dict(failure_cases['hardness']), strkeys=True, precision=2
+                )
+            )
+        )
 
         cases = []
         for (pred, real), group in failure_cases.groupby(('pred', 'real')):
@@ -2334,9 +2458,11 @@ class VerifierExpt(DBInputs):
             flags = ut.flag_percentile_parts(group['easiness'], front, mid, back)
             subgroup = group[flags]
 
-            print('Selected {} r({})-p({}) cases'.format(
-                len(subgroup), res.class_names[real], res.class_names[pred]
-            ))
+            print(
+                'Selected {} r({})-p({}) cases'.format(
+                    len(subgroup), res.class_names[real], res.class_names[pred]
+                )
+            )
             # ut.take_percentile_parts(group['easiness'], front, mid, back)
 
             # Prefer examples we have manually reviewed before
@@ -2345,16 +2471,18 @@ class VerifierExpt(DBInputs):
 
             for idx, case in subgroup.iterrows():
                 edge = tuple(ut.take(case, ['aid1', 'aid2']))
-                cases.append({
-                    'edge': edge,
-                    'real': res.class_names[case['real']],
-                    'pred': res.class_names[case['pred']],
-                    'failed': case['failed'],
-                    'easiness': case['easiness'],
-                    'real_conf': case['real_conf'],
-                    'probs': res.probs_df.loc[edge].to_dict(),
-                    'edge_data': pblm.infr.get_edge_data(edge),
-                })
+                cases.append(
+                    {
+                        'edge': edge,
+                        'real': res.class_names[case['real']],
+                        'pred': res.class_names[case['pred']],
+                        'failed': case['failed'],
+                        'easiness': case['easiness'],
+                        'real_conf': case['real_conf'],
+                        'probs': res.probs_df.loc[edge].to_dict(),
+                        'edge_data': pblm.infr.get_edge_data(edge),
+                    }
+                )
 
         print('Selected %d cases in total' % (len(cases)))
 
@@ -2485,8 +2613,7 @@ class VerifierExpt(DBInputs):
 
         mpl.rcParams.update(TMP_RC)
 
-        prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key),
-                           bs=False)
+        prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key), bs=False)
         for case in prog:
             aid1, aid2 = case['edge']
             match = case['match']
@@ -2504,8 +2631,7 @@ class VerifierExpt(DBInputs):
                 if k in _probs:
                     probs[v] = _probs[k]
             probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True)
-            xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
-                                                    probstr)
+            xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice, probstr)
             fig = pt.figure(fnum=1000, clf=True)
             ax = pt.gca()
 
@@ -2522,18 +2648,28 @@ class VerifierExpt(DBInputs):
 
             if REWORK:
                 ibs = self.ibs
-                match.annot1['rchip'] = ibs.annots(match.annot1['aid'], config={}).rchip[0]
-                match.annot2['rchip'] = ibs.annots(match.annot2['aid'], config={}).rchip[0]
+                match.annot1['rchip'] = ibs.annots(match.annot1['aid'], config={}).rchip[
+                    0
+                ]
+                match.annot2['rchip'] = ibs.annots(match.annot2['aid'], config={}).rchip[
+                    0
+                ]
                 # match.annot1['rchip'] = ibs.annots(match.annot1['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
                 # match.annot2['rchip'] = ibs.annots(match.annot2['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
 
             # Draw with feature overlay
-            match.show(ax, vert=False, heatmask=True,
-                       show_lines=False,
-                       # show_lines=True, line_lw=1, line_alpha=.1,
-                       # ell_alpha=.3,
-                       show_ell=False, show_ori=False, show_eig=False,
-                       modifysize=True)
+            match.show(
+                ax,
+                vert=False,
+                heatmask=True,
+                show_lines=False,
+                # show_lines=True, line_lw=1, line_alpha=.1,
+                # ell_alpha=.3,
+                show_ell=False,
+                show_ori=False,
+                show_eig=False,
+                modifysize=True,
+            )
             ax.set_xlabel(xlabel)
             # ax.get_xaxis().get_label().set_fontsize(24)
             ax.get_xaxis().get_label().set_fontsize(24)
@@ -2570,8 +2706,10 @@ class VerifierExpt(DBInputs):
         target_names = res.class_names
 
         from wbia.algo.verif import sklearn_utils
+
         report = sklearn_utils.classification_report2(
-            y_true, y_pred, target_names, sample_weight, verbose=False)
+            y_true, y_pred, target_names, sample_weight, verbose=False
+        )
         metric_df = report['metrics']
         confusion_df = report['confusion']
 
@@ -2612,6 +2750,7 @@ class VerifierExpt(DBInputs):
         df.columns = ut.emap(upper_one, df.columns)
 
         import re
+
         tabular = Tabular(df, colfmt='numeric')
         top, header, mid, bot = tabular.as_parts()
         lines = mid[0].split('\n')
@@ -2632,8 +2771,7 @@ class VerifierExpt(DBInputs):
         ut.write_to(join(dpath, confusion_fname + '.tex'), confusion_tex)
         ut.write_to(join(dpath, metrics_fname + '.tex'), metrics_tex)
 
-        fpath1 = ut.render_latex(confusion_tex, dpath=dpath,
-                                 fname=confusion_fname)
+        fpath1 = ut.render_latex(confusion_tex, dpath=dpath, fname=confusion_fname)
         fpath2 = ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
         return fpath1, fpath2
 
@@ -2647,15 +2785,16 @@ class VerifierExpt(DBInputs):
         # results['encoded_labels2d']
         # results['multihist']
         import wbia
+
         infr = wbia.AnnotInference.from_netx(results['graph'])
         info = ut.odict()
-        info['n_names'] = infr.pos_graph.number_of_components(),
-        info['n_aids'] = len(results['pblm_aids']),
+        info['n_names'] = (infr.pos_graph.number_of_components(),)
+        info['n_aids'] = (len(results['pblm_aids']),)
         info['known_n_incomparable'] = infr.incomp_graph.number_of_edges()
         subtasks = results['subtasks']
 
         task = subtasks['match_state']
-        flags = (task.encoded_df == task.class_names.tolist().index(INCMP))
+        flags = task.encoded_df == task.class_names.tolist().index(INCMP)
         incomp_edges = task.encoded_df[flags.values].index.tolist()
         nid_edges = [infr.pos_graph.node_labels(*e) for e in incomp_edges]
         nid_edges = vt.ensure_shape(np.array(nid_edges), (None, 2))
@@ -2707,15 +2846,25 @@ class VerifierExpt(DBInputs):
         width = np.diff(bins)[0]
         xlim = (bins[0] - (width / 2), bins[-1] + (width / 2))
         fig = pt.multi_plot(
-            bins, (freq0, freq1), label_list=('negative', 'positive'),
+            bins,
+            (freq0, freq1),
+            label_list=('negative', 'positive'),
             color_list=(pt.FALSE_RED, pt.TRUE_BLUE),
-            kind='bar', width=width, alpha=.7, edgecolor='none',
-            xlabel=xlabel, ylabel='frequency', fnum=fnum, pnum=(1, 1, 1),
-            rcParams=TMP_RC, stacked=True,
-            ytickformat='%.3f', xlim=xlim,
+            kind='bar',
+            width=width,
+            alpha=0.7,
+            edgecolor='none',
+            xlabel=xlabel,
+            ylabel='frequency',
+            fnum=fnum,
+            pnum=(1, 1, 1),
+            rcParams=TMP_RC,
+            stacked=True,
+            ytickformat='%.3f',
+            xlim=xlim,
             # title='LNBNN positive separation'
         )
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
         fig.set_size_inches([W, H])
         return fig
 
@@ -2738,33 +2887,29 @@ class VerifierExpt(DBInputs):
         pos_freq = pos_freq / pos_freq.sum()
         neg_freq = neg_freq / neg_freq.sum()
 
-        score_hist_pos = {
-            'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
+        score_hist_pos = {'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
 
         lnbnn_data = results['lnbnn_data']
         scores = lnbnn_data['score_lnbnn_1vM'].values
         y = lnbnn_data[POSTV].values
 
         # Get 95% of the data at least
-        maxbin = scores[scores.argsort()][-max(1, int(len(scores) * .05))]
+        maxbin = scores[scores.argsort()][-max(1, int(len(scores) * 0.05))]
         bins = np.linspace(0, max(maxbin, 10), 100)
         pos_freq = np.histogram(scores[y], bins)[0]
         neg_freq = np.histogram(scores[~y], bins)[0]
         pos_freq = pos_freq / pos_freq.sum()
         neg_freq = neg_freq / neg_freq.sum()
-        score_hist_lnbnn = {
-            'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
+        score_hist_lnbnn = {'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
 
         fig1 = self._draw_score_hist(score_hist_pos, 'positive probability', 1)
         fig2 = self._draw_score_hist(score_hist_lnbnn, 'LNBNN score', 2)
 
         fname = 'score_hist_pos_{}.png'.format(data_key)
-        vt.imwrite(join(str(self.dpath), fname),
-                   pt.render_figure_to_image(fig1, dpi=DPI))
+        vt.imwrite(join(str(self.dpath), fname), pt.render_figure_to_image(fig1, dpi=DPI))
 
         fname = 'score_hist_lnbnn.png'
-        vt.imwrite(join(str(self.dpath), fname),
-                   pt.render_figure_to_image(fig2, dpi=DPI))
+        vt.imwrite(join(str(self.dpath), fname), pt.render_figure_to_image(fig2, dpi=DPI))
 
     def draw_mcc_thresh(self, task_key):
         """
@@ -2803,8 +2948,11 @@ class VerifierExpt(DBInputs):
             t = c1.thresholds[idx]
             mcc = c1.mcc[idx]
             roc_curves += [
-                {'label': class_nice + ', t={:.3f}, mcc={:.3f}'.format(t, mcc),
-                 'thresh': c1.thresholds, 'mcc': c1.mcc},
+                {
+                    'label': class_nice + ', t={:.3f}, mcc={:.3f}'.format(t, mcc),
+                    'thresh': c1.thresholds,
+                    'mcc': c1.mcc,
+                },
             ]
 
         fig = pt.figure(fnum=1)  # NOQA
@@ -2815,7 +2963,7 @@ class VerifierExpt(DBInputs):
         ax.set_ylabel('MCC')
         # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
         ax.legend()
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
         fig.set_size_inches([W, H])
 
         fname = 'mcc_thresh_{}.png'.format(task_key)
@@ -2827,6 +2975,7 @@ class VerifierExpt(DBInputs):
     @classmethod
     def draw_tagged_pair(VerifierExpt):
         import wbia
+
         # ibs = wbia.opendb(defaultdb='GZ_Master1')
         ibs = wbia.opendb(defaultdb='PZ_Master1')
 
@@ -2853,8 +3002,12 @@ class VerifierExpt(DBInputs):
         if False:
             # Fix the example tags
             infr.add_feedback(
-                edge, 'match', tags=['facematch', 'leftrightface'],
-                user_id='qt-hack', confidence='pretty_sure')
+                edge,
+                'match',
+                tags=['facematch', 'leftrightface'],
+                user_id='qt-hack',
+                confidence='pretty_sure',
+            )
             infr.write_wbia_staging_feedback()
             infr.write_wbia_annotmatch_feedback()
             pass
@@ -2875,15 +3028,18 @@ class VerifierExpt(DBInputs):
         ax = pt.gca()
 
         mpl.rcParams.update(TMP_RC)
-        match.show(ax, vert=False,
-                   heatmask=True,
-                   show_lines=False,
-                   # show_ell=False,
-                   show_ell=False,
-                   show_ori=False,
-                   show_eig=False,
-                   # ell_alpha=.3,
-                   modifysize=True)
+        match.show(
+            ax,
+            vert=False,
+            heatmask=True,
+            show_lines=False,
+            # show_ell=False,
+            show_ell=False,
+            show_ori=False,
+            show_eig=False,
+            # ell_alpha=.3,
+            modifysize=True,
+        )
         # ax.set_xlabel(xlabel)
 
         self = VerifierExpt()
@@ -2912,15 +3068,17 @@ class VerifierExpt(DBInputs):
                 break
 
         import wbia
+
         ibs = wbia.opendb(self.dbname)
 
         from wbia import core_annots
+
         config = {
             'augment_orientation': True,
-            'ratio_thresh': .8,
+            'ratio_thresh': 0.8,
         }
         config['checks'] = 80
-        config['sver_xy_thresh'] = .02
+        config['sver_xy_thresh'] = 0.02
         config['sver_ori_thresh'] = 3
         config['Knorm'] = 3
         config['symmetric'] = True
@@ -2931,24 +3089,23 @@ class VerifierExpt(DBInputs):
         pred_name = case['pred']
         match = case['match']
         code_to_nice = self.task_nice_lookup[task_key]
-        real_nice, pred_nice = ut.take(code_to_nice,
-                                       [real_name, pred_name])
+        real_nice, pred_nice = ut.take(code_to_nice, [real_name, pred_name])
         fname = 'fail_{}_{}_{}_{}'.format(real_nice, pred_nice, aid1, aid2)
         # Draw case
         probs = case['probs'].to_dict()
         order = list(code_to_nice.values())
         order = ut.setintersect(order, probs.keys())
         probs = ut.map_dict_keys(code_to_nice, probs)
-        probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True,
-                           key_order=order)
-        xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
-                                                probstr)
+        probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True, key_order=order)
+        xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice, probstr)
 
-        match_list = ibs.depc.get('pairwise_match', ([aid1], [aid2]),
-                                       'match', config=config)
+        match_list = ibs.depc.get(
+            'pairwise_match', ([aid1], [aid2]), 'match', config=config
+        )
         match = match_list[0]
         configured_lazy_annots = core_annots.make_configured_annots(
-            ibs, [aid1], [aid2], config, config, preload=True)
+            ibs, [aid1], [aid2], config, config, preload=True
+        )
         match.annot1 = configured_lazy_annots[config][aid1]
         match.annot2 = configured_lazy_annots[config][aid2]
         match.config = config
@@ -2957,14 +3114,17 @@ class VerifierExpt(DBInputs):
         ax = pt.gca()
 
         mpl.rcParams.update(TMP_RC)
-        match.show(ax, vert=False,
-                   heatmask=True,
-                   show_lines=False,
-                   show_ell=False,
-                   show_ori=False,
-                   show_eig=False,
-                   # ell_alpha=.3,
-                   modifysize=True)
+        match.show(
+            ax,
+            vert=False,
+            heatmask=True,
+            show_lines=False,
+            show_ell=False,
+            show_ori=False,
+            show_eig=False,
+            # ell_alpha=.3,
+            modifysize=True,
+        )
         ax.set_xlabel(xlabel)
 
         subdir = 'cases_{}'.format(task_key)
@@ -2980,6 +3140,8 @@ if __name__ == '__main__':
         python -m wbia.scripts.postdoc --allexamples
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()
