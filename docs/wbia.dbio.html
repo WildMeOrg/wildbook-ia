@@ -1,206 +1,38 @@
 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>wbia.dbio package &mdash; wbia 2.2.4 documentation</title>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>wbia.dbio package &#8212; wbia 2.2.4 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.detecttools package" href="wbia.detecttools.html" />
     <link rel="prev" title="wbia.control package" href="wbia.control.html" />
 
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
 
-  <script src="_static/js/modernizr.min.js"></script>
 
-</head>
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-<body class="wy-body-for-nav">
+  </head><body>
 
 
-  <div class="wy-grid-for-nav">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
 
 
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-
-
-
-            <a href="index.html" class="icon icon-home"> wbia
-
-
-
-          </a>
-
-
-
-
-              <div class="version">
-                2.2.4
-              </div>
-
-
-
-
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-
-
-
-
-
-
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="wbia.html">wbia package</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="wbia.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="wbia.algo.html">wbia.algo package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.control.html">wbia.control package</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">wbia.dbio package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-wbia.dbio.export_hsdb">wbia.dbio.export_hsdb module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-wbia.dbio.export_subset">wbia.dbio.export_subset module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-wbia.dbio.ingest_database">wbia.dbio.ingest_database module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-wbia.dbio.ingest_ggr">wbia.dbio.ingest_ggr module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-wbia.dbio.ingest_hsdb">wbia.dbio.ingest_hsdb module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-wbia.dbio.ingest_mdb">wbia.dbio.ingest_mdb module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-wbia.dbio.ingest_my_hotspotter_dbs">wbia.dbio.ingest_my_hotspotter_dbs module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-wbia.dbio">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.detecttools.html">wbia.detecttools package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.dtool.html">wbia.dtool package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.expt.html">wbia.expt package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.gui.html">wbia.gui package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.guitool.html">wbia.guitool package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.init.html">wbia.init package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.other.html">wbia.other package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html">wbia.plottool package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.scripts.html">wbia.scripts package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.templates.html">wbia.templates package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.tests.html">wbia.tests package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.viz.html">wbia.viz package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wbia.web.html">wbia.web package</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.__main__">wbia.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia._devcmds_wbia">wbia._devcmds_wbia module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia._devscript">wbia._devscript module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia._wbia_object">wbia._wbia_object module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.annotmatch_funcs">wbia.annotmatch_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.annots">wbia.annots module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.constants">wbia.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.core_annots">wbia.core_annots module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.core_images">wbia.core_images module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.core_parts">wbia.core_parts module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.demodata">wbia.demodata module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.dev">wbia.dev module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.filter_configs">wbia.filter_configs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.images">wbia.images module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.main_module">wbia.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.params">wbia.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.tag_funcs">wbia.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia">Module contents</a></li>
-</ul>
-</li>
-</ul>
-
-
-
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-
-      <nav class="wy-nav-top" aria-label="top navigation">
-
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">wbia</a>
-
-      </nav>
-
-
-      <div class="wy-nav-content">
-
-        <div class="rst-content">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
-  <ul class="wy-breadcrumbs">
-
-      <li><a href="index.html">Docs</a> &raquo;</li>
-
-          <li><a href="wbia.html">wbia package</a> &raquo;</li>
-
-      <li>wbia.dbio package</li>
-
-
-      <li class="wy-breadcrumbs-aside">
-
-
-            <a href="_sources/wbia.dbio.rst.txt" rel="nofollow"> View page source</a>
-
-
-      </li>
-
-  </ul>
-
-
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+          <div class="body" role="main">
 
   <div class="section" id="wbia-dbio-package">
 <h1>wbia.dbio package<a class="headerlink" href="#wbia-dbio-package" title="Permalink to this headline">¶</a></h1>
@@ -1332,62 +1164,112 @@ best word i can think of is io. maybe marshall?</p>
 </div>
 
 
-           </div>
-
           </div>
-          <footer>
-
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-
-        <a href="wbia.detecttools.html" class="btn btn-neutral float-right" title="wbia.detecttools package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-
-
-        <a href="wbia.control.html" class="btn btn-neutral" title="wbia.control package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-
-    </div>
-
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2020, Wild Me
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
 
         </div>
       </div>
-
-    </section>
-
-  </div>
-
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">wbia</a></h1>
 
 
 
 
 
 
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="wbia.html">wbia - Wildbook IA</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wbia.algo.html">wbia.algo package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.control.html">wbia.control package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">wbia.dbio package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.detecttools.html">wbia.detecttools package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dtool.html">wbia.dtool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.expt.html">wbia.expt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.gui.html">wbia.gui package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.guitool.html">wbia.guitool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.init.html">wbia.init package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.other.html">wbia.other package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.plottool.html">wbia.plottool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.scripts.html">wbia.scripts package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.templates.html">wbia.templates package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.tests.html">wbia.tests package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.viz.html">wbia.viz package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.web.html">wbia.web package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#wbia-main">wbia.__main__</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia._devcmds_wbia">wbia._devcmds_wbia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia._devscript">wbia._devscript</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia._wbia_object">wbia._wbia_object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.annotmatch_funcs">wbia.annotmatch_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.annots">wbia.annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.constants">wbia.constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.core_annots">wbia.core_annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.core_images">wbia.core_images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.core_parts">wbia.core_parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.demodata">wbia.demodata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.dev">wbia.dev</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.filter_configs">wbia.filter_configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.images">wbia.images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.main_module">wbia.main_module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.params">wbia.params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.tag_funcs">wbia.tag_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="wbia.html">wbia - Wildbook IA</a><ul>
+      <li>Previous: <a href="wbia.control.html" title="previous chapter">wbia.control package</a></li>
+      <li>Next: <a href="wbia.detecttools.html" title="next chapter">wbia.detecttools package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
 
 
 
 
-  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
 
-</body>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="_sources/wbia.dbio.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
 </html>
