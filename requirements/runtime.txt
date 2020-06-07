@@ -6,7 +6,6 @@ dateutils>=0.6.6
 delorean
 flask>=0.10.1
 
-
 futures>=3.2.0;python_version<="2.7"
 futures_actors
 ipython>=5.0.0

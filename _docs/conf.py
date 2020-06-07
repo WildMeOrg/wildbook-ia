@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from sphinx.ext.autodoc import between
-import sphinx_rtd_theme
+import alabaster
 import sys
 import os
 
@@ -33,10 +33,17 @@ modindex_common_prefix = ['_']
 
 master_doc = 'index'
 
-html_theme = 'sphinx_rtd_theme'
-html_theme_path = [
-    '_themes',
-]
+html_theme = 'alabaster'
+
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        'donate.html',
+    ]
+}
 
 # -- Project information -----------------------------------------------------
 
@@ -68,12 +75,14 @@ if len(MOCK_MODULES) > 0:
 
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     # For LaTeX
     'sphinx.ext.imgmath',
     # For Google Sytle Docstrs
     # https://pypi.python.org/pypi/sphinxcontrib-napoleon
     'sphinx.ext.napoleon',
+    'alabaster',
 ]
 
 
