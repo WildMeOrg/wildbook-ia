@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
+import utool as ut
+
+from .base import BaseRequest
+
+
 def _add_dirty_rows(
     table, parent_rowids, config_rowid, isdirty_list, config, verbose=True
 ):
