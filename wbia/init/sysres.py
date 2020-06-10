@@ -151,7 +151,7 @@ def get_rawdir():
 
 def guiselect_workdir():
     """ Prompts the user to specify a work directory """
-    import wbia.guitool
+    from wbia import guitool
 
     guitool.ensure_qtapp()
     # Gui selection
