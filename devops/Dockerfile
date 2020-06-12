@@ -29,44 +29,8 @@ RUN cd /wbia/wbia \
  && git checkout ${BRANCH} \
  && git pull
 
-RUN cd /wbia/ibeis_cnn \
- && rm -rf .git \
- && cd /wbia/hesaff \
- && rm -rf .git \
- && cd /wbia/lightnet \
- && rm -rf .git \
- && cd /wbia/brambox \
- && rm -rf .git \
- && cd /wbia/ibeis-flukematch-module \
- && rm -rf .git \
- && cd /wbia/ibeis-curvrank-module/ibeis_curvrank \
- && rm -rf .git \
- && cd /wbia/ibeis-curvrank-module \
- && rm -rf .git \
- && cd /wbia/ibeis-deepsense-module \
- && rm -rf .git \
- && cd /wbia/ibeis-finfindr-module \
- && rm -rf .git \
- && cd /wbia/ibeis-kaggle7-module/wbia_kaggle7 \
- && rm -rf .git \
- && cd /wbia/ibeis-kaggle7-module \
- && rm -rf .git \
- && cd /wbia/wbia-2d-orientation-module/wbia_2d_orientation \
- && rm -rf .git \
- && cd /wbia/wbia-2d-orientation-module \
- && rm -rf .git \
- && cd /wbia/pydarknet \
- && rm -rf .git \
- && cd /wbia/pyrf \
- && rm -rf .git \
- && cd /wbia/ubelt \
- && rm -rf .git \
- && cd /wbia/utool \
- && rm -rf .git \
- && cd /wbia/vtool \
- && rm -rf .git \
- && cd /wbia/wbia \
- && rm -rf .git
+# Remove all git association from the code
+RUN find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf
 
 RUN /virtualenv/env3/bin/pip uninstall -y opencv-python opencv-python-headless
 
