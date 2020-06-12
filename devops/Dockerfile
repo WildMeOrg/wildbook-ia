@@ -48,12 +48,12 @@ RUN mkdir /data
 
 VOLUME /data
 
-RUN /virtualenv/env3/bin/python /wbia/wbia/dev.py --set-workdir /data
+RUN /virtualenv/env3/bin/python /wbia/wildbook-ia/wbia/dev.py --set-workdir /data
 
 ##########################################################################################
 FROM org.wildme.wbia.install as org.wildme.wbia.deploy
 
-ENTRYPOINT ["/virtualenv/env3/bin/python", "/wbia/wbia/dev.py", "--dbdir", "/data/docker", "--logdir", "/data/docker/_ibsdb/_wbia_logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
+ENTRYPOINT ["/virtualenv/env3/bin/python", "/wbia/wildbook-ia/wbia/dev.py", "--dbdir", "/data/db", "--logdir", "/data/logs", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
 
 # Ports for the frontend web server
 EXPOSE 5000
