@@ -22,7 +22,7 @@ RUN find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf
 RUN /virtualenv/env3/bin/pip uninstall -y opencv-python opencv-python-headless
 
 ##########################################################################################
-FROM wildme.azurecr.io/wbia/base:latest as org.wildme.wbia.install
+FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
 COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
