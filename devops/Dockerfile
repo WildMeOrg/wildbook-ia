@@ -16,19 +16,6 @@ RUN git config --global user.email "dev@wildme.org" \
 # && /virtualenv/env3/bin/python super_setup.py pull \
 # && /virtualenv/env3/bin/python super_setup.py pull
 
-RUN cd /wbia/ibeis-curvrank-module/ibeis_curvrank/ \
- && rm -rf __init__.py \
- && git pull \
- && cd /wbia/ibeis-kaggle7-module/wbia_kaggle7/ \
- && git pull
-
-RUN cd /wbia/wbia \
- && git checkout ${BRANCH} \
- && git pull \
- && cd /wbia/ibeis_cnn \
- && git checkout ${BRANCH} \
- && git pull
-
 # Remove all git association from the code
 RUN find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf
 
