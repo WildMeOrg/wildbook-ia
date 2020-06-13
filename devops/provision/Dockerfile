@@ -57,8 +57,6 @@ RUN /virtualenv/env3/bin/pip install ubelt
 # && /virtualenv/env3/bin/python super_setup.py pull \
 # && /virtualenv/env3/bin/python super_setup.py pull
 
-ADD ./_config/types_c.h /virtualenv/env3/include/opencv2/core/types_c.h
-
 RUN . /virtualenv/env3/bin/activate \
  && pip install scikit-build
 

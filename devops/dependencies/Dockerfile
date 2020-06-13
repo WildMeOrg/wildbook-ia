@@ -17,12 +17,14 @@ RUN /virtualenv/env3/bin/pip install \
     numpy==1.17.0 \
     ipython==5.5.0
 
+ARG OPENCV_VERSION=3.4.10
+
 # Install OpenCV
 RUN . /virtualenv/env3/bin/activate \
  && cd /wbia/opencv \
- && git checkout 3.4.4 \
+ && git checkout $OPENCV_VERSION \
  && cd /wbia/opencv_contrib \
- && git checkout 3.4.4 \
+ && git checkout $OPENCV_VERSION \
  && rm -rf /wbia/opencv/build \
  && mkdir -p /wbia/opencv/build \
  && cd /wbia/opencv/build \
