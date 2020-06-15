@@ -1,4 +1,35 @@
-FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04
+##############################################################################
+# cnmem build stage
+#
+
+FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04 AS cnmem-build
+# Install system dependencies
+RUN set -x \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+       # sort: alphabetically
+       git \
+       cmake \
+    && rm -rf /var/lib/apt/lists/*
+# Install CNMeM, a memory manager for CUDA
+RUN git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
+ && cd /tmp/cnmem/ \
+ && git checkout v1.0.0 \
+ && mkdir -p /tmp/cnmem/build \
+ && cd /tmp/cnmem/build \
+ && cmake .. \
+ && make -j4 \
+ && make install \
+ && cd .. \
+ && rm -rf /tmp/cnmem
+
+
+
+##############################################################################
+# runtime build stage
+#
+
+FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04 AS runtime
 
 MAINTAINER Wild Me <dev@wildme.org>
 
@@ -23,6 +54,8 @@ RUN set -x \
     && apt-get install -y --no-install-recommends \
        # ** Please sort alphabetically **
        ca-certificates \
+       #: used during package acquisition
+       git \
        #: opencv2 dep
        libglib2.0-0 \
        #: opencv2 dependency
@@ -54,26 +87,8 @@ RUN set -x \
     && rm -rf /tmp/get-docker.sh \
     && rm -rf /var/lib/apt/lists/* 
 
-# TODO (4-Jun-12020) Install CNMeM as part of a separate build stage
-# Install system dependencies
-RUN set -x \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-       # sort: alphabetically
-       git \
-       cmake \       
-    && rm -rf /var/lib/apt/lists/*
 # Install CNMeM, a memory manager for CUDA
-RUN git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
- && cd /tmp/cnmem/ \
- && git checkout v1.0.0 \
- && mkdir -p /tmp/cnmem/build \
- && cd /tmp/cnmem/build \
- && cmake .. \
- && make -j4 \
- && make install \
- && cd .. \
- && rm -rf /tmp/cnmem
+COPY --from=cnmem-build /usr/local/lib/libcnmem.so* /usr/local/lib/
 
 # Set CUDA-specific environment paths
 ENV PATH "/usr/local/cuda/bin:${PATH}"
