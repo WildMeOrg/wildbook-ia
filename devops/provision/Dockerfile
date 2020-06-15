@@ -76,7 +76,7 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /wbia/pydarknet \
  && /bin/bash unix_build.sh \
  && cd /wbia/pyrf \
- && /bin/bash run_developer_setup.sh \
+ && /bin/bash unix_build.sh \
  && cd /wbia/vtool \
  && /bin/bash run_developer_setup.sh
 
