@@ -8,7 +8,6 @@ delorean
 docker
 flask>=0.10.1
 
-futures>=3.2.0;python_version<="2.7"
 futures_actors
 ipython>=5.0.0
 lightnet
@@ -19,7 +18,6 @@ numpy>=1.14.2
 opencv-python
 pandas>=0.19.2
 parse>=1.6.6
-pathlib;python_version<="2.7"
 Pillow>=7.1.0
 pyasn1>=0.1.7
 pygments>=2.1.3
@@ -27,7 +25,7 @@ pygments>=2.1.3
 pynmea2>=1.5.3
 pyparsing>=2.1.5
 
-pyqt5>= 5.11.2;python_version>'2.7'
+pyqt5>= 5.11.2
 pyzmq>=14.7.0
 requests>=2.5.0
 scikit-image>=0.12.3
