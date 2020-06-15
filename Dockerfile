@@ -72,21 +72,6 @@ RUN set -x \
        unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies
-RUN set -x \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-       # sort: alphabetically
-       wget \
-    && rm -rf /var/lib/apt/lists/*
-# Install Docker
-# ??? DinD... is this wise?
-RUN set -x \
-    && wget -O /tmp/get-docker.sh https://get.docker.com \
-    && sh /tmp/get-docker.sh \
-    && rm -rf /tmp/get-docker.sh \
-    && rm -rf /var/lib/apt/lists/* 
-
 # Install CNMeM, a memory manager for CUDA
 COPY --from=cnmem-build /usr/local/lib/libcnmem.so* /usr/local/lib/
 
