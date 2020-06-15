@@ -61,16 +61,11 @@ RUN . /virtualenv/env3/bin/activate \
  && pip install scikit-build
 
 # Build Python repositories with external codebases
-# TODO remove flann checkout v2.0.0 once the "next" branch is working
-# TODO remove hesaff checkout v2.0.0 once the "next" branch is working
-# TODO remove vtool checkout v2.0.0 once the "master" branch is working
 RUN . /virtualenv/env3/bin/activate \
  && cd /wbia/flann \
- && git checkout v2.0.0 \
- && /bin/bash unix_build.sh \
+ && /bin/bash run_developer_setup.sh \
  && cd /wbia/hesaff \
- && git checkout v2.0.0 \
- && /bin/bash unix_build.sh \
+ && /bin/bash run_developer_setup.sh \
  && cd /wbia/lightnet \
  && /virtualenv/env3/bin/pip install -r requirements.txt \
  && /virtualenv/env3/bin/pip install -r develop.txt \
@@ -81,10 +76,9 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /wbia/pydarknet \
  && /bin/bash unix_build.sh \
  && cd /wbia/pyrf \
- && /bin/bash unix_build.sh \
+ && /bin/bash run_developer_setup.sh \
  && cd /wbia/vtool \
- && git checkout v2.0.0 \
- && /bin/bash unix_build.sh
+ && /bin/bash run_developer_setup.sh
 
 # Install Python repositories
 RUN . /virtualenv/env3/bin/activate \
