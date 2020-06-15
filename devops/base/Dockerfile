@@ -14,7 +14,6 @@ RUN apt-get update \
         pkg-config=0.29.1-0ubuntu2 \
         libtbb2=2017~U7-8 \
         libtbb-dev=2017~U7-8 \
-        cmake \
         git \
         tmux=2.6-3 \
         locate=4.6.0+git+20170828-2 \
@@ -75,6 +74,9 @@ RUN mkdir -p /wbia
 
 # Create virtualenv location
 RUN mkdir -p /virtualenv
+
+# Install cmake and ninja
+RUN /usr/bin/pip3 install cmake ninja
 
 # Install CNMeM
 RUN git clone https://github.com/NVIDIA/cnmem.git /wbia/cnmem \
