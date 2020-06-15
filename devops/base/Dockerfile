@@ -64,6 +64,8 @@ RUN apt-get update \
         gfortran=4:7.4.0-1ubuntu2.3 \
         tesseract-ocr=4.00~git2288-10f4998a-2 \
         tesseract-ocr-eng=4.00~git24-0e00fe6-1.2 \
+        liblz4-dev=0.0~r131-2ubuntu3 \
+        libhdf5-serial-dev=1.10.0-patch1+docs-4 \
  && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://get.docker.com -o get-docker.sh \
