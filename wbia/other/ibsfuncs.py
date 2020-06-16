@@ -1054,7 +1054,6 @@ def check_annotmatch_consistency(ibs):
 if sys.version_info >= (3, 2, 0):
     my_cache_decorator = functools.lru_cache(maxsize=4096)
 else:
-
     def null_decorator(ob):
         return ob
 
@@ -1171,7 +1170,7 @@ def bytes2human(n, format='%(value).02f%(symbol)s', symbols='customary'):
 def check_cache_purge_time_worker(args):
     try:
         (path,) = args
-        assert os.path.exists(args)
+        assert os.path.exists(path)
         # ctime = os.path.getctime(path)
         ctime = -1
         mtime = os.path.getmtime(path)
@@ -1257,6 +1256,7 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
     expires = now - datetime.timedelta(days=ttl_days)
     expires = datetime.datetime(expires.year, expires.month, 1, 0, 0, 0, tzinfo=PST)
     logger.info('Checking cached files since %r' % (expires,))
+
     timestamp = int(expires.timestamp())
 
     blacklist = [
