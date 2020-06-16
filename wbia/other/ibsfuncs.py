@@ -34,9 +34,16 @@ import xml.etree.ElementTree as ET
 import datetime
 from PIL import Image
 import cv2
+import os
+import sys
+import pytz
+import tqdm
 
 
-# Inject utool functions
+PST = pytz.timezone('US/Pacific')
+
+
+# Inject utool function
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
 
 
@@ -1037,6 +1044,314 @@ def check_annotmatch_consistency(ibs):
     invalid_annotmatch_rowids = ut.compress(annomatch_rowids, invalid_list)
     print('There are %d invalid annotmatch rowids' % (len(invalid_annotmatch_rowids),))
     return invalid_annotmatch_rowids
+
+
+if sys.version_info >= (3,2,0):
+    my_cache_decorator = functools.lru_cache(maxsize=4096)
+else:
+    def null_decorator(ob):
+        return ob
+
+    my_cache_decorator = null_decorator
+
+
+@my_cache_decorator
+def get_dir_size(start_path='.'):
+    """ REF: https://stackoverflow.com/a/34580363 """
+    if os.path.isfile(start_path):
+        return os.path.getsize(start_path)
+
+    total_size = 0
+
+    if 'scandir' in dir(os):
+        # using fast 'os.scandir' method (new in version 3.5)
+        for entry in os.scandir(start_path):
+            if entry.is_dir(follow_symlinks=False):
+                total_size += get_dir_size(entry.path)
+            elif entry.is_file(follow_symlinks=False):
+                total_size += entry.stat().st_size
+    else:
+        # using slow, but compatible 'os.listdir' method
+        for entry in os.listdir(start_path):
+            full_path = os.path.abspath(os.path.join(start_path, entry))
+            if os.path.islink(full_path):
+                continue
+            if os.path.isdir(full_path):
+                total_size += get_dir_size(full_path)
+            elif os.path.isfile(full_path):
+                total_size += os.path.getsize(full_path)
+    return total_size
+
+
+def bytes2human(n, format='%(value).02f%(symbol)s', symbols='customary'):
+    """
+    (c) http://code.activestate.com/recipes/578019/
+
+    Convert n bytes into a human readable string based on format.
+    symbols can be either "customary", "customary_ext", "iec" or "iec_ext",
+    see: https://en.wikipedia.org/wiki/Binary_prefix#Specific_units_of_IEC_60027-2_A.2_and_ISO.2FIEC_80000
+
+      >>> bytes2human(0)
+      '0.0 B'
+      >>> bytes2human(0.9)
+      '0.0 B'
+      >>> bytes2human(1)
+      '1.0 B'
+      >>> bytes2human(1.9)
+      '1.0 B'
+      >>> bytes2human(1024)
+      '1.0 K'
+      >>> bytes2human(1048576)
+      '1.0 M'
+      >>> bytes2human(1099511627776127398123789121)
+      '909.5 Y'
+
+      >>> bytes2human(9856, symbols="customary")
+      '9.6 K'
+      >>> bytes2human(9856, symbols="customary_ext")
+      '9.6 kilo'
+      >>> bytes2human(9856, symbols="iec")
+      '9.6 Ki'
+      >>> bytes2human(9856, symbols="iec_ext")
+      '9.6 kibi'
+
+      >>> bytes2human(10000, "%(value).1f %(symbol)s/sec")
+      '9.8 K/sec'
+
+      >>> # precision can be adjusted by playing with %f operator
+      >>> bytes2human(10000, format="%(value).5f %(symbol)s")
+      '9.76562 K'
+    """
+    SYMBOLS = {
+        'customary'     : ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'),
+        'customary_ext' : ('byte', 'kilo', 'mega', 'giga', 'tera', 'peta', 'exa',
+                           'zetta', 'iotta'),
+        'iec'           : ('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi'),
+        'iec_ext'       : ('byte', 'kibi', 'mebi', 'gibi', 'tebi', 'pebi', 'exbi',
+                           'zebi', 'yobi'),
+    }
+    n = int(n)
+    if n < 0:
+        raise ValueError("n < 0")
+    symbols = SYMBOLS[symbols]
+    prefix = {}
+    for i, s in enumerate(symbols[1:]):
+        prefix[s] = 1 << (i + 1) * 10
+    for symbol in reversed(symbols[1:]):
+        if n >= prefix[symbol]:
+            value = float(n) / prefix[symbol]
+            return format % locals()
+    return format % dict(symbol=symbols[0], value=n)
+
+
+def check_cache_purge_time_worker(args):
+    try:
+        path, = args
+        assert os.path.exists(args)
+        # ctime = os.path.getctime(path)
+        ctime = -1
+        mtime = os.path.getmtime(path)
+        # atime = os.path.getatime(path)
+        atime = -1
+        last_time = max(ctime, mtime, atime)
+    except Exception:
+        last_time = -1
+    return last_time
+
+
+def check_cache_purge_delete_worker(args):
+    size_bytes, success = None, False
+    try:
+        path, = args
+        if not os.path.exists(path):
+            size_bytes = 0
+            success = True
+        else:
+            size_bytes = get_dir_size(path)
+            success = ut.delete(path, ignore_errors=False,
+                                print_exists=False, verbose=False)
+    except Exception:
+        pass
+    return size_bytes, success
+
+
+def check_cache_purge_exists_worker(args):
+    try:
+        path, = args
+        exists_ = os.path.exists(path)
+    except Exception:
+        exists_ = False
+    return exists_
+
+
+def check_cache_purge_parallel_wrapper(func, arguments_list):
+    import concurrent.futures
+    import multiprocessing
+
+    num_cores = multiprocessing.cpu_count()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores) as pool:
+        futures, results = [], []
+
+        with tqdm.tqdm(total=len(arguments_list)) as progress:
+            for arguments in arguments_list:
+                future = pool.submit(func, arguments)
+                future.add_done_callback(lambda p: progress.update())
+                futures.append(future)
+
+        for future in tqdm.tqdm(futures):
+            result = future.result()
+            results.append(result)
+
+        pool.shutdown(True)
+
+    return results
+
+
+@register_ibs_method
+def check_cache_purge(ibs, ttl_days=365):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): (default = None)
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --exec-check_cache_purge
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> result = check_cache_purge(ibs)
+        >>> print(result)
+    """
+    now = datetime.datetime.now(tz=PST)
+    expires = now - datetime.timedelta(days=ttl_days)
+    expires = datetime.datetime(
+        expires.year, expires.month, 1, 0, 0, 0, tzinfo=PST
+    )
+    print('Checking cached files since %r' % (expires, ))
+    timestamp = int(expires.timestamp())
+
+    blacklist = [
+        'engine_shelves_HOLDING',
+        'extern_chips',
+        'extern_probchip',
+        'extern_curvature_descriptor_optimized',
+        'extern_DeepsensePassport',
+        'extern_FinfindrPassport',
+        'extern_KaggleSevenChip',
+        'extern_Cropped_Chips',
+    ]
+
+    delete_path_list = []
+    for entry in os.scandir(ibs.cachedir):
+        if entry.is_dir(follow_symlinks=False):
+            if entry.name in blacklist:
+                continue
+
+            entry_list = list(os.scandir(entry))
+            subpath_list = [entry.path for entry in entry_list]
+
+            arguments_list = list(zip(subpath_list))
+            last_time_list = check_cache_purge_parallel_wrapper(
+                check_cache_purge_time_worker,
+                arguments_list
+            )
+
+            flag_list = [last_time < timestamp for last_time in last_time_list]
+            delete_subpath_list = ut.compress(subpath_list, flag_list)
+
+            if len(delete_subpath_list) > 0:
+                print(entry)
+                print('\tChecked:  %d' % (len(subpath_list), ))
+                print('\tPurgable: %d' % (len(delete_subpath_list), ))
+                delete_path_list += delete_subpath_list
+
+    arguments_list = list(zip(delete_path_list))
+    values_list = check_cache_purge_parallel_wrapper(
+        check_cache_purge_delete_worker,
+        arguments_list
+    )
+
+    purged_bytes = 0
+    failed_list = []
+    zipped = list(zip(delete_path_list, values_list))
+    for delete_path, values in tqdm.tqdm(zipped):
+        size_bytes, success = values
+        if success:
+            if size_bytes is not None:
+                purged_bytes += size_bytes
+        else:
+            if os.path.exists(delete_path):
+                failed_list.append(delete_path)
+
+    print('Purged: %s' % (bytes2human(purged_bytes), ))
+    print('Failed: %d' % (len(failed_list), ))
+
+    table_list = []
+    table_list += ibs.depc_image.tables
+    table_list += ibs.depc_annot.tables
+    table_list += ibs.depc_part.tables
+
+    for table in table_list:
+        print(table)
+        internal_colnames = table.get_intern_data_col_attr('intern_colname')
+        is_extern = table.get_intern_data_col_attr('is_external_pointer')
+        extern_colnames = tuple(ut.compress(internal_colnames, is_extern))
+
+        if len(extern_colnames) > 0:
+            print('\tHas %d external columns' % (len(extern_colnames), ))
+
+            print('\tGetting all rowids...')
+            rowid_list = table._get_all_rowids()
+            print('\tGetting all extern URIs...')
+            uris = table.get_internal_columns(
+                rowid_list, extern_colnames, unpack_scalars=False, eager=True,
+                keepwrap=False)
+            uris_list = list(it.chain.from_iterable(uris))
+
+            extern_rowid_list = []
+            extern_path_list = []
+
+            zipped = list(zip(rowid_list, uris_list))
+            for rowid, uri in zipped:
+                if not isinstance(uri, tuple):
+                    uri = [uri]
+                for uri_ in uri:
+                    extern_path = os.path.join(table.extern_dpath, uri_)
+                    extern_rowid_list.append(rowid)
+                    extern_path_list.append(extern_path)
+
+            arguments_list = list(zip(extern_path_list))
+            extern_exists_list = check_cache_purge_parallel_wrapper(
+                check_cache_purge_exists_worker,
+                arguments_list
+            )
+
+            flag_list = [not extern_exists for extern_exists in extern_exists_list]
+            corrupted_rowid_list = ut.compress(extern_rowid_list, flag_list)
+            corrupted_rowid_list = list(set(corrupted_rowid_list))
+
+            print('\tHas %d total rows' % (len(rowid_list), ))
+            print('\tHas %d extern files' % (len(set(extern_path_list)), ))
+            print('\tHas %d corrupted rows' % (len(corrupted_rowid_list), ))
+
+            if len(corrupted_rowid_list) > 0:
+                table.delete_rows(corrupted_rowid_list, delete_extern=True)
+
+    # db_list = [
+    #     ibs.db,
+    #     ibs.staging,
+    # ]
+    # db_list += [table.db for table in table_list]
+
+    # for db in tqdm.tqdm(db_list):
+    #     print(db.fname)
+    #     db.squeeze()
+
+    return failed_list
 
 
 @register_ibs_method
