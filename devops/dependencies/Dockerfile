@@ -74,7 +74,7 @@ RUN . /virtualenv/env3/bin/activate \
  && cd .. \
  && rm -rf /wbia/opencv/build
 
-RUN ln -s /virtualenv/env3/python/cv2/python-3.6/cv2.cpython-36m-x86_64-linux-gnu.so /virtualenv/env3/lib/python3.6/site-packages/cv2.so
+RUN ln -s /virtualenv/env3/lib/python3.6/site-packages/cv2/python-3.6/cv2.cpython-36m-x86_64-linux-gnu.so /virtualenv/env3/lib/python3.6/site-packages/cv2.so
 
 RUN /virtualenv/env3/bin/pip install \
     cython==0.28.1
