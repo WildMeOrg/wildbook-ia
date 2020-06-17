@@ -37,5 +37,5 @@ statsmodels>=0.6.1
 tornado>=4.2.1
 ubelt >= 0.8.7
 
-utool >= 2.1.2
+wbia-utool >= 2.1.2
 wbia-vtool >= 2.1.0
