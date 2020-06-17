@@ -66,6 +66,8 @@ RUN . /virtualenv/env3/bin/activate \
  && /bin/bash run_developer_setup.sh \
  && cd /wbia/hesaff \
  && /bin/bash run_developer_setup.sh \
+ && cd /wbia/brambox \
+ && /virtualenv/env3/bin/pip install -e . \
  && cd /wbia/lightnet \
  && /virtualenv/env3/bin/pip install -r requirements.txt \
  && /virtualenv/env3/bin/pip install -r develop.txt \
@@ -85,8 +87,6 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-cnn \
  && pip install -e . \
  && cd /wbia/hesaff \
- && pip install -e . \
- && cd /wbia/brambox \
  && pip install -e . \
  && cd /wbia/lightnet \
  && pip install -e . \
