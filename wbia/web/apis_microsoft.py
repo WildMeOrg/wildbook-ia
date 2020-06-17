@@ -885,7 +885,7 @@ def microsoft_detect_batch(
     score_threshold=0.0,
     use_nms=True,
     nms_threshold=0.4,
-    async_=True,
+    asynchronous=True,
     callback_url=None,
     callback_method=None,
     *args,
@@ -972,8 +972,8 @@ def microsoft_detect_batch(
     microsoft_detect_input_validation(model, score_threshold, use_nms, nms_threshold)
 
     try:
-        parameter = 'async_'
-        assert isinstance(async_, bool), 'Asynchronous flag must be a boolean'
+        parameter = 'asynchronous'
+        assert isinstance(asynchronous, bool), 'Asynchronous flag must be a boolean'
 
         parameter = 'callback_url'
         assert callback_url is None or isinstance(
@@ -1009,10 +1009,10 @@ def microsoft_detect_batch(
         'nms_threshold': nms_threshold,
     }
 
-    if async_:
-        taskid = ibs.job_manager.jobiface.queue_job(
-            'microsoft_detect', callback_url, callback_method, *args, **kwargs
-        )
+    if asynchronous:
+        taskid = ibs.job_manager.jobiface.queue_job('microsoft_detect',
+                                                    callback_url, callback_method,
+                                                    *args, **kwargs)
         response = _task(ibs, taskid)
     else:
         response = ibs.microsoft_detect(*args, **kwargs)
