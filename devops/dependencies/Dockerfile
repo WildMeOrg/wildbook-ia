@@ -135,3 +135,6 @@ RUN cd /wbia/Theano \
  && /virtualenv/env3/bin/pip install -e . \
  && cd /wbia/networkx \
  && /virtualenv/env3/bin/pip install -e .
+
+# Include libraries in virtualenv for python
+ENV LD_LIBRARY_PATH "/virtualenv/env3/lib:${LD_LIBRARY_PATH}"
