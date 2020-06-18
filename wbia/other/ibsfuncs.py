@@ -882,7 +882,7 @@ def check_annot_corrupt_uuids(ibs, aid_list=None):
         for aid in aid_list:
             try:
                 ibs.get_annot_uuids(aid)
-            except Exception as ex:
+            except Exception:
                 failed_aids.append(aid)
         print('failed_aids = %r' % (failed_aids,))
         return failed_aids
@@ -1668,6 +1668,7 @@ def _make_unflat_getter_func(flat_getter):
         func = flat_getter
     funcname = get_funcname(func)
     assert funcname.startswith('get_'), 'only works on getters, not: ' + funcname
+
     # Create new function
     def unflat_getter(self, unflat_rowids, *args, **kwargs):
         # First flatten the list
@@ -6639,7 +6640,7 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
             print('FOUND LOCATION FOR AID %d' % (aid,))
             print('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
             print('\tNEW GPS: %s' % (closest_gps,))
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found,))
+    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found,))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -7450,7 +7451,7 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
                 not_found.add(note)
         else:
             not_found.add(note)
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
+    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
     num_recovered = len(recovered_gid_list)
     num_unrecovered = num_bad - len(recovered_gid_list)
     print('Missing GPS: %d' % (num_bad,))
@@ -7528,7 +7529,7 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
                 not_found.add(note)
         else:
             not_found.add(note)
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
+    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
     num_recovered = len(recovered_aid_list)
     num_unrecovered = num_bad - len(recovered_aid_list)
     print('Missing GPS: %d' % (num_bad,))
