@@ -686,7 +686,7 @@ def check_image_loadable_worker(gpath, orient):
     except Exception:
         loadable = False
     try:
-        img = vt.imread(gpath, orient='auto', on_error='fail')
+        img = vt.imread(gpath, orient='auto')
         assert img is not None
     except Exception:
         exif = False
