@@ -61,7 +61,7 @@ RUN . /virtualenv/env3/bin/activate \
  && pip install scikit-build
 
 # Build Python repositories with external codebases
-RUN . /virtualenv/env3/bin/activate \
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/flann \
  && /bin/bash run_developer_setup.sh \
  && cd /wbia/hesaff \
@@ -80,10 +80,10 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /wbia/pyrf \
  && /bin/bash unix_build.sh \
  && cd /wbia/vtool \
- && /bin/bash run_developer_setup.sh
+ && /bin/bash run_developer_setup.sh'
 
 # Install Python repositories
-RUN . /virtualenv/env3/bin/activate \
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-cnn \
  && pip install -e . \
  && cd /wbia/hesaff \
@@ -111,4 +111,4 @@ RUN . /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-kaggle7 \
  && pip install -e . \
  && cd /wbia/wbia-plugin-2d-orientation \
- && pip install -e .
+ && pip install -e .'
