@@ -19,7 +19,7 @@ RUN git clone --branch master https://github.com/WildbookOrg/wbia-tpl-brambox   
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-finfindr       /wbia/wbia-plugin-finfindr \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-kaggle7        /wbia/wbia-plugin-kaggle7 \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-2d-orientation /wbia/wbia-plugin-2d-orientation \
- && git clone --branch master https://github.com/WildbookOrg/wildbook-ia              /wbia/wildbook-ia \
+ && git clone --branch develop https://github.com/WildbookOrg/wildbook-ia               /wbia/wildbook-ia \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-cnn            /wbia/wbia-plugin-cnn \
  && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-lightnet          /wbia/lightnet \
  && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-pydarknet         /wbia/pydarknet \
