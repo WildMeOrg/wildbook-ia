@@ -87,6 +87,7 @@ def updater(func):
     the middle of a layout changed
     """
     func_ = default_method_decorator(func)
+
     # @checks_qt_error
     @functools.wraps(func)
     def upd_wrapper(model, *args, **kwargs):
@@ -195,6 +196,7 @@ class APIItemModel(API_MODEL_BASE):
             assert len(model.ider_filters) == len(model.iders), 'bad filters'
             # ider_list =  [lambda: filtfn(ider()) for filtfn, ider in zip(model.ider_filters, model.iders)]
             # with ut.embed_on_exception_context:
+
             def wrap_ider(ider, filtfn):
                 def wrapped_ider(*args, **kwargs):
                     return filtfn(ider(*args, **kwargs))
@@ -1089,7 +1091,7 @@ def simple_thumbnail_widget():
         >>> wgt.show()
         >>> guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
     """
-    import wbia.guitool
+    import wbia.guitool as guitool
 
     guitool.ensure_qapp()
     col_name_list = ['rowid', 'image_name', 'thumb']
