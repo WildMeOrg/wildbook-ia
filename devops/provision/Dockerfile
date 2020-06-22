@@ -112,3 +112,8 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && pip install -e . \
  && cd /wbia/wbia-plugin-2d-orientation \
  && pip install -e .'
+
+# Set up xvfb for running gui doctests
+ENV DISPLAY :1
+
+CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]
