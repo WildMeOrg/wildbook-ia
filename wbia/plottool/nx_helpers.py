@@ -154,7 +154,7 @@ def show_nx(
     if kwargs.get('modify_ax', True):
         ax.grid(False)
         pt.plt.axis('equal')
-        ax.axesPatch.set_facecolor('white')
+        ax.patch.set_facecolor('white')
         ax.autoscale()
         ax.autoscale_view(True, True, True)
     # axes.facecolor
