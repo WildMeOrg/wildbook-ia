@@ -10,7 +10,6 @@ from sklearn.utils.validation import check_array
 
 # from sklearn.utils import check_random_state
 from six.moves import zip
-
 # from sklearn.model_selection._split import (_BaseKFold, KFold)
 from sklearn.model_selection._split import _BaseKFold
 
