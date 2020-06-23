@@ -1705,7 +1705,7 @@ def draw_network2(
                     strokekw['linewidth'] = full_lw
                     path_effects += [patheffects.withStroke(**strokekw)]
 
-            ## http://matplotlib.org/1.2.1/examples/api/clippath_demo.html
+            # http://matplotlib.org/1.2.1/examples/api/clippath_demo.html
             if data.get('shadow', None) is not None:
                 shadowkw = data['shadow']
                 if shadowkw is not False:
