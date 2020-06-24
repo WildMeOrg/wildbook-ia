@@ -36,7 +36,6 @@ CommandLine:
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import multiprocessing
 import sys
 import numpy as np
 from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
@@ -48,6 +47,7 @@ import utool
 import wbia.plottool as pt
 import wbia
 
+# import multiprocessing
 # if __name__ == '__main__':
 #     multiprocessing.freeze_support()
 #     wbia._preload()
@@ -59,7 +59,7 @@ from wbia.plottool import draw_func2 as df2  # NOQA
 from wbia import sysres  # NOQA
 from wbia.other import ibsfuncs  # NOQA
 from wbia.dbio import ingest_hsdb  # NOQA
-from wbia._devcmds_wbia import (
+from wbia._devcmds_wbia import (  # NOQA
     GZ_VIEWPOINT_EXPORT_PAIRS,
     MOTHERS_VIEWPOINT_EXPORT_PAIRS,
     change_names,
@@ -78,13 +78,14 @@ from wbia._devcmds_wbia import (
     show_aids,
     sver_aids,
     vdd,
-)  # NOQA
+)
 
 # IBEIS
 from wbia.init import main_helpers  # NOQA
 from wbia.other import dbinfo  # NOQA
 from wbia.expt import experiment_configs  # NOQA
 from wbia.expt import harness  # NOQA
+from wbia.expt.experiment_drawing import draw_annot_scoresep
 from wbia import params  # NOQA
 
 print, rrr, profile = utool.inject2(__name__)
