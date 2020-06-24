@@ -132,12 +132,12 @@ SEX_TEXT_TO_INT = ut.invert_dict(SEX_INT_TO_TEXT)
 class PATH_NAMES(object):
     """ Path names for internal IBEIS database """
 
-    sqldb = '_wbia_database.sqlite3'
-    sqlstaging = '_wbia_staging.sqlite3'
+    sqldb = '_ibeis_database.sqlite3'
+    sqlstaging = '_ibeis_staging.sqlite3'
     _ibsdb = '_ibsdb'
-    cache = '_wbia_cache'
-    backups = '_wbia_backups'
-    logs = '_wbia_logs'
+    cache = '_ibeis_cache'
+    backups = '_ibeis_backups'
+    logs = '_ibeis_logs'
     chips = 'chips'
     figures = 'figures'
     flann = 'flann'
@@ -170,7 +170,7 @@ class REL_PATHS(object):
     trees = join(_ibsdb, PATH_NAMES.trees)
     nets = join(_ibsdb, PATH_NAMES.nets)
     uploads = join(_ibsdb, PATH_NAMES.uploads)
-    # All computed dirs live in <dbdir>/_ibsdb/_wbia_cache
+    # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
     chips = join(cache, PATH_NAMES.chips)
     thumbs = join(cache, PATH_NAMES.thumbs)
     flann = join(cache, PATH_NAMES.flann)
@@ -186,8 +186,8 @@ EXCLUDE_COPY_REL_DIRS = [
     REL_PATHS.backups,
     REL_PATHS.figures,
     REL_PATHS.nets,
-    join(PATH_NAMES._ibsdb, '_wbia_cache*'),
-    #'_ibsdb/_wbia_cache',
+    join(PATH_NAMES._ibsdb, '_ibeis_cache*'),
+    #'_ibsdb/_ibeis_cache',
     '_ibsdb/chips',  # old path for caches
     './images',  # the hotspotter images dir
 ]
