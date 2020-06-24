@@ -162,15 +162,6 @@ def tune_flann(ibs, qaid_list, daid_list=None):
         python dev.py -t tune --db GZ_ALL
         python dev.py -t tune --db GIR_Tanya
         python dev.py -t tune --db PZ_Master0
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from wbia._devscript import *  # NOQA
-        >>> # build test data
-        >>> # execute function
-        >>> result = func_wrapper()
-        >>> # verify results
-        >>> print(result)
     """
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
