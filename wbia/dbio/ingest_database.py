@@ -174,7 +174,12 @@ class Ingestable2(object):
             """ lists images that are not in an internal cache """
             import utool as ut  # NOQA
 
-            ignore_list = ['_hsdb', '.hs_internals', '_wbia_cache', '_ibsdb']
+            ignore_list = [
+                '_hsdb',
+                '.hs_internals',
+                const.PATH_NAMES.cache,
+                const.PATH_NAMES._ibsdb,
+            ]
             gpath_list = ut.list_images(
                 img_dir, fullpath=True, recursive=True, ignore_list=ignore_list
             )
@@ -343,7 +348,12 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         """ lists images that are not in an internal cache """
         import utool as ut  # NOQA
 
-        ignore_list = ['_hsdb', '.hs_internals', '_wbia_cache', '_ibsdb']
+        ignore_list = [
+            '_hsdb',
+            '.hs_internals',
+            const.PATH_NAMES.cache,
+            const.PATH_NAMES._ibsdb,
+        ]
         gpath_list = ut.list_images(
             img_dir, fullpath=True, recursive=True, ignore_list=ignore_list
         )
