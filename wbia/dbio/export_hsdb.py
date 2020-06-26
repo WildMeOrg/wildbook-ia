@@ -251,7 +251,7 @@ def dump_hots_flat_table(ibs):
         file_.write(flat_table_str)
 
 
-SUCCESS_FLAG_FNAME = '_hsdb_to_wbia_convert_success'
+SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
 
 
 if __name__ == '__main__':
