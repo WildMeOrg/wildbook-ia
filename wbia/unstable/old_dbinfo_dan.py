@@ -308,12 +308,12 @@ def dans_splits(ibs):
         32140,
     ]
 
-    is_hyrbid = [
+    is_hyrbid = [  # NOQA
         7123,
         7166,
         7157,
         7158,
-    ]  # NOQA
+    ]
     needs_mask = [26836, 29742]  # NOQA
     justfine = [19862]  # NOQA
 
