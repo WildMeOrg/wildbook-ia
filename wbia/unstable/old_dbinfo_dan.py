@@ -14,7 +14,7 @@ def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
     http://stackoverflow.com/questions/31439875/infinite-summation-in-python/31442749
     """
     k, K, n = resight, nvisit1, nvisit2
-    from scipy.misc import comb
+    from scipy.special import comb
 
     N_range = np.array(N_range)
 
