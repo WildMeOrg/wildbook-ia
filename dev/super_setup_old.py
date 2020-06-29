@@ -90,7 +90,7 @@ GitReferences:
 FIXME:
     graph-viz
     pydot
-    ibeis_cnn
+    wbia_cnn
     Theano
     Lasange
 """
@@ -422,7 +422,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     if WITH_CNN:
         wbia_rman.add_repos(
             [
-                'https://github.com/WildbookOrg/ibeis_cnn.git',
+                'https://github.com/WildbookOrg/wbia_cnn.git',
                 'https://github.com/WildbookOrg/pydarknet.git',
             ]
         )
@@ -491,7 +491,7 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
     python -c "import theano; print(theano.__file__)"
     # python -c "import pylearn2; print(pylearn2.__file__)"
     python -c "import lasagne; print(lasagne.__file__)"
-    python -c "import ibeis_cnn; print(ibeis_cnn.__file__)"
+    python -c "import wbia_cnn; print(wbia_cnn.__file__)"
     python -c "import detecttools; print(detecttools.__file__)"
 
     # http://stackoverflow.com/questions/18042919/how-to-install-pyqt5-on-a-new-virtualenv-and-work-on-an-idle

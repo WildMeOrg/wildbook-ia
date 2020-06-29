@@ -27,9 +27,9 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 def classifier_cameratrap_train(
     ibs, positive_imageset_id, negative_imageset_id, **kwargs
 ):
-    from ibeis_cnn.ingest_wbia import get_cnn_classifier_cameratrap_binary_training_images
-    from ibeis_cnn.process import numpy_processed_directory2
-    from ibeis_cnn.models.classifier import train_classifier
+    from wbia_cnn.ingest_wbia import get_cnn_classifier_cameratrap_binary_training_images
+    from wbia_cnn.process import numpy_processed_directory2
+    from wbia_cnn.models.classifier import train_classifier
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_cnn_classifier_cameratrap_binary_training_images(
@@ -165,10 +165,10 @@ def classifier_multiclass_densenet_train(
 
 @register_ibs_method
 def classifier_binary_train(ibs, species_list, **kwargs):
-    from ibeis_cnn.ingest_wbia import get_cnn_classifier_binary_training_images
-    from ibeis_cnn.process import numpy_processed_directory2
-    from ibeis_cnn.models.classifier import train_classifier
-    from ibeis_cnn.utils import save_model
+    from wbia_cnn.ingest_wbia import get_cnn_classifier_binary_training_images
+    from wbia_cnn.process import numpy_processed_directory2
+    from wbia_cnn.models.classifier import train_classifier
+    from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_cnn_classifier_binary_training_images(
@@ -190,10 +190,10 @@ def classifier_binary_train(ibs, species_list, **kwargs):
 def classifier2_train(
     ibs, species_list=None, species_mapping={}, train_gid_set=None, **kwargs
 ):
-    from ibeis_cnn.ingest_wbia import get_cnn_classifier2_training_images
-    from ibeis_cnn.process import numpy_processed_directory3
-    from ibeis_cnn.models.classifier2 import train_classifier2
-    from ibeis_cnn.utils import save_model
+    from wbia_cnn.ingest_wbia import get_cnn_classifier2_training_images
+    from wbia_cnn.process import numpy_processed_directory3
+    from wbia_cnn.models.classifier2 import train_classifier2
+    from wbia_cnn.utils import save_model
 
     if species_list is not None:
         species_list = sorted(species_list)
@@ -740,13 +740,13 @@ def validate_model(
 
 
 @register_ibs_method
-def labeler_train_ibeis_cnn(
+def labeler_train_wbia_cnn(
     ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, **kwargs
 ):
-    from ibeis_cnn.ingest_wbia import get_cnn_labeler_training_images
-    from ibeis_cnn.process import numpy_processed_directory2
-    from ibeis_cnn.models.labeler import train_labeler
-    from ibeis_cnn.utils import save_model
+    from wbia_cnn.ingest_wbia import get_cnn_labeler_training_images
+    from wbia_cnn.process import numpy_processed_directory2
+    from wbia_cnn.models.labeler import train_labeler
+    from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_cnn_labeler_training_images(
@@ -878,9 +878,9 @@ def labeler_train(
 
 # @register_ibs_method
 # def qualifier_train(ibs, **kwargs):
-#     from ibeis_cnn.ingest_wbia import get_cnn_qualifier_training_images
-#     from ibeis_cnn.process import numpy_processed_directory2
-#     from ibeis_cnn.models.qualifier import train_qualifier
+#     from wbia_cnn.ingest_wbia import get_cnn_qualifier_training_images
+#     from wbia_cnn.process import numpy_processed_directory2
+#     from wbia_cnn.models.qualifier import train_qualifier
 #     data_path = join(ibs.get_cachedir(), 'extracted')
 #     extracted_path = get_cnn_qualifier_training_images(ibs, data_path, **kwargs)
 #     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
@@ -906,10 +906,10 @@ def detector_train(ibs):
 
 @register_ibs_method
 def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kwargs):
-    from ibeis_cnn.ingest_wbia import get_background_training_patches2
-    from ibeis_cnn.process import numpy_processed_directory2
-    from ibeis_cnn.models.background import train_background
-    from ibeis_cnn.utils import save_model
+    from wbia_cnn.ingest_wbia import get_background_training_patches2
+    from wbia_cnn.process import numpy_processed_directory2
+    from wbia_cnn.models.background import train_background
+    from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_background_training_patches2(
@@ -933,10 +933,10 @@ def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kw
 
 @register_ibs_method
 def aoi_train(ibs, species_list=None):
-    from ibeis_cnn.ingest_wbia import get_aoi_training_data
-    from ibeis_cnn.process import numpy_processed_directory4
-    from ibeis_cnn.models.aoi import train_aoi
-    from ibeis_cnn.utils import save_model
+    from wbia_cnn.ingest_wbia import get_aoi_training_data
+    from wbia_cnn.process import numpy_processed_directory4
+    from wbia_cnn.models.aoi import train_aoi
+    from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_aoi_training_data(
@@ -954,10 +954,10 @@ def aoi_train(ibs, species_list=None):
 
 @register_ibs_method
 def aoi2_train(ibs, species_list=None, train_gid_list=None, purge=True, cache=False):
-    from ibeis_cnn.ingest_wbia import get_aoi2_training_data
-    from ibeis_cnn.process import numpy_processed_directory5
-    from ibeis_cnn.models.aoi2 import train_aoi2
-    from ibeis_cnn.utils import save_model
+    from wbia_cnn.ingest_wbia import get_aoi2_training_data
+    from wbia_cnn.process import numpy_processed_directory5
+    from wbia_cnn.models.aoi2 import train_aoi2
+    from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_aoi2_training_data(

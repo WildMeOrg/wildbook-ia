@@ -881,7 +881,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         python -m wbia --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True
 
     SeeAlso:
-        python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
+        python -m wbia_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
 
     Ignore:
         input_tuple = aid_list
@@ -1099,7 +1099,7 @@ def compute_feats(depc, cid_list, config=None):
         generator : generates param tups
 
     SeeAlso:
-        ~/code/ibeis_cnn/ibeis_cnn/_plugin.py
+        ~/code/wbia_cnn/wbia_cnn/_plugin.py
 
     CommandLine:
         python -m wbia.core_annots --test-compute_feats:0 --show
@@ -1187,7 +1187,7 @@ def compute_feats(depc, cid_list, config=None):
             futures_threaded=True,
         )
     elif feat_type == 'hesaff+siam128':
-        from ibeis_cnn import _plugin
+        from wbia_cnn import _plugin
 
         assert maskmethod is None, 'not implemented'
         assert False, 'not implemented'

@@ -2547,7 +2547,7 @@ def classifier_cameratrap_precision_recall_algo_display(
 
     if config_list is None:
         config_list = [
-            # {'label': 'Initial Model (5%)  - IBEIS_CNN',  'classifier_algo': 'cnn',      'classifier_weight_filepath': 'ryan.ibeis_cnn.v1'},
+            # {'label': 'Initial Model (5%)  - IBEIS_CNN',  'classifier_algo': 'cnn',      'classifier_weight_filepath': 'ryan.wbia_cnn.v1'},
             # {'label': 'Initial Model (5%)  - DenseNet',   'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v1'},
             # {'label': 'Initial Model (5%)  - DenseNet 0', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v1:0'},
             # {'label': 'Initial Model (5%)  - DenseNet 1', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan_densenet_v1:1'},
