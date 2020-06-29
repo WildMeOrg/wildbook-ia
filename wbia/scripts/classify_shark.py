@@ -9,12 +9,12 @@ import sklearn.metrics
 from sklearn import preprocessing
 
 try:
-    from ibeis_cnn.models import abstract_models
+    from wbia_cnn.models import abstract_models
 
     AbstractCategoricalModel = abstract_models.AbstractCategoricalModel
 except ImportError:
     AbstractCategoricalModel = object
-    print('no ibeis_cnn')
+    print('no wbia_cnn')
 
 from os.path import join
 
@@ -157,8 +157,8 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
     """
 
     def def_lenet(model):
-        import ibeis_cnn.__LASAGNE__ as lasange
-        from ibeis_cnn import custom_layers
+        import wbia_cnn.__LASAGNE__ as lasange
+        from wbia_cnn import custom_layers
 
         print('[model] init_arch')
 
@@ -195,8 +195,8 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         return network_layers_def
 
     def def_resnet(model):
-        import ibeis_cnn.__LASAGNE__ as lasange
-        from ibeis_cnn import custom_layers
+        import wbia_cnn.__LASAGNE__ as lasange
+        from wbia_cnn import custom_layers
 
         print('[model] init_arch')
         nonlinearity = lasange.nonlinearities.LeakyRectify(leakiness=(1.0 / 3.0))
@@ -234,8 +234,8 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         return network_layers_def
 
     def def_inception(model):
-        import ibeis_cnn.__LASAGNE__ as lasange
-        from ibeis_cnn import custom_layers
+        import wbia_cnn.__LASAGNE__ as lasange
+        from wbia_cnn import custom_layers
 
         print('[model] init_arch')
 
@@ -313,7 +313,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
             >>> model.show_arch(fullinfo=False)
             >>> ut.show_if_requested()
         """
-        from ibeis_cnn import custom_layers
+        from wbia_cnn import custom_layers
 
         # if ut.get_computer_name() == 'Leviathan':
         if model.name.endswith('incep'):
@@ -335,7 +335,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
     #    output_injur1 = output_activations[:, 0]
     #    output_injur2 = output_activations[:, 1]
     #    output_healthy = (1 - ((1 - output_injur1) * (1 - output_injur2))
-    #    import ibeis_cnn.__LASAGNE__ as lasange
+    #    import wbia_cnn.__LASAGNE__ as lasange
     #    lasange.objectives.binary_crossentropy(output_injur1)
     #    lasange.objectives.binary_crossentropy(output_injur2)
 
@@ -353,11 +353,11 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
         >>> pt.qt4ensure()
-        >>> from ibeis_cnn import augment
+        >>> from wbia_cnn import augment
         >>> augment.show_augmented_patches(Xb, Xb_, yb, yb_, data_per_label=1)
         >>> ut.show_if_requested()
         """
-        from ibeis_cnn import augment
+        from wbia_cnn import augment
 
         rng = np.random
         affperterb_ranges = dict(
@@ -391,7 +391,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     >>> data_type = 'hog'
     >>> dataset = get_shark_dataset(target_type)
     """
-    from ibeis_cnn.dataset import DataSet
+    from wbia_cnn.dataset import DataSet
     from wbia.scripts import classify_shark
 
     tup = classify_shark.get_shark_labels_and_metadata(target_type)
@@ -453,7 +453,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
             # Save data where dataset expects it to be
             dataset.save(data, labels, metadata, data_per_label=1)
 
-    from ibeis_cnn.dataset import stratified_label_shuffle_split
+    from wbia_cnn.dataset import stratified_label_shuffle_split
 
     if not dataset.has_split('learn'):
         nids = np.array(dataset.metadata['nids'])
@@ -859,7 +859,7 @@ class ClfProblem(object):
         if hasattr(problem.ds, 'nids'):
             # Ensure that an individual does not appear in both the train
             # and the test dataset
-            from ibeis_cnn.dataset import stratified_kfold_label_split
+            from wbia_cnn.dataset import stratified_kfold_label_split
 
             labels = problem.ds.nids
             _iter = stratified_kfold_label_split(y, labels, n_folds=n_folds, rng=rng)
@@ -1029,7 +1029,7 @@ def shark_svm():
 
     ds = classify_shark.get_shark_dataset(target_type, 'hog')
     # Make resemble old dataset
-    # FIXME; make ibeis_cnn dataset work here too
+    # FIXME; make wbia_cnn dataset work here too
     # annots = ds.getprop('annots')
     ds.enc = ds.getprop('enc')
     ds.aids = ds.getprop('annots').aids
@@ -1094,7 +1094,7 @@ def shark_svm():
             return self.n_folds
 
         def __iter__(self):
-            from ibeis_cnn.dataset import stratified_kfold_label_split
+            from wbia_cnn.dataset import stratified_kfold_label_split
 
             rng = 1809629827
             for _ in stratified_kfold_label_split(
@@ -1414,7 +1414,7 @@ def inspect_results(ds, result_list):
 
     ibs = ds.ibs
     config = ds.config
-    from ibeis_cnn import draw_results
+    from wbia_cnn import draw_results
 
     inter = draw_results.make_InteractClasses(
         ibs, config, df_chunks, nCols=len(view_targets)

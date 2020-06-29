@@ -102,7 +102,7 @@ def get_path_extensions():
         'flann/src/python',
         #'pygist',
         'wbia',
-        'ibeis_cnn',
+        'wbia_cnn',
         'pydarknet',
         'hesaff',
         'detecttools',

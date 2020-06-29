@@ -768,10 +768,10 @@ def make_netharn_registry(remote):
             },
         ),
         CommonRepo(
-            name='ibeis_cnn',
+            name='wbia_cnn',
             branch='master',
             remote=remote,
-            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis_cnn.git',},
+            remotes={'Wildbook': 'git@github.com:WildbookOrg/wbia_cnn.git',},
         ),
         CommonRepo(
             name='ibeis_curvrank',

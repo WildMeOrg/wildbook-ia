@@ -155,9 +155,9 @@ def show_top_featmatches(qreq_, cm_list):
     import wbia.plottool as pt  # NOQA
 
     pt.ensureqt()
-    import ibeis_cnn
+    import wbia_cnn
 
-    inter = ibeis_cnn.draw_results.interact_patches(
+    inter = wbia_cnn.draw_results.interact_patches(
         label_lists,
         data_lists,
         flat_metadata_top,

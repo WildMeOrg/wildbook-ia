@@ -72,7 +72,7 @@ RUN mkdir -p /root/.ssh
 # Add deploy keys and SSH keys for Github with this container
 ADD dev/keys/deploy-wbia /root/.ssh/deploy-wbia
 
-ADD dev/keys/deploy-ibeis_cnn /root/.ssh/deploy-ibeis_cnn
+ADD dev/keys/deploy-wbia_cnn /root/.ssh/deploy-wbia_cnn
 
 ADD dev/keys/deploy-ibeis-flukematch-module /root/.ssh/deploy-ibeis-flukematch-module
 
@@ -85,9 +85,9 @@ Host wbia.github.com\n\
 HostName github.com\n\
 IdentityFile /root/.ssh/deploy-wbia\n\
 User git\n\n\
-Host ibeis_cnn.github.com\n\
+Host wbia_cnn.github.com\n\
 HostName github.com\n\
-IdentityFile /root/.ssh/deploy-ibeis_cnn\n\
+IdentityFile /root/.ssh/deploy-wbia_cnn\n\
 User git\n\n\
 Host ibeis-flukematch-module.github.com\n\
 HostName github.com\n\
@@ -112,7 +112,7 @@ RUN    git clone https://github.com/opencv/opencv.git               /wbia/opencv
     && git clone https://github.com/WildbookOrg/ubelt.git           /wbia/ubelt
 
 RUN    git clone git@wbia.github.com:WildbookOrg/wbia.git         /wbia/wbia \
-    && git clone git@ibeis_cnn.github.com:WildbookOrg/ibeis_cnn.git /wbia/ibeis_cnn \
+    && git clone git@wbia_cnn.github.com:WildbookOrg/wbia_cnn.git /wbia/wbia_cnn \
     && git clone git@ibeis-flukematch-module.github.com:WildbookOrg/ibeis-flukematch-module.git /wbia/ibeis-flukematch-module \
     && git clone git@ibeis-curvrank-module.github.com:WildbookOrg/ibeis-curvrank-module.git /wbia/ibeis-curvrank-module
 
@@ -238,7 +238,7 @@ RUN    cd /wbia/wbia \
     && git checkout 6146453 \
     && cd /wbia/hesaff \
     && git checkout 28e8ef5 \
-    && cd /wbia/ibeis_cnn \
+    && cd /wbia/wbia_cnn \
     && git checkout 09d166c \
     && cd /wbia/pydarknet \
     && git checkout f36e935 \
@@ -279,7 +279,7 @@ RUN    cd /wbia/detecttools \
     && /virtualenv/env3/bin/pip install -e . \
     && cd /wbia/dtool \
     && /virtualenv/env3/bin/pip install -e . \
-    && cd /wbia/ibeis_cnn \
+    && cd /wbia/wbia_cnn \
     && /virtualenv/env3/bin/pip install -e . \
     && cd /wbia/guitool \
     && /virtualenv/env3/bin/pip install -e . \
