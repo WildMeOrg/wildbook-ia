@@ -552,7 +552,7 @@ def show_matches2(
     Integrate ChipMatch
 
     Used in:
-        Found 1 line(s) in '/home/joncrall/code/ibeis_cnn/ibeis_cnn/ingest_wbia.py':
+        Found 1 line(s) in '/home/joncrall/code/wbia_cnn/wbia_cnn/ingest_wbia.py':
         ingest_wbia.py : 827 |        >>>     wbia.viz.viz_matches.show_matches2(ibs, aid1, aid2, fm=None, kpts1=kpts1, kpts2=kpts2)
         ----------------------
         Found 4 line(s) in '/home/joncrall/code/wbia/wbia/viz/viz_matches.py':
