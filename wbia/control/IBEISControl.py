@@ -101,7 +101,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'wbia.algo.smk.vocab_indexer',
     'wbia.algo.smk.smk_pipeline',
     # (('--no-cnn', '--nocnn'), 'wbia_cnn'),
-    # (('--no-cnn', '--nocnn'), 'wbia_cnn._plugin'),
+    (('--no-cnn', '--nocnn'), 'wbia_cnn._plugin'),
     # (('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
     # (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
     # 'wbia_plugin_identification_example',
