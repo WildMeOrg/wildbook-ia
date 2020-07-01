@@ -604,8 +604,8 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     multi_annots = all_annots.compress(is_multi_tag)  # NOQA
     # ibs.set_image_imagesettext(multi_annots.gids, ['MultiTaged'] * is_multi_tag.sum())
 
-    print('can\'t use %r annots due to no labels' % (is_no_tag.sum(),))
-    print('can\'t use %r annots due to inconsistent labels' % (is_multi_tag.sum(),))
+    print("can't use %r annots due to no labels" % (is_no_tag.sum(),))
+    print("can't use %r annots due to inconsistent labels" % (is_multi_tag.sum(),))
     print('will use %r annots with consistent labels' % (is_single_tag.sum(),))
 
     annot_tags = ut.compress(category_tags2, is_single_tag)

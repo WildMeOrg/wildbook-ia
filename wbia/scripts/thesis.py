@@ -504,12 +504,12 @@ class Chap5(DBInputs):
             'annot_size_mean': np.mean(pblm_nper_annot),
             'annot_size_std': np.std(pblm_nper_annot),
             'notes': ut.textblock(
-                '''
+                """
                 if this (the real training data) is different from the parents
                 (wbia) info, that means the staging database is ahead of
                 annotmatch. Report the wbia one for clarity. Num annots should
                 always be the same though.
-                '''
+                """
             ),
         }
 
@@ -1484,7 +1484,7 @@ class Chap4(DBInputs):
         if species_code == 'zebra_plains':
             species = 'Plains Zebras'
         if species_code == 'zebra_grevys':
-            species = 'Grévy\'s Zebras'
+            species = "Grévy's Zebras"
         dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
         self.pblm = pblm
@@ -2299,7 +2299,7 @@ class Chap4(DBInputs):
         print(latex_str)
         print()
         extra_ = ut.codeblock(
-            r'''
+            r"""
             \begin{{table}}[h]
                 \centering
                 \caption{{Top {}/{} dimensions for {}}}
@@ -2311,7 +2311,7 @@ class Chap4(DBInputs):
                     \bottomrule
                 \end{{tabular}}
             \end{{table}}
-            '''
+            """
         ).format(num_top, len(importances), task_key.replace('_', '-'), latex_str)
 
         fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
@@ -2409,7 +2409,7 @@ class Chap4(DBInputs):
         print(latex_str)
         print()
         extra_ = ut.codeblock(
-            r'''
+            r"""
             \begin{{table}}[h]
                 \centering
                 \caption{{Pruned top {}/{} dimensions for {} increases MCC by {:.4f}}}
@@ -2421,7 +2421,7 @@ class Chap4(DBInputs):
                     \bottomrule
                 \end{{tabular}}
             \end{{table}}
-            '''
+            """
         ).format(
             num_top,
             len(pruned_importance),

@@ -52,9 +52,9 @@ def e_(u, v):
 def hack_create_aidpair_index(ibs):
     # HACK IN INDEX
     sqlfmt = ut.codeblock(
-        '''
+        """
         CREATE INDEX IF NOT EXISTS {index_name} ON {table} ({index_cols});
-        '''
+        """
     )
     sqlcmd = sqlfmt.format(
         index_name='aidpair_to_rowid',

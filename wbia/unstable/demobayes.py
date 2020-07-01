@@ -719,7 +719,7 @@ def make_bayes_notebook():
     from wbia.templates import generate_notebook
 
     initialize = ut.codeblock(
-        r'''
+        r"""
         # STARTBLOCK
         import os
         os.environ['UTOOL_NO_CNN'] = 'True'
@@ -732,7 +732,7 @@ def make_bayes_notebook():
         from IPython.core.display import HTML
         HTML("<style>body .container { width:99% !important; }</style>")
         # ENDBLOCK
-        '''
+        """
     )
     cell_list_def = [
         initialize,

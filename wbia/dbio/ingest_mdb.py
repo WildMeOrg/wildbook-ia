@@ -71,7 +71,7 @@ if __name__ == '__main__':
                 print('WARNING: INVALID DATA ON LINE', linenum, '[FIX TO CONTINUE]')
                 input()
                 continue
-            filename = line[2].strip("\"'")
+            filename = line[2].strip('"\'')
             sighting = line[1]
             files = [join(originals, filename + '.' + ext) in image_set for ext in exts]
 

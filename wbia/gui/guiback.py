@@ -628,10 +628,10 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             options = ['Apply now and continue', 'Apply now and wait']
             reply = gt.user_option(
                 msg=ut.codeblock(
-                    '''
+                    """
                     Information display is out of date. You should apply the
                     modified configuration before you continue.
-                    '''
+                    """
                 ),
                 options=options,
             )
@@ -1862,13 +1862,13 @@ class MainWindowBackend(GUIBACK_BASE):
         reply, new_config = back.user_option(
             title='Occurrence Grouping',
             msg=ut.codeblock(
-                '''
+                """
                 Choose how we should group the %d ungrouped images into occurrences.
                 We can either:
                     (1) append new occurrences
                     (2) add to the %d existing occurrences
                     (3) redo everything
-                '''
+                """
             )
             % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
             config=config,
@@ -2002,9 +2002,9 @@ class MainWindowBackend(GUIBACK_BASE):
             reply, new_config = back.user_option(
                 title='Run Detection Confirmation',
                 msg=ut.codeblock(
-                    '''
+                    """
                     Preparing to run detection on %d images in \'%s\'.
-                    '''
+                    """
                 )
                 % (len(gid_list), imgset_text),
                 config=config,
@@ -2046,7 +2046,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 fmtdict['num_gids'] = len(gid_list)
                 # Finish building confirmation message
                 msg_fmtstr_list += ['']
-                msg_fmtstr_list += ['Press \'Yes\' to continue']
+                msg_fmtstr_list += ["Press 'Yes' to continue"]
                 msg_fmtstr = '\n'.join(msg_fmtstr_list)
                 msg_str = msg_fmtstr.format(**fmtdict)
                 if back.are_you_sure(use_msg=msg_str):
@@ -2072,7 +2072,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 fmtdict['species_phrase'] = species
                 # Finish building confirmation message
                 msg_fmtstr_list += ['']
-                msg_fmtstr_list += ['Press \'Yes\' to continue']
+                msg_fmtstr_list += ["Press 'Yes' to continue"]
                 msg_fmtstr = '\n'.join(msg_fmtstr_list)
                 msg_str = msg_fmtstr.format(**fmtdict)
                 if back.are_you_sure(use_msg=msg_str):
@@ -2483,9 +2483,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         def get_unique_species_phrase(aid_list):
             def boldspecies(species):
-                species_bold_nice = '\'%s\'' % (
-                    species_dict.get(species, species).upper(),
-                )
+                species_bold_nice = "'%s'" % (species_dict.get(species, species).upper(),)
                 return species_bold_nice
 
             species_list = list(set(ibs.get_annot_species_texts(aid_list)))
@@ -2563,7 +2561,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         # Finish building confirmation message
         msg_fmtstr_list += ['']
-        msg_fmtstr_list += ['Press \'Yes\' to continue']
+        msg_fmtstr_list += ["Press 'Yes' to continue"]
         msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
 
@@ -2770,10 +2768,10 @@ class MainWindowBackend(GUIBACK_BASE):
         if ibs.cfg.other_cfg.enable_custom_filter:
             back.user_warning(
                 msg=ut.codeblock(
-                    '''
+                    """
                 other_cfg.enable_custom_filter=True is not longer supported.
                 Please turn off in Preferences
-                '''
+                """
                 )
             )
 
@@ -2863,7 +2861,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         confirm_kw = dict(
             use_msg=ut.codeblock(
-                '''
+                """
             This action will process the current ImageSet and search for the images (%d total) which contain zebras.
 
             Note: this process is meant for images from sources like camera traps and aerial drones, where the vast majority of the images have no zebras in them.  If you expect the majority of your images to contain zebras, run the standard Detect for better detection accuracy (but will be slower).
@@ -2877,7 +2875,7 @@ class MainWindowBackend(GUIBACK_BASE):
             \t %r
 
             This new ImageSet will contain the images where zebras were detected.
-            '''
+            """
             )
             % (len(gid_list), len(aid_list), imgset_dest_name,),
             title='Process ImageSet?',
@@ -2963,11 +2961,11 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.contains_special_imagesets([imgsetid]) or imgsetid is None:
             back.user_warning(
                 msg=ut.codeblock(
-                    '''
+                    """
                 This operation is only allowed for OCCURRENCES.
                 Tried to send a special ImageSet to Wildbook as an occurrence.
                 Special ImageSets are living entities and are never truely complete.
-                '''
+                """
                 )
             )
         else:
@@ -3025,7 +3023,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
             confirm_kw = dict(
                 use_msg=ut.codeblock(
-                    '''
+                    """
                 Have you finished reviewing ALL detections,
                 Intra-Occurence IDs, and Vs-Exemplar IDs?
 
@@ -3033,7 +3031,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
                 Selecting YES will remove this occurrence, mark all images are
                 reviewed and processed, and then send it to wildbook.
-                '''
+                """
                 )
                 % '\n'.join(msg_list),
                 title='Complete Occurrence?',
@@ -3703,17 +3701,17 @@ class MainWindowBackend(GUIBACK_BASE):
         if invalid:
             if level == 1:
                 raise IOError(
-                    '''
+                    """
                     [guiback] The following encounter folder structures (1 level) are not valid: %r
                     [guiback]     * The selected folders must contain images
                     [guiback]     * The selected folders must NOT contain any sub-folders
                     [guiback]     * The selected folders must NOT be empty
-                '''
+                """
                     % (invalid_list,)
                 )
             if level == 2:
                 raise IOError(
-                    '''
+                    """
                     [guiback] The following encounter folder structures (2 levels) are not valid: %r
                     [guiback]     * The selected folders must NOT contain images
                     [guiback]     * The selected folders must contain sub-folders
@@ -3721,7 +3719,7 @@ class MainWindowBackend(GUIBACK_BASE):
                     [guiback]     * The sub-folders in the selected folders must contain images
                     [guiback]     * The sub-folders in the selected folders must NOT contain any sub-folders
                     [guiback]     * The sub-folders in the selected folders must NOT be empty
-                '''
+                """
                     % (invalid_list,)
                 )
         print('[guiback] Encounters are valid, continue with import')
