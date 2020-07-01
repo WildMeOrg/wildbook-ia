@@ -366,7 +366,7 @@ def iccv_data(defaultdb=None):
     if species_code == 'zebra_plains':
         species = 'Plains Zebras'
     if species_code == 'zebra_grevys':
-        species = 'Grévy\'s Zebras'
+        species = "Grévy's Zebras"
     # species = ibs.get_species_nice(
     #     ibs.get_species_rowids_from_text())[0]
     return ibs, expt_aids, train_aids, test_aids, species

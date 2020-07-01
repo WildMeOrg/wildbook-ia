@@ -960,7 +960,7 @@ def submit_annotation(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
-    elif method.lower() == u'rotate left':
+    elif method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
         print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
@@ -971,7 +971,7 @@ def submit_annotation(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
-    elif method.lower() == u'rotate right':
+    elif method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
         print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
@@ -1131,7 +1131,7 @@ def submit_species(**kwargs):
         ibs.delete_annots(aid)
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
-    elif method.lower() == u'skip':
+    elif method.lower() == 'skip':
         species_text = const.UNKNOWN
         ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_reviewed([aid], [1])
@@ -1146,7 +1146,7 @@ def submit_species(**kwargs):
                 previous_species_rowids=previous_species_rowids,
             )
         )
-    elif method.lower() in u'refresh':
+    elif method.lower() in 'refresh':
         print('[web] (REFRESH) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
@@ -1160,7 +1160,7 @@ def submit_species(**kwargs):
         else:
             redirection = '%s?refresh=true' % (redirection,)
         return redirect(redirection)
-    elif method.lower() == u'rotate left':
+    elif method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
         print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
@@ -1171,7 +1171,7 @@ def submit_species(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
-    elif method.lower() == u'rotate right':
+    elif method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
         print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
@@ -1242,7 +1242,7 @@ def submit_part_types(**kwargs):
     user_id = user.get('username', None)
 
     refresh = False
-    if method.lower() in u'refresh':
+    if method.lower() in 'refresh':
         print('[web] (REFRESH) user_id: %s, part_rowid: %d' % (user_id, part_rowid,))
         redirection = request.referrer
         if 'part_rowid' not in redirection:
@@ -1256,7 +1256,7 @@ def submit_part_types(**kwargs):
         else:
             redirection = '%s?refresh=true' % (redirection,)
         return redirect(redirection)
-    elif method.lower() == u'rotate left':
+    elif method.lower() == 'rotate left':
         ibs.update_part_rotate_left_90([part_rowid])
         print('[web] (ROTATED LEFT) user_id: %s, part_rowid: %d' % (user_id, part_rowid,))
         redirection = request.referrer
@@ -1267,7 +1267,7 @@ def submit_part_types(**kwargs):
             else:
                 redirection = '%s?part_rowid=%d' % (redirection, part_rowid,)
         return redirect(redirection)
-    elif method.lower() == u'rotate right':
+    elif method.lower() == 'rotate right':
         ibs.update_part_rotate_right_90([part_rowid])
         print(
             '[web] (ROTATED RIGHT) user_id: %s, part_rowid: %d' % (user_id, part_rowid,)

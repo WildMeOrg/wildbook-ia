@@ -2160,9 +2160,9 @@ def get_image_imgsetids(ibs, gid_list):
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
         ibs.db.connection.execute(
-            '''
+            """
             CREATE INDEX IF NOT EXISTS gs_to_gids ON {GSG_RELATION_TABLE} ({IMAGE_ROWID});
-            '''.format(
+            """.format(
                 GSG_RELATION_TABLE=const.GSG_RELATION_TABLE, IMAGE_ROWID=IMAGE_ROWID
             )
         ).fetchall()
@@ -2264,9 +2264,9 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
         # Ensure that an index exists on the image column of the annotation table
 
         ibs.db.connection.execute(
-            '''
+            """
             CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
-            '''
+            """
         ).fetchall()
 
         # The index maxes the following query very efficient
@@ -2298,13 +2298,13 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
         input_list, inverse_unique = np.unique(gid_list, return_inverse=True)
         # This code doesn't work because it doesn't respect empty names
         input_str = ', '.join(list(map(str, input_list)))
-        opstr = '''
+        opstr = """
         SELECT annot_rowid, image_rowid
         FROM {ANNOTATION_TABLE}
         WHERE image_rowid IN
             ({input_str})
             ORDER BY image_rowid ASC, annot_rowid ASC
-        '''.format(
+        """.format(
             input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE
         )
         pair_list = ibs.db.connection.execute(opstr).fetchall()

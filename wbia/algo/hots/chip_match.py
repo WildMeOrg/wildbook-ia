@@ -1970,11 +1970,11 @@ class _ChipMatchDebugger(object):
         # hard case for python text parsing
         # better know about quoted hash symbols
         header = ut.codeblock(
-            '''
+            """
             # qaid = {qaid}
             # qnid = {qnid}
             # fsv_col_lbls = {fsv_col_lbls}
-            '''
+            """
         ).format(qaid=cm.qaid, qnid=qnid, fsv_col_lbls=cm.fsv_col_lbls)
 
         csv_str = ut.make_csv_table(column_list, column_lbls, header, comma_repl=';')

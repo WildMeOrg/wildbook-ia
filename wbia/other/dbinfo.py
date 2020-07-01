@@ -1157,12 +1157,12 @@ def get_short_infostr(ibs):
     num_names = ibs.get_num_names()
     # workdir = %r
     infostr = ut.codeblock(
-        '''
+        """
     dbname = %s
     num_images = %r
     num_annotations = %r
     num_names = %r
-    '''
+    """
         % (ut.repr2(dbname), num_images, num_annotations, num_names)
     )
     return infostr

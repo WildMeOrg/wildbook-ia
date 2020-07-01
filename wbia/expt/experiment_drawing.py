@@ -109,7 +109,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
             ibs.get_species_rowids_from_text(ibs.get_dominant_species(testres.qaids))
         )
         species_nice = {
-            'zebra_grevys': 'Grevy\'s Zebras',
+            'zebra_grevys': "Grevy's Zebras",
             'zebra_plains': 'Plains Zebras',
             'giraffe_masai': 'Masai Giraffes',
         }.get(species, species_nice)
@@ -836,7 +836,7 @@ def temp_num_exmaples_cmc():
             ibs.get_species_rowids_from_text(ibs.get_dominant_species(testres.qaids))
         )
         species_nice = {
-            'zebra_grevys': 'Grevy\'s Zebras',
+            'zebra_grevys': "Grevy's Zebras",
             'zebra_plains': 'Plains Zebras',
             'giraffe_masai': 'Masai Giraffes',
         }.get(species, species_nice)
@@ -945,7 +945,7 @@ def temp_multidb_cmc():
             ibs.get_species_rowids_from_text(ibs.get_dominant_species(testres.qaids))
         )
         species_nice = {
-            'zebra_grevys': 'Grevy\'s Zebras',
+            'zebra_grevys': "Grevy's Zebras",
             'zebra_plains': 'Plains Zebras',
             'giraffe_masai': 'Masai Giraffes',
         }.get(species, species_nice)
@@ -1504,7 +1504,7 @@ def draw_match_cases(
 
     def toggle_fast_mode():
         show_kwargs['fastmode'] = not show_kwargs['fastmode']
-        print('show_kwargs[\'fastmode\'] = %r' % (show_kwargs['fastmode'],))
+        print("show_kwargs['fastmode'] = %r" % (show_kwargs['fastmode'],))
 
     custom_actions = [
         ('present', ['s'], 'present', pt.present),
@@ -1588,7 +1588,7 @@ def draw_match_cases(
             ut.ensuredir(individ_results_dpath)
             # Draw Result
             # try to shorten query labels a bit
-            query_lbl = query_lbl.replace(' ', '').replace('\'', '')
+            query_lbl = query_lbl.replace(' ', '').replace("'", '')
             _query_lbl = query_lbl
             qres_fname = query_lbl + '.png'
 
