@@ -378,9 +378,9 @@ class AbstractInteraction(object):
         if divider is not None:
             new_ax = divider.append_axes(location, size=size, pad=0.05)
         if callback is not None:
-            color, hovercolor = u'.85', u'.95'
+            color, hovercolor = '.85', '.95'
         else:
-            color, hovercolor = u'.88', u'.88'
+            color, hovercolor = '.88', '.88'
             # color, hovercolor = u'.45', u'.45'
         # if isinstance(text, six.text_type):
         new_but = mpl.widgets.Button(new_ax, text, color=color, hovercolor=hovercolor)

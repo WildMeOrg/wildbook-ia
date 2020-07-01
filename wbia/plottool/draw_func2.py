@@ -213,9 +213,9 @@ class OffsetImage2(mpl.offsetbox.OffsetBox):
         return [self.image]
 
     def get_window_extent(self, renderer):
-        '''
+        """
         get the bounding box in display space.
-        '''
+        """
         import matplotlib.transforms as mtransforms
 
         w, h, xd, yd = self.get_extent(renderer)
@@ -1016,11 +1016,11 @@ def show_if_requested(N=1):
             )
             latex_block = (
                 ut.codeblock(
-                    r'''
+                    r"""
                 \begin{comment}
                 %s
                 \end{comment}
-                '''
+                """
                 )
                 % (cmdline_str,)
                 + '\n'
