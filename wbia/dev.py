@@ -591,7 +591,7 @@ def run_dev(ibs):
 # EXAMPLE TEXT
 # -------------
 
-EXAMPLE_TEXT = '''
+EXAMPLE_TEXT = """
 ### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###
 python -m wbia.dev --t mtest
 python dev.py --t nauts
@@ -650,7 +650,7 @@ python dev.py --allgt -t best --vf --va --fig-dname query_analysis_all
 python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110
 python dev.py --hard -t best vsone nsum
 >>>
-'''
+"""
 
 # L______________
 
@@ -722,14 +722,14 @@ def devmain():
     print('DEVMAIN INIT - POSTLOGGING')
 
     helpstr = ut.codeblock(
-        '''
+        """
         Dev is meant to be run as an interactive script.
 
         The dev.py script runs any test you regiter with @devcmd in any combination
         of configurations specified by a Config object.
 
         Dev caches information in order to get quicker results.  # FIXME: Provide quicker results  # FIXME: len(line)
-        '''
+        """
     )
 
     INTRO_TITLE = 'The dev.py Script'

@@ -928,7 +928,7 @@ class VerifierExpt(DBInputs):
         if species_code == 'zebra_plains':
             species = 'Plains Zebras'
         if species_code == 'zebra_grevys':
-            species = 'Grévy\'s Zebras'
+            species = "Grévy's Zebras"
         else:
             species = species_code
 
@@ -2310,11 +2310,11 @@ class VerifierExpt(DBInputs):
         # ---------------------------
         # Rerun ranking on the smaller dataset
 
-        '''
+        """
         pip install git+git://github.com/pandas-dev/pandas.git@master
 
         (26, 876),
-        '''
+        """
 
         sel_qaids = sorted(selected['qaid'].values)
         sel_daids = sorted(needed_daids + confuse_daids)

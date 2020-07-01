@@ -826,8 +826,8 @@ class TestResult(ut.NiceRepr):
             # ----
             # ('prescore_method=\'?csum\'?,score_method=\'?csum\'?,?', 'amech'),
             # ('prescore_method=\'?nsum\'?,score_method=\'?nsum\'?,?', 'fmech'),
-            ('prescore_method=\'?csum\'?,score_method=\'?csum\'?,?', 'mech=annot'),
-            ('prescore_method=\'?nsum\'?,score_method=\'?nsum\'?,?', 'mech=name'),
+            ("prescore_method='?csum'?,score_method='?csum'?,?", 'mech=annot'),
+            ("prescore_method='?nsum'?,score_method='?nsum'?,?", 'mech=name'),
             ('force_const_size=[^,]+,?', ''),
             (r'[dq]?_true_size=\d+,?', ''),
             (r'[dq]?_orig_size=[^,]+,?', ''),

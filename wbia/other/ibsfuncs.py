@@ -2092,12 +2092,12 @@ def _get_reviewed_gids(ibs):
 
 def _get_gids_in_imgsetid(ibs, imgsetid):
     gid_list = ibs.db.executeone(
-        '''
+        """
         SELECT image_rowid
         FROM {GSG_RELATION_TABLE}
         WHERE
             imageset_rowid==?
-        '''.format(
+        """.format(
             **const.__dict__
         ),
         params=(imgsetid,),
@@ -2107,13 +2107,13 @@ def _get_gids_in_imgsetid(ibs, imgsetid):
 
 def _get_dirty_reviewed_gids(ibs, imgsetid):
     gid_list = ibs.db.executeone(
-        '''
+        """
         SELECT image_rowid
         FROM {GSG_RELATION_TABLE}
         WHERE
             imageset_rowid==? AND
             image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE} WHERE image_toggle_reviewed=1)
-        '''.format(
+        """.format(
             **const.__dict__
         ),
         params=(imgsetid,),
@@ -2123,11 +2123,11 @@ def _get_dirty_reviewed_gids(ibs, imgsetid):
 
 def _get_exemplar_gids(ibs):
     gid_list = ibs.db.executeone(
-        '''
+        """
         SELECT image_rowid
         FROM {ANNOTATION_TABLE}
         WHERE annot_exemplar_flag=1
-        '''.format(
+        """.format(
             **const.__dict__
         )
     )
@@ -2499,7 +2499,7 @@ def get_consecutive_newname_list_via_species(
     def get_new_name(code):
         if imgsetid is not None:
             imgset_text = ibs.get_imageset_text(imgsetid)
-            imgset_text = imgset_text.replace(' ', '_').replace('\'', '').replace('"', '')
+            imgset_text = imgset_text.replace(' ', '_').replace("'", '').replace('"', '')
             args = (
                 location_text,
                 code,
@@ -4841,7 +4841,7 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
         str_ = ut.get_stats_str(
             stat_dict=dict_, precision=precision, exclude_keys=exclude_keys, **kwargs
         )
-    str_ = str_.replace('\'', '')
+    str_ = str_.replace("'", '')
     str_ = str_.replace('num_nan: 0, ', '')
     return str_
 
