@@ -5,29 +5,6 @@ from os.path import exists
 import sys
 
 
-def parse_version(fpath):
-    """
-    Statically parse the version number from a python file
-    """
-    import ast
-
-    if not exists(fpath):
-        raise ValueError('fpath={!r} does not exist'.format(fpath))
-    with open(fpath, 'r') as file_:
-        sourcecode = file_.read()
-    pt = ast.parse(sourcecode)
-
-    class VersionVisitor(ast.NodeVisitor):
-        def visit_Assign(self, node):
-            for target in node.targets:
-                if getattr(target, 'id', None) == '__version__':
-                    self.version = node.value.s
-
-    visitor = VersionVisitor()
-    visitor.visit(pt)
-    return visitor.version
-
-
 def parse_description():
     """
     Parse the description in the README file
@@ -187,7 +164,7 @@ def autogen_explicit_imports():
 
 
 NAME = 'wbia'
-VERSION = parse_version('wbia/__init__.py')  # must be global for git tags
+
 
 if __name__ == '__main__':
     extras_require = {
@@ -202,12 +179,20 @@ if __name__ == '__main__':
 
     kwargs = dict(
         name=NAME,
-        version=VERSION,
         description='Image Based Ecological Information System',
         long_description=parse_description(),
         long_description_content_type='text/x-rst',
         author='Jon Crall, Jason Parham',
         author_email='dev@wildme.org',
+        # The following settings retreive the version from git.
+        # See https://github.com/pypa/setuptools_scm/ for more information
+        setup_requires=['setuptools_scm'],
+        use_scm_version={
+            'write_to': 'wbia/_version.py',
+            'write_to_template': '__version__ = "{version}"',
+            'tag_regex': '^(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$',
+            'local_scheme': 'dirty-tag',
+        },
         install_requires=install_requires,
         extras_require=extras_require,
         entry_points={
@@ -226,14 +211,6 @@ if __name__ == '__main__':
             # Supported Python versions
             'Programming Language :: Python :: 3',
         ],
-        packages=find_packages('.')
-        # packages=[
-        #     'wbia', 'wbia/algo', 'wbia/control', 'wbia/dbio',
-        #     'wbia/expt', 'wbia/gui', 'wbia/init', 'wbia/other',
-        #     'wbia/scripts', 'wbia/templates', 'wbia/tests', 'wbia/viz',
-        #     'wbia/web', 'wbia/algo/detect', 'wbia/algo/hots',
-        #     'wbia/algo/preproc', 'wbia/algo/hots/smk',
-        #     'wbia/viz/interact'
-        # ],
+        packages=find_packages('.'),
     )
     setup(**kwargs)

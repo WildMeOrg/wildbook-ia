@@ -8,7 +8,10 @@ TODO: LAZY IMPORTS?
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '2.2.4'
+try:
+    from wbia._version import __version__
+except ImportError:
+    __version__ = '0.0.0'
 
 try:
     import utool as ut
