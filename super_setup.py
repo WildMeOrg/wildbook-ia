@@ -15,6 +15,27 @@ import click
 import ubelt as ub
 
 
+REPOS = [
+    # (<repo-on-github>, <checkout-name>, <branch>)
+    ('WildbookOrg/wbia-tpl-brambox', 'wbia-tpl-brambox', 'master'),
+    ('WildbookOrg/wbia-tpl-pyflann', 'wbia-tpl-pyflann', 'master'),
+    ('WildbookOrg/wbia-tpl-pyhesaff', 'wbia-tpl-pyhesaff', 'master'),
+    ('WildbookOrg/wildbook-ia', 'wildbook-ia', 'develop'),
+    ('WildbookOrg/wbia-tpl-lightnet', 'wbia-tpl-lightnet', 'master'),
+    ('WildbookOrg/wbia-tpl-pydarknet', 'wbia-tpl-pydarknet', 'master'),
+    ('WildbookOrg/wbia-tpl-pyrf', 'wbia-tpl-pyrf', 'master'),
+    ('WildbookOrg/wbia-utool', 'wbia-utool', 'master'),
+    ('WildbookOrg/wbia-vtool', 'wbia-vtool', 'master'),
+    ('WildbookOrg/wbia-plugin-cnn', 'wbia-plugin-cnn', 'master'),
+    ('WildbookOrg/wbia-plugin-flukematch', 'wbia-plugin-flukematch', 'master'),
+    ('WildbookOrg/wbia-plugin-curvrank', 'wbia-plugin-curvrank', 'master'),
+    ('WildbookOrg/wbia-plugin-deepsense', 'wbia-plugin-deepsense', 'master'),
+    ('WildbookOrg/wbia-plugin-finfindr', 'wbia-plugin-finfindr', 'master'),
+    ('WildbookOrg/wbia-plugin-kaggle7', 'wbia-plugin-kaggle7', 'master'),
+    ('WildbookOrg/wbia-plugin-2d-orientation', 'wbia-plugin-2d-orientation', 'master'),
+]
+
+
 class ShellException(Exception):
     """
     Raised when shell returns a non-zero error code
@@ -833,47 +854,40 @@ def main():
     }
 
     @click.group(context_settings=default_context_settings)
-    def cli_group():
+    def cli():
         pass
 
-    @cli_group.add_command
-    @click.command('pull', context_settings=default_context_settings)
+    @cli.command('pull', context_settings=default_context_settings)
     def pull():
         registery.apply('pull', num_workers=num_workers)
 
-    @cli_group.add_command
-    @click.command('ensure', context_settings=default_context_settings)
+    @cli.command('ensure', context_settings=default_context_settings)
     def ensure():
         """
         Ensure is the live run of "check".
         """
         registery.apply('ensure', num_workers=num_workers)
 
-    @cli_group.add_command
-    @click.command('ensure_clone', context_settings=default_context_settings)
+    @cli.command('ensure_clone', context_settings=default_context_settings)
     def ensure_clone():
         registery.apply('ensure_clone', num_workers=num_workers)
 
-    @cli_group.add_command
-    @click.command('check', context_settings=default_context_settings)
+    @cli.command('check', context_settings=default_context_settings)
     def check():
         """
         Check is just a dry run of "ensure".
         """
         registery.apply('check', num_workers=num_workers)
 
-    @cli_group.add_command
-    @click.command('status', context_settings=default_context_settings)
+    @cli.command('status', context_settings=default_context_settings)
     def status():
         registery.apply('status', num_workers=num_workers)
 
-    @cli_group.add_command
-    @click.command('develop', context_settings=default_context_settings)
+    @cli.command('develop', context_settings=default_context_settings)
     def develop():
         registery.apply('develop', num_workers=0)
 
-    @cli_group.add_command
-    @click.command('doctest', context_settings=default_context_settings)
+    @cli.command('doctest', context_settings=default_context_settings)
     def doctest():
         registery.apply('doctest')
 
@@ -882,7 +896,7 @@ def main():
     # def versions():
     #     registery.apply('versions')
 
-    cli_group()
+    cli()
 
 
 if __name__ == '__main__':
