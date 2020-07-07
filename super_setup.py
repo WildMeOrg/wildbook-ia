@@ -9,8 +9,10 @@ from os.path import exists
 from os.path import join
 from os.path import dirname
 from os.path import abspath
-import ubelt as ub
 import functools
+
+import click
+import ubelt as ub
 
 
 class ShellException(Exception):
@@ -25,32 +27,6 @@ class DirtyRepoError(Exception):
     automated scripts. To be safe, we don't do anything. We ensure this by
     raising this error.
     """
-
-
-def parse_version(package):
-    """
-    Statically parse the version number from __init__.py
-
-    CommandLine:
-        python -c "import setup; print(setup.parse_version('ovharn'))"
-    """
-    from os.path import dirname, join
-    import ast
-
-    init_fpath = join(dirname(__file__), package, '__init__.py')
-    with open(init_fpath) as file_:
-        sourcecode = file_.read()
-    pt = ast.parse(sourcecode)
-
-    class VersionVisitor(ast.NodeVisitor):
-        def visit_Assign(self, node):
-            for target in node.targets:
-                if target.id == '__version__':
-                    self.version = node.value.s
-
-    visitor = VersionVisitor()
-    visitor.visit(pt)
-    return visitor.version
 
 
 class GitURL(object):
@@ -379,6 +355,9 @@ class Repo(ub.NiceRepr):
         """
         Print current version information
         """
+        # FIXME (7-Jul-12020) temporary disabled until versions have been stablized
+        raise NotImplementedError()
+
         fmtkw = {}
         fmtkw['pkg'] = parse_version(repo.pkg_dpath) + ','
         fmtkw['sha1'] = repo._cmd('git rev-parse HEAD', verbose=0)['out'].strip()
@@ -824,8 +803,6 @@ def main():
     REMOTE = 'Erotemic'
     REMOTE = 'Wildbook'
 
-    import click
-
     registery = make_netharn_registry(remote=REMOTE)
 
     only = ub.argval('--only', default=None)
@@ -900,10 +877,10 @@ def main():
     def doctest():
         registery.apply('doctest')
 
-    @cli_group.add_command
-    @click.command('versions', context_settings=default_context_settings)
-    def versions():
-        registery.apply('versions')
+    # FIXME (7-Jul-12020) disabled until versioning code has stablized.
+    # @cli.command('versions', context_settings=default_context_settings)
+    # def versions():
+    #     registery.apply('versions')
 
     cli_group()
 
