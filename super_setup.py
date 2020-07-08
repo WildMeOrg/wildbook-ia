@@ -1,15 +1,15 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Requirements:
     pip install gitpython click ubelt
 """
 import re
+import functools
 from os.path import exists
 from os.path import join
 from os.path import dirname
 from os.path import abspath
-import functools
 
 import click
 import ubelt as ub
@@ -696,135 +696,20 @@ def determine_code_dpath():
     return code_dpath
 
 
-def make_netharn_registry(remote):
+def make_netharn_registry():
     code_dpath = determine_code_dpath()
-    CommonRepo = functools.partial(Repo, code_dpath=code_dpath)
+    repo_factory = functools.partial(Repo, code_dpath=code_dpath)
+    gen_github_remote = lambda r: "git@github.com:{}".format(r)
     repos = [
-        # The util libs
-        CommonRepo(
-            name='utool',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Erotemic': 'git@github.com:Erotemic/utool.git',
-                'Wildbook': 'git@github.com:WildbookOrg/utool.git',
-            },
-        ),
-        CommonRepo(
-            name='ubelt',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Erotemic': 'git@github.com:Erotemic/ubelt.git',
-                'Wildbook': 'git@github.com:WildbookOrg/ubelt.git',
-            },
-        ),
-        CommonRepo(
-            name='vtool_ibeis',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Erotemic': 'git@github.com:Erotemic/vtool_ibeis.git',
-                'Wildbook': 'git@github.com:WildbookOrg/wbia-vtool.git',
-            },
-        ),
-        CommonRepo(
-            name='pyflann_ibeis',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Erotemic': 'git@github.com:Erotemic/pyflann_ibeis.git',
-                'Wildbook': 'git@github.com:WildbookOrg/pyflann_ibeis.git',
-            },
-        ),
-        CommonRepo(
-            name='pyhesaff',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Erotemic': 'git@github.com:Erotemic/pyhesaff.git',
-                'Wildbook': 'git@github.com:WildbookOrg/pyhesaff.git',
-            },
-        ),
-        CommonRepo(
-            name='pydarknet',
-            branch='master',
-            remote=remote,
-            remotes={'Wildbook': 'git@github.com:WildbookOrg/pydarknet.git',},
-        ),
-        CommonRepo(
-            name='pyrf',
-            branch='master',
-            remote=remote,
-            remotes={'Wildbook': 'git@github.com:WildbookOrg/pyrf.git',},
-        ),
-        CommonRepo(
-            name='wbia',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Erotemic': 'git@github.com:Erotemic/wbia.git',
-                'Wildbook': 'git@github.com:WildbookOrg/wbia.git',
-            },
-        ),
-        CommonRepo(
-            name='wbia_cnn',
-            branch='master',
-            remote=remote,
-            remotes={'Wildbook': 'git@github.com:WildbookOrg/wbia_cnn.git',},
-        ),
-        CommonRepo(
-            name='ibeis_curvrank',
-            branch='master',
-            remote=remote,
-            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-curvrank-module.git',},
-        ),
-        CommonRepo(
-            name='wbia_deepsense',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-deepsense-module.git',
-            },
-        ),
-        CommonRepo(
-            name='wbia_finfindr',
-            branch='master',
-            remote=remote,
-            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-finfindr-module.git',},
-        ),
-        CommonRepo(
-            name='ibeis_flukematch',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/ibeis-flukematch-module.git',
-            },
-        ),
-        CommonRepo(
-            name='wbia_kaggle7',
-            branch='master',
-            remote=remote,
-            remotes={'Wildbook': 'git@github.com:WildbookOrg/ibeis-kaggle7-module.git',},
-        ),
-        CommonRepo(
-            name='wbia_2d_orientation',
-            branch='master',
-            remote=remote,
-            remotes={
-                'Wildbook': 'git@github.com:WildbookOrg/wbia-2d-orientation-module.git',
-            },
-        ),
+        repo_factory(name=name, branch=branch, remote=gen_github_remote(repo))
+        for repo, name, branch in REPOS
     ]
     registery = RepoRegistry(repos)
     return registery
 
 
 def main():
-    REMOTE = 'Erotemic'
-    REMOTE = 'Wildbook'
-
-    registery = make_netharn_registry(remote=REMOTE)
+    registery = make_netharn_registry()
 
     only = ub.argval('--only', default=None)
     if only is not None:
