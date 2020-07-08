@@ -86,68 +86,74 @@ class Win32CompatTempFile(object):
             temp.close()
 
 
-class PickleFLANN(pyflann.FLANN):
-    """
-    Adds the ability to pickle a flann class on a unix system.
-    (Actually, pickle still wont work because we need the original point data.
-    But we can do a custom dumps and a loads)
+if pyflann is not None:
 
-    CommandLine:
-        python -m wbia.algo.smk.pickle_flann PickleFLANN
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.smk.pickle_flann import *  # NOQA
-        >>> import numpy as np
-        >>> rng = np.random.RandomState(42)
-        >>> data = rng.rand(10, 2)
-        >>> query = rng.rand(5, 2)
-        >>> flann = PickleFLANN()
-        >>> flann.build_index(data, random_seed=42)
-        >>> index_bytes = flann.dumps()
-        >>> flann2 = PickleFLANN()
-        >>> flann2.loads(index_bytes, data)
-        >>> assert flann2 is not flann
-        >>> assert flann2.dumps() == index_bytes
-        >>> idx1 = flann.nn_index(query)[0]
-        >>> idx2 = flann2.nn_index(query)[0]
-        >>> assert np.all(idx1 == idx2)
-    """
-
-    def dumps(self):
+    class PickleFLANN(pyflann.FLANN):
         """
-        # Make a special wordflann pickle
-        http://www.linuxscrew.com/2010/03/24/fastest-way-to-create-ramdisk-in-ubuntulinux/
-        sudo mkdir /tmp/ramdisk; chmod 777 /tmp/ramdisk
-        sudo mount -t tmpfs -o size=256M tmpfs /tmp/ramdisk/
-        http://zeblog.co/?p=1588
-        """
-        # import tempfile
-        # assert not ut.WIN32, 'Fix on WIN32. Cannot write to temp file'
-        # temp = tempfile.NamedTemporaryFile(delete=True)
-        temp = Win32CompatTempFile(delete=True, verbose=False)
-        try:
-            self.save_index(temp.name)
-            index_bytes = temp.read()
-        except Exception:
-            raise
-        finally:
-            temp.close()
-        return index_bytes
+        Adds the ability to pickle a flann class on a unix system.
+        (Actually, pickle still wont work because we need the original point data.
+        But we can do a custom dumps and a loads)
 
-    def loads(self, index_bytes, pts):
-        # import tempfile
-        # assert not ut.WIN32, 'Fix on WIN32. Cannot write to temp file'
-        # temp = tempfile.NamedTemporaryFile(delete=True)
-        temp = Win32CompatTempFile(delete=True, verbose=False)
-        try:
-            temp.write(index_bytes)
-            # temp.file.flush()
-            self.load_index(temp.name, pts)
-        except Exception:
-            raise
-        finally:
-            temp.close()
+        CommandLine:
+            python -m wbia.algo.smk.pickle_flann PickleFLANN
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from wbia.algo.smk.pickle_flann import *  # NOQA
+            >>> import numpy as np
+            >>> rng = np.random.RandomState(42)
+            >>> data = rng.rand(10, 2)
+            >>> query = rng.rand(5, 2)
+            >>> flann = PickleFLANN()
+            >>> flann.build_index(data, random_seed=42)
+            >>> index_bytes = flann.dumps()
+            >>> flann2 = PickleFLANN()
+            >>> flann2.loads(index_bytes, data)
+            >>> assert flann2 is not flann
+            >>> assert flann2.dumps() == index_bytes
+            >>> idx1 = flann.nn_index(query)[0]
+            >>> idx2 = flann2.nn_index(query)[0]
+            >>> assert np.all(idx1 == idx2)
+        """
+
+        def dumps(self):
+            """
+            # Make a special wordflann pickle
+            http://www.linuxscrew.com/2010/03/24/fastest-way-to-create-ramdisk-in-ubuntulinux/
+            sudo mkdir /tmp/ramdisk; chmod 777 /tmp/ramdisk
+            sudo mount -t tmpfs -o size=256M tmpfs /tmp/ramdisk/
+            http://zeblog.co/?p=1588
+            """
+            # import tempfile
+            # assert not ut.WIN32, 'Fix on WIN32. Cannot write to temp file'
+            # temp = tempfile.NamedTemporaryFile(delete=True)
+            temp = Win32CompatTempFile(delete=True, verbose=False)
+            try:
+                self.save_index(temp.name)
+                index_bytes = temp.read()
+            except Exception:
+                raise
+            finally:
+                temp.close()
+            return index_bytes
+
+        def loads(self, index_bytes, pts):
+            # import tempfile
+            # assert not ut.WIN32, 'Fix on WIN32. Cannot write to temp file'
+            # temp = tempfile.NamedTemporaryFile(delete=True)
+            temp = Win32CompatTempFile(delete=True, verbose=False)
+            try:
+                temp.write(index_bytes)
+                # temp.file.flush()
+                self.load_index(temp.name, pts)
+            except Exception:
+                raise
+            finally:
+                temp.close()
+
+
+else:
+    PickleFLANN = None
 
 
 if __name__ == '__main__':
