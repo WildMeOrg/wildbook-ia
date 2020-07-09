@@ -699,7 +699,7 @@ def determine_code_dpath():
 def make_netharn_registry():
     code_dpath = determine_code_dpath()
     repo_factory = functools.partial(Repo, code_dpath=code_dpath)
-    gen_github_remote = lambda r: "git@github.com:{}".format(r)
+    gen_github_remote = lambda r: 'git@github.com:{}'.format(r)
     repos = [
         repo_factory(name=name, branch=branch, remote=gen_github_remote(repo))
         for repo, name, branch in REPOS
