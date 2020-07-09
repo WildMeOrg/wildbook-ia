@@ -65,6 +65,8 @@ RUN set -x \
        #: opencv2 dependency
        libxext6 \
        #: dev debug dependency
+       #: python3-dev required to build 'annoy'
+       python3-dev \
        python3-gdbm \
        python3-pip \
        python3-setuptools \
