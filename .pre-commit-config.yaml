@@ -1,16 +1,16 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+exclude: |
+  (?x)(
+      ^docs/ |
+      ^_docs/_build/html/
+  )
 repos:
-
-  - repo: https://github.com/iconmaster5326/cmake-format-pre-commit-hook
-    rev: master
-    hooks:
-      - id: cmake-format
-        exclude: >
-          (?x)^(
-              .*.cmake.in
-          )$
-
+  # - repo: https://github.com/psf/black
+  #   rev: stable
+  #   hooks:
+  #     - id: black
+  #       language_version: python3.6
   - repo: local
     hooks:
       - id: brunette
@@ -19,14 +19,8 @@ repos:
         entry: brunette --config=setup.cfg
         language: system
         types: [python]
-
-  - repo: https://github.com/psf/black
-    rev: stable
-    hooks:
-      - id: black
-        language_version: python3.6
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.8.1
+    rev: 3.8.3
     hooks:
       - id: flake8
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -35,7 +29,7 @@ repos:
       - id: requirements-txt-fixer
       - id: check-toml
       # - id: check-json
-      # - id: check-yaml
+      - id: check-yaml
       # - id: check-ast
       # - id: check-executables-have-shebangs
       # - id: check-docstring-first

@@ -1,12 +1,2 @@
-[tool.black]
-line-length = 90
-skip-string-normalization = true
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-)/
-'''
-
 [build-system]
-requires = ["cmake", "ninja", "scikit-build", "setuptools>=34.1.0", "wheel"]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4", "scikit-build", "cmake", "ninja"]
