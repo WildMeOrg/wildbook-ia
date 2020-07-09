@@ -3,7 +3,8 @@
 exclude: |
   (?x)(
       ^docs/ |
-      ^_docs/_build/html/
+      ^_docs/_build/html/ |
+      wbia/web/static/
   )
 repos:
   # - repo: https://github.com/psf/black
@@ -28,10 +29,10 @@ repos:
     hooks:
       - id: requirements-txt-fixer
       - id: check-toml
-      # - id: check-json
+      - id: check-json
       - id: check-yaml
       # - id: check-ast
-      # - id: check-executables-have-shebangs
+      - id: check-executables-have-shebangs
       # - id: check-docstring-first
       - id: detect-aws-credentials
       - id: detect-private-key
