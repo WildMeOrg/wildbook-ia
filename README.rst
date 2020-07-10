@@ -19,6 +19,13 @@ and matplotlib visualizations. Algorithms employed are: convolutional neural net
 detection and localization and classification, hessian-affine keypoint detection, SIFT keypoint
 description, LNBNN identification using approximate nearest neighbors.
 
+Requirements
+------------
+
+* Python 3.5+
+* OpenCV 3.4.10
+* Python dependencies listed in requirements.txt
+
 Installation Instructions
 -------------------------
 
@@ -41,12 +48,7 @@ to install the software. Then the command to run the GUI is:
 
     wbia
 
-On Windows / OSX I recommend using a Linux virtual machine. However, if you are
-computer savvy it is possible to build all of the requirements on from source.
-The only tricky components are installing the packages with binary
-dependencies: ``pyhesaff`` and ``wbia-vtool``. If you have these built then
-the rest of the dependencies can be installed from pypi even on OSX / Windows.
-
+We highly recommend using a Python virtual environment: https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv
 
 Docker
 ~~~~~~
