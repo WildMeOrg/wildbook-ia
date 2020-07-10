@@ -736,7 +736,9 @@ def dummy_example_depcacahe():
 
     print('config table')
     tablename = 'config'
-    column_list, column_names = db.get_table_column_data(tablename, ['config_strid'])
+    column_list, column_names = db.get_table_column_data(
+        tablename, exclude_columns=['config_strid']
+    )
     print(
         '\n'.join(
             [

@@ -203,7 +203,7 @@ class SQLExecutionContext(object):
                 try:
                     coldef_list = context.db.get_coldef_list(tablename)
                     print('ERR REPORT: expected types = %s' % (ut.repr4(coldef_list),))
-                except Exception as ex:
+                except Exception:
                     pass
             raise
         return context._results_gen()
@@ -606,6 +606,7 @@ class SQLDatabaseController(object):
             colnames = ['metadata_key', 'metadata_value']
             params_iter = zip(['database_version'], [version])
             # We don't care to find any, because we know there is no version
+
             def get_rowid_from_superkey(x):
                 return [None] * len(x)
 
@@ -647,6 +648,7 @@ class SQLDatabaseController(object):
             colnames = ['metadata_key', 'metadata_value']
             params_iter = zip(['database_init_uuid'], [db_init_uuid_str])
             # We don't care to find any, because we know there is no version
+
             def get_rowid_from_superkey(x):
                 return [None] * len(x)
 
@@ -2973,7 +2975,7 @@ class SQLDatabaseController(object):
         # ================================
         # Merge each table into new database
         # ================================
-        # tablename_to_rowidmap = {}  # TODO
+        tablename_to_rowidmap = {}  # TODO
         # old_rowids_to_new_roids
         for tablename in sorted_tablename_list:
             if verbose:
@@ -3160,7 +3162,7 @@ class SQLDatabaseController(object):
             old_rowids_to_new_roids = dict(
                 zip(valid_old_rowid_list, new_rowid_list)  # NOQA
             )
-            # tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
+            tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
 
     def get_table_csv(db, tablename, exclude_columns=[], rowids=None, truncate=False):
         """
@@ -3193,7 +3195,7 @@ class SQLDatabaseController(object):
         """
         # =None, column_list=[], header='', column_type=None
         column_list, column_names = db.get_table_column_data(
-            tablename, exclude_columns, rowids
+            tablename, exclude_columns=exclude_columns, rowids=rowids
         )
         # remove column prefix for more compact csvs
         column_lbls = [name.replace(tablename[:-1] + '_', '') for name in column_names]
