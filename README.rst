@@ -53,13 +53,13 @@ We highly recommend using a Python virtual environment: https://docs.python-guid
 Docker
 ~~~~~~
 
-The WBIA software is built and deployed as a Docker image `wildme/ibeis`.  You can download and run the pre-configured instance from the command line using:
+The WBIA software is built and deployed as a Docker image `wildme/wbia`.  You can download and run the pre-configured instance from the command line using:
 
 .. code:: bash
 
     # Install Docker - https://docs.docker.com/engine/install/
-    docker pull wildme/ibeis:latest
-    docker container run -p <external port>:5000 --name wildbook-ia -v /path/to/local/database/:/data/docker/ wildme/ibeis:latest
+    docker pull wildme/wbia:latest
+    docker container run -p <external port>:5000 --name wildbook-ia -v /path/to/local/database/:/data/docker/ wildme/wbia:latest
 
 This image is built using the multi-stage Dockerfiles in `devops/`.
 
