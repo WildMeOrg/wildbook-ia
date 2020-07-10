@@ -12,7 +12,7 @@ use in computer vision algorithms. It aims to compute who an animal is, what
 species an animal is, and where an animal is with the ultimate goal being to
 ask important why biological questions.
 
-This project is the Machine Learning (ML) / computer vision component of the WildBook project: See https://github.com/WildbookOrg/.  This project is an actively maintained fork of the popular IBEIS (Image Based Ecological Information System) software suite for wildlife conservation.  The original IBEIS project is maintained by Jon Crall (@Erotemic) at `https://github.com/Erotemic/ibeis`.  The IBEIS toolkit originally was a wrapper around HotSpotter, which original binaries can be downloaded from: `http://cs.rpi.edu/hotspotter/`
+This project is the Machine Learning (ML) / computer vision component of the WildBook project: See https://github.com/WildbookOrg/.  This project is an actively maintained fork of the popular IBEIS (Image Based Ecological Information System) software suite for wildlife conservation.  The original IBEIS project is maintained by Jon Crall (@Erotemic) at https://github.com/Erotemic/ibeis.  The IBEIS toolkit originally was a wrapper around HotSpotter, which original binaries can be downloaded from: http://cs.rpi.edu/hotspotter/
 
 Currently the system is build around and SQLite database, a web GUI,
 and matplotlib visualizations. Algorithms employed are: convolutional neural network
@@ -69,46 +69,76 @@ To be updated soon.
 This project depends on an array of other repositories for functionality.
 
 First Party Toolkits (Required)
+
 * https://github.com/WildbookOrg/wbia-utool
+
 * https://github.com/WildbookOrg/wbia-vtool
 
 First Party Dependencies for Third Party Libraries (Required)
+
 * https://github.com/WildbookOrg/wbia-tpl-pyhesaff
+
 * https://github.com/WildbookOrg/wbia-tpl-pyflann
+
 * https://github.com/WildbookOrg/wbia-tpl-pydarknet
+
 * https://github.com/WildbookOrg/wbia-tpl-pyrf
 
 First Party Plug-ins (Optional)
+
 * https://github.com/WildbookOrg/wbia-plugin-cnn
+
 * https://github.com/WildbookOrg/wbia-plugin-flukematch
+
 * https://github.com/WildbookOrg/wbia-plugin-deepsense
+
 * https://github.com/WildbookOrg/wbia-plugin-finfindr
+
 * https://github.com/WildbookOrg/wbia-plugin-curvrank
-    * https://github.com/WildbookOrg/wbia-tpl-curvrank
+
+    + https://github.com/WildbookOrg/wbia-tpl-curvrank
+
 * https://github.com/WildbookOrg/wbia-plugin-kaggle7
-    * https://github.com/WildbookOrg/wbia-tpl-kaggle7
+
+    + https://github.com/WildbookOrg/wbia-tpl-kaggle7
+
 * https://github.com/WildbookOrg/wbia-plugin-2d-orientation
-    * https://github.com/WildbookOrg/wbia-tpl-2d-orientation
+
+    + https://github.com/WildbookOrg/wbia-tpl-2d-orientation
+
 * https://github.com/WildbookOrg/wbia-plugin-lca
-    * https://github.com/WildbookOrg/wbia-tpl-lca
+
+    + https://github.com/WildbookOrg/wbia-tpl-lca
 
 Deprecated Toolkits (Deprecated)
 * https://github.com/WildbookOrg/wbia-deprecate-ubelt
+
 * https://github.com/WildbookOrg/wbia-deprecate-dtool
+
 * https://github.com/WildbookOrg/wbia-deprecate-guitool
+
 * https://github.com/WildbookOrg/wbia-deprecate-plottool
+
 * https://github.com/WildbookOrg/wbia-deprecate-detecttools
+
 * https://github.com/WildbookOrg/wbia-deprecate-plugin-humpbacktl
+
 * https://github.com/WildbookOrg/wbia-deprecate-tpl-lightnet
+
 * https://github.com/WildbookOrg/wbia-deprecate-tpl-brambox
 
 Plug-in Templates (Reference)
+
 * https://github.com/WildbookOrg/wbia-plugin-template
+
 * https://github.com/WildbookOrg/wbia-plugin-id-example
 
 Miscellaneous (Reference)
+
 * https://github.com/WildbookOrg/wbia-pypkg-build
+
 * https://github.com/WildbookOrg/wbia-project-website
+
 * https://github.com/WildbookOrg/wbia-aws-codedeploy
 
 Citation
@@ -116,45 +146,45 @@ Citation
 
 If you use this code or its models in your research, please cite:
 
-```
-@inproceedings{crall2013hotspotter,
-    title={Hotspotter — patterned species instance recognition},
-    author={Crall, Jonathan P and Stewart, Charles V and Berger-Wolf, Tanya Y and Rubenstein, Daniel I and Sundaresan, Siva R},
-    booktitle={2013 IEEE workshop on applications of computer vision (WACV)},
-    pages={230--237},
-    year={2013},
-    organization={IEEE}
-}
+.. code:: text
 
-@inproceedings{parham2018animal,
-    title={An animal detection pipeline for identification},
-    author={Parham, Jason and Stewart, Charles and Crall, Jonathan and Rubenstein, Daniel and Holmberg, Jason and Berger-Wolf, Tanya},
-    booktitle={2018 IEEE Winter Conference on Applications of Computer Vision (WACV)},
-    pages={1075--1083},
-    year={2018},
-    organization={IEEE}
-}
+    @inproceedings{crall2013hotspotter,
+        title={Hotspotter — patterned species instance recognition},
+        author={Crall, Jonathan P and Stewart, Charles V and Berger-Wolf, Tanya Y and Rubenstein, Daniel I and Sundaresan, Siva R},
+        booktitle={2013 IEEE workshop on applications of computer vision (WACV)},
+        pages={230--237},
+        year={2013},
+        organization={IEEE}
+    }
 
-@inproceedings{berger2015ibeis,
-    title={IBEIS: Image-based ecological information system: From pixels to science and conservation},
-    author={Berger-Wolf, TY and Rubenstein, DI and Stewart, CV and Holmberg, J and Parham, J and Crall, J},
-    booktitle={Bloomberg Data for Good Exchange Conference, New York, NY, USA},
-    volume={2},
-    year={2015}
-}
+    @inproceedings{parham2018animal,
+        title={An animal detection pipeline for identification},
+        author={Parham, Jason and Stewart, Charles and Crall, Jonathan and Rubenstein, Daniel and Holmberg, Jason and Berger-Wolf, Tanya},
+        booktitle={2018 IEEE Winter Conference on Applications of Computer Vision (WACV)},
+        pages={1075--1083},
+        year={2018},
+        organization={IEEE}
+    }
 
-@article{berger2017wildbook,
-    title={Wildbook: Crowdsourcing, computer vision, and data science for conservation},
-    author={Berger-Wolf, Tanya Y and Rubenstein, Daniel I and Stewart, Charles V and Holmberg, Jason A and Parham, Jason and Menon, Sreejith and Crall, Jonathan and Van Oast, Jon and Kiciman, Emre and Joppa, Lucas},
-    journal={arXiv preprint arXiv:1710.08880},
-    year={2017}
-}
-```
+    @inproceedings{berger2015ibeis,
+        title={IBEIS: Image-based ecological information system: From pixels to science and conservation},
+        author={Berger-Wolf, TY and Rubenstein, DI and Stewart, CV and Holmberg, J and Parham, J and Crall, J},
+        booktitle={Bloomberg Data for Good Exchange Conference, New York, NY, USA},
+        volume={2},
+        year={2015}
+    }
+
+    @article{berger2017wildbook,
+        title={Wildbook: Crowdsourcing, computer vision, and data science for conservation},
+        author={Berger-Wolf, Tanya Y and Rubenstein, Daniel I and Stewart, Charles V and Holmberg, Jason A and Parham, Jason and Menon, Sreejith and Crall, Jonathan and Van Oast, Jon and Kiciman, Emre and Joppa, Lucas},
+        journal={arXiv preprint arXiv:1710.08880},
+        year={2017}
+    }
 
 Documentation
 -------------------------
 
-The WBIA API Documentation can be found here: `http://wildbook-ia.readthedocs.io/en/latest/`
+The WBIA API Documentation can be found here: https://wildbook-ia.readthedocs.io/en/latest/
 
 Code Style and Development Guidelines
 -------------------------------------
@@ -186,11 +216,12 @@ Flake8
 
 Try to conform to PEP8.  You should set up your preferred editor to use flake8 as its Python linter, but pre-commit will ensure compliance before a git commit is completed.
 
-To run flake8 from the command line use::
+To run flake8 from the command line use:
 
 .. code:: bash
 
     flake8
+
 
 This will use the flake8 configuration within ``setup.cfg``,
 which ignores several errors and stylistic considerations.
