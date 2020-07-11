@@ -75,8 +75,6 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && /bin/bash unix_build.sh \
  && cd /wbia/wbia-plugin-curvrank \
  && /bin/bash unix_build.sh \
- && cd /wbia/pydarknet \
- && /bin/bash unix_build.sh \
  && cd /wbia/pyrf \
  && /bin/bash unix_build.sh \
  && cd /wbia/vtool \
@@ -97,6 +95,8 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/utool \
  && pip install -e . \
  && cd /wbia/vtool \
+ && pip install -e . \
+ && cd /wbia/pydarknet \
  && pip install -e . \
  && cd /wbia/wildbook-ia \
  && pip install -e . \
