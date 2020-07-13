@@ -1,5 +1,3 @@
-%YAML 1.0
-
 annotation:
   folder: "IBEIS"
   filename: "2014_000007.jpg"
@@ -12,13 +10,13 @@ annotation:
     height: "624"
     depth: "3"
   segmented: "0"
-	object:
-	- name: "zebra_plains"
-      pose: "Unspecified"
-      truncated: "0"
-      difficult: "0"
-      bndbox:
-			  xmin: "635"
-			  ymin: "163"
-			  xmax: "390"
-			  ymax: "124"
+  object:
+  - name: "zebra_plains"
+    pose: "Unspecified"
+    truncated: "0"
+    difficult: "0"
+    bndbox:
+      xmin: "635"
+      ymin: "163"
+      xmax: "390"
+      ymax: "124"
