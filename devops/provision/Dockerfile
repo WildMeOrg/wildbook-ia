@@ -110,9 +110,6 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/vtool \
  && pip install -e .'
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/pydarknet \
- && pip install -e .'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && pip install -e .'
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
