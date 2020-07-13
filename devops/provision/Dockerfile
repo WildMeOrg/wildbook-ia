@@ -63,53 +63,74 @@ RUN . /virtualenv/env3/bin/activate \
 # Build Python repositories with external codebases
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/flann \
- && /bin/bash run_developer_setup.sh \
+ && /bin/bash run_developer_setup.sh'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/hesaff \
- && /bin/bash run_developer_setup.sh \
+ && /bin/bash run_developer_setup.sh'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/brambox \
- && /virtualenv/env3/bin/pip install -e . \
+ && /virtualenv/env3/bin/pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/lightnet \
  && /virtualenv/env3/bin/pip install -r requirements.txt \
- && /virtualenv/env3/bin/pip install -r develop.txt \
+ && /virtualenv/env3/bin/pip install -r develop.txt'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-flukematch \
- && /bin/bash unix_build.sh \
+ && /bin/bash unix_build.sh'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-curvrank \
- && /bin/bash unix_build.sh \
+ && /bin/bash unix_build.sh'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/pyrf \
- && /bin/bash unix_build.sh \
+ && /bin/bash unix_build.sh'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/vtool \
  && /bin/bash run_developer_setup.sh'
 
 # Install Python repositories
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-cnn \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/hesaff \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/lightnet \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/pydarknet \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/pyrf \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/utool \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/vtool \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/pydarknet \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-flukematch \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-curvrank \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-deepsense \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-finfindr \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-kaggle7 \
- && pip install -e . \
+ && pip install -e .'
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-2d-orientation \
  && pip install -e .'
 
