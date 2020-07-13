@@ -1983,9 +1983,7 @@ class EdgeAPIHelper(object):
 
         col_ider_dict = {name: ('aid1', 'aid2') for name in col_getter_dict.keys()}
         # col_ider_dict = ({
-        col_ider_dict.update(
-            {'thumb1': 'aid1', 'thumb2': 'aid2',}
-        )
+        col_ider_dict.update({'thumb1': 'aid1', 'thumb2': 'aid2'})
 
         col_types_dict = {
             'rank': int,

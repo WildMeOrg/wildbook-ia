@@ -140,8 +140,8 @@ def login(refer=None, *args, **kwargs):
                 'drew.blount',
             ],
         ),
-        'kitware': ('Kitware', ['jon.crall',],),
-        'ctrl-h': ('CTRL-H', ['jon.hannis', 'melinda.hannis',],),
+        'kitware': ('Kitware', ['jon.crall'],),
+        'ctrl-h': ('CTRL-H', ['jon.hannis', 'melinda.hannis'],),
     }
     organization_dict_json = json.dumps(organization_dict)
 
@@ -2575,7 +2575,7 @@ def turk_detection(
                     }
                     annotation_list.append(annotation)
                     THROW_TEST_AOI_TURKING_MANIFEST.append(
-                        {'action': 'addition', 'values': annotation,}
+                        {'action': 'addition', 'values': annotation}
                     )
             elif throw_test_aoi_turking_mode == 'deletion':
                 if len(part_list) == 0:
@@ -2583,7 +2583,7 @@ def turk_detection(
                     for index in index_list:
                         annotation = annotation_list.pop(index)
                         THROW_TEST_AOI_TURKING_MANIFEST.append(
-                            {'action': 'deletion', 'values': annotation,}
+                            {'action': 'deletion', 'values': annotation}
                         )
                 else:
                     THROW_TEST_AOI_TURKING_AVAILABLE = False

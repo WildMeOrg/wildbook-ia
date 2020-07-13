@@ -53,7 +53,7 @@ class Groundtruth(object):
         is_same = infr.is_same(aid_pairs)
         is_comp = infr.is_comparable(aid_pairs)
         match_state_df = pd.DataFrame.from_items(
-            [(NEGTV, ~is_same & is_comp), (POSTV, is_same & is_comp), (INCMP, ~is_comp),]
+            [(NEGTV, ~is_same & is_comp), (POSTV, is_same & is_comp), (INCMP, ~is_comp)]
         )
         match_state_df.index = index
         return match_state_df

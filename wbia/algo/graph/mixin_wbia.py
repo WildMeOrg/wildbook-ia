@@ -30,7 +30,7 @@ class IBEISIO(object):
 
         edge_delta_info = infr.wbia_edge_delta_info(edge_delta_df)
 
-        info = ut.odict([('num_annots_with_names_changed', len(name_delta_df)),])
+        info = ut.odict([('num_annots_with_names_changed', len(name_delta_df))])
         info.update(edge_delta_info)
         for key, val in name_stats_df.iterrows():
             info['num_' + key] = int(val['size'])
@@ -134,26 +134,26 @@ class IBEISIO(object):
 
     def find_unjustified_splits(infr):
         """
-            >>> # ENABLE_DOCTEST
-            >>> from wbia.algo.graph.mixin_helpers import *  # NOQA
-            >>> import wbia
-            >>> ibs = wbia.opendb(defaultdb='GZ_Master1')
-            >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
-            >>> infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
-            >>> infr.reset_feedback('staging', apply=True)
-            >>> infr.relabel_using_reviews(rectify=False)
-            >>> unjustified = infr.find_unjustified_splits()
-            >>> review_edges = []
-            >>> for cc1, cc2 in unjustified:
-            >>>     u = next(iter(cc1))
-            >>>     v = next(iter(cc2))
-            >>>     review_edges.append(nxu.e_(u, v))
-            >>> infr.verbose = 100
-            >>> infr.prioritize(
-            >>>     edges=review_edges, scores=[1] * len(review_edges),
-            >>>     reset=True,
-            >>> )
-            >>> infr.qt_review_loop()
+        >>> # ENABLE_DOCTEST
+        >>> from wbia.algo.graph.mixin_helpers import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='GZ_Master1')
+        >>> ibs = wbia.opendb(defaultdb='PZ_Master1')
+        >>> infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
+        >>> infr.reset_feedback('staging', apply=True)
+        >>> infr.relabel_using_reviews(rectify=False)
+        >>> unjustified = infr.find_unjustified_splits()
+        >>> review_edges = []
+        >>> for cc1, cc2 in unjustified:
+        >>>     u = next(iter(cc1))
+        >>>     v = next(iter(cc2))
+        >>>     review_edges.append(nxu.e_(u, v))
+        >>> infr.verbose = 100
+        >>> infr.prioritize(
+        >>>     edges=review_edges, scores=[1] * len(review_edges),
+        >>>     reset=True,
+        >>> )
+        >>> infr.qt_review_loop()
         """
         ibs = infr.ibs
         annots = ibs.annots(infr.aids)
@@ -543,7 +543,6 @@ class IBEISIO(object):
             >>> result = ('feedback = %s' % (ut.repr2(feedback),))
             >>> print(result)
         """
-
         # TODO: READ ONLY AFTER THE LATEST ANNOTMATCH TIME STAMP
 
         infr.print('read_wbia_staging_feedback', 1)
@@ -815,7 +814,7 @@ class IBEISIO(object):
         return edge_delta_df
 
     @classmethod
-    def _make_state_delta(AnnotInference, old_feedback, new_feedback):
+    def _make_state_delta(cls, old_feedback, new_feedback):
         r"""
         CommandLine:
             python -m wbia.algo.graph.mixin_wbia IBEISIO._make_state_delta

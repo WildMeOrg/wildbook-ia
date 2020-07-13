@@ -468,7 +468,7 @@ def assert_modules():
         print(fix_text)
 
     detailed_msg = '\n'.join(
-        [machine_info_text, output_text, failed_text, check_exist_text, fix_text,]
+        [machine_info_text, output_text, failed_text, check_exist_text, fix_text]
     )
 
     return detailed_msg

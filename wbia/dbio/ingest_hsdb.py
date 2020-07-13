@@ -278,7 +278,7 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
                 chip_theta_list.append(theta)
                 chip_note_list.append(notes)
 
-    names = ut.ColumnLists({'hs_nid': name_hs_nid_list, 'text': name_text_list,})
+    names = ut.ColumnLists({'hs_nid': name_hs_nid_list, 'text': name_text_list})
 
     images = ut.ColumnLists(
         {

@@ -1467,7 +1467,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             if 'caption' not in image_dict[image_filename]:
                 image_dict[image_filename]['captions'] = []
             image_dict[image_filename]['captions'].append(
-                {'id': capt_id, 'str': capt_str,}
+                {'id': capt_id, 'str': capt_str}
             )
 
         print('\tAssociate Annotations')

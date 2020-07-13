@@ -1184,7 +1184,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         if True:
             # Use only summary stats without global attributes
-            cols = featinfo.select_columns([('measure_type', '==', 'summary'),])
+            cols = featinfo.select_columns([('measure_type', '==', 'summary')])
             register_data_key('learn(sum)', cols)
 
         if True:

@@ -915,26 +915,26 @@ class AltConstructors(object):
     # _graph_cls = nx.DiGraph
 
     @classmethod
-    def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None, verbose=False):
+    def from_pairs(cls, aid_pairs, attrs=None, ibs=None, verbose=False):
         import networkx as nx
 
-        G = AnnotInference._graph_cls()
+        G = cls._graph_cls()
         assert not any([a1 == a2 for a1, a2 in aid_pairs]), 'cannot have self-edges'
         G.add_edges_from(aid_pairs)
         if attrs is not None:
             for key in attrs.keys():
                 nx.set_edge_attributes(G, name=key, values=ut.dzip(aid_pairs, attrs[key]))
-        infr = AnnotInference.from_netx(G, ibs=ibs, verbose=verbose)
+        infr = cls.from_netx(G, ibs=ibs, verbose=verbose)
         return infr
 
     @classmethod
-    def from_netx(AnnotInference, G, ibs=None, verbose=False, infer=True):
+    def from_netx(cls, G, ibs=None, verbose=False, infer=True):
         aids = list(G.nodes())
         if ibs is not None:
             nids = None
         else:
             nids = [-a for a in aids]
-        infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
+        infr = cls(ibs, aids, nids, autoinit=False, verbose=verbose)
         infr.initialize_graph(graph=G)
         # hack
         orig_name_labels = [infr.pos_graph.node_label(a) for a in aids]
@@ -945,7 +945,7 @@ class AltConstructors(object):
         return infr
 
     @classmethod
-    def from_qreq_(AnnotInference, qreq_, cm_list, autoinit=False):
+    def from_qreq_(cls, qreq_, cm_list, autoinit=False):
         """
         Create a AnnotInference object using a precomputed query / results
         """
@@ -953,7 +953,7 @@ class AltConstructors(object):
         aids = ut.unique(ut.flatten([qreq_.qaids, qreq_.daids]))
         nids = qreq_.get_qreq_annot_nids(aids)
         ibs = qreq_.ibs
-        infr = AnnotInference(ibs, aids, nids, verbose=False, autoinit=autoinit)
+        infr = cls(ibs, aids, nids, verbose=False, autoinit=autoinit)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
         return infr
@@ -1270,11 +1270,11 @@ class AnnotInference(
                     NEGTV: np.inf,  # GGR2 - 0.8605
                     INCMP: np.inf,
                 },
-                'photobomb_state': {'pb': np.inf, 'nopb': np.inf,},
+                'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
             },
             'zebra_plains': {
-                'match_state': {POSTV: np.inf, NEGTV: np.inf, INCMP: np.inf,},
-                'photobomb_state': {'pb': np.inf, 'nopb': np.inf,},
+                'match_state': {POSTV: np.inf, NEGTV: np.inf, INCMP: np.inf},
+                'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
             },
             'giraffe_reticulated': {
                 'match_state': {
@@ -1282,7 +1282,7 @@ class AnnotInference(
                     NEGTV: np.inf,  # GGR2 - 0.8876
                     INCMP: np.inf,
                 },
-                'photobomb_state': {'pb': np.inf, 'nopb': np.inf,},
+                'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
             },
         }
         infr.task_thresh = None

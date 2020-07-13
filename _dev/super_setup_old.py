@@ -199,9 +199,9 @@ def define_argparse():
     # sub.add_argument('--fmt', dest='fmt', action='store',
     #                  choices=['ssh', 'https'], help='url type')
 
-    ## Setup options for parser_a
+    # # Setup options for parser_a
 
-    ## Add nargs="*" for zero or more other commands
+    # # Add nargs="*" for zero or more other commands
     # parser.add_argument('extra', nargs = "*", help = 'Other commands')
 
     # parser.add_argument('command', action='store_true', default=False,
@@ -400,14 +400,10 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         tpl_rman.add_repo(cv_repo)
 
     if WITH_GUI:
-        wbia_rman.add_repos(
-            ['https://github.com/WildbookOrg/plottool_ibeis.git',]
-        )
+        wbia_rman.add_repos(['https://github.com/WildbookOrg/plottool_ibeis.git'])
 
         if WITH_QT:
-            wbia_rman.add_repos(
-                ['https://github.com/WildbookOrg/guitool_ibeis.git',]
-            )
+            wbia_rman.add_repos(['https://github.com/WildbookOrg/guitool_ibeis.git'])
             tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5', 'PyQt')))
 
     if WITH_CUSTOM_TPL:
@@ -415,9 +411,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/WildbookOrg/flann.git', CODE_DIR, modname='pyflann'
         )
         wbia_rman.add_repo(flann_repo)
-        wbia_rman.add_repos(
-            ['https://github.com/WildbookOrg/hesaff.git',]
-        )
+        wbia_rman.add_repos(['https://github.com/WildbookOrg/hesaff.git'])
 
     if WITH_CNN:
         wbia_rman.add_repos(
@@ -427,13 +421,9 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             ]
         )
         # NEW CNN Dependencies
-        tpl_rman.add_repos(
-            ['https://github.com/pytorch/pytorch.git',]
-        )
+        tpl_rman.add_repos(['https://github.com/pytorch/pytorch.git'])
         # if GET_ARGFLAG('--libgpuarray'):
-        tpl_rman.add_repos(
-            ['https://github.com/Theano/libgpuarray.git',]
-        )
+        tpl_rman.add_repos(['https://github.com/Theano/libgpuarray.git'])
         # CNN Dependencies
         tpl_rman.add_repos(
             [
@@ -452,9 +442,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         wbia_rman.add_repos(['https://github.com/WildbookOrg/ibeis-curvrank-module.git'])
 
     if WITH_PYRF:
-        wbia_rman.add_repos(
-            ['https://github.com/WildbookOrg/pyrf.git',]
-        )
+        wbia_rman.add_repos(['https://github.com/WildbookOrg/pyrf.git'])
 
     if False:
         # Depricated
@@ -467,9 +455,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         )
 
     # Add main repo (Must be checked last due to dependency issues)
-    wbia_rman.add_repos(
-        ['https://github.com/WildbookOrg/wbia.git',]
-    )
+    wbia_rman.add_repos(['https://github.com/WildbookOrg/wbia.git'])
 
     # -----------
     # Custom third party build/install scripts

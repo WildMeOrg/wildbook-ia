@@ -119,7 +119,7 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
         drawkpts_kw
         drawkpts_kw2 = drawkpts_kw.copy()
         drawkpts_kw2.update(
-            {'ell_color': df2.BLUE, 'eig': True, 'rect': True, 'ori': True,}
+            {'ell_color': df2.BLUE, 'eig': True, 'rect': True, 'ori': True}
         )
         df2.draw_kpts2(nonsel_kpts_, **drawkpts_kw)
         df2.draw_kpts2(sel_kpts, **drawkpts_kw2)

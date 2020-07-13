@@ -11,7 +11,7 @@ TODO: need to split up into sub modules:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
-from os.path import exists, expanduser, join, abspath, basename
+from os.path import exists, expanduser, join, abspath
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -396,9 +396,7 @@ def export_to_coco(
 
         species = species_mapping.get(species, species)
 
-        categories.append(
-            {'id': index, 'name': species, 'supercategory': 'animal',}
-        )
+        categories.append({'id': index, 'name': species, 'supercategory': 'animal'})
         category_dict[species] = index
 
     def _add_annotation_or_part(

@@ -567,7 +567,7 @@ def get_dbinfo(
         str_ = ut.repr2(dict_, si=True)
         return align2(str_)
 
-    header_block_lines = [('+============================'),] + (
+    header_block_lines = [('+============================')] + (
         [
             ('+ singleton := single sighting'),
             ('+ multiton  := multiple sightings'),
@@ -689,7 +689,7 @@ def get_dbinfo(
         + img_block_lines
         + contributor_block_lines
         + imgsize_stat_lines
-        + [('L============================'),]
+        + [('L============================')]
     )
     info_str = '\n'.join(ut.filter_Nones(info_str_lines))
     info_str2 = ut.indent(info_str, '[{tag}]'.format(tag=tag))

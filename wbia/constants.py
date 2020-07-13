@@ -129,7 +129,7 @@ SEX_INT_TO_TEXT = {
 SEX_TEXT_TO_INT = ut.invert_dict(SEX_INT_TO_TEXT)
 
 
-class PATH_NAMES(object):
+class PATH_NAMES(object):  # NOQA
     """ Path names for internal IBEIS database """
 
     sqldb = '_ibeis_database.sqlite3'
@@ -156,7 +156,7 @@ class PATH_NAMES(object):
     bigcache = 'qres_bigcache_new'
 
 
-class REL_PATHS(object):
+class REL_PATHS(object):  # NOQA
     """ all paths are relative to ibs.dbdir """
 
     _ibsdb = PATH_NAMES._ibsdb
@@ -337,7 +337,7 @@ WILDBOOK_TARGET = ut.get_argval(
 )
 
 
-class ZIPPED_URLS(object):
+class ZIPPED_URLS(object):  # NOQA
     PZ_DISTINCTIVE = 'https://wildbookiarepository.azureedge.net/models/distinctivness_zebra_plains.zip'  # DEPRICATE
     GZ_DISTINCTIVE = 'https://wildbookiarepository.azureedge.net/models/distinctivness_zebra_grevys.zip'  # DEPRICATE
 
@@ -374,7 +374,7 @@ DBNAME_ALIAS = {
 }
 
 
-class TEST_SPECIES(object):
+class TEST_SPECIES(object):  # NOQA
     ZEB_PLAIN = 'zebra_plains'
     ZEB_GREVY = 'zebra_grevys'
     BEAR_POLAR = 'bear_polar'
@@ -611,7 +611,7 @@ class _ConstHelper(type):
 
 
 @six.add_metaclass(_ConstHelper)
-class EVIDENCE_DECISION(object):
+class EVIDENCE_DECISION(object):  # NOQA
     """
     TODO: change to EVIDENCE_DECISION / VISUAL_DECISION
     Enumerated types of review codes and texts
@@ -659,7 +659,7 @@ class EVIDENCE_DECISION(object):
 
 
 @six.add_metaclass(_ConstHelper)
-class META_DECISION(object):
+class META_DECISION(object):  # NOQA
     """
     Enumerated types of review codes and texts
 
@@ -684,8 +684,8 @@ class META_DECISION(object):
     NULL = None
     DIFF = 0
     SAME = 1
-    INT_TO_CODE = ut.odict([(NULL, 'null'), (DIFF, 'diff'), (SAME, 'same'),])
-    INT_TO_NICE = ut.odict([(NULL, 'NULL'), (DIFF, 'Different'), (SAME, 'Same'),])
+    INT_TO_CODE = ut.odict([(NULL, 'null'), (DIFF, 'diff'), (SAME, 'same')])
+    INT_TO_NICE = ut.odict([(NULL, 'NULL'), (DIFF, 'Different'), (SAME, 'Same')])
     CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
     CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
     NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)

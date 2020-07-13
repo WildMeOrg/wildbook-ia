@@ -893,7 +893,7 @@ def compute_localizations_original(depc, gid_list, config=None):
             # {'algo': 'selective-search', 'config_filepath': None},                          # SS1
             {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal'},  # YOLO1
             {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'},  # YOLO2
-            {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal',},  # FRCNN1
+            {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal'},  # FRCNN1
             {
                 'algo': 'faster-rcnn',
                 'config_filepath': 'pretrained-vgg-pascal',

@@ -294,8 +294,7 @@ def partition_acfg_list(acfg_list):
 
 def get_varied_acfg_labels(acfg_list, mainkey='_cfgname', checkname=False):
     """
-        >>> from wbia.expt.annotation_configs import *  # NOQA
-
+    >>> from wbia.expt.annotation_configs import *  # NOQA
     """
     # print(ut.repr2(varied_acfg_list, nl=2))
     for acfg in acfg_list:
@@ -520,25 +519,25 @@ def apply_timecontrol(acfg, min_timedelta='6h', require_timestamp=True):
     return {
         'qcfg': ut.augdict(
             acfg['qcfg'],
-            {'require_timestamp': require_timestamp, 'min_timedelta': min_timedelta,},
+            {'require_timestamp': require_timestamp, 'min_timedelta': min_timedelta},
         ),
         'dcfg': ut.augdict(
             acfg['dcfg'],
-            {'require_timestamp': require_timestamp, 'min_timedelta': min_timedelta,},
+            {'require_timestamp': require_timestamp, 'min_timedelta': min_timedelta},
         ),
     }
 
 
 def apply_qualcontrol(acfg):
     return {
-        'qcfg': ut.augdict(acfg['qcfg'], {'require_quality': True,}),
-        'dcfg': ut.augdict(acfg['dcfg'], {'require_quality': True,}),
+        'qcfg': ut.augdict(acfg['qcfg'], {'require_quality': True}),
+        'dcfg': ut.augdict(acfg['dcfg'], {'require_quality': True}),
     }
 
 
 __baseline_aidcfg = ut.augdict(
     __default_aidcfg,
-    {'is_known': True, 'minqual': 'ok', 'view': 'primary', 'view_ext': 1,},
+    {'is_known': True, 'minqual': 'ok', 'view': 'primary', 'view_ext': 1},
 )
 
 
@@ -570,8 +569,8 @@ default = {
 
 
 default2 = {
-    'qcfg': ut.augdict(default['qcfg'], {'exclude_reference': True, 'is_known': True,}),
-    'dcfg': ut.augdict(default['dcfg'], {'exclude_reference': True, 'is_known': True,}),
+    'qcfg': ut.augdict(default['qcfg'], {'exclude_reference': True, 'is_known': True}),
+    'dcfg': ut.augdict(default['dcfg'], {'exclude_reference': True, 'is_known': True}),
 }
 
 
@@ -587,7 +586,7 @@ unctrl = uncontrolled = {
             'species': 'primary',
         },
     ),
-    'dcfg': ut.augdict(__baseline_aidcfg, {'species': 'primary',}),
+    'dcfg': ut.augdict(__baseline_aidcfg, {'species': 'primary'}),
 }
 
 
@@ -603,7 +602,7 @@ unctrl_comp = {
             'view_ext': 0,
         },
     ),
-    'dcfg': ut.augdict(__baseline_aidcfg, {'species': 'primary',}),
+    'dcfg': ut.augdict(__baseline_aidcfg, {'species': 'primary'}),
 }
 
 """
@@ -671,9 +670,9 @@ varypername = {
 
 
 varypername2 = {
-    'qcfg': ut.augdict(ctrl['qcfg'], {'min_pername': 3, 'force_const_size': True,}),
+    'qcfg': ut.augdict(ctrl['qcfg'], {'min_pername': 3, 'force_const_size': True}),
     'dcfg': ut.augdict(
-        ctrl['dcfg'], {'sample_per_name': [1, 2], 'force_const_size': True,}
+        ctrl['dcfg'], {'sample_per_name': [1, 2], 'force_const_size': True}
     ),
 }
 varypername2_td = apply_timecontrol(varypername2)
@@ -692,7 +691,7 @@ ctrl2 = {
             #'force_const_size': True,
         },
     ),
-    'dcfg': ut.augdict(ctrl['dcfg'], {'sample_per_name': 2, 'force_const_size': True,}),
+    'dcfg': ut.augdict(ctrl['dcfg'], {'sample_per_name': 2, 'force_const_size': True}),
 }
 
 timectrl2 = apply_timecontrol(ctrl2)

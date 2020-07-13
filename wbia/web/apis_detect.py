@@ -293,7 +293,7 @@ def review_detection_html(
     ]
 
     if include_jquery:
-        json_file_list = [['javascript', 'jquery.min.js'],] + json_file_list
+        json_file_list = [['javascript', 'jquery.min.js']] + json_file_list
 
     EMBEDDED_CSS = ''
     EMBEDDED_JAVASCRIPT = ''
@@ -727,9 +727,7 @@ def labeler_cnn(
     output_list = []
     for result in result_list:
         score, species, viewpoint, quality, orientation, probs = result
-        output_list.append(
-            {'score': score, 'species': species, 'viewpoint': viewpoint,}
-        )
+        output_list.append({'score': score, 'species': species, 'viewpoint': viewpoint})
 
     return output_list
 
@@ -753,9 +751,7 @@ def aoi_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
     output_list = []
     for result in result_list:
         score, class_ = result
-        output_list.append(
-            {'score': score, 'class': class_,}
-        )
+        output_list.append({'score': score, 'class': class_})
 
     return output_list
 

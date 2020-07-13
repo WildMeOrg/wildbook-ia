@@ -141,9 +141,9 @@ def make_table_declarations(ibs):
             # 'has_split',
             # 'namenotes',
         ],
-        IMAGE_GRID: ['thumb',],
+        IMAGE_GRID: ['thumb'],
         # TEST TABLE
-        THUMB_TABLE: ['img_gname', 'thumb',],
+        THUMB_TABLE: ['img_gname', 'thumb'],
     }
 
     # dynamicly defined headers
@@ -153,7 +153,7 @@ def make_table_declarations(ibs):
         if accessor_decors.API_CACHE:
             # Too slow without api cache
             TABLE_COLNAMES[IMAGESET_TABLE].extend(
-                ['percent_annotmatch_reviewed_str', 'percent_names_with_exemplar_str',]
+                ['percent_annotmatch_reviewed_str', 'percent_names_with_exemplar_str']
             )
         TABLE_COLNAMES[IMAGESET_TABLE].extend(
             [
@@ -167,7 +167,7 @@ def make_table_declarations(ibs):
 
     if ibs.cfg.other_cfg.show_shipped_imagesets:
         TABLE_COLNAMES[IMAGESET_TABLE].extend(
-            ['imageset_processed_flag', 'imageset_shipped_flag',]
+            ['imageset_processed_flag', 'imageset_shipped_flag']
         )
 
     # THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],

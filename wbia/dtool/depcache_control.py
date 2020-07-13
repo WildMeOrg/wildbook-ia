@@ -77,7 +77,7 @@ def make_depcache_decors(root_tablename):
 
         return _wrapper
 
-    _depcdecors = ut.odict({'preproc': register_preproc, 'subprop': register_subprop,})
+    _depcdecors = ut.odict({'preproc': register_preproc, 'subprop': register_subprop})
     return _depcdecors
 
 

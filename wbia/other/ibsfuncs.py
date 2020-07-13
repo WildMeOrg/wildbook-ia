@@ -278,7 +278,7 @@ def assert_singleton_relationship(ibs, alrids_list):
     except AssertionError as ex:
         parent_locals = ut.get_parent_frame().f_locals
         ut.printex(
-            ex, 'parent_locals=' + ut.repr2(parent_locals), key_list=['alrids_list',]
+            ex, 'parent_locals=' + ut.repr2(parent_locals), key_list=['alrids_list']
         )
         raise
 
@@ -6942,7 +6942,7 @@ def fix_ggr_qr_codes(ibs, imageset_qr_dict):
             imageset_name,
             qr_gid,
             True,
-            ['car=%s' % (number,), 'event=ggr2018', 'person=%s' % (letter.lower(),),],
+            ['car=%s' % (number,), 'event=ggr2018', 'person=%s' % (letter.lower(),)],
         ]
         imageset_list_.append(imageset)
 

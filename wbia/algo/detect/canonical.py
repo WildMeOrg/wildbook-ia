@@ -72,7 +72,7 @@ if not ut.get_argflag('--no-pytorch'):
             def __init__(self):
                 from imgaug import augmenters as iaa
 
-                self.aug = iaa.Sequential([iaa.Scale((INPUT_SIZE, INPUT_SIZE)),])
+                self.aug = iaa.Sequential([iaa.Scale((INPUT_SIZE, INPUT_SIZE))])
 
         AGUEMTNATION = {
             'train': TrainAugmentations,

@@ -72,7 +72,7 @@ def testdata_start_payload(aids='all'):
         'action': 'start',
         'dbdir': wbia.sysres.db_to_dbdir('PZ_MTEST'),
         'aids': aids,
-        'config': {'manual.n_peek': 50, 'manual.autosave': False,},
+        'config': {'manual.n_peek': 50, 'manual.autosave': False},
     }
     return payload
 

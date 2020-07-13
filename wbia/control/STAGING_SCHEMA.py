@@ -64,8 +64,8 @@ def update_1_0_0(db, ibs=None):
 def update_1_0_1(db, ibs=None):
     db.modify_table(
         const.REVIEW_TABLE,
-        add_columns=[('review_user_confidence', 'INTEGER'),],
-        rename_columns=[('review_identity', 'review_user_identity'),],
+        add_columns=[('review_user_confidence', 'INTEGER')],
+        rename_columns=[('review_identity', 'review_user_identity')],
     )
 
 
@@ -90,7 +90,7 @@ def post_1_0_2(db, ibs=None):
         review_uuid_list = [uuid.uuid4() for _ in range(len(review_rowid_list))]
         ibs._set_review_uuids(review_rowid_list, review_uuid_list)
     db.modify_table(
-        const.REVIEW_TABLE, [('review_uuid', '', 'UUID NOT NULL', None),],
+        const.REVIEW_TABLE, [('review_uuid', '', 'UUID NOT NULL', None)],
     )
 
 
@@ -127,7 +127,7 @@ def update_1_1_0(db, ibs=None):
 
 
 def update_1_1_1(db, ibs=None):
-    db.modify_table(const.REVIEW_TABLE, add_columns=[('review_metadata_json', 'TEXT'),])
+    db.modify_table(const.REVIEW_TABLE, add_columns=[('review_metadata_json', 'TEXT')])
 
 
 # ========================

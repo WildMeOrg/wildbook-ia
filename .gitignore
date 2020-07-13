@@ -31,6 +31,12 @@ logs
 .coverage
 .tox
 nosetests.xml
+tempfile*.txt
+testdb*/
+tmp.txt
+vsone.*.cPkl
+vsone.*.json
+wbia/DEPCACHE*/
 
 # Translations
 *.mo
