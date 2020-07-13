@@ -29,8 +29,12 @@ repos:
     hooks:
       - id: requirements-txt-fixer
       - id: check-toml
-      - id: check-json
+      # - id: check-json
       - id: check-yaml
+        exclude: |
+          (?x)(
+              ^wbia/detecttools/pypascalmarkup/template_.*yml
+          )
       # - id: check-ast
       - id: check-executables-have-shebangs
       # - id: check-docstring-first

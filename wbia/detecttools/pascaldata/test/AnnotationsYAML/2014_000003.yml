@@ -1,5 +1,3 @@
-%YAML 1.0
-
 annotation:
   folder: "IBEIS"
   filename: "2014_000003.jpg"
@@ -12,13 +10,13 @@ annotation:
     height: "900"
     depth: "3"
   segmented: "0"
-	object:
-	- name: "giraffe"
-      pose: "Unspecified"
-      truncated: "0"
-      difficult: "0"
-      bndbox:
-			  xmin: "391"
-			  ymin: "264"
-			  xmax: "531"
-			  ymax: "287"
+  object:
+  - name: "giraffe"
+    pose: "Unspecified"
+    truncated: "0"
+    difficult: "0"
+    bndbox:
+      xmin: "391"
+      ymin: "264"
+      xmax: "531"
+      ymax: "287"
