@@ -534,6 +534,7 @@ def post_1_2_1(db, ibs=None):
             visual_infotup = _visual_infotup
             image_uuid_list, verts_list, theta_list = visual_infotup
             # It is visual info augmented with name and species
+
             def get_annot_viewpoints(ibs, aid_list):
                 viewpoint_list = ibs.db.get(
                     const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list

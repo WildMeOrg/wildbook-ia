@@ -361,8 +361,8 @@ def overlay_icon(
     # coordinates of *xy* and *xytext*, and may be one of the
     # following values:
 
-    #'figure points' #'figure pixels' #'figure fraction' #'axes points'
-    #'axes pixels' #'axes fraction' #'data' #'offset points' #'polar'
+    # 'figure points' #'figure pixels' #'figure fraction' #'axes points'
+    # 'axes pixels' #'axes fraction' #'data' #'offset points' #'polar'
 
     if as_artist:
         # Hack while I am trying to get constant size images working
@@ -447,7 +447,8 @@ def udpate_adjust_subplots():
     """
     DEPRICATE
 
-    updates adjust_subplots based on command line """
+    updates adjust_subplots based on command line
+    """
     adjust_list = ut.get_argval('--adjust', type_=list, default=None)
     if adjust_list is not None:
         # --adjust=[.02,.02,.05]
@@ -790,7 +791,6 @@ def show_if_requested(N=1):
         http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib
 
     """
-
     if ut.NOT_QUIET:
         print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
 
@@ -931,8 +931,8 @@ def show_if_requested(N=1):
         # caption_str = ut.get_argval('--caption', type_=str,
         # default=basename(fpath).replace('_', ' '))
         label_str = ut.get_argval('--label', type_=str, default=default_label)
-        width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
-        width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
+        width_str = ut.get_argval('--width', type_=str, default='\\textwidth')
+        width_str = ut.get_argval('--width', type_=str, default='\\textwidth')
         print('width_str = %r' % (width_str,))
         height_str = ut.get_argval('--height', type_=str, default=None)
         caplbl_str = label_str
@@ -940,7 +940,7 @@ def show_if_requested(N=1):
         if False and ut.is_developer() and len(fpath_list) <= 4:
             if len(fpath_list) == 1:
                 latex_block = (
-                    '\ImageCommand{'
+                    '\\ImageCommand{'
                     + ''.join(fpath_list)
                     + '}{'
                     + width_str
@@ -953,7 +953,7 @@ def show_if_requested(N=1):
             else:
                 width_str = '1'
                 latex_block = (
-                    '\MultiImageCommandII'
+                    '\\MultiImageCommandII'
                     + '{'
                     + label_str
                     + '}'
@@ -982,7 +982,7 @@ def show_if_requested(N=1):
                 unflat_fpath_list = ut.list_reshape(fpath_list, newshape, trail=True)
                 fpath_list = ut.flatten(ut.list_transpose(unflat_fpath_list))
 
-            caption_str = '\caplbl{' + caplbl_str + '}' + caption_str
+            caption_str = '\\caplbl{' + caplbl_str + '}' + caption_str
             figure_str = ut.util_latex.get_latex_figure_str(
                 fpath_list,
                 label_str=label_str,
@@ -1417,13 +1417,12 @@ def get_axis_bbox(ax=None, **kwargs):
     """
     # returns in figure coordinates?
     """
-
     xy, width, height = get_axis_xy_width_height(ax=ax, **kwargs)
     return (xy[0], xy[1], width, height)
 
 
 def draw_border(ax, color=GREEN, lw=2, offset=None, adjust=True):
-    'draws rectangle border around a subplot'
+    """draws rectangle border around a subplot"""
     if adjust:
         xy, width, height = get_axis_xy_width_height(ax, -0.7, -0.2, 1, 0.4)
     else:
@@ -2208,8 +2207,8 @@ def draw_stems(
             pylab.setp(markerline, 'markerfacecolor', 'w')
             pylab.setp(stemlines, 'markerfacecolor', 'w')
             if color is not None:
-                for l in stemlines:
-                    l.set_color(color)
+                for line in stemlines:
+                    line.set_color(color)
             pylab.setp(baseline, 'linewidth', 0)  # baseline should be invisible
     if setlims:
         ax = gca()
@@ -3117,7 +3116,7 @@ def colorbar(
 
     cb = plt.colorbar(sm, cax=cax, **kwargs)
 
-    ## Add the colorbar to the correct label
+    # # Add the colorbar to the correct label
     # axis = cb.ax.yaxis  # if orientation == 'horizontal' else cb.ax.yaxis
     # position = 'bottom' if orientation == 'horizontal' else 'right'
     # axis.set_ticks_position(position)
@@ -3704,7 +3703,7 @@ def imshow(
 
     plt_imshow_kwargs = {
         'interpolation': interpolation,
-        #'cmap': plt.get_cmap('gray'),
+        # 'cmap': plt.get_cmap('gray'),
     }
     if alpha is not None:
         plt_imshow_kwargs['alpha'] = alpha
@@ -3828,9 +3827,9 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True, str
     quiv_kw = {
         'units': 'xy',
         'scale_units': 'xy',
-        #'angles': 'uv',
-        #'scale': 80,
-        #'width':
+        # 'angles': 'uv',
+        # 'scale': 80,
+        # 'width':
         'headaxislength': 4.5,
         # 'headlength': 5,
         'headlength': 5,
@@ -3838,8 +3837,8 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True, str
         'headwidth': 10,
         'minshaft': 1,
         'minlength': 1,
-        #'color': 'r',
-        #'edgecolor': 'k',
+        # 'color': 'r',
+        # 'edgecolor': 'k',
         'linewidths': (0.5,),
         'pivot': 'tail',  # 'middle',
     }

@@ -18,7 +18,7 @@ from wbia.plottool import plot_helpers as ph  # NOQA
 from wbia.plottool import interact_helpers as ih  # NOQA
 
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-#'[abstract_iteract]')
+# '[abstract_iteract]')
 
 DEBUG = ut.get_argflag('--debug-interact')
 VERBOSE = ut.VERBOSE or True
@@ -368,7 +368,6 @@ class AbstractInteraction(object):
         **kwargs,
     ):
         """ Adds a button to the current page """
-
         if rect is not None:
             new_ax = df2.plt.axes(rect)
         if rect is None and divider is None:
@@ -557,8 +556,8 @@ def pretty_hotkey_map(hotkeys):
         return ''
     hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
     mapping = {
-        #'right': 'right arrow',
-        #'left':  'left arrow',
+        # 'right': 'right arrow',
+        # 'left':  'left arrow',
     }
     mapped_hotkeys = [mapping.get(hk, hk) for hk in hotkeys]
     hotkey_str = '(' + ut.conj_phrase(mapped_hotkeys, 'or') + ')'

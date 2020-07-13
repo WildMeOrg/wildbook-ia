@@ -4950,8 +4950,8 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
 
     """
     aid_prop_list = [getter(aids) for getter in getter_list]
-    #%timeit multiprop2_aids = ut.hierarchical_group_items(aids, aid_prop_list)
-    #%timeit ut.group_items(aids, list(zip(*aid_prop_list)))
+    # %timeit multiprop2_aids = ut.hierarchical_group_items(aids, aid_prop_list)
+    # %timeit ut.group_items(aids, list(zip(*aid_prop_list)))
     multiprop2_aids = ut.hierarchical_group_items(aids, aid_prop_list)
     # multiprop2_aids = ut.group_items(aids, list(zip(*aid_prop_list)))
     return multiprop2_aids
@@ -5841,7 +5841,7 @@ def get_image_lazydict(ibs, gid, config=None):
             'uuid': lambda: ibs.get_image_uuids(gid),
             'gps': lambda: ibs.get_image_gps(gid),
             'orientation': lambda: ibs.get_image_orientation(gid),
-            #'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
+            # 'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
         },
         reprkw=dict(truncate=True),
     )

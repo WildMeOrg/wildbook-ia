@@ -11,7 +11,7 @@ from . import common as com
 from .pascal_object import PASCAL_Object
 
 
-class PASCAL_Image(object):
+class PASCAL_Image(object):  # NOQA
     def __init__(pascali, filename_xml, absolute_dataset_path, **kwargs):
         with open(filename_xml, 'r') as _xml:
             _xml = xml.XML(_xml.read().replace('\n', ''))
@@ -433,7 +433,7 @@ class PASCAL_Image(object):
 
         if display:
             cv2.imshow(pascali.filename + ' with Bounding Boxes', original)
-            cont = raw_input()
+            cont = input()
             cv2.destroyAllWindows()
             return cont == ''
         else:

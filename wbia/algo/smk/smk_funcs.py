@@ -160,7 +160,9 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         >>> agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
         >>> assert len(agg_flags_list) == len(flat_offsets) - 1
     """
-    grouped_wxs = [flat_wxs_assign[l:r] for l, r in ut.itertwo(flat_offsets)]
+    grouped_wxs = [
+        flat_wxs_assign[left:right] for left, right in ut.itertwo(flat_offsets)
+    ]
 
     # Assume single assignment, aggregate everything
     # across the entire database

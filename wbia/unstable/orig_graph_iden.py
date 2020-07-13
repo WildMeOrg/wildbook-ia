@@ -224,7 +224,7 @@ class OrigAnnotInference(object):
         graph.add_edges_from(ut.flatten(aid_matches))
 
         # matchless_quries = ut.take(qaid_list, ut.index_complement(qxs, len(qaid_list)))
-        name_nodes = [('nid', l) for l in dnids]
+        name_nodes = [('nid', nid) for nid in dnids]
         db_aid_nid_edges = list(zip(qreq_.daids, name_nodes))
         # query_aid_nid_edges = list(zip(matching_qaids, [('nid', l) for l in matched_nids]))
         # G = nx.Graph()

@@ -436,12 +436,12 @@ def _sync_get_training_aids(ibs, species_name, limit=1000):
     return aid_list[:limit]
 
 
-@register_ibs_method
-def _sync_get_training_subset(ibs, aid_list, name_list, limit):
-    min_aid_per_name = 2
-    max_aid_per_name = 5
-    name_to_aids = {}
-    pass
+# @register_ibs_method
+# def _sync_get_training_subset(ibs, aid_list, name_list, limit):
+#     min_aid_per_name = 2
+#     max_aid_per_name = 5
+#     name_to_aids = {}
+#     pass
 
 
 @register_ibs_method
@@ -467,7 +467,7 @@ def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True)
     )
 
     if six.PY2:
-        input_func = raw_input
+        input_func = raw_input  # NOQA
     else:
         input_func = input
     response_str = input_func('Confirmation string [Empty to abort]: ')

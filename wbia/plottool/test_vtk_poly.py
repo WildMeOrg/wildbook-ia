@@ -135,7 +135,7 @@ def rhombicuboctahedron():
 
     # writer = vtk.vtkUnstructuredGridWriter()
     # writer.SetFileName("rhombicuboctahedron.vtk")
-    ##writer.SetInputData(ug)
+    # # writer.SetInputData(ug)
     # writer.SetInput(ug)
     # writer.Write()
 

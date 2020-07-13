@@ -213,7 +213,7 @@ def impaint_mask2(img, init_mask=None):
         # else:
         #    guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
         #    wgt.show()
-        ##input('hack to block... press enter when done')
+        # # input('hack to block... press enter when done')
     else:
         pntr = PaintInteraction(img, init_mask=init_mask)
         # pntr.show_page()

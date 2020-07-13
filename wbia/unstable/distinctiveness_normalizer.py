@@ -195,7 +195,7 @@ class DistinctivnessNormalizer(ut.Cachable):
         kwargs['ignore_keys'] = ['flann']
         super(DistinctivnessNormalizer, dstcnvs_normer).load(cachedir, *args, **kwargs)
         dstcnvs_normer.load_or_build_flann(cachedir, verbose, *args, **kwargs)
-        ## Load Flann
+        # # Load Flann
         # if ut.VERBOSE:
         #    print('[nnindex] load_success = %r' % (load_success,))
 

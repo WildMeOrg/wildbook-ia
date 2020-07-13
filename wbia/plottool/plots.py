@@ -2212,12 +2212,12 @@ def plot_search_surface(
         # ymin, ymax = known_nd_min[ydim], known_nd_max[ydim]
         # zmin, zmax = known_target_points.min(), known_target_points.max()
 
-        ##ax.set_xlim(xmin, xmax * 1.05)
-        ##ax.set_ylim(ymin, ymax * 1.05)
-        ##ax.set_zlim(zmin, zmax * 1.05)
-        ##ax.set_xlim(0, xmax + 1)
-        ##ax.set_ylim(0, ymax + 1)
-        ##ax.set_zlim(0, zmax + 1)
+        # # ax.set_xlim(xmin, xmax * 1.05)
+        # # ax.set_ylim(ymin, ymax * 1.05)
+        # # ax.set_zlim(zmin, zmax * 1.05)
+        # # ax.set_xlim(0, xmax + 1)
+        # # ax.set_ylim(0, ymax + 1)
+        # # ax.set_zlim(0, zmax + 1)
         for label in ax.get_xticklabels():
             label.set_fontsize(6)
         for label in ax.get_yticklabels():

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+#!/usr/bin/env python  # NOQA
 """
 Converts a hotspostter database to IBEIS
 """

@@ -780,7 +780,10 @@ def view_advanced0(**kwargs):
     if DEMOGRAPHICS_INCLUDE_UNREVIEWED_AMBIGOUS:
         age_total += age_unreviewed + age_ambiguous
     age_total = np.nan if age_total == 0 else age_total
-    age_fmt_str = lambda x: '% 4d (% 2.02f%%)' % (x, 100 * x / age_total,)
+
+    def age_fmt_str(x):
+        return '% 4d (% 2.02f%%)' % (x, 100 * x / age_total,)
+
     age_str_list = [[age_fmt_str(age) for age in age_list_] for age_list_ in age_list]
     age_str_list.append(age_fmt_str(age_unreviewed))
     age_str_list.append(age_fmt_str(age_ambiguous))
@@ -4962,7 +4965,7 @@ def turk_identification_graph(
         refer_query_uuid = ex.query_uuid
         refer_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(refer_query_uuid),)
         refer_graph_uuid_str = refer_graph_uuid_str.replace(': ', ':')
-    except controller_inject.WebReviewFinishedException as ex:
+    except controller_inject.WebReviewFinishedException:
         finished = True
     except controller_inject.WebUnknownUUIDException:
         return redirect(url_for('turk'))
@@ -5418,21 +5421,21 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             value_sex = None
         value_age_min, value_age_max = list(ibs.get_annot_age_months_est([aid]))[0]
         value_age = None
-        if (value_age_min is -1 or value_age_min is None) and (
-            value_age_max is -1 or value_age_max is None
+        if (value_age_min == -1 or value_age_min is None) and (
+            value_age_max == -1 or value_age_max is None
         ):
             value_age = 1
-        if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
+        if (value_age_min == 0 or value_age_min is None) and value_age_max == 2:
             value_age = 2
-        elif value_age_min is 3 and value_age_max == 5:
+        elif value_age_min == 3 and value_age_max == 5:
             value_age = 3
-        elif value_age_min is 6 and value_age_max == 11:
+        elif value_age_min == 6 and value_age_max == 11:
             value_age = 4
-        elif value_age_min is 12 and value_age_max == 23:
+        elif value_age_min == 12 and value_age_max == 23:
             value_age = 5
-        elif value_age_min is 24 and value_age_max == 35:
+        elif value_age_min == 24 and value_age_max == 35:
             value_age = 6
-        elif value_age_min is 36 and (value_age_max is None or value_age_max > 36):
+        elif value_age_min == 36 and (value_age_max is None or value_age_max > 36):
             value_age = 7
 
         review = 'review' in request.args.keys()

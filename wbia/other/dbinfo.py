@@ -857,17 +857,17 @@ def show_time_distributions(ibs, unixtime_list):
                 max_asize=(100, 200),
             )
             # imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
-            ##xy = [ax.get_xlim()[0] + 5, ax.get_ylim()[1]]
-            ##ax.set_xlim(1, 100)
-            ##ax.set_ylim(0, 100)
-            ##x = np.array(ax.get_xlim()).sum() / 2
-            ##y = np.array(ax.get_ylim()).sum() / 2
-            ##xy = [x, y]
-            ##print('xy = %r' % (xy,))
-            ##x = np.nanmin(unixtime_list)
-            ##xy = [x, y]
-            ##print('xy = %r' % (xy,))
-            ##ax.get_ylim()[0]]
+            # # xy = [ax.get_xlim()[0] + 5, ax.get_ylim()[1]]
+            # # ax.set_xlim(1, 100)
+            # # ax.set_ylim(0, 100)
+            # # x = np.array(ax.get_xlim()).sum() / 2
+            # # y = np.array(ax.get_ylim()).sum() / 2
+            # # xy = [x, y]
+            # # print('xy = %r' % (xy,))
+            # # x = np.nanmin(unixtime_list)
+            # # xy = [x, y]
+            # # print('xy = %r' % (xy,))
+            # # ax.get_ylim()[0]]
             # xy = [ax.get_xlim()[0], ax.get_ylim()[1]]
             # ab = mpl.offsetbox.AnnotationBbox(
             #    imagebox, xy, xycoords='data',
@@ -950,7 +950,7 @@ def latex_dbstats(ibs_list, **kwargs):
             '# Names',
             (
                 'num_names_multiton',
-                #'num_names_singleton',
+                # 'num_names_singleton',
                 'num_names',
             ),
         ),
@@ -959,7 +959,7 @@ def latex_dbstats(ibs_list, **kwargs):
             (
                 'num_multiton_annots',
                 'num_singleton_annots',
-                #'num_unknown_annots',
+                # 'num_unknown_annots',
                 'num_annots',
             ),
         ),
@@ -1013,7 +1013,7 @@ def latex_dbstats(ibs_list, **kwargs):
 
     if EXTRA:
         extra_keys = [
-            #'species2_nAids',
+            # 'species2_nAids',
             'qualtext2_nAnnots',
             'viewcode2_nAnnots',
         ]
@@ -1180,7 +1180,7 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
         'img dbytes': [
             ut.file_bytes(gpath) for gpath in ibs.gx2_gname(gx_list, full=True)
         ],
-        #'flann dbytes':  ut.file_bytes(flann_fpath),
+        # 'flann dbytes':  ut.file_bytes(flann_fpath),
     }
 
     byte_units = {

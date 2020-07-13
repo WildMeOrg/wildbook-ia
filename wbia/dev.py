@@ -838,8 +838,8 @@ def ggr_random_name_splits():
 
     orig_filter_kw = {
         'multiple': None,
-        #'view': ['right'],
-        #'minqual': 'good',
+        # 'view': ['right'],
+        # 'minqual': 'good',
         'is_known': True,
         'min_pername': 2,
     }

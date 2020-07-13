@@ -121,7 +121,7 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     # lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
     # lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
     # nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)
-    ##nid_list = [const.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]
+    # # nid_list = [const.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]
     # return nid_list
 
 
@@ -498,7 +498,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
             id_colname=NAME_ROWID,
             unpack_scalars=False,
         )
-        #%timeit ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
+        # %timeit ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
         # The index maxes the following query very efficient
     elif USE_GROUPING_HACK:
         # This code doesn't work because it doesn't respect empty names
@@ -1482,6 +1482,7 @@ def get_name_has_split(ibs, nid_list):
     """
     aids_list_ = ibs.get_name_aids(nid_list)
     # ibs.check_name_mapping_consistency(aids_list_)
+
     def get_valid_aids_clique_annotmatch_rowids(aids):
         import itertools
 

@@ -4,6 +4,8 @@ This module contains functions and clases to get data visualized fast (in
 terms of development time)
 """
 from __future__ import absolute_import, division, print_function
+
+from wbia import guitool
 from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.api_item_model import APIItemModel
@@ -103,8 +105,6 @@ def simple_api_tree_widget():
         >>> wgt.show()
         >>> guitool.qtapp_loop(wgt, frequency=100)
     """
-    import wbia.guitool
-
     guitool.ensure_qapp()
     col_name_list = ['name', 'num_annots', 'annots']
     col_getter_dict = {

@@ -308,7 +308,6 @@ class APIThumbDelegate(DELEGATE_BASE):
         Returns:
             thumb_path if computed otherwise returns None
         """
-
         # Check if still in viewport
         if view_would_not_be_visible(view, offset):
             return None
@@ -684,7 +683,7 @@ def simple_thumbnail_widget():
         >>> wgt.show()
         >>> guitool.qtapp_loop(wgt, frequency=100)
     """
-    import wbia.guitool
+    from wbia import guitool
 
     guitool.ensure_qapp()
     col_name_list = ['rowid', 'image_name', 'thumb']
@@ -712,7 +711,6 @@ def simple_thumbnail_widget():
 
     def thumb_getter(id_, thumbsize=128):
         """ Thumb getters must conform to thumbtup structure """
-
         if id_ not in imgname_list:
             return {
                 'fpath': id_ + '.jpg',

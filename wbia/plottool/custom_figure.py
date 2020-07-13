@@ -87,12 +87,12 @@ def ensure_fig(fnum=None):
     if fnum is None:
         try:
             fig = gcf()
-        except Exception as ex:
+        except Exception:
             fig = plt.figure()
     else:
         try:
             fig = plt.figure(fnum)
-        except Exception as ex:
+        except Exception:
             fig = gcf()
     return fig
 

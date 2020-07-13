@@ -274,7 +274,7 @@ def show_chip(
 
     # if 'featweights' in vars() and 'color' in kwargs:
     if weights is not None and weight_label is not None:
-        ## HACK HACK HACK
+        # # HACK HACK HACK
         if len(weights) > 0:
             cb = pt.colorbar(weights, kwargs['color'])
             cb.set_label(weight_label)

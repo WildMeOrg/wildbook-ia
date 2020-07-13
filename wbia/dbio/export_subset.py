@@ -395,8 +395,8 @@ def slow_merge_test():
     return ibs_dst
 
     # ibs_src.print_annotation_table(exclude_columns=['annot_verts',
-    #'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid',
-    #'annot_exemplar_flag,'])
+    # 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid',
+    # 'annot_exemplar_flag,'])
     # ibs_dst.print_annotation_table()
 
 

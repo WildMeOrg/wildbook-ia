@@ -1973,7 +1973,7 @@ def query_graph_v2_latest_logs(future):
         print('--- <LOG DUMP> ---')
         for msg, color in logs:
             ut.cprint('[web.infr] ' + msg, color)
-        print('--- <\LOG DUMP> ---')
+        print('--- <\\LOG DUMP> ---')
 
 
 def query_graph_v2_on_request_review(future):

@@ -12,4 +12,4 @@ def test_lnbnn():
     annots = ibs.annots()
     qaids = daids = annots.aids
     qreq = ibs.new_query_request(qaids, daids)
-    cm_list = qreq.execute(use_cache=False)
+    cm_list = qreq.execute(use_cache=False)  # NOQA

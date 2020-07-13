@@ -417,7 +417,7 @@ class SQLDatabaseController(object):
         db._tablenames = None
         db.readonly = readonly
         db.table_metadata_keys = [
-            #'constraint',
+            # 'constraint',
             'dependson',
             'docstr',
             'relates',
@@ -1556,8 +1556,9 @@ class SQLDatabaseController(object):
                     continue
             to_write = '%s\n' % line
             # Ensure python2 writes in bytes
-            if six.PY2 and isinstance(to_write, unicode):  # NOQA
-                to_write = to_write.encode('utf8')
+            if six.PY2:
+                if isinstance(to_write, unicode):  # NOQA
+                    to_write = to_write.encode('utf8')
             try:
                 file_.write(to_write)
             except UnicodeEncodeError:
@@ -2005,6 +2006,7 @@ class SQLDatabaseController(object):
             for data in data_list_
         ]
         # Add the data to the database
+
         def get_rowid_from_superkey(x):
             return [None] * len(x)
 
@@ -2260,7 +2262,7 @@ class SQLDatabaseController(object):
         specially_handled_table_metakeys = [
             'docstr',
             'superkeys',
-            #'constraint',
+            # 'constraint',
             'dependsmap',
         ]
 

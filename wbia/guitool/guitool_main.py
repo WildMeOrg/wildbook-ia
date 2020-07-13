@@ -125,7 +125,7 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
 # from IPython.lib.inputhook import enable_qt4
 # from IPython.lib.guisupport import start_event_loop_qt4
 # qapp = QtCore.QCoreApplication.instance()
-##qapp.exec_()
+# # qapp.exec_()
 # print('[ut.dbg] Starting ipython qt4 hook')
 # enable_qt4()
 # start_event_loop_qt4(qapp)

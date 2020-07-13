@@ -34,7 +34,7 @@ CLASS_INJECT_KEY, register_ibs_method = _tup
 
 @profile
 def time_filter_annots():
-    """
+    r"""
     python -m wbia.init.filter_annots time_filter_annots \
             --db PZ_Master1 -a ctrl:qmingt=2 --profile
 
@@ -398,7 +398,7 @@ def hack_extra(ibs, expanded_aids):
 def expand_acfgs_consistently(
     ibs, acfg_combo, initial_aids=None, use_cache=None, verbose=None, base=0
 ):
-    """
+    r"""
     Expands a set of configurations such that they are comparable
 
     CommandLine:
@@ -447,6 +447,7 @@ def expand_acfgs_consistently(
         verbose = VERB_TESTDATA
     # Edit configs so the sample sizes are consistent
     # FIXME: requiers that smallest configs are specified first
+
     def tmpmin(a, b):
         if a is None:
             return b

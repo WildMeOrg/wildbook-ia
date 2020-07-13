@@ -196,7 +196,7 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
     #    unknown_vecs_list = ibs.get_annot_vecs(overflow_aids, config2_=qreq_.get_internal_data_config2())
     #    unknown_index = NeighborIndex(overflow_aids, unknown_vecs_list)
     #    extra_indexes.append(unknown_index)
-    ##print('[mindex] building normalizer forest')  # TODO
+    # # print('[mindex] building normalizer forest')  # TODO
     # mxer.nn_indexer_list = nn_indexer_list
     # mxer.extra_indexes = extra_indexes
     # mxer.overflow_index = overflow_index
@@ -680,6 +680,7 @@ class MultiNeighborIndex(object):
         # Sort over all tree result distances
         qfx2_sortx = qfx2_dist.argsort(axis=1)
         # Apply sorting to concatenated results
+
         def foreach_row_sort_cols(qfx2_xxx):
             return np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
 

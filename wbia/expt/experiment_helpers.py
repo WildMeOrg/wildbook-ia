@@ -107,11 +107,11 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
             #    augcfgdict = ut.parse_cfgstr_list(cfgstr_list, smartcast=True)
             # else:
             #    augcfgdict = {}
-            ## Take the configuration from the wbia object
+            # # Take the configuration from the wbia object
             # pipe_cfg = ibs.--cfg.query_cfg.deepcopy()
-            ## Update with augmented params
+            # # Update with augmented params
             # pipe_cfg.update_query_cfg(**augcfgdict)
-            ## Parse out a standard cfgdict
+            # # Parse out a standard cfgdict
             # cfgdict = dict(pipe_cfg.parse_items())
             # cfgdict['_cfgname'] = 'custom'
             # cfgdict['_cfgstr'] = test_cfg_name

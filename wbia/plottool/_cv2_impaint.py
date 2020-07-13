@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import utool as ut
+
+
 def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     r"""
     CommandLine:

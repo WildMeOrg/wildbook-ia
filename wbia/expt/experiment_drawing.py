@@ -1299,7 +1299,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
             ]
             X_label_list += [
                 'TP ' + lbl,
-                #'FP ' + lbl
+                # 'FP ' + lbl
             ]
         if falsepos:
             X_data_list += [gf_s_td]
@@ -1330,7 +1330,9 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
         ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True)
         for b in bins
     ]
-    bin_labels = [l + ' - ' + h for l, h in ut.iter_window(timedelta_strs)]
+    bin_labels = [
+        length + ' - ' + height for length, height in ut.iter_window(timedelta_strs)
+    ]
     bin_labels[-1] = '> 1 year'
     bin_labels[0] = '< 1 minute'
     WITH_NAN = True
@@ -1453,7 +1455,7 @@ def draw_match_cases(
 
         mpl.rcParams.update(TMP_RC)
 
-    #### ARGUMENT PARSING AND RECTIFICATION ###
+    # ### ARGUMENT PARSING AND RECTIFICATION ###
     cmdaug = ut.get_argval('--cmdaug', type_=str, help_='candhack')
 
     show = ut.get_argflag('--show')
@@ -1478,7 +1480,7 @@ def draw_match_cases(
         case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
     #########################
 
-    #### DIRECTORY SETUP ###
+    # ### DIRECTORY SETUP ###
     figdir = ut.truepath(figdir)
     case_figdir = join(figdir, 'cases_' + ibs.get_dbname())
     ut.ensuredir(case_figdir)
@@ -1495,7 +1497,7 @@ def draw_match_cases(
         print('case_figdir = %r' % (case_figdir,))
     ##########################
 
-    #### INTERACTIVE SETUP ###
+    # ### INTERACTIVE SETUP ###
     def toggle_annot_mode():
         for ix in range(len(annot_modes)):
             # See viz_qres.py for more annot_mode info

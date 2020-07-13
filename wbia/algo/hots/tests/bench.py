@@ -31,8 +31,8 @@ def benchmark_knn():
     Kpad_list, impossible_daids_list = ut.dict_take(
         locals_, ['Kpad_list', 'impossible_daids_list']
     )
-    nns_list1 = nearest_neighbors(
-        qreq_, Kpad_list, impossible_daids_list, verbose=verbose  # NOQA
+    nns_list1 = nearest_neighbors(  # NOQA
+        qreq_, Kpad_list, impossible_daids_list, verbose=verbose
     )
 
 

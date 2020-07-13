@@ -20,6 +20,7 @@ from wbia.dev import *  # NOQA
 
 if __name__ == '__main__':
     import multiprocessing
+    from wbia.dev import devmain
 
     multiprocessing.freeze_support()  # for win32
     devmain()

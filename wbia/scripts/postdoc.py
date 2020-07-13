@@ -719,10 +719,10 @@ def _find_good_match_states(infr, ibs, edges):
     pos_edges = list(infr.pos_graph.edges())
     timedelta = ibs.get_annot_pair_timedelta(*zip(*edges))
     edges = ut.take(pos_edges, ut.argsort(timedelta))[::-1]
-    wgt = infr.qt_edge_reviewer(edges)
+    infr.qt_edge_reviewer(edges)
 
     neg_edges = ut.shuffle(list(infr.neg_graph.edges()))
-    wgt = infr.qt_edge_reviewer(neg_edges)
+    infr.qt_edge_reviewer(neg_edges)
 
     if infr.incomp_graph.number_of_edges() > 0:
         incmp_edges = list(infr.incomp_graph.edges())
@@ -755,13 +755,13 @@ def _find_good_match_states(infr, ibs, edges):
 
             if False:
                 edges = list(infr._make_rankings(3197, rights))
-                wgt = infr.qt_edge_reviewer(edges)
+                infr.qt_edge_reviewer(edges)
 
             edges = list(ut.random_product((rights, lefts), num=10, rng=0))
-            wgt = infr.qt_edge_reviewer(edges)
+            infr.qt_edge_reviewer(edges)
 
         for edge in incmp_edges:
-            match = infr._make_matches_from([edge])[0]
+            infr._make_matches_from([edge])[0]
             # infr._debug_edge_gt(edge)
 
 
@@ -949,7 +949,7 @@ class VerifierExpt(DBInputs):
         print('Finished setup')
 
     @classmethod
-    def agg_dbstats(VerifierExpt):
+    def agg_dbstats(cls):
         """
         CommandLine:
             python -m wbia VerifierExpt.agg_dbstats
@@ -962,8 +962,8 @@ class VerifierExpt(DBInputs):
             >>> print(result)
         """
         dfs = []
-        for dbname in VerifierExpt.agg_dbnames:
-            self = VerifierExpt(dbname)
+        for dbname in cls.agg_dbnames:
+            self = cls(dbname)
             info = self.ensure_results('dbstats', nocompute=False)
             sample_info = self.ensure_results('sample_info', nocompute=False)
 
@@ -990,7 +990,7 @@ class VerifierExpt(DBInputs):
         enc_text = tabular.as_tabular()
         print(enc_text)
 
-        ut.write_to(join(VerifierExpt.base_dpath, 'agg-dbstats.tex'), enc_text)
+        ut.write_to(join(cls.base_dpath, 'agg-dbstats.tex'), enc_text)
 
         _ = ut.render_latex(
             enc_text,
@@ -1002,7 +1002,7 @@ class VerifierExpt(DBInputs):
         # ut.startfile(_)
 
     @classmethod
-    def agg_results(VerifierExpt, task_key):
+    def agg_results(cls, task_key):
         """
 
         python -m wbia VerifierExpt.agg_results
@@ -1017,18 +1017,18 @@ class VerifierExpt(DBInputs):
             >>> result = VerifierExpt.agg_results(task_key)
             >>> print(result)
         """
-        VerifierExpt.agg_dbstats()
-        dbnames = VerifierExpt.agg_dbnames
+        cls.agg_dbstats()
+        dbnames = cls.agg_dbnames
 
         all_results = ut.odict([])
-        for dbname in VerifierExpt.agg_dbnames:
-            self = VerifierExpt(dbname)
+        for dbname in cls.agg_dbnames:
+            self = cls(dbname)
             info = self.ensure_results('all')
             all_results[dbname] = info
 
         rerank_results = ut.odict([])
-        for dbname in VerifierExpt.agg_dbnames:
-            self = VerifierExpt(dbname)
+        for dbname in cls.agg_dbnames:
+            self = cls(dbname)
             info = self.ensure_results('rerank')
             rerank_results[dbname] = info
 
@@ -1201,7 +1201,7 @@ class VerifierExpt(DBInputs):
             # HACKS
             import re
 
-            num_pat = ut.named_field('num', '[0-9]*\.?[0-9]*')
+            num_pat = ut.named_field('num', r'[0-9]*\.?[0-9]*')
             tex_text = re.sub(
                 re.escape('\\mathbf{$') + num_pat + re.escape('$}'),
                 '$\\mathbf{' + ut.bref_field('num') + '}$',
@@ -1211,11 +1211,11 @@ class VerifierExpt(DBInputs):
             # tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
             # tex_text = tex_text.replace('$}', '}$')
 
-            ut.write_to(join(VerifierExpt.base_dpath, 'agg-results-all.tex'), tex_text)
+            ut.write_to(join(cls.base_dpath, 'agg-results-all.tex'), tex_text)
 
             _ = ut.render_latex(
                 tex_text,
-                dpath=VerifierExpt.base_dpath,
+                dpath=cls.base_dpath,
                 fname='agg-results-all',
                 preamb_extra=['\\usepackage{makecell}'],
             )
@@ -1266,7 +1266,7 @@ class VerifierExpt(DBInputs):
             # HACKS
             import re
 
-            num_pat = ut.named_field('num', '[0-9]*\.?[0-9]*')
+            num_pat = ut.named_field('num', r'[0-9]*\.?[0-9]*')
             tex_text = re.sub(
                 re.escape('\\mathbf{$') + num_pat + re.escape('$}'),
                 '$\\mathbf{' + ut.bref_field('num') + '}$',
@@ -1276,11 +1276,11 @@ class VerifierExpt(DBInputs):
             print(tex_text)
             # tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
             # tex_text = tex_text.replace('$}', '}$')
-            ut.write_to(join(VerifierExpt.base_dpath, 'agg-results.tex'), tex_text)
+            ut.write_to(join(cls.base_dpath, 'agg-results.tex'), tex_text)
 
             _ = ut.render_latex(
                 tex_text,
-                dpath=VerifierExpt.base_dpath,
+                dpath=cls.base_dpath,
                 fname='agg-results',
                 preamb_extra=['\\usepackage{makecell}'],
             )
@@ -1356,7 +1356,7 @@ class VerifierExpt(DBInputs):
                     fig.set_size_inches([W * 0.7, H])
 
                     fname = 'agg_roc_rank_{}_chunk_{}_{}.png'.format(num, fnum, task_key)
-                    fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                    fig_fpath = join(str(cls.base_dpath), fname)
                     vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
             chunked_dbnames = list(ub.chunks(dbnames, 2))
@@ -1408,7 +1408,7 @@ class VerifierExpt(DBInputs):
                 fig.set_size_inches([W * 0.7, H])
 
                 fname = 'agg_cmc_chunk_{}_{}.png'.format(fnum, task_key)
-                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                fig_fpath = join(str(cls.base_dpath), fname)
                 vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
         if method == 1:
@@ -1478,7 +1478,7 @@ class VerifierExpt(DBInputs):
                     fig = pt.figure(fnum=fnum)  # NOQA
                     method1_roc(roc_curves, algo, other)
                     fname = 'agg_roc_rank_{}_{}_{}.png'.format(num, algo, task_key)
-                    fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                    fig_fpath = join(str(cls.base_dpath), fname)
                     vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
             # -------------
@@ -1529,14 +1529,14 @@ class VerifierExpt(DBInputs):
             cmc_curves = rank_curves[num][CLF]
             method1_cmc(cmc_curves)
             fname = 'agg_cmc_clf_{}.png'.format(task_key)
-            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+            fig_fpath = join(str(cls.base_dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
             fig = pt.figure(fnum=2)  # NOQA
             cmc_curves = rank_curves[num][LNBNN]
             method1_cmc(cmc_curves)
             fname = 'agg_cmc_lnbnn_{}.png'.format(task_key)
-            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+            fig_fpath = join(str(cls.base_dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
         if True:
@@ -1897,7 +1897,6 @@ class VerifierExpt(DBInputs):
             >>>     self = VerifierExpt(dbname)
             >>>     self.draw_all()
         """
-
         results = self.ensure_results('all')
         eval_task_keys = set(results['task_combo_res'].keys())
         print('eval_task_keys = {!r}'.format(eval_task_keys))
@@ -2592,7 +2591,6 @@ class VerifierExpt(DBInputs):
             >>> task_key = 'match_state'
             >>> self.draw_hard_cases(task_key)
         """
-
         REWORK = False
         REWORK = True
 
@@ -2972,7 +2970,7 @@ class VerifierExpt(DBInputs):
             ut.startfile(fig_fpath)
 
     @classmethod
-    def draw_tagged_pair(VerifierExpt):
+    def draw_tagged_pair(cls):
         import wbia
 
         # ibs = wbia.opendb(defaultdb='GZ_Master1')
@@ -3041,7 +3039,7 @@ class VerifierExpt(DBInputs):
         )
         # ax.set_xlabel(xlabel)
 
-        self = VerifierExpt()
+        self = cls()
 
         fname = 'custom_match_{}_{}_{}'.format(query_tag, *edge)
         dpath = ut.truepath(self.base_dpath)

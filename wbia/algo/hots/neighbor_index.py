@@ -210,6 +210,7 @@ class NeighborIndex(object):
         >>> from wbia.algo.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
+
     ext = '.flann'
     prefix1 = 'flann'
 
@@ -278,7 +279,7 @@ class NeighborIndex(object):
         else:
             # FIXME: hacky way to support siam128 descriptors.
             # raise AssertionError(
-            #'NNindexer should get uint8s right now unless the algorithm has
+            # 'NNindexer should get uint8s right now unless the algorithm has
             # changed')
             indexer.max_distance_sqrd = None
 
@@ -454,7 +455,7 @@ class NeighborIndex(object):
         if nnindexer.idx2_fgw is not None:
             new_idx2_fgw = np.hstack(new_fgws_list)
             # nnindexer.old_vecs.append(new_idx2_fgw)
-        ##---
+
         _ax2_aid = np.hstack((nnindexer.ax2_aid, new_daid_list))
         _idx2_ax = np.hstack((nnindexer.idx2_ax, new_idx2_ax))
         _idx2_fx = np.hstack((nnindexer.idx2_fx, new_idx2_fx))
@@ -817,6 +818,7 @@ class NeighborIndex(object):
             # hack to try and make things a little bit faster
             invalid_axs = np.array(ut.take(indexer.aid2_ax, impossible_aids))
             # pad += (len(invalid_axs) * 2)
+
             def get_neighbors(vecs, temp_K):
                 return indexer.flann.nn_index(
                     vecs, temp_K, checks=indexer.checks, cores=indexer.cores

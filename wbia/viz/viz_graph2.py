@@ -1940,7 +1940,7 @@ class EdgeAPIHelper(object):
         ]
 
         edge_col_name_list = [
-            #'index',
+            # 'index',
             'thumb1',
             'thumb2',
             'match_thumb',
@@ -1959,7 +1959,7 @@ class EdgeAPIHelper(object):
             'cc_size2',
             'aid1',
             'aid2',
-            #'data',
+            # 'data',
         ]
 
         col_getter_dict = {
@@ -2016,7 +2016,7 @@ class EdgeAPIHelper(object):
             'cc_size2': 80,
             'score': 65,
             'rank': 42,
-            #'timedelta': 65,
+            # 'timedelta': 65,
         }
 
         partial_headers = {

@@ -21,7 +21,7 @@ SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'darknet')))
 if not ut.get_argflag('--no-darknet'):
     try:
         assert exists(SCRIPT_PATH)
-    except AssertionError as ex:
+    except AssertionError:
         print('WARNING Failed to find darknet. ' 'Darknet is unavailable')
         # if ut.SUPER_STRICT:
         #     raise

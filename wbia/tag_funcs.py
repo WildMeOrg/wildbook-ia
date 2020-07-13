@@ -20,10 +20,10 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 
 
 ANNOTMATCH_PROPS_STANDARD = [
-    #'SceneryMatch',
-    #'Photobomb',
-    #'Hard',
-    #'NonDistinct',
+    # 'SceneryMatch',
+    # 'Photobomb',
+    # 'Hard',
+    # 'NonDistinct',
 ]
 
 ANNOTMATCH_PROPS_OTHER = [
@@ -71,14 +71,14 @@ PROP_MAPPING = {
     'Shadowing': 'Lighting',
     'success': None,
     'GoodCoverage': None,
-    #'Hard'           : 'NeedsWork',
+    # 'Hard'           : 'NeedsWork',
     'shouldhavemore': 'NeedsWork',
     'BadCoverage': 'NeedsWork',
     'ScoringIssue': 'NeedsWork',
     'TooSmallMatches': 'FeatureScale',
     'TooLargeMatches': 'FeatureScale',
-    #'BadShoulder' : 'BadShoulder',
-    #'GoodCoverage': None,
+    # 'BadShoulder' : 'BadShoulder',
+    # 'GoodCoverage': None,
 }
 
 for key, val in PROP_MAPPING.items():
@@ -102,35 +102,35 @@ def consolodate_annotmatch_tags(old_tags):
         'interesting',
         'splitcase',
         'joincase',
-        #'orientation',
+        # 'orientation',
         'random',
-        #'badtail', 'badshoulder', 'splitcase', 'joincase', 'goodcoverage', 'interesting', 'hard'
+        # 'badtail', 'badshoulder', 'splitcase', 'joincase', 'goodcoverage', 'interesting', 'hard'
     ]
     tags_dict = {
-        #'quality': 'Quality',
-        #'scoringissue': 'ScoringIssue',
-        #'orientation': 'Orientation',
-        #'orientation': 'MildViewpoint',
+        # 'quality': 'Quality',
+        # 'scoringissue': 'ScoringIssue',
+        # 'orientation': 'Orientation',
+        # 'orientation': 'MildViewpoint',
         'orientation': 'Viewpoint',
-        #'pose': 'SimilarPose',
+        # 'pose': 'SimilarPose',
         'pose': 'NonDistinct',
-        #'lighting': 'Lighting',
-        #'occlusion': 'Occlusion',
-        #'featurescale': 'FeatureScale',
-        #'edgematch': 'EdgeMatches',
-        #'featurescale': 'Pose',
-        #'featurescale': 'FeatureScale',
+        # 'lighting': 'Lighting',
+        # 'occlusion': 'Occlusion',
+        # 'featurescale': 'FeatureScale',
+        # 'edgematch': 'EdgeMatches',
+        # 'featurescale': 'Pose',
+        # 'featurescale': 'FeatureScale',
         'nondistinct': 'NonDistinct',
         'featurescale': 'NonDistinct',
         'edgematch': 'SimilarPose',
         'badtail': 'NonDistinct',
         'badshoulder': 'NonDistinct',
-        #'mildviewpoint': 'MildViewpoint',
+        # 'mildviewpoint': 'MildViewpoint',
         'mildviewpoint': 'Viewpoint',
-        #'toolargematches': 'CoarseFeatures',
-        #'badcoverage': 'LowCoverage',
-        #'shouldhavemore': 'LowCoverage',
-        #'viewpoint': 'Viewpoint',
+        # 'toolargematches': 'CoarseFeatures',
+        # 'badcoverage': 'LowCoverage',
+        # 'shouldhavemore': 'LowCoverage',
+        # 'viewpoint': 'Viewpoint',
     }
 
     def filter_tags(tags):

@@ -414,7 +414,7 @@ def general_identify_flow():
         groupid='feats',
         color=lighten_hex(annot2_color, 0.1),
     )
-    #'#4771B3')
+    # '#4771B3')
 
     global_pairvec = graph.nx_makenode(
         'Global similarity\n(viewpoint, quality, ...)',
@@ -526,11 +526,11 @@ def general_identify_flow():
         'samplepoints': 20,
         'showboxes': 1,
         # 'splines': 'polyline',
-        #'splines': 'spline',
+        # 'splines': 'spline',
         'sep': 100 / 72,
         'nodesep': 300 / 72,
         'ranksep': 300 / 72,
-        #'inputscale': 72,
+        # 'inputscale': 72,
         # 'inputscale': 1,
         # 'dpi': 72,
         # 'concentrate': 'true', # merges edge lines
@@ -903,7 +903,7 @@ def setcover_example():
         'sep': 1 / 10,
         'prog': 'neato',
         'overlap': 'false',
-        #'splines': 'ortho',
+        # 'splines': 'ortho',
         'splines': 'spline',
     }
     pt.show_nx(graph, layout='agraph', layoutkw=layoutkw)
@@ -1404,7 +1404,7 @@ def intraoccurrence_connected():
     aids_list = ibs.group_annots_by_name(aids)[0]
 
     ensure_edges = 'all' if True or not postcut else None
-    unlabeled_graph = infr.graph
+    # unlabeled_graph = infr.graph
     unlabeled_graph = viz_graph.make_netx_graph_from_aid_groups(
         ibs,
         aids_list,
@@ -1487,7 +1487,7 @@ def intraoccurrence_connected():
         'sep': 1 / 5,
         'prog': 'neato',
         'overlap': 'false',
-        #'splines': 'ortho',
+        # 'splines': 'ortho',
         'splines': 'spline',
     }
 
@@ -1545,8 +1545,8 @@ def intraoccurrence_connected():
         # pt.apply_graph_layout_attrs(graph, layout_info)
 
         # graph_layout_attrs = layout_info['graph']
-        ##edge_layout_attrs  = layout_info['edge']
-        ##node_layout_attrs  = layout_info['node']
+        # # edge_layout_attrs  = layout_info['edge']
+        # # node_layout_attrs  = layout_info['node']
 
         # for key, vals in layout_info['node'].items():
         #    #print('[special] key = %r' % (key,))

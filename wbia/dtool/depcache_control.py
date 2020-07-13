@@ -1280,19 +1280,19 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         shape_dict = {
             # 'node': 'circle',
-            #'node': 'rect',
+            # 'node': 'rect',
             'node': 'ellipse',
-            #'root': 'rhombus',
-            #'root': 'circle',
-            #'root': 'circle',
+            # 'root': 'rhombus',
+            # 'root': 'circle',
+            # 'root': 'circle',
             'root': 'ellipse',
-            #'root': 'rect',
+            # 'root': 'rect',
         }
         # import wbia.plottool as pt
         NEUTRAL_BLUE = np.array((159, 159, 241, 255)) / 255.0
         RED = np.array((255, 0, 0, 255)) / 255.0
         color_dict = {
-            #'algo': pt.DARK_GREEN,  # 'g',
+            # 'algo': pt.DARK_GREEN,  # 'g',
             'node': NEUTRAL_BLUE,
             'root': RED,  # 'r',
         }

@@ -110,7 +110,7 @@ def missing_lots():
 
 @register_test
 def consistent_info():
-    """
+    r"""
     Test Consistent Info
     ----------------------
     A -- B
@@ -141,7 +141,7 @@ def consistent_info():
 
 @register_test
 def inconsistent_info():
-    """
+    r"""
     Test Inconsistent Info
     ----------------------
     This test adds onto the first and makes it almost impossible that b and d are
@@ -205,7 +205,7 @@ def inconsistent_info2():
 
 @register_test
 def pos_incomplete():
-    """
+    r"""
     Test Postive Incomplete Info
     ----------------------
     This test adds an exta node, e, with a tiny preference towards matching c, d
@@ -237,7 +237,7 @@ def pos_incomplete():
 
 @register_test
 def neg_incomplete():
-    """
+    r"""
     Test Negative Incomplete Info
     ----------------------
     This test adds an exta node, e, with a tiny preference of not matching c, d

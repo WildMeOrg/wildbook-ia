@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Helpers for graph plotting
 
 References:
@@ -318,7 +318,7 @@ def parse_html_graphviz_attrs():
     print(ut.format_single_paragraph_sentences(', '.join(neato_keys['G'])))
 
 
-class GRAPHVIZ_KEYS(object):
+class GRAPHVIZ_KEYS(object):  # NOQA
     N = {
         'URL',
         'area',
@@ -583,6 +583,7 @@ try:
                       width       N           double                NaN
                           z       N           double                NaN
         """
+
         # TODO: make a gridsearchable config for layouts
         @staticmethod
         def get_param_info_list():
@@ -1265,7 +1266,6 @@ def parse_aedge_layout_attrs(aedge, translation=None):
     """
     parse grpahviz splineType
     """
-
     if translation is None:
         translation = np.array([0, 0])
     edge_attrs = {}

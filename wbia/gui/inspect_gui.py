@@ -364,7 +364,7 @@ class QueryResultsWidget(gt.APIItemWidget):
 
     def selectedRows(qres_wgt):
         selected_qtindex_list2 = qres_wgt.view.selectedRows()
-        ##selected_qtindex_list = qres_wgt.view.selectedIndexes()
+        # # selected_qtindex_list = qres_wgt.view.selectedIndexes()
         # selected_qtindex_list2 = []
         # seen_ = set([])
         # for qindex in selected_qtindex_list:
@@ -445,7 +445,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                 annot1_options_dict = make_option_dict(option_dict['2'])
                 qual1_options_dict = make_option_dict(annot1_options_dict['Q'])
                 qual1_options_dict['4']()
-            ## BROKEN FOR NOW
+            # # BROKEN FOR NOW
             # elif event_key == QtCore.Qt.Key_S:
             #    option_dict['S']()
             # elif event_key == QtCore.Qt.Key_P:
@@ -563,7 +563,7 @@ class QueryResultsWidget(gt.APIItemWidget):
 
             options = [
                 'Accept',
-                #'Review More'
+                # 'Review More'
             ]
             msg = (
                 ut.codeblock(
@@ -1050,7 +1050,7 @@ def show_vsone_tuner(ibs, qaid, daid, qreq_=None):
 
 
 def make_vsone_context_options(ibs, aid1, aid2, qreq_):
-    """
+    r"""
     CommandLine:
         python -m wbia.gui.inspect_gui make_vsone_context_options --db PZ_MTEST
         python -m wbia.gui.inspect_gui make_vsone_context_options \

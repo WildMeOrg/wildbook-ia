@@ -415,8 +415,8 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
                     'fpath': fpath,
                     'thread_func': func,
                     'main_func': func2,
-                    #'args': (ibs, cm, daid),
-                    #'kwargs': dict(qreq_=qreq_,
+                    # 'args': (ibs, cm, daid),
+                    # 'kwargs': dict(qreq_=qreq_,
                     #               match_thumbtup_cache=match_thumbtup_cache)
                 }
                 return thumbdat

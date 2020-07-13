@@ -1267,7 +1267,7 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
 
         print('%r: %d' % (species, len(gid_list),))
 
-    redo = raw_input('Redo? [enter to continue] ')
+    redo = input('Redo? [enter to continue] ')
     redo = redo.strip()
     if len(redo) == 0:
         ibs.set_reviewed_from_target_species_count(species_set=species_set, target=target)

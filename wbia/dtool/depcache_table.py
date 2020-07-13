@@ -836,14 +836,14 @@ class _TableInternalSetup(ub.NiceRepr):
                     {
                         'intern_colname': prefix + '_' + INPUT_SIZE_SUFFIX,
                         'sqltype': 'INTEGER NOT NULL',
-                        #'doc': 'size of an input set for this model',
+                        # 'doc': 'size of an input set for this model',
                     }
                 ]
                 # File that maintains manifest of model inputs
                 # INPUT_FPATH_SUFFIX = 'setfpath'
                 # extra_cols += [{
-                #'intern_colname': prefix + '_' + INPUT_FPATH_SUFFIX,
-                #'sqltype': 'TEXT'
+                # 'intern_colname': prefix + '_' + INPUT_FPATH_SUFFIX,
+                # 'sqltype': 'TEXT'
                 # }]
                 colattr['extra_cols'] = extra_cols
                 # colattr['issuper'] = True
@@ -1719,7 +1719,6 @@ class _TableComputeHelper(object):
             >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
             >>> depc.print_all_tables()
         """
-
         nInput = len(dirty_parent_ids)
         chunksize = nInput if table.chunksize is None else table.chunksize
 
@@ -2886,7 +2885,7 @@ class DependencyCacheTable(
     # unique_args_list = [unique_configs]
 
     # raw_prop_lists = []
-    ##func = ut.partial(table.preproc_func, table.depc)
+    # # func = ut.partial(table.preproc_func, table.depc)
     # def groupmap_func(group_args, unique_args):
     #    config_ = unique_args[0]
     #    argsT = group_args
@@ -2919,8 +2918,10 @@ class DependencyCacheTable(
         keepwrap=False,
         showprog=False,
     ):
-        """ Access data in this table using the table PRIMARY KEY rowids (not
-        depc PRIMARY ids) """
+        """
+        Access data in this table using the table PRIMARY KEY rowids (not
+        depc PRIMARY ids)
+        """
         prop_list = table.db.get(
             table.tablename,
             colnames,

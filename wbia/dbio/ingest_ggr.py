@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+# !/usr/bin/env python
 """Converts a GGR-style raw data to IBEIS database."""
 from __future__ import absolute_import, division, print_function
 from wbia.detecttools.directory import Directory

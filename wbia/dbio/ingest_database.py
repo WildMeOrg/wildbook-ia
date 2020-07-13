@@ -1199,7 +1199,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
             'ok': ibs.const.QUAL_OK,
             'good': ibs.const.QUAL_GOOD,
             'junk': ibs.const.QUAL_JUNK,
-            #'distractor': ibs.const.QUAL_JUNK
+            # 'distractor': ibs.const.QUAL_JUNK
         }
         qual_text_list = [_dict.get(note, ibs.const.QUAL_UNKNOWN) for note in notes_list]
         ibs.set_annot_quality_texts(aid_list, qual_text_list)

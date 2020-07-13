@@ -464,8 +464,8 @@ toy_params = {
     False: {'mu': 0.5, 'sigma': 0.4}
     # True: {'mu': 3.5, 'sigma': 1.1},
     # False: {'mu': .3, 'sigma': .7}
-    #'p': .7},
-    #'p': .2}
+    # 'p': .7},
+    # 'p': .2}
 }
 
 
@@ -549,9 +549,9 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         'nids': nids,
         'all_nids': all_nids,
         'all_aids': all_aids,
-        #'pairwise_aidxs': pairwise_aidxs,
-        #'pairwise_scores': pairwise_scores,
-        #'pairwise_matches': pairwise_matches,
+        # 'pairwise_aidxs': pairwise_aidxs,
+        # 'pairwise_scores': pairwise_scores,
+        # 'pairwise_matches': pairwise_matches,
         'diag_labels': diag_labels,
         'diag_scores': diag_scores,
         'diag_nids': diag_nids,
@@ -682,8 +682,8 @@ def tst_triangle_property():
         other_evidence={
             'Mab': False,
             'Mac': False,
-            #'Na': 'fred',
-            #'Nb': 'sue',
+            # 'Na': 'fred',
+            # 'Nb': 'sue',
         },
         **constkw
     )
@@ -739,7 +739,7 @@ def make_bayes_notebook():
         show_model_templates,
         demo_modes,
         demo_name_annot_complexity,
-        ###demo_model_idependencies,
+        # demo_model_idependencies,
         demo_single_add,
         demo_ambiguity,
         demo_conflicting_evidence,

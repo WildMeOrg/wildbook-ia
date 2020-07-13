@@ -722,7 +722,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
 
     def force_event_update(hook):
         # major hack
-        import wbia.guitool
+        from wbia import guitool
 
         qtapp = guitool.get_qtapp()
         flag = QtCore.QEventLoop.ExcludeUserInputEvents
@@ -875,7 +875,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     setattr(progressBar, '_guitool_sizepolicy', sizePolicy)
     if visible:
         # hack to make progres bar show up immediately
-        import wbia.guitool
+        from wbia import guitool
 
         progressBar.show()
         qtapp = guitool.get_qtapp()
@@ -1116,26 +1116,25 @@ def newLineEdit(
 
 class TagEdit(QtWidgets.QLineEdit):
     """
-        Args:
-            self (?):
-            parent (None): (default = None)
-            tags (None): (default = None)
-            editor_mode (str): (default = 'line')
+    Args:
+        self (?):
+        parent (None): (default = None)
+        tags (None): (default = None)
+        editor_mode (str): (default = 'line')
 
-        CommandLine:
-            python -m wbia.guitool.guitool_components TagEdit
+    CommandLine:
+        python -m wbia.guitool.guitool_components TagEdit
 
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from wbia.guitool.guitool_components import *  # NOQA
-            >>> import wbia.guitool as gt
-            >>> gt.ensure_qtapp()
-            >>> self = TagEdit(tags=['a', 'b', 'c'])
-            >>> self.show()
-            >>> # xdoctest: +REQUIRES(--show)
-            >>> ut.quit_if_noshow()
-            >>> gt.qtapp_loop(qwin=self, freq=10)
-
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from wbia.guitool.guitool_components import *  # NOQA
+        >>> import wbia.guitool as gt
+        >>> gt.ensure_qtapp()
+        >>> self = TagEdit(tags=['a', 'b', 'c'])
+        >>> self.show()
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(qwin=self, freq=10)
     """
 
     def __init__(self, parent=None, tags=None, valid_tags=None):
@@ -1547,6 +1546,8 @@ def get_nested_attr(obj, attr):
 
 def walk_widget_heirarchy(obj, **kwargs):
     r"""
+    Walk the widget hierarchy looking for object
+
     print('\n'.join(gt.walk_widget_heirarchy(self, attrs=['minimumWidth'], skip=True)))
     print('\n'.join(gt.walk_widget_heirarchy(self, attrs=['sizePolicy'], skip=True)))
     """
@@ -2394,6 +2395,7 @@ class Spoiler(WIDGET_BASE):
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=widget1, freq=10)
     """
+
     toggle_finished = QtCore.pyqtSignal(bool)
 
     def __init__(
@@ -2717,11 +2719,6 @@ class BlockSignals(object):
 
     def __exit__(self, tb, e, s):
         self.qobj.blockSignals(self.prev)
-
-        #! /usr/bin/python2
-
-
-# -*- coding: utf-8 -*-
 
 
 class FlowLayout(QtWidgets.QLayout):

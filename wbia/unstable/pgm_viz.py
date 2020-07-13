@@ -46,6 +46,7 @@ def print_ascii_graph(model_):
     #    sys.stdout.write(fill_string)
     #    img_ansii_str = img2txt.generate_ANSI_from_pixels(pixel, width, height, bgcolor)
     #    sys.stdout.write(img_ansii_str)
+
     def print_ascii_image(pil_img):
         # https://gist.github.com/cdiener/10491632
         SC = 1.0
@@ -377,10 +378,10 @@ def get_node_viz_attrs(
 
 def make_colorcodes(model):
     """
-        python -m wbia.algo.hots.bayes --exec-make_name_model --show
-        python -m wbia.algo.hots.bayes --exec-cluster_query --show
-        python -m wbia --tf demo_bayesnet --ev :nA=4,nS=2,Na=n0,rand_scores=True --show --verbose
-        python -m wbia --tf demo_bayesnet --ev :nA=4,nS=3,Na=n0,rand_scores=True --show --verbose
+    python -m wbia.algo.hots.bayes --exec-make_name_model --show
+    python -m wbia.algo.hots.bayes --exec-cluster_query --show
+    python -m wbia --tf demo_bayesnet --ev :nA=4,nS=2,Na=n0,rand_scores=True --show --verbose
+    python -m wbia --tf demo_bayesnet --ev :nA=4,nS=3,Na=n0,rand_scores=True --show --verbose
     """
     import wbia.plottool as pt
 
@@ -570,8 +571,8 @@ def draw_markov_model(model, fnum=None, **kwargs):
     # markovmodel.graph.setdefault('edge', {})['splines'] = 'curved'
 
     node_color = [pt.NEUTRAL] * len(pos)
-    drawkw = dict(
-        pos=pos, ax=ax, with_labels=True, node_color=node_color, node_size=1100  # NOQA
+    drawkw = dict(  # NOQA
+        pos=pos, ax=ax, with_labels=True, node_color=node_color, node_size=1100
     )
 
     from matplotlib.patches import FancyArrowPatch, Circle
@@ -635,6 +636,7 @@ def draw_junction_tree(model, fnum=None, **kwargs):
     else:
         netx_graph = model
     # prettify nodes
+
     def fixtupkeys(dict_):
         return {
             ', '.join(k) if isinstance(k, tuple) else k: fixtupkeys(v)

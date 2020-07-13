@@ -22,7 +22,7 @@ SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'selective_search_ijcv_with_p
 if not ut.get_argflag('--no-selective-search'):
     try:
         assert exists(SCRIPT_PATH)
-    except AssertionError as ex:
+    except AssertionError:
         print(
             'WARNING Failed to find selective_search_ijcv_with_python. '
             'Selective Search is unavailable'

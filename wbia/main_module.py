@@ -195,8 +195,7 @@ def _init_numpy():
 
 
 def _guitool_loop(main_locals, ipy=False):
-    from wbia import guitool
-    from wbia import params
+    from wbia import guitool, params
 
     print('[main] guitool loop')
     back = main_locals.get('back', None)

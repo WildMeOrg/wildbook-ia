@@ -30,7 +30,7 @@ def hack_argv(arg):
                 [
                     '--figsize=14,3',
                     '--hspace=.3',
-                    #'--top=.8',
+                    # '--top=.8',
                     '--top=.85',
                     '--bottom=0.18',
                     '--left=.05',
@@ -40,8 +40,8 @@ def hack_argv(arg):
         elif hack_argv_key in ['scores']:
             sys.argv.extend(
                 [
-                    #'--figsize=15,7',
-                    #'--top=.8',
+                    # '--figsize=15,7',
+                    # '--top=.8',
                     '--figsize=14,3',
                     '--top=.8',
                     '--hspace=.3',
@@ -53,18 +53,18 @@ def hack_argv(arg):
         elif hack_argv_key in ['tags']:
             sys.argv.extend(
                 [
-                    #'--figsize=14,3',
-                    #'--top=.8',
-                    #'--hspace=.3',
-                    #'--bottom=0.08',
-                    #'--left=.05',
-                    #'--right=.95'
+                    # '--figsize=14,3',
+                    # '--top=.8',
+                    # '--hspace=.3',
+                    # '--bottom=0.08',
+                    # '--left=.05',
+                    # '--right=.95'
                 ]
             )
         elif hack_argv_key in ['expt']:
             sys.argv.extend(
                 [
-                    #'--figsize=15,3',
+                    # '--figsize=15,3',
                     '--figsize=15,3.1',
                     '--top=.9',
                     '--bottom=.15',
@@ -73,7 +73,7 @@ def hack_argv(arg):
         elif hack_argv_key in ['mech']:
             sys.argv.extend(
                 [
-                    #'--figsize=14,5',
+                    # '--figsize=14,5',
                     '--figsize=14,3',
                     '--top=.9',
                 ]

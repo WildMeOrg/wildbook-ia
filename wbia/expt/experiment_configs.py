@@ -16,12 +16,12 @@ ALIAS_KEYS = {
     'proot': 'pipeline_root',
     'RI': 'rotation_invariance',
     'AI': 'affine_invariance',
-    #'AQH': 'query_rotation_heuristic',
+    # 'AQH': 'query_rotation_heuristic',
     'QRH': 'query_rotation_heuristic',
     'SV': 'sv_on',
     'nWords': 'num_words',
-    #'SVxy': 'xy_thresh',
-    #'SVxy': 'xy_thresh',
+    # 'SVxy': 'xy_thresh',
+    # 'SVxy': 'xy_thresh',
 }
 
 
@@ -126,18 +126,18 @@ featscoremetch = [
 def get_candidacy_dbnames():
     return [
         'PZ_MTEST',
-        #'NNP_MasterGIRM_core',
+        # 'NNP_MasterGIRM_core',
         'PZ_Master0',
         'NNP_Master3',
         'GZ_ALL',
         'PZ_FlankHack',
-        #'JAG_Kelly',
-        #'JAG_Kieryn',
-        #'LF_Bajo_bonito',
-        #'LF_OPTIMIZADAS_NI_V_E',
-        #'LF_WEST_POINT_OPTIMIZADAS',
-        #'GZ_Master0',
-        #'GIR_Tanya',
+        # 'JAG_Kelly',
+        # 'JAG_Kieryn',
+        # 'LF_Bajo_bonito',
+        # 'LF_OPTIMIZADAS_NI_V_E',
+        # 'LF_WEST_POINT_OPTIMIZADAS',
+        # 'GZ_Master0',
+        # 'GIR_Tanya',
     ]
 
 

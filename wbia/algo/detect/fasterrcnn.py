@@ -39,11 +39,11 @@ if not ut.get_argflag('--no-faster-rcnn'):
         from fast_rcnn.test import im_detect
 
         # from fast_rcnn.nms_wrapper import nms
-    except AssertionError as ex:
+    except AssertionError:
         print('WARNING Failed to find py-faster-rcnn. ' 'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
-    except ImportError as ex:
+    except ImportError:
         print('WARNING Failed to import fast_rcnn. ' 'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise

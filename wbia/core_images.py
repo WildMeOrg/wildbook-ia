@@ -134,7 +134,7 @@ def compute_thumbnails(depc, gid_list, config=None):
         'ordered': True,
         'chunksize': 256,
         'progkw': {'freq': 50},
-        #'adjust': True,
+        # 'adjust': True,
         'futures_threaded': True,
         'force_serial': ibs.force_serial or config['force_serial'],
     }

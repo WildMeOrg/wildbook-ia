@@ -320,7 +320,7 @@ def annotate_matches3(
     # ).tolist()
     # truth = 1 if all(name_equality) else (2 if any(name_equality) else 0)
     # truth_color = vh.get_truth_color(truth)
-    ## Build title
+    # # Build title
 
     # score         = kwargs.pop('score', None)
     # rawscore      = kwargs.pop('rawscore', None)

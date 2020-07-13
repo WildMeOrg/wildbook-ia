@@ -321,7 +321,7 @@ def ensure_utool(CODE_DIR, pythoncmd):
     else:
         try:
             ans = input('Enter y to continue. Anything else to exit...\n')
-        except:
+        except Exception:
             ans = raw_input('Enter y to continue. Anything else to exit...\n')  # NOQA
     if ans != 'y':
         print('Please install utool to continue')
@@ -448,9 +448,9 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         # Depricated
         wbia_rman.add_repos(
             [
-                #'https://github.com/WildbookOrg/pybing.git',
-                #'https://github.com/aweinstock314/cyth.git',
-                #'https://github.com/hjweide/pygist',
+                # 'https://github.com/WildbookOrg/pybing.git',
+                # 'https://github.com/aweinstock314/cyth.git',
+                # 'https://github.com/hjweide/pygist',
             ]
         )
 
@@ -1043,7 +1043,7 @@ def move_wildme(wbia_rman, fmt):
                     gitorigin = gitrepo.remote('origin')
                     print('  * Change origin url to %r' % (wildme_url,))
                     gitorigin.set_url(wildme_url)
-            except:
+            except Exception:
                 print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo,))
 
         repo.change_url_format(fmt)
@@ -1230,7 +1230,7 @@ def execute_commands(tpl_rman, wbia_rman):
     if GET_ARGFLAG('--install'):
         print('WARNING: Dont use install if you are a developer. Use develop instead.')
         _rman = wbia_rman.only_with_pysetup()
-        _rman.issue('python setup.py install'.format(pythoncmd=pythoncmd))
+        _rman.issue('{pythoncmd} setup.py install'.format(pythoncmd=pythoncmd))
 
     if GET_ARGFLAG('--push'):
         wbia_rman.issue('git push')
@@ -1337,7 +1337,7 @@ def execute_commands(tpl_rman, wbia_rman):
                 try:
                     ut.import_modname(modname)
                     print(modname + ' success')
-                except ImportError as ex:
+                except ImportError:
                     failures += [modname]
                     print(modname + ' failure')
 
@@ -1416,7 +1416,7 @@ def main():
     IBEIS Image Analysis (IA)
     ____ _  _ ___  ____ ____    ____ ____ ___ _  _ ___
     [__  |  | |__] |___ |__/    [__  |___  |  |  | |__]
-    ___] |__| |    |___ |  \    ___] |___  |  |__| |
+    ___] |__| |    |___ |  \\    ___] |___  |  |__| |
 
     Use --help to show usage
     """

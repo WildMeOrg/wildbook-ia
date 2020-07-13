@@ -211,7 +211,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         )
         self.exemplar_cfg = dtool.Config.from_dict(
             {
-                #'imgsetid': None,
+                # 'imgsetid': None,
                 'exemplars_per_view': ibs.cfg.other_cfg.exemplars_per_view,
             }
         )
@@ -234,7 +234,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             cfg['species'] = self.ibs.get_primary_database_species()
             cfg['require_viewpoint'] = True
             cfg['view'] = ibsfuncs.get_primary_species_viewpoint(cfg['species'])
-            #'right,frontright,backright'
+            # 'right,frontright,backright'
 
         self.setWindowTitle('Custom Annot Selector')
 
@@ -2645,10 +2645,10 @@ class MainWindowBackend(GUIBACK_BASE):
         qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
         cfgdict = {
             'can_match_samename': False,
-            #'K': 3,
-            #'Knorm': 3,
-            #'prescore_method': 'csum',
-            #'score_method': 'csum'
+            # 'K': 3,
+            # 'Knorm': 3,
+            # 'prescore_method': 'csum',
+            # 'score_method': 'csum'
         }
         query_msg = 'Checking for MERGE cases (this is an exemplars-vs-exemplars query)'
         back.compute_queries(
@@ -2720,8 +2720,8 @@ class MainWindowBackend(GUIBACK_BASE):
             'can_match_samename': False,
             'K': updated_config['K'],
             'Knorm': updated_config['Knorm'],
-            #'prescore_method': 'csum',
-            #'score_method': 'csum'
+            # 'prescore_method': 'csum',
+            # 'score_method': 'csum'
         }
         query_msg = 'Checking for MERGE cases (this is an special query)'
         back.compute_queries(

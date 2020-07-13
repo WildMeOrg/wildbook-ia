@@ -34,8 +34,8 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     print('This image is computed as needed and not cached to disk.')
     print('')
     print('-' * 80)
-    results_list = list(
-        randomforest.detect_gpath_list_with_species(  # NOQA
+    results_list = list(  # NOQA
+        randomforest.detect_gpath_list_with_species(
             ibs, src_gpath_list, species, **config
         )
     )

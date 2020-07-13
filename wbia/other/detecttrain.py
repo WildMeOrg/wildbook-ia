@@ -831,52 +831,6 @@ def labeler_train(
 
 
 # @register_ibs_method
-# def orientation_train(ibs, category_list, ensembles=3, **kwargs):
-#     from wbia.other.detectexport import get_cnn_orientation_training_images_pytorch
-#     from wbia.algo.detect import orientation
-
-#     species = '-'.join(species_list)
-#     args = (species, )
-#     data_path = join(ibs.get_cachedir(), 'extracted-labeler-%s' % args)
-#     extracted_path = get_cnn_labeler_training_images_pytorch(
-#         ibs,
-#         category_list=species_list,
-#         category_mapping=species_mapping,
-#         viewpoint_mapping=viewpoint_mapping,
-#         dest_path=data_path,
-#         **kwargs
-#     )
-
-#     weights_path_list = []
-#     for ensemble_num in range(ensembles):
-#         args = (species, ensemble_num, )
-#         output_path = join(ibs.get_cachedir(), 'training', 'labeler-%s-ensemble-%d' % args)
-#         if exists(output_path):
-#             ut.delete(output_path)
-#         weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
-#         weights_path_list.append(weights_path)
-
-#     args = (species, )
-#     output_name = 'labeler.%s' % args
-#     ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
-#     ut.ensuredir(ensemble_path)
-
-#     archive_path = '%s.zip' % (ensemble_path)
-#     ensemble_weights_path_list = []
-
-#     for index, weights_path in enumerate(sorted(weights_path_list)):
-#         assert exists(weights_path)
-#         ensemble_weights_path = join(ensemble_path, 'labeler.%d.weights' % (index, ))
-#         ut.copy(weights_path, ensemble_weights_path)
-#         ensemble_weights_path_list.append(ensemble_weights_path)
-
-#     ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
-#     ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
-
-#     return archive_path
-
-
-# @register_ibs_method
 # def qualifier_train(ibs, **kwargs):
 #     from wbia_cnn.ingest_wbia import get_cnn_qualifier_training_images
 #     from wbia_cnn.process import numpy_processed_directory2

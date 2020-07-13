@@ -37,7 +37,7 @@ class APITreeView(API_VIEW_BASE):
         view._init_itemview_behavior()
         view._init_tree_behavior()
         view.col_hidden_list = []
-        ##view._init_header_behavior()
+        # # view._init_header_behavior()
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view.customContextMenuRequested.connect(view.on_customMenuRequested)

@@ -228,7 +228,7 @@ def get_resolution_info(monitor_num=0):
             ('ppi_y', ppi_y),
             ('dpi_x', dpi_x),
             ('dpi_y', dpi_y),
-            #'pixel_density', pixel_density),
+            # 'pixel_density', pixel_density),
             ('inches_w', inches_w),
             ('inches_h', inches_h),
             ('inches_diag', inches_diag),

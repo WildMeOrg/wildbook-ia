@@ -69,6 +69,7 @@ from os.path import join, exists, abspath, splitext, basename
 from functools import partial
 from wbia.control import controller_inject
 import threading
+import six
 
 print, rrr, profile = ut.inject2(__name__)
 
@@ -1774,7 +1775,10 @@ def on_collect_request(
 
                 # Check response
                 try:
-                    text = unicode(response.text).encode('utf-8')
+                    if six.PY2:
+                        text = unicode(response.text).encode('utf-8')  # NOQA
+                    else:
+                        text = response.text.encode('utf-8')
                 except Exception:
                     text = None
 

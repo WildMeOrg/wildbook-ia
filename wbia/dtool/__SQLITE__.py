@@ -106,7 +106,7 @@ def REGISTER_SQLITE3_TYPES():
         if VERBOSE_SQL:
             print('Register NUMPY dtypes with SQLite3')
 
-        py_int_type = long if six.PY2 else int
+        py_int_type = long if six.PY2 else int  # NOQA
         for dtype in (
             np.int8,
             np.int16,
