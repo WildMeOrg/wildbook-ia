@@ -132,7 +132,11 @@ def _get_engine_lock_paths(ibs):
 @register_ibs_method
 def retry_job(ibs, jobid):
     shelve_path = ibs.get_shelves_path()
+<<<<<<< HEAD:wbia/web/job_engine.py
     job_record_filename = '%s.pkl' % (jobid,)
+=======
+    job_record_filename = '%s.pkl' % (jobid, )
+>>>>>>> f993b3a10... Updates for API and query calls:ibeis/web/job_engine.py
     job_record_filepath = join(shelve_path, job_record_filename)
     assert exists(job_record_filepath)
 
@@ -1790,10 +1794,14 @@ def on_collect_request(
 
                 # Check response
                 try:
+<<<<<<< HEAD:wbia/web/job_engine.py
                     if six.PY2:
                         text = unicode(response.text).encode('utf-8')  # NOQA
                     else:
                         text = response.text.encode('utf-8')
+=======
+                    text = unicode(response.text).encode('utf-8')  # NOQA
+>>>>>>> f993b3a10... Updates for API and query calls:ibeis/web/job_engine.py
                 except Exception:
                     text = None
 
@@ -1958,4 +1966,19 @@ def _on_ctrl_c(signal, frame):
 def _init_signals():
     import signal
 
+<<<<<<< HEAD:wbia/web/job_engine.py
     signal.signal(signal.SIGINT, _on_ctrl_c)
+=======
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.web.job_engine
+        python -m ibeis.web.job_engine --allexamples
+        python -m ibeis.web.job_engine --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
+>>>>>>> f993b3a10... Updates for API and query calls:ibeis/web/job_engine.py
