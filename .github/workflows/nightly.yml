@@ -29,4 +29,5 @@ jobs:
       - name: Push to GitHub Packages
         run: bash devops/publish.sh -t nightly -r docker.pkg.github.com
       - name: Push to Docker Hub
+        if: github.event_name == 'schedule'
         run: bash devops/publish.sh -t nightly
