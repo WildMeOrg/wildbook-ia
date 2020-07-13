@@ -827,6 +827,12 @@ def query_chips_graph(
         print('len(daid_list)  = %d' % (num_daids,))
         print('len(daid_list_) = %d' % (num_daids_,))
 
+    if num_qaids_ == 0:
+        raise ValueError('There are 0 valid query aids, %d were provided' % (num_qaids, ))
+
+    if num_daids_ == 0:
+        raise ValueError('There are 0 valid database aids, %d were provided' % (num_daids, ))
+
     cm_list, qreq_ = ibs.query_chips(
         qaid_list=qaid_list,
         daid_list=daid_list,

@@ -129,6 +129,26 @@ def _get_engine_lock_paths(ibs):
 
 
 @register_ibs_method
+def retry_job(ibs, jobid):
+    shelve_path = ibs.get_shelves_path()
+    job_record_filename = '%s.pkl' % (jobid, )
+    job_record_filepath = join(shelve_path, job_record_filename)
+    assert exists(job_record_filepath)
+
+    job_record = ut.load_cPkl(job_record_filepath)
+
+    job_action = job_record['request']['action']
+    job_args = job_record['request']['args']
+    job_kwargs = job_record['request']['kwargs']
+
+    job_func = getattr(ibs, job_action, None)
+    if job_func is not None:
+        job_result = job_func(*job_args, **job_kwargs)
+
+    return job_action, job_func, job_args, job_kwargs, job_result
+
+
+@register_ibs_method
 def initialize_job_manager(ibs):
     """
     Starts a background zmq job engine. Initializes a zmq object in this thread
@@ -779,8 +799,8 @@ class JobInterface(object):
                         restart_jobcounter_list.append(jobcounter)
                         restart_jobid_list.append(jobid)
                         restart_request_list.append(engine_request)
-
                         record['attempts'] = attempts + 1
+
                         ut.save_cPkl(record_filepath, record, verbose=False)
 
                 # We may have suppressed this for being corrupted
