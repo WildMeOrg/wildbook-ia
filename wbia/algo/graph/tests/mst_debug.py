@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 from __future__ import absolute_import, division, print_function
 import networkx as nx
 import utool as ut

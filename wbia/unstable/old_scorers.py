@@ -42,6 +42,7 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
         >>> print(result)
     """
     import scipy as sp
+
     # TODO: clip the fgweights? (dilation?)
     # TODO; normalize and paramatarize and clean
     # dcvs_on = config.get('dcvs_on')
@@ -451,6 +452,7 @@ def show_annot_weights(qreq_, aid, config={}):
         >>> pt.show_if_requested()
     """
     from vtool import coverage_kpts
+
     # import wbia.plottool as pt
     fnum = 1
     chipsize = qreq_.ibs.get_annot_chip_sizes(aid, config2_=qreq_.extern_query_config2)
@@ -512,6 +514,7 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
     """
     from wbia.algo.hots import scoring
+
     Knorm = qreq_.qparams.Knorm
     cos_weight_list = []
     qconfig2_ = qreq_.get_internal_query_config2()
