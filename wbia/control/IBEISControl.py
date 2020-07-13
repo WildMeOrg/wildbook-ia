@@ -1220,7 +1220,7 @@ class IBEISController(BASE_CLASS):
             else:
                 # HACK: (this should probably be a db setting)
                 # use an specific aid to get the icon
-                aid = {'Oxford': 73, 'seaturtles': 37,}.get(ibs.get_dbname(), None)
+                aid = {'Oxford': 73, 'seaturtles': 37}.get(ibs.get_dbname(), None)
                 if aid is None:
                     # otherwise just grab a random aid
                     aid = ibs.get_valid_aids()[0]

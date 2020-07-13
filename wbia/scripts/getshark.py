@@ -351,7 +351,7 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
     # annot_injur_tags = get_injured_tags(single_annots.case_tags)
     single_info['injur_tags'] = info_injur_tags
     # single_info['annot_tags'] = annot_injur_tags
-    ## Fix injury tags
+    # # Fix injury tags
     # key1 = 'injur_tags'
     # prop2 = None
     # key2 = 'annot_tags'
@@ -919,6 +919,8 @@ def add_new_images(ibs, miss_info, species):
     )
     print('Finished adding new info')
 
+    return aid_list
+
 
 def _needs_redownload(fpath, seconds_thresh):
     if exists(fpath):
@@ -1384,7 +1386,7 @@ def postprocess_tags_build(parsed):
     tags_list = ut.zipflat(parsed['fname_tags'], parsed['keywords'])
     cleaned_tags = ut.modify_tags(
         tags_list,
-        direct_map=[('c429b13e4d232129014d251c74c60011', 'stranding'), ('', None),],
+        direct_map=[('c429b13e4d232129014d251c74c60011', 'stranding'), ('', None)],
         regex_aug=[
             ('other_injury', 'injur-other'),
             ('truncation', 'injur-trunc'),
@@ -1479,7 +1481,7 @@ def postprocess_corrupted(parsed_dl):
     import vtool as vt
 
     print('Checking for corrupted images')
-    gpaths = fpaths = parsed_dl['new_fpath']
+    fpaths = parsed_dl['new_fpath']
     valid_flags = vt.filterflags_valid_images(fpaths, verbose=2)
     parsed_dl = parsed_dl.compress(valid_flags)
     return parsed_dl

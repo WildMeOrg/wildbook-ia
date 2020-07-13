@@ -1230,9 +1230,7 @@ def query_chips_graph_microsoft(ibs, *args, **kwargs):
         if name_text == const.UNKNOWN:
             continue
         nid = ibs.get_name_rowids_from_text(name_text)
-        response['names'].append(
-            {'score': name_score, 'name': _name(ibs, nid),}
-        )
+        response['names'].append({'score': name_score, 'name': _name(ibs, nid)})
 
     return response
 

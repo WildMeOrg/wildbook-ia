@@ -56,7 +56,7 @@ class PaintInteraction(PAINTER_BASE):
                 ('photobomb', (255 * pt.RED).tolist()),
             ]
         )
-        self.valid_colors2 = ut.odict([('foreground', (255 * pt.WHITE).tolist()),])
+        self.valid_colors2 = ut.odict([('foreground', (255 * pt.WHITE).tolist())])
         self.color1_idx = 0
         self.color1 = self.valid_colors1['scenery']
         self.color2 = self.valid_colors2['foreground']
@@ -181,7 +181,7 @@ class PaintInteraction(PAINTER_BASE):
 
 def impaint_mask2(img, init_mask=None):
     """
-        python -m wbia.plottool.interact_impaint --exec-draw_demo --show
+    python -m wbia.plottool.interact_impaint --exec-draw_demo --show
     """
     if False:
         QT = False  # NOQA
@@ -224,7 +224,7 @@ def impaint_mask2(img, init_mask=None):
         # Hacky code to block until the interaction is actually done
         # pntr.show()
         import time
-        from wbia.guitool.__PYQT__ import QtGui
+        from wbia.guitool.__PYQT__ import QtGui as QtWidgets
 
         while pntr.is_running:
             QtWidgets.qApp.processEvents()

@@ -4043,7 +4043,7 @@ def get_annot_image_set_texts(ibs, aid_list):
     """
     gid_list = ibs.get_annot_gids(aid_list)
     imagesettext_list = ibs.get_image_imagesettext(gid_list)
-    filter_imageset_set = set(['*Exemplars', '*All Images', '*Ungrouped Images',])
+    filter_imageset_set = set(['*Exemplars', '*All Images', '*Ungrouped Images'])
     filtered_imagesettext_list = [
         [imageset for imageset in imagesettext if imageset not in filter_imageset_set]
         for imagesettext in imagesettext_list

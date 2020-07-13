@@ -133,7 +133,7 @@ def featweight_fig():
 
 
 def simple_vsone_matches():
-    """
+    r"""
     CommandLine:
         python -m wbia.scripts.specialdraw simple_vsone_matches --show \
             --db GZ_Master1 --aids=2811,2810
@@ -228,7 +228,7 @@ def double_depcache_graph():
     # data = graph.get_edge_data(*edge)[0]
     # print('data = %r' % (data,))
     # graph.remove_edge(*edge)
-    ## hack
+    # # hack
     # graph.add_edge('featweight', 'neighbor_index', **data)
 
     graph.add_edge('detections', userdecision, constraint=longcat, color=pt.PINK)
@@ -732,7 +732,7 @@ def merge_viewpoint_graph():
 
     view_graph = nx.compose_all([left_graph, back_graph, right_graph])
     view_graph.add_edges_from(
-        [[backright[0], right_aids[0]][::-1], [backleft[0], left_aids[0]][::-1],]
+        [[backright[0], right_aids[0]][::-1], [backleft[0], left_aids[0]][::-1]]
     )
     pt.ensureqt()
     graph = graph = view_graph  # NOQA
@@ -1874,7 +1874,7 @@ def draw_inconsistent_pcc():
     mpl.rcParams.update(TMP_RC)
     kwargs = dict(num_pccs=1, n_incon=1, p_incon=1, size=4)
     infr = demo.demodata_infr(**kwargs)
-    infr.set_node_attrs('pos', {1: (30, 40), 3: (70, 40), 4: (0, 0), 2: (100, 0),})
+    infr.set_node_attrs('pos', {1: (30, 40), 3: (70, 40), 4: (0, 0), 2: (100, 0)})
     fnum = 1
     infr.set_node_attrs('pin', True)
     # infr.set_node_attrs('fixed_size', False)

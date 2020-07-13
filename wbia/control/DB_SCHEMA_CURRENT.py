@@ -396,12 +396,12 @@ def update_current(db, ibs=None):
         superkeys=[('part_uuid',)],
         shortname='part',
         extern_tables=['annotations'],
-        dependsmap={'annot_rowid': ('annotations', ('annot_rowid',), ('annot_uuid',)),},
+        dependsmap={'annot_rowid': ('annotations', ('annot_rowid',), ('annot_uuid',))},
     )
 
     db.add_table(
         'party',
-        [('party_rowid', 'INTEGER PRIMARY KEY'), ('party_tag', 'TEXT NOT NULL'),],
+        [('party_rowid', 'INTEGER PRIMARY KEY'), ('party_tag', 'TEXT NOT NULL')],
         docstr="""
         Serves as a group for contributors
         """,

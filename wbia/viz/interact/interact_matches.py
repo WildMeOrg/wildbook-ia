@@ -392,7 +392,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         elif viztype in ['warped', 'unwarped']:
             print('clicked at patch')
             ut.print_dict(ph.get_plotdat_dict(ax))
-            hs_aid = {'aid1': self.qaid, 'aid2': self.daid,}[
+            hs_aid = {'aid1': self.qaid, 'aid2': self.daid}[
                 vh.get_ibsdat(ax, 'aid', None)
             ]
             hs_fx = vh.get_ibsdat(ax, 'fx', None)

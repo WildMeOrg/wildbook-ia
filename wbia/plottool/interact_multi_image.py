@@ -239,9 +239,7 @@ class MultiImageInteraction(BASE_CLASS):
         else:
             _vizkw = self.vizkw.copy()
 
-        _vizkw.update(
-            {'fnum': self.fnum, 'pnum': self.pnum_(px),}
-        )
+        _vizkw.update({'fnum': self.fnum, 'pnum': self.pnum_(px)})
         ax = self._plot_index(index, _vizkw)
 
         ph.set_plotdat(ax, 'px', str(px))

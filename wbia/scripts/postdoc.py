@@ -49,7 +49,7 @@ def turk_pz():
 
 @ut.reloadable_class
 class GraphExpt(DBInputs):
-    """
+    r"""
 
     TODO:
         - [ ] Experimental analysis of duration of each phase and state of
@@ -404,7 +404,6 @@ class GraphExpt(DBInputs):
             Draws indicators that detail the algorithm state at given
             timestamps.
             """
-
             phase = metrics_df['phase'].map(lambda x: x.split('_')[0])
             is_correct = (
                 metrics_df['test_action'].map(lambda x: x.startswith('correct')).values
@@ -469,7 +468,7 @@ class GraphExpt(DBInputs):
                 # stacked_interval(phase == 'negredun', 'blue', i)
 
         def accuracy_plot(xdata, xlabel):
-            ydatas = ut.odict([('Graph', metrics_df['merge_remain']),])
+            ydatas = ut.odict([('Graph', metrics_df['merge_remain'])])
             pt.multi_plot(
                 xdata,
                 ydatas,
@@ -849,7 +848,7 @@ class VerifierExpt(DBInputs):
 
     task_nice_lookup = {
         'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
-        'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb',},
+        'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb'},
     }
 
     def _setup(self, quick=False):
@@ -2120,12 +2119,12 @@ class VerifierExpt(DBInputs):
 
     def measure_rerank(self):
         """
-            >>> from wbia.scripts.postdoc import *
-            >>> defaultdb = 'PZ_Master1'
-            >>> defaultdb = 'GZ_Master1'
-            >>> self = VerifierExpt(defaultdb)
-            >>> self._setup()
-            >>> self.measure_rerank()
+        >>> from wbia.scripts.postdoc import *
+        >>> defaultdb = 'PZ_Master1'
+        >>> defaultdb = 'GZ_Master1'
+        >>> self = VerifierExpt(defaultdb)
+        >>> self._setup()
+        >>> self.measure_rerank()
         """
         if getattr(self, 'pblm', None) is None:
             self._setup()
@@ -2214,12 +2213,12 @@ class VerifierExpt(DBInputs):
 
     def ranking_hyperparamm_search(self):
         """
-            >>> from wbia.scripts.postdoc import *
-            >>> self = VerifierExpt('humpbacks_fb')
+        >>> from wbia.scripts.postdoc import *
+        >>> self = VerifierExpt('humpbacks_fb')
 
-            >>> self = VerifierExpt('MantaMatcher')
+        >>> self = VerifierExpt('MantaMatcher')
 
-            >>> self = VerifierExpt('RotanTurtles')
+        >>> self = VerifierExpt('RotanTurtles')
         """
         ut.set_num_procs(4)
         if getattr(self, 'pblm', None) is None:

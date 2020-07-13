@@ -117,7 +117,7 @@ def start_tornado(
             # Add prometheus wsgi middleware to route /metrics requests
             print('LOADING PROMETHEUS')
             app_ = DispatcherMiddleware(
-                app, {'/metrics': prometheus_client.make_wsgi_app(),}
+                app, {'/metrics': prometheus_client.make_wsgi_app()}
             )
             # Migrate the most essential settings
             app_.server_port = app.server_port

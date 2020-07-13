@@ -409,7 +409,7 @@ class Chap5(DBInputs):
         # Ranking test
         dials3 = ut.dict_union(
             const_dials,
-            {'name': 'ranking', 'enable_inference': False, 'match_state_thresh': None,},
+            {'name': 'ranking', 'enable_inference': False, 'match_state_thresh': None},
         )
         infr3 = wbia.AnnotInference(
             ibs=ibs, aids=test_aids, autoinit=True, verbose=verbose
@@ -649,7 +649,7 @@ class Chap5(DBInputs):
         ]
         task_nice_lookup = {
             'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
-            'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb',},
+            'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb'},
         }
 
         mpl.rcParams.update(TMP_RC)
@@ -1177,7 +1177,6 @@ class Chap5(DBInputs):
             Draws indicators that detail the algorithm state at given
             timestamps.
             """
-
             phase = metrics_df['phase'].map(lambda x: x.split('_')[0])
             is_correct = (
                 metrics_df['test_action'].map(lambda x: x.startswith('correct')).values
@@ -1235,7 +1234,7 @@ class Chap5(DBInputs):
 
         pnum_ = pt.make_pnum_nextgen(nRows=2, nSubplots=8)
 
-        ydatas = ut.odict([('Graph', metrics_df['merge_remain']),])
+        ydatas = ut.odict([('Graph', metrics_df['merge_remain'])])
         pt.multi_plot(
             xdata,
             ydatas,
@@ -1306,7 +1305,7 @@ class Chap5(DBInputs):
 
         xdata = metrics_df['n_manual']
         xlabel = '# manual reviews'
-        ydatas = ut.odict([('Graph', metrics_df['merge_remain']),])
+        ydatas = ut.odict([('Graph', metrics_df['merge_remain'])])
         pt.multi_plot(
             xdata,
             ydatas,
@@ -1406,7 +1405,7 @@ class Chap4(DBInputs):
 
     task_nice_lookup = {
         'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
-        'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb',},
+        'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb'},
     }
 
     def _setup(self):
@@ -1712,12 +1711,12 @@ class Chap4(DBInputs):
 
     def measure_rerank(self):
         """
-            >>> from wbia.scripts.thesis import *
-            >>> defaultdb = 'PZ_Master1'
-            >>> defaultdb = 'GZ_Master1'
-            >>> self = Chap4(defaultdb)
-            >>> self._setup()
-            >>> self.measure_rerank()
+        >>> from wbia.scripts.thesis import *
+        >>> defaultdb = 'PZ_Master1'
+        >>> defaultdb = 'GZ_Master1'
+        >>> self = Chap4(defaultdb)
+        >>> self._setup()
+        >>> self.measure_rerank()
         """
         if getattr(self, 'pblm', None) is None:
             self._setup()
@@ -2013,9 +2012,9 @@ class Chap4(DBInputs):
 
         pz_gt_errors = {  # NOQA
             # The true state of these pairs are:
-            NEGTV: [(239, 3745), (484, 519), (802, 803),],
-            INCMP: [(4652, 5245), (4405, 5245), (4109, 5245), (16192, 16292),],
-            POSTV: [(6919, 7192),],
+            NEGTV: [(239, 3745), (484, 519), (802, 803)],
+            INCMP: [(4652, 5245), (4405, 5245), (4109, 5245), (16192, 16292)],
+            POSTV: [(6919, 7192)],
         }
 
         prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key), bs=False)
@@ -2334,7 +2333,6 @@ class Chap4(DBInputs):
         >>> self = Chap4('GZ_Master1')
         >>> self = Chap4('PZ_MTEST')
         """
-
         task_key = 'match_state'
         expt_name = 'prune'
         results = self.ensure_results(expt_name)
@@ -2698,7 +2696,7 @@ class Chap4(DBInputs):
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     @classmethod
-    def draw_tagged_pair(Chap4):
+    def draw_tagged_pair(cls):
         import wbia
 
         # ibs = wbia.opendb(defaultdb='GZ_Master1')
@@ -2766,7 +2764,7 @@ class Chap4(DBInputs):
         )
         # ax.set_xlabel(xlabel)
 
-        self = Chap4()
+        self = cls()
 
         fname = 'custom_match_{}_{}_{}'.format(query_tag, *edge)
         dpath = pathlib.Path(ut.truepath(self.base_dpath))
@@ -2861,9 +2859,9 @@ class Chap4(DBInputs):
 class Chap3Measures(object):
     def measure_baseline(self):
         """
-            >>> from wbia.scripts.thesis import *
-            >>> self = Chap3('GZ_Master1')
-            >>> self._precollect()
+        >>> from wbia.scripts.thesis import *
+        >>> self = Chap3('GZ_Master1')
+        >>> self._precollect()
         """
         ibs = self.ibs
         qaids, daids_list, info_list = Sampler._varied_inputs(
@@ -3610,7 +3608,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         self._precollect()
 
     @classmethod
-    def run_all(Chap3):
+    def run_all(cls):
         """
         CommandLine:
             python -m wbia Chap3.run_all
@@ -3619,12 +3617,12 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         agg_dbnames = agg_dbnames[::-1]
 
         for dbname in agg_dbnames:
-            self = Chap3(dbname)
+            self = cls(dbname)
             self.measure_all()
             self.draw_time_distri()
 
-        Chap3.agg_dbstats()
-        Chap3.draw_agg_baseline()
+        cls.agg_dbstats()
+        cls.draw_agg_baseline()
 
     def measure_all(self):
         """
@@ -3649,7 +3647,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
             self.measure_invar()
 
     @classmethod
-    def agg_dbstats(Chap3):
+    def agg_dbstats(cls):
         """
         CommandLine:
             python -m wbia Chap3.agg_dbstats
@@ -3664,7 +3662,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
         infos = ut.ddict(list)
         for dbname in agg_dbnames:
-            self = Chap3(dbname)
+            self = cls(dbname)
             info = self.ensure_results('dbstats')
             infos['enc'].append(info['enc'])
             infos['qual'].append(info['qual'])
@@ -3756,12 +3754,12 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
             preamb_extra=['\\usepackage{makecell}'],
         )
 
-        ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
-        ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
-        ut.write_to(join(Chap3.base_dpath, 'agg-qual.tex'), qual_text)
+        ut.write_to(join(cls.base_dpath, 'agg-enc.tex'), enc_text)
+        ut.write_to(join(cls.base_dpath, 'agg-view.tex'), view_text)
+        ut.write_to(join(cls.base_dpath, 'agg-qual.tex'), qual_text)
 
     @classmethod
-    def draw_agg_baseline(Chap3):
+    def draw_agg_baseline(cls):
         """
         CommandLine:
             python -m wbia Chap3.draw_agg_baseline --diskshow
@@ -3775,7 +3773,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         cdfs = []
         labels = []
         for dbname in agg_dbnames:
-            self = Chap3(dbname)
+            self = cls(dbname)
             results = self.ensure_results('baseline')
             cdf, config = results[0]
             dsize = config['dsize']
@@ -3788,7 +3786,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         mpl.rcParams.update(TMP_RC)
         fig = plot_cmcs(cdfs, labels, fnum=1, ymin=0.5)
         fig.set_size_inches([W, H * 1.5])
-        fpath = join(Chap3.base_dpath, 'agg-baseline.png')
+        fpath = join(cls.base_dpath, 'agg-baseline.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         if ut.get_argflag('--diskshow'):
             ut.startfile(fpath)
@@ -3798,9 +3796,9 @@ class Sampler(object):
     @staticmethod
     def _same_occur_split(ibs, aids):
         """
-            >>> from wbia.scripts.thesis import *
-            >>> self = Chap3('PZ_Master1')
-            >>> self._precollect()
+        >>> from wbia.scripts.thesis import *
+        >>> self = Chap3('PZ_Master1')
+        >>> self._precollect()
         """
         annots = ibs.annots(aids)
         # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
@@ -3909,9 +3907,9 @@ class Sampler(object):
     @staticmethod
     def _same_enc_split(ibs, aids):
         """
-            >>> from wbia.scripts.thesis import *
-            >>> self = Chap3('PZ_Master1')
-            >>> self._precollect()
+        >>> from wbia.scripts.thesis import *
+        >>> self = Chap3('PZ_Master1')
+        >>> self._precollect()
         """
         annots = ibs.annots(aids)
         # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])

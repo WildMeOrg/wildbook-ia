@@ -157,36 +157,36 @@ class RefreshCriteria(object):
 
     def ave(refresh, method='exp'):
         """
-            >>> # ENABLE_DOCTEST
-            >>> from wbia.algo.graph.refresh import *  # NOQA
-            >>> from wbia.algo.graph import demo
-            >>> infr = demo.demodata_infr(num_pccs=40, size=4, size_std=2, ignore_pair=True)
-            >>> edges = list(infr.dummy_verif.find_candidate_edges(K=100))
-            >>> scores = np.array(infr.dummy_verif.predict_edges(edges))
-            >>> #sortx = ut.shuffle(np.arange(len(edges)), rng=321)
-            >>> sortx = scores.argsort()[::-1]
-            >>> edges = ut.take(edges, sortx)
-            >>> scores = scores[sortx]
-            >>> ys = infr.match_state_df(edges)[POSTV].values
-            >>> y_remainsum = ys[::-1].cumsum()[::-1]
-            >>> refresh = RefreshCriteria(window=250)
-            >>> ma1 = []
-            >>> ma2 = []
-            >>> reals = []
-            >>> xdata = []
-            >>> for count, (edge, y) in enumerate(zip(edges, ys)):
-            >>>     refresh.add(y, user_id='user:oracle')
-            >>>     ma1.append(refresh._ewma)
-            >>>     ma2.append(refresh.pos_frac)
-            >>>     n_real = y_remainsum[count] / (len(edges) - count)
-            >>>     reals.append(n_real)
-            >>>     xdata.append(count + 1)
-            >>> ut.quit_if_noshow()
-            >>> import wbia.plottool as pt
-            >>> pt.qtensure()
-            >>> pt.multi_plot(xdata, [ma1, ma2, reals], marker='',
-            >>>               label_list=['exp', 'win', 'real'], xlabel='review num',
-            >>>               ylabel='mu')
+        >>> # ENABLE_DOCTEST
+        >>> from wbia.algo.graph.refresh import *  # NOQA
+        >>> from wbia.algo.graph import demo
+        >>> infr = demo.demodata_infr(num_pccs=40, size=4, size_std=2, ignore_pair=True)
+        >>> edges = list(infr.dummy_verif.find_candidate_edges(K=100))
+        >>> scores = np.array(infr.dummy_verif.predict_edges(edges))
+        >>> #sortx = ut.shuffle(np.arange(len(edges)), rng=321)
+        >>> sortx = scores.argsort()[::-1]
+        >>> edges = ut.take(edges, sortx)
+        >>> scores = scores[sortx]
+        >>> ys = infr.match_state_df(edges)[POSTV].values
+        >>> y_remainsum = ys[::-1].cumsum()[::-1]
+        >>> refresh = RefreshCriteria(window=250)
+        >>> ma1 = []
+        >>> ma2 = []
+        >>> reals = []
+        >>> xdata = []
+        >>> for count, (edge, y) in enumerate(zip(edges, ys)):
+        >>>     refresh.add(y, user_id='user:oracle')
+        >>>     ma1.append(refresh._ewma)
+        >>>     ma2.append(refresh.pos_frac)
+        >>>     n_real = y_remainsum[count] / (len(edges) - count)
+        >>>     reals.append(n_real)
+        >>>     xdata.append(count + 1)
+        >>> ut.quit_if_noshow()
+        >>> import wbia.plottool as pt
+        >>> pt.qtensure()
+        >>> pt.multi_plot(xdata, [ma1, ma2, reals], marker='',
+        >>>               label_list=['exp', 'win', 'real'], xlabel='review num',
+        >>>               ylabel='mu')
         """
         if method == 'exp':
             # Compute exponentially weighted moving average
@@ -245,7 +245,7 @@ def demo_refresh():
             break
     xdata = xdata
     ydatas = ut.odict(
-        [('Est. probability any remain', pprob_any), ('Fraction remaining', rfrac_any),]
+        [('Est. probability any remain', pprob_any), ('Fraction remaining', rfrac_any)]
     )
 
     ut.quit_if_noshow()

@@ -607,7 +607,7 @@ def get_annotation_special_monica_laurel_max(desired_species=None, **kwargs):
                 imageset_metadata_dict.get(imageset_metadata_key, '')
                 for imageset_metadata_key in imageset_metadata_key_list
             ]
-            + ['|',]
+            + ['|']
             + [
                 annot_metadata_dict.get(annot_metadata_key, '')
                 for annot_metadata_key in annot_metadata_key_list

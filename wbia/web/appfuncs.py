@@ -542,9 +542,7 @@ def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
         posix += 60 * 60 * GMT_OFFSET
         lat = float(record.latitude)
         lon = float(record.longitude)
-        json_list.append(
-            {'time': posix, 'lat': lat, 'lon': lon,}
-        )
+        json_list.append({'time': posix, 'lat': lat, 'lon': lon})
     return json.dumps({'track': json_list})
 
 

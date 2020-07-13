@@ -204,7 +204,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
         self.pcfg = TmpPipelineConfig()
         self.review_cfg = dtool.Config.from_dict(
-            {'filter_reviewed': True, 'ranks_top': 1, 'filter_true_matches': True,}
+            {'filter_reviewed': True, 'ranks_top': 1, 'filter_true_matches': True}
         )
         self.info_cfg = dtool.Config.from_dict(
             {key: False for key in ibs.parse_annot_config_stats_filter_kws()}
@@ -1006,9 +1006,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if web:
             back.show_images_in_web(gid)
         else:
-            kwargs.update(
-                {'sel_aids': sel_aids, 'select_callback': back.select_gid,}
-            )
+            kwargs.update({'sel_aids': sel_aids, 'select_callback': back.select_gid})
             interact.ishow_image(back.ibs, gid, **kwargs)
 
     def show_images_in_web(back, gid_list, **kwargs):
@@ -1057,9 +1055,7 @@ class MainWindowBackend(GUIBACK_BASE):
         webbrowser.open(url)
 
     def show_name(back, nid, sel_aids=[], **kwargs):
-        kwargs.update(
-            {'sel_aids': sel_aids, 'select_aid_callback': back.select_aid,}
-        )
+        kwargs.update({'sel_aids': sel_aids, 'select_aid_callback': back.select_aid})
         # nid = back.ibs.get_name_rowids_from_text(name)
         interact.ishow_name(back.ibs, nid, **kwargs)
         pass
@@ -1257,7 +1253,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     def _set_selection3(back, tablename, id_list, mode='set'):
         """
-           text = '51e10019-968b-5f2e-2287-8432464d7547 '
+        text = '51e10019-968b-5f2e-2287-8432464d7547 '
         """
 
         def ensure_uuids_are_ids(id_list, uuid_to_id_fn):
@@ -2421,8 +2417,8 @@ class MainWindowBackend(GUIBACK_BASE):
     ):
         daids_mode = back.daids_mode if daids_mode is None else daids_mode
         daids_mode_valid_kw_dict = {
-            const.VS_EXEMPLARS_KEY: {'is_exemplar': True,},
-            const.INTRA_OCCUR_KEY: {'imgsetid': imgsetid,},
+            const.VS_EXEMPLARS_KEY: {'is_exemplar': True},
+            const.INTRA_OCCUR_KEY: {'imgsetid': imgsetid},
             'all': {},
         }
         if qaid_list is not None and species is None:

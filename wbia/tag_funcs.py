@@ -165,7 +165,6 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
         >>> annotmatch_rowids = filter_annotmatch_by_tags(ibs, min_num=1)
         >>> rename_and_reduce_tags(ibs, annotmatch_rowids)
     """
-
     tags_list_ = get_annotmatch_case_tags(ibs, annotmatch_rowids)
 
     def fix_tags(tags):
@@ -427,7 +426,6 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
         >>> pt.draw_timedelta_pie(timedelta_list, label='timestamp of tags=%r' % (has_any,))
         >>> ut.show_if_requested()
     """
-
     if annotmatch_rowids is None:
         annotmatch_rowids = ibs._get_all_annotmatch_rowids()
 
@@ -523,9 +521,9 @@ def filterflags_general_tags(
     if logic is None:
         logic = 'and'
 
-    logic_func = {'and': np.logical_and, 'or': np.logical_or,}[logic]
+    logic_func = {'and': np.logical_and, 'or': np.logical_or}[logic]
 
-    default_func = {'and': np.ones, 'or': np.zeros,}[logic]
+    default_func = {'and': np.ones, 'or': np.zeros}[logic]
 
     tags_list_ = [fix_tags(tags_) for tags_ in tags_list]
     flags = default_func(len(tags_list_), dtype=np.bool)

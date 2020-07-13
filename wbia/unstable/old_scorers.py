@@ -79,7 +79,7 @@ def get_mask_func(config):
     return make_mask_func, cov_cfg
 
 
-#### MASK COVERAGE SCORING ####
+# ### MASK COVERAGE SCORING ####
 
 
 def compute_annot_coverage_score(qreq_, cm, config={}):
@@ -225,6 +225,8 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
         >>> show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids)
         >>> ut.show_if_requested()
     """
+    import vtool as vt
+
     if ut.VERYVERBOSE:
         print('[ncov] make_mask_func = %r' % (make_mask_func,))
         print('[ncov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
@@ -365,6 +367,7 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
     DEPRICATE
     """
     import wbia.plottool as pt
+    import vtool as vt
     from wbia import viz
 
     fnum = pt.ensure_fnum(fnum)
@@ -460,6 +463,8 @@ def show_annot_weights(qreq_, aid, config={}):
 
 
 def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float):
+    import vtool as vt
+
     """
     applies selectivity score from SMK paper
     Take componentwise dot produt and divide by 512**2 because of the

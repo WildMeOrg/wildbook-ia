@@ -79,9 +79,7 @@ def hack_argv(arg):
                 ]
             )
         elif hack_argv_key in ['tags']:
-            sys.argv.extend(
-                ['--bottom=.3', '--left=.2',]
-            )
+            sys.argv.extend(['--bottom=.3', '--left=.2'])
 
         # Save location
         # fname_fmt = 'figuresX/expt_{e}_{db}_a_{a}_t_{t}'
@@ -97,14 +95,10 @@ def hack_argv(arg):
         #        fname_fmt += '_FP'
 
         if hack_argv_key in ['time', 'expt', 'mech', 'scores', 'surf', 'tags']:
-            sys.argv.extend(
-                ['--save', fname_fmt + '.png',]
-            )
+            sys.argv.extend(['--save', fname_fmt + '.png'])
 
         if hack_argv_key in ['time']:
-            sys.argv.extend(
-                ['--figsize=18,8', r'--width=".8\textwidth"',]
-            )
+            sys.argv.extend(['--figsize=18,8', r'--width=".8\textwidth"'])
 
 
 # import IPython

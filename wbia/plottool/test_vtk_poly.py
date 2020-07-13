@@ -25,7 +25,7 @@ def rhombicuboctahedron():
     vertex_locations = vtk.vtkPoints()
     vertex_locations.SetNumberOfPoints(24)
 
-    p1, p2, p3 = np.array([(-hu, -hu, hh), (hu, -hu, hh), (hu, hu, hh), (-hu, hu, hh),]).T
+    p1, p2, p3 = np.array([(-hu, -hu, hh), (hu, -hu, hh), (hu, hu, hh), (-hu, hu, hh)]).T
     plist = [p1, p2, p3]
 
     # three of the six main faces
@@ -78,26 +78,26 @@ def rhombicuboctahedron():
         'F': [vpdict['F'][0], vpdict['F'][1], vpdict['F'][2], vpdict['F'][3]],
         'R': [vpdict['R'][0], vpdict['R'][1], vpdict['R'][2], vpdict['R'][3]],
         'B': [vpdict['B'][0], vpdict['B'][1], vpdict['B'][2], vpdict['B'][3]],
-        'FL': [vpdict['L'][0], vpdict['L'][3], vpdict['F'][2], vpdict['F'][3],],
-        'BL': [vpdict['L'][1], vpdict['L'][2], vpdict['B'][2], vpdict['B'][3],],
-        'UL': [vpdict['L'][2], vpdict['L'][3], vpdict['U'][3], vpdict['U'][2],],
-        'DL': [vpdict['L'][0], vpdict['L'][1], vpdict['D'][2], vpdict['D'][3],],
-        'UFL': [vpdict['L'][3], vpdict['F'][2], vpdict['U'][3],],
-        'DFL': [vpdict['L'][0], vpdict['F'][3], vpdict['D'][3],],
-        'UBL': [vpdict['L'][2], vpdict['B'][2], vpdict['U'][2],],
-        'DBL': [vpdict['L'][1], vpdict['B'][3], vpdict['D'][2],],
-        'UFR': [vpdict['R'][3], vpdict['F'][1], vpdict['U'][0],],
-        'DFR': [vpdict['R'][0], vpdict['F'][0], vpdict['D'][0],],
-        'UBR': [vpdict['R'][2], vpdict['B'][1], vpdict['U'][1],],
-        'DBR': [vpdict['R'][1], vpdict['B'][0], vpdict['D'][1],],
-        'FR': [vpdict['R'][3], vpdict['R'][0], vpdict['F'][0], vpdict['F'][1],],
-        'BR': [vpdict['R'][2], vpdict['R'][1], vpdict['B'][0], vpdict['B'][1],],
-        'UR': [vpdict['R'][3], vpdict['R'][2], vpdict['U'][1], vpdict['U'][0],],
-        'DR': [vpdict['R'][1], vpdict['R'][0], vpdict['D'][0], vpdict['D'][1],],
-        'DF': [vpdict['F'][0], vpdict['F'][3], vpdict['D'][3], vpdict['D'][0],],
-        'DB': [vpdict['B'][3], vpdict['B'][0], vpdict['D'][1], vpdict['D'][2],],
-        'UF': [vpdict['F'][1], vpdict['F'][2], vpdict['U'][3], vpdict['U'][0],],
-        'UB': [vpdict['B'][2], vpdict['B'][1], vpdict['U'][1], vpdict['U'][2],],
+        'FL': [vpdict['L'][0], vpdict['L'][3], vpdict['F'][2], vpdict['F'][3]],
+        'BL': [vpdict['L'][1], vpdict['L'][2], vpdict['B'][2], vpdict['B'][3]],
+        'UL': [vpdict['L'][2], vpdict['L'][3], vpdict['U'][3], vpdict['U'][2]],
+        'DL': [vpdict['L'][0], vpdict['L'][1], vpdict['D'][2], vpdict['D'][3]],
+        'UFL': [vpdict['L'][3], vpdict['F'][2], vpdict['U'][3]],
+        'DFL': [vpdict['L'][0], vpdict['F'][3], vpdict['D'][3]],
+        'UBL': [vpdict['L'][2], vpdict['B'][2], vpdict['U'][2]],
+        'DBL': [vpdict['L'][1], vpdict['B'][3], vpdict['D'][2]],
+        'UFR': [vpdict['R'][3], vpdict['F'][1], vpdict['U'][0]],
+        'DFR': [vpdict['R'][0], vpdict['F'][0], vpdict['D'][0]],
+        'UBR': [vpdict['R'][2], vpdict['B'][1], vpdict['U'][1]],
+        'DBR': [vpdict['R'][1], vpdict['B'][0], vpdict['D'][1]],
+        'FR': [vpdict['R'][3], vpdict['R'][0], vpdict['F'][0], vpdict['F'][1]],
+        'BR': [vpdict['R'][2], vpdict['R'][1], vpdict['B'][0], vpdict['B'][1]],
+        'UR': [vpdict['R'][3], vpdict['R'][2], vpdict['U'][1], vpdict['U'][0]],
+        'DR': [vpdict['R'][1], vpdict['R'][0], vpdict['D'][0], vpdict['D'][1]],
+        'DF': [vpdict['F'][0], vpdict['F'][3], vpdict['D'][3], vpdict['D'][0]],
+        'DB': [vpdict['B'][3], vpdict['B'][0], vpdict['D'][1], vpdict['D'][2]],
+        'UF': [vpdict['F'][1], vpdict['F'][2], vpdict['U'][3], vpdict['U'][0]],
+        'UB': [vpdict['B'][2], vpdict['B'][1], vpdict['U'][1], vpdict['U'][2]],
     }
 
     for key, vert_ids in face_dict.items():

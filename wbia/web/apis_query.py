@@ -525,7 +525,7 @@ def review_graph_match_html(
     ]
 
     if include_jquery:
-        json_file_list = [['javascript', 'jquery.min.js'],] + json_file_list
+        json_file_list = [['javascript', 'jquery.min.js']] + json_file_list
 
     EMBEDDED_CSS = ''
     EMBEDDED_JAVASCRIPT = ''
@@ -1367,7 +1367,7 @@ def query_graph_v2_callback(graph_client, callback_type):
         callback_url, callback_method = callback_tuple
         if callback_url is not None:
             callback_method = callback_method.lower()
-            data_dict = ut_to_json_encode({'graph_uuid': graph_client.graph_uuid,})
+            data_dict = ut_to_json_encode({'graph_uuid': graph_client.graph_uuid})
             if callback_method == 'post':
                 requests.post(callback_url, data=data_dict)
             elif callback_method == 'get':
@@ -1686,7 +1686,7 @@ def review_graph_match_html_v2(
     ]
 
     if include_jquery:
-        json_file_list = [['javascript', 'jquery.min.js'],] + json_file_list
+        json_file_list = [['javascript', 'jquery.min.js']] + json_file_list
 
     EMBEDDED_CSS = ''
     EMBEDDED_JAVASCRIPT = ''
@@ -1864,7 +1864,7 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     new_name_list = list(name_delta_df['new_name'])
     zipped = list(zip(name_annot_uuid_list, old_name_list, new_name_list))
     name_dict = {
-        str(name_annot_uuid): {'old': old_name, 'new': new_name,}
+        str(name_annot_uuid): {'old': old_name, 'new': new_name}
         for name_annot_uuid, old_name, new_name in zipped
     }
 

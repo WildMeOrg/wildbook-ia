@@ -1111,7 +1111,7 @@ def update_1_3_6(db, ibs=None):
     # and contributors
     db.modify_table(
         const.IMAGE_TABLE,
-        [(None, 'party_rowid', 'INTEGER', None),],
+        [(None, 'party_rowid', 'INTEGER', None)],
         shortname='image',
         extern_tables=[const.PARTY_TABLE, const.CONTRIBUTOR_TABLE],
         # TODO: add in many to 1 attribute mapping
@@ -1303,7 +1303,7 @@ def update_1_4_2(db, ibs=None):
         },
     )
 
-    db.modify_table(const.NAME_TABLE, [(None, 'name_sex', 'INTEGER DEFAULT -1', None),])
+    db.modify_table(const.NAME_TABLE, [(None, 'name_sex', 'INTEGER DEFAULT -1', None)])
 
 
 def update_1_4_3(db, ibs=None):
@@ -1361,7 +1361,7 @@ def update_1_4_4(db, ibs=None):
 
 def update_1_4_5(db, ibs=None):
     db.modify_table(
-        const.ANNOTMATCH_TABLE, [(None, 'annotmatch_note', 'TEXT', None),],
+        const.ANNOTMATCH_TABLE, [(None, 'annotmatch_note', 'TEXT', None)],
     )
 
 
@@ -1804,7 +1804,7 @@ def update_1_6_4(db, ibs=None):
         annotation. The one-to-many relationship between annotations and parts is
         encoded here
         """,
-        superkeys=[(PART_UUID,),],
+        superkeys=[(PART_UUID,)],
         shortname='part',
         extern_tables=[const.ANNOTATION_TABLE],
         dependsmap={

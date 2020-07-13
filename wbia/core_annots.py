@@ -475,7 +475,7 @@ def gen_chip_configure_and_compute(
         filter_list.append(
             (
                 'adapteq',
-                {'tileGridSize': (ksize, ksize), 'clipLimit': config['adapteq_limit'],},
+                {'tileGridSize': (ksize, ksize), 'clipLimit': config['adapteq_limit']},
             )
         )
     ipreproc = image_filters.IntensityPreproc()
@@ -637,7 +637,7 @@ def compute_annotmask(depc, aid_list, config=None):
 class ProbchipConfig(dtool.Config):
     # TODO: incorporate into base
     _named_defaults = {
-        'rf': {'fw_detector': 'rf', 'smooth_thresh': None, 'smooth_ksize': None,}
+        'rf': {'fw_detector': 'rf', 'smooth_thresh': None, 'smooth_ksize': None}
     }
     _param_info_list = [
         # ut.ParamInfo('preserve_aspect', True, hideif=True),
