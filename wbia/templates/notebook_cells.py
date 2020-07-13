@@ -264,7 +264,7 @@ timedelta_distribution = (
 
 
 # latex_stats = wbia.other.dbinfo.latex_dbstats([ibs], table_position='[h]') + '\n%--'
-##print(latex_stats)
+# # print(latex_stats)
 # pdf_fpath = ut.compile_latex_text(latex_stats, dpath=None, verbose=False, quiet=True, pad_stdout=False)
 # pdf_fpath = ut.tail(pdf_fpath, n=2)
 # print(pdf_fpath)
@@ -701,7 +701,7 @@ hard_success_cases = (
 # ================
 
 
-#'# Cases: Failure (false neg)',
+# '# Cases: Failure (false neg)',
 failure_type2_cases = (
     ut.codeblock(
         """

@@ -298,7 +298,8 @@ def get_global_distinctiveness_modeldir(ibs, ensure=True):
 def get_local_distinctiveness_modeldir(ibs):
     """
     Returns:
-        distinctdir (str): ibs internal directory """
+        distinctdir (str): ibs internal directory
+    """
     return ibs.distinctdir
 
 
@@ -317,7 +318,7 @@ class NormFeatScoreConfig(dtool.Config):
 
 
 def compare_featscores():
-    """
+    r"""
     CommandLine:
 
         wbia --tf compare_featscores  --db PZ_MTEST \
@@ -748,10 +749,10 @@ def get_training_featscores(
     print('training using %d chipmatches' % (len(cm_list)))
 
     if disttype is None:
-        fsv_col_lbls = cm.fsv_col_lbls
+        # fsv_col_lbls = cm.fsv_col_lbls
         train_getter = get_training_fsv
     else:
-        fsv_col_lbls = ut.ensure_iterable(disttype)
+        # fsv_col_lbls = ut.ensure_iterable(disttype)
         # annots = {}  # Hack for cached vector lookups
         ibs = qreq_.ibs
         data_annots = ut.KeyedDefaultDict(

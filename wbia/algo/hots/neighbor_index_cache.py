@@ -388,7 +388,9 @@ def request_augmented_wbia_nnindexer(
             qreq_, covered_aids, verbose=verbose, use_memcache=use_memcache
         )
         # Remove this indexer from the memcache because we are going to change it
-        if NEIGHBOR_CACHE.has_key(base_nnindexer.cfgstr):  # NOQA
+        if NEIGHBOR_CACHE.has_key(  # NOQA (has_key is for a lru cache)
+            base_nnindexer.cfgstr
+        ):
             print('Removing key from memcache')
             NEIGHBOR_CACHE[base_nnindexer.cfgstr] = None
             del NEIGHBOR_CACHE[base_nnindexer.cfgstr]
@@ -483,8 +485,11 @@ def request_memcached_wbia_nnindexer(
     nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
     # neighbor memory cache
     if (
-        not force_rebuild and use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr)
-    ):  # NOQA (has_key is for a lru cache)
+        not force_rebuild
+        and use_memcache
+        and nnindex_cfgstr
+        in NEIGHBOR_CACHE.has_key()  # NOQA (has_key is for a lru cache)
+    ):
         if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
             print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
         nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]

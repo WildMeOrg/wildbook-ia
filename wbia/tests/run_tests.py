@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+#!/usr/bin/env python  # NOQA
 from __future__ import absolute_import, division, print_function
 import utool as ut
 

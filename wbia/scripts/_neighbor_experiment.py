@@ -428,12 +428,12 @@ def trytest_incremental_add(ibs):
     aids3 = sample_aids[:-1]  # NOQA
     daid_list = aids1  # NOQA
     qreq_ = ibs.new_query_request(aids1, aids1)
-    nnindexer1 = neighbor_index_cache.request_wbia_nnindexer(
+    nnindexer1 = neighbor_index_cache.request_wbia_nnindexer(  # NOQA
         ibs.new_query_request(aids1, aids1)
-    )  # NOQA
-    nnindexer2 = neighbor_index_cache.request_wbia_nnindexer(
+    )
+    nnindexer2 = neighbor_index_cache.request_wbia_nnindexer(  # NOQA
         ibs.new_query_request(aids2, aids2)
-    )  # NOQA
+    )
 
     # TODO: SYSTEM use visual uuids
     items = ibs.get_annot_visual_uuids(aids3)
@@ -447,9 +447,9 @@ def trytest_incremental_add(ibs):
     covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))
     uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
 
-    nnindexer3 = neighbor_index_cache.request_wbia_nnindexer(
+    nnindexer3 = neighbor_index_cache.request_wbia_nnindexer(  # NOQA
         ibs.new_query_request(uncovered_aids, uncovered_aids)
-    )  # NOQA
+    )
 
     # TODO: SYSTEM use visual uuids
     items = ibs.get_annot_visual_uuids(sample_aids)
@@ -469,8 +469,8 @@ def trytest_incremental_add(ibs):
     # uuid_map[daids_hashid] = visual_uuid_list
     # visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
     # visual_uuid_list
-    #%timeit neighbor_index_cache.request_wbia_nnindexer(qreq_, use_memcache=False)
-    #%timeit neighbor_index_cache.request_wbia_nnindexer(qreq_, use_memcache=True)
+    # %timeit neighbor_index_cache.request_wbia_nnindexer(qreq_, use_memcache=False)
+    # %timeit neighbor_index_cache.request_wbia_nnindexer(qreq_, use_memcache=True)
 
     # for uuids in uuid_set
     #    if
@@ -715,7 +715,7 @@ def pyflann_test_remove_add():
     print('Test initial save load')
     flann_params = {
         'random_seed': 42,
-        #'log_level': 'debug', 'info',
+        # 'log_level': 'debug', 'info',
     }
 
     # pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
@@ -845,8 +845,8 @@ def pyflann_remove_and_save():
     print('\nTest initial save load')
     flann_params = {
         'random_seed': 42,
-        #'log_level': 'debug', 'info',
-        #'log_level': 4,
+        # 'log_level': 'debug', 'info',
+        # 'log_level': 4,
         'cores': 1,
         'log_level': 'debug',
     }

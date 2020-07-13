@@ -63,9 +63,9 @@ print, rrr, profile = ut.inject2(__name__)
 VERBOSE_GUI = ut.VERBOSE or ut.get_argflag(('--verbose-gui', '--verbgui'))
 WITH_GUILOG = ut.get_argflag('--guilog')
 
-#############################
-###### Tab Widgets #######
-#############################
+# ############################
+# ##### Tab Widgets #######
+# ############################
 
 
 class APITabWidget(QtWidgets.QTabWidget):
@@ -197,9 +197,9 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
                 imageset_tabwgt.setTabText(index, imagesettext)
 
 
-#############################
-######## Main Widget ########
-#############################
+# ############################
+# ####### Main Widget ########
+# ############################
 
 
 class IBEISMainWindow(QtWidgets.QMainWindow):
@@ -256,9 +256,9 @@ class IBEISMainWindow(QtWidgets.QMainWindow):
         view.expandAll()
 
 
-#############################
-##### IBEIS GUI Widget ######
-#############################
+# ############################
+# #### IBEIS GUI Widget ######
+# ############################
 
 
 IBEIS_WIDGET_BASE = QtWidgets.QWidget
@@ -343,12 +343,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # else:
         #    ellapsed = ut.toc(ibswgt.tt)
         # print('Load more data for %r' % (view,))
-        ##freq = ibswgt.data_load_freq / (1000 * 2)
-        ##frac = freq / ellapsed
-        ##print('ibswgt.data_load_freq = %r' % (freq,))
-        ##print('ellapsed = %r' % (ellapsed,))
-        ##print('frac = %r' % (frac,))
-        ##if model.batch_size is not None:
+        # # freq = ibswgt.data_load_freq / (1000 * 2)
+        # # frac = freq / ellapsed
+        # # print('ibswgt.data_load_freq = %r' % (freq,))
+        # # print('ellapsed = %r' % (ellapsed,))
+        # # print('frac = %r' % (frac,))
+        # # if model.batch_size is not None:
         #    #new_batch_size = model.batch_size
         #    #new_batch_size = int(new_batch_size * frac * 2)
         #    #new_batch_size = max(new_batch_size * 2, 2)
@@ -356,7 +356,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #    #new_batch_size = min(100, new_batch_size)
         #    #model.batch_size = new_batch_size
         #    #print('model.batch_size = %r' % (model.batch_size,))
-        ##ibswgt.tt = ut.tic()
+        # # ibswgt.tt = ut.tic()
         # else:
         #    ibswgt.tt = None
 
@@ -833,7 +833,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # ('Select Species',  'none'),
             ('Select Species', const.UNKNOWN),
             ('Unknown', const.UNKNOWN),
-            #'none'),
+            # 'none'),
         ] + sorted(list(ibs.get_working_species()))
         species_text = ibswgt.back.get_selected_species()
         reselect_index = None
@@ -1946,9 +1946,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             model._update_rows(rebuild_structure=True)
 
 
-######################
-###### Testing #######
-######################
+# #####################
+# ##### Testing #######
+# #####################
 
 
 def testdata_guifront(defaultdb='testdb1'):

@@ -291,7 +291,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             print('\n\n')
             print('[DELEGATE] newEditor for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode is not None and leafNode.is_combo:
-            import wbia.guitool
+            from wbia import guitool
 
             options = leafNode.valid_values
             curent_value = index.model().data(index)

@@ -70,7 +70,7 @@ def fix_pz_master():
 
     wbia._preload()
     from wbia.gui import inspect_gui
-    import wbia.guitool
+    from wbia import guitool
 
     ibs = wbia.opendb('PZ_Master0')
     daids = ibs.get_valid_aids(minqual='poor')
@@ -203,7 +203,7 @@ def myquery():
 
     # Get best result
     best_cfgdict = gridsearch.get_rank_cfgdict()
-    qres_copy, tp_score, tn_score = test_config(qreq_, qres_orig, best_cfgdict)
+    qres_copy, tp_score, tn_score = try_config(qreq_, qres_orig, best_cfgdict)
 
     # Examine closely what you can do with scores
     if False:

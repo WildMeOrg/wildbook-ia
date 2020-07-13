@@ -187,7 +187,7 @@ EXCLUDE_COPY_REL_DIRS = [
     REL_PATHS.figures,
     REL_PATHS.nets,
     join(PATH_NAMES._ibsdb, '_ibeis_cache*'),
-    #'_ibsdb/_ibeis_cache',
+    # '_ibsdb/_ibeis_cache',
     '_ibsdb/chips',  # old path for caches
     './images',  # the hotspotter images dir
 ]
@@ -364,8 +364,8 @@ SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'wbia.cs.uic.edu') or ut.get_arg
 
 # For candidacy document
 DBNAME_ALIAS = {
-    #'NNP_MasterGIRM_core': 'NNP_GIRM'
-    #'NNP_MasterGIRM_core': 'GIRM',
+    # 'NNP_MasterGIRM_core': 'NNP_GIRM'
+    # 'NNP_MasterGIRM_core': 'GIRM',
     'NNP_MasterGIRM_core': 'GIRM',
     'PZ_Master1': 'PZ',
     'GZ_Master1': 'GZ',

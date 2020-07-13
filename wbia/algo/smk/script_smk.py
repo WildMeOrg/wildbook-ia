@@ -200,7 +200,11 @@ class SMK(ut.NiceRepr):
         assert len(kwargs) == 0, 'unexpected kwargs=%r' % (kwargs,)
 
     def gamma(smk, X):
-        """ gamma(X) = (M(X, X)) ** (-1/2) """
+        """
+        Compute gamma of X
+
+        gamma(X) = (M(X, X)) ** (-1/2)
+        """
         score = smk.match_score(X, X)
         sccw = np.reciprocal(np.sqrt(score))
         return sccw
@@ -275,7 +279,7 @@ class SparseVector(ut.NiceRepr):
 #         self.list_ = list_
 #         self.offsets = offsets
 #     def split(self):
-#         return [self._list_[l:r] for l, r in ut.itertwo(self.offsets)]
+#         return [self._list_[left: right] for left, right in ut.itertwo(self.offsets)]
 #     stacked_vecs = StackedLists(all_vecs, offset_list)
 #     vecs_list = stacked_vecs.split()
 
@@ -557,8 +561,8 @@ def run_asmk_script():
             # 'centering': True,
             'centering': False,
             'num_words': 2 ** 16,
-            #'num_words': 1E6
-            #'num_words': 8000,
+            # 'num_words': 1E6
+            # 'num_words': 8000,
             'kmeans_impl': 'sklearn.mini',
             'extern_words': False,
             'extern_assign': False,
@@ -734,10 +738,10 @@ def run_asmk_script():
         idx_to_wxs, idx_to_maws = assign_tup
 
         # Breakup vectors, keypoints, and word assignments by annotation
-        wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
-        maw_lists = [idx_to_maws[l:r] for l, r in ut.itertwo(offset_list)]
-        vecs_list = [all_vecs[l:r] for l, r in ut.itertwo(offset_list)]
-        kpts_list = [all_kpts[l:r] for l, r in ut.itertwo(offset_list)]
+        wx_lists = [idx_to_wxs[left:right] for left, right in ut.itertwo(offset_list)]
+        maw_lists = [idx_to_maws[left:right] for left, right in ut.itertwo(offset_list)]
+        vecs_list = [all_vecs[left:right] for left, right in ut.itertwo(offset_list)]
+        kpts_list = [all_kpts[left:right] for left, right in ut.itertwo(offset_list)]
 
         # =======================
         # FIND QUERY SUBREGIONS
@@ -882,10 +886,12 @@ def run_asmk_script():
                 if int_rvec:
                     all_agg_vecs = smk_funcs.cast_residual_integer(all_agg_vecs)
                 agg_rvecs_list = [
-                    all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)
+                    all_agg_vecs[left:right]
+                    for left, right in ut.itertwo(agg_offset_list)
                 ]
                 agg_flags_list = [
-                    all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)
+                    all_error_flags[left:right]
+                    for left, right in ut.itertwo(agg_offset_list)
                 ]
 
                 for X, agg_rvecs, agg_flags in zip(
@@ -905,10 +911,12 @@ def run_asmk_script():
                     all_agg_vecs = smk_funcs.cast_residual_integer(all_agg_vecs)
 
                 agg_rvecs_list = [
-                    all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)
+                    all_agg_vecs[left:right]
+                    for left, right in ut.itertwo(agg_offset_list)
                 ]
                 agg_flags_list = [
-                    all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)
+                    all_error_flags[left:right]
+                    for left, right in ut.itertwo(agg_offset_list)
                 ]
 
                 for Y, agg_rvecs, agg_flags in zip(
@@ -1177,7 +1185,7 @@ def oxford_conic_test():
 
 
 def load_internal_data():
-    """
+    r"""
     wbia TestResult --db Oxford \
         -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None \
         -a oxford \
@@ -1263,10 +1271,10 @@ def show_data_image(data_uri_order, i, offset_list, all_kpts, all_vecs):
 
     pt.qt4ensure()
     # pt.imshow(image)
-    l = offset_list[i]
-    r = offset_list[i + 1]
-    kpts = all_kpts[l:r]
-    vecs = all_vecs[l:r]
+    left = offset_list[i]
+    right = offset_list[i + 1]
+    kpts = all_kpts[left:right]
+    vecs = all_vecs[left:right]
     pt.interact_keypoints.ishow_keypoints(
         image, kpts, vecs, ori=False, ell_alpha=0.4, color='distinct'
     )
@@ -1282,7 +1290,7 @@ def check_image_sizes(data_uri_order, all_kpts, offset_list):
     imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
     gpath_list = [join(imgdir, imgid + '.jpg') for imgid in data_uri_order]
     imgsize_list = [vt.open_image_size(gpath) for gpath in gpath_list]
-    kpts_list = [all_kpts[l:r] for l, r in ut.itertwo(offset_list)]
+    kpts_list = [all_kpts[left:right] for left, right in ut.itertwo(offset_list)]
 
     kpts_extent = [
         vt.get_kpts_image_extent(kpts, outer=False, only_xy=False)

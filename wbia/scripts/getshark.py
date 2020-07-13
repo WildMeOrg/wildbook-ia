@@ -566,9 +566,9 @@ def check_annot_disagree(
     # Pull info from wildbook
     sub_info.compress(ia_empty).print()
     if is_set:
-        print('IA \subset WB (can give)')
+        print('IA subset WB (can give)')
         sub_info.compress(ia_is_subset).print()
-        print('WB \subset IA (updates on IA side?)')
+        print('WB subset IA (updates on IA side?)')
         sub_info.compress(wb_is_subset).print()
         print('SOME OVERLAP')
         # Have to manually fix
@@ -706,6 +706,7 @@ def get_injur_categories(single_annots, verbose=False):
     )
     assert len(unmapped) == 0, 'fixme %r' % (unmapped,)
     # Remove injur-other if other known injuries are present
+
     def fixinjur(aid, tags):
         tags = sorted(ut.unique(tags))
         injured = any([t.startswith('injur-') for t in tags])

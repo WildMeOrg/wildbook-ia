@@ -917,6 +917,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         >>> ut.assert_eq(len(results), 10, 'incorrect num output')
         >>> ut.assert_eq(len(results2), 16, 'incorrect num output')
     """
+
     _symmetric = False
 
     @classmethod

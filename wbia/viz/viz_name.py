@@ -237,16 +237,16 @@ def show_multiple_chips(
 
                     coordsA = coordsB = 'data'
                     # coords = 'axes points'
-                    #'axes fraction'
-                    #'axes pixels'
+                    # 'axes fraction'
+                    # 'axes pixels'
                     # coordsA = 'axes pixels'
                     # coordsB = 'data'
-                    #'figure fraction'
-                    #'figure pixels'
-                    #'figure pixels'
-                    #'figure points'
-                    #'polar'
-                    #'offset points'
+                    # 'figure fraction'
+                    # 'figure pixels'
+                    # 'figure pixels'
+                    # 'figure points'
+                    # 'polar'
+                    # 'offset points'
 
                     con = mpl.patches.ConnectionPatch(
                         xyA=vert1,
@@ -271,7 +271,7 @@ def show_multiple_chips(
                     # bottom_left1, bottom_right1 = verts1[1:3].tolist()
                     # bottom_left2, bottom_right2 = verts2[1:3].tolist()
 
-                ##transAxes1 = ax1.transData.inverted()
+                # #transAxes1 = ax1.transData.inverted()
                 # transAxes1_fn = ax1.transData.transform
                 # transAxes2_fn = ax2.transData.transform
 
@@ -288,7 +288,7 @@ def show_multiple_chips(
 
                 # coord_br1 = invTransFigure_fn1(transAxes1_fn(bottom_right1))
                 # coord_br2 = invTransFigure_fn2(transAxes2_fn(bottom_right2))
-                ##print('coord_bl1 = %r' % (coord_bl1,))
+                # #print('coord_bl1 = %r' % (coord_bl1,))
 
                 # line_coords1 = np.vstack([coord_bl1, coord_bl2])
                 # line_coords2 = np.vstack([coord_br1, coord_br2])

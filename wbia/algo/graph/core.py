@@ -905,7 +905,7 @@ class MiscHelpers(object):
         print('--- <LOG DUMP> ---')
         for msg, color in infr.logs:
             ut.cprint('[infr] ' + msg, color)
-        print('--- <\LOG DUMP> ---')
+        print('--- <\\LOG DUMP> ---')
 
 
 class AltConstructors(object):

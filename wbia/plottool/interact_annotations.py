@@ -515,9 +515,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
                 '\n'.join(
                     [
                         'Click and drag to select/move/resize/orient an ANNOTATION',
-                        #'Press enter to clear the species tag of the selected ANNOTATION',
+                        # 'Press enter to clear the species tag of the selected ANNOTATION',
                         'Press tab to cycle through annotation species',
-                        #'Type to edit the ANNOTATION species (press tab to autocomplete)'
+                        # 'Type to edit the ANNOTATION species (press tab to autocomplete)'
                     ]
                 )
             )
@@ -1242,8 +1242,8 @@ def pretty_hotkey_map(hotkeys):
         return ''
     hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
     mapping = {
-        #'right': 'right arrow',
-        #'left':  'left arrow',
+        # 'right': 'right arrow',
+        # 'left':  'left arrow',
     }
     mapped_hotkeys = [mapping.get(hk, hk) for hk in hotkeys]
     hotkey_str = '(' + ut.conj_phrase(mapped_hotkeys, 'or') + ')'

@@ -24,7 +24,7 @@ def vdq(dbdir):
 
 
 def vdd(ibs):
-    ' view data dir '
+    """view data dir"""
     ut.util_cplat.view_directory(ibs.dbdir)
 
 
@@ -201,7 +201,7 @@ def postload_commands(ibs, back):
         from PyQt4.QtCore import Qt
 
         fpath = ut.truepath(screengrab_fpath)
-        import wbia.guitool
+        from wbia import guitool
 
         # ut.embed()
         timer2 = guitool.__PYQT__.QtCore.QTimer()

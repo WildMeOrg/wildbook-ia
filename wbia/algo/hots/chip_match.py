@@ -110,6 +110,8 @@ def check_arrs_eq(arr1, arr2):
 
 def safe_check_lens_eq(arr1, arr2, msg=None):
     """
+    Check if it is safe to check if two arrays are equal
+
     safe_check_lens_eq(None, 1)
     safe_check_lens_eq([3], [2, 4])
     """
@@ -123,6 +125,8 @@ def safe_check_lens_eq(arr1, arr2, msg=None):
 
 def safe_check_nested_lens_eq(arr1, arr2):
     """
+    Check if it is safe to check if two arrays are equal (nested)
+
     safe_check_nested_lens_eq(None, 1)
     safe_check_nested_lens_eq([[3, 4]], [[2, 4]])
     safe_check_nested_lens_eq([[1, 2, 3], [1, 2]], [[1, 2, 3], [1, 2]])
@@ -768,7 +772,7 @@ class _ChipMatchVisualization(object):
         """
         print('[cm] qt_inspect_gui')
         from wbia.gui import inspect_gui
-        import wbia.guitool
+        from wbia import guitool
 
         guitool.ensure_qapp()
         cm_list = [cm]
@@ -1528,7 +1532,6 @@ class AnnotMatch(
         r"""
         Convert dict of arguments back to ChipMatch object
         """
-
         key_list = ut.get_kwargs(ChipMatch.initialize)[0]  # HACKY
         key_list.remove('autoinit')
         if ut.VERBOSE:
@@ -1795,7 +1798,7 @@ class _ChipMatchDebugger(object):
                 'qaid=%r ' % cm.qaid,
                 'qnid=%r ' % cm.qnid,
                 ut.hz_str(top_lbl, ' ', top_str),
-                #'num feat matches per annotation stats:',
+                # 'num feat matches per annotation stats:',
                 # ut.indent(ut.repr2(nFeatMatch_stats)),
                 # ut.indent(nFeatMatch_stats_str),
             ]
@@ -1997,7 +2000,7 @@ class _ChipMatchDebugger(object):
             _assert_eq_len(cm.H_list, cm.daid_list)
             _assert_eq_len(cm.score_list, cm.daid_list)
             _assert_eq_len(cm.dnid_list, cm.daid_list)
-        except AssertionError as ex:
+        except AssertionError:
             cm.print_rawinfostr()
             raise
 
@@ -2141,7 +2144,7 @@ class _ChipMatchDebugger(object):
                                 for fxs_list in cm.filtnorm_fxs
                             ]
                         ), 'norm fx indicies do not agree with featscores'
-        except Exception as ex:
+        except Exception:
             cm.print_rawinfostr()
             raise
 
@@ -2791,7 +2794,6 @@ class ChipMatch(
         r"""
         Convert dict of arguments back to ChipMatch object
         """
-
         key_list = ut.get_kwargs(ChipMatch.initialize)[0]  # HACKY
         key_list.remove('autoinit')
         if ut.VERBOSE:

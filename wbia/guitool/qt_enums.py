@@ -103,7 +103,7 @@ LayoutDirection = define_qt_enum(
 
 def parse_window_type_and_flags(self):
 
-    type_ = self.windowType()
+    # type_ = self.windowType()
     for key, val in WindowTypes.items():
         if bin(val).count('1') == 1:
             pass

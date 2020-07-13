@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 CommandLine:
     # Generate and start an IPython notebook
     python -m wbia --tf autogen_ipynb --ipynb --db <dbname> [-a <acfg>] [-t <pcfg>]
@@ -126,7 +126,6 @@ def get_default_cell_template_list(ibs):
     """
     Defines the order of ipython notebook cells
     """
-
     cells = notebook_cells
 
     noexample = not ut.get_argflag('--examples')

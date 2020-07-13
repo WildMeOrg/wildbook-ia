@@ -18,7 +18,7 @@ print, rrr, profile = ut.inject2(__name__)
 
 # SPECIAL_BASIS_POOL = ['fred', 'sue', 'tom']
 SPECIAL_BASIS_POOL = []
-#'fred', 'sue', 'tom']
+# 'fred', 'sue', 'tom']
 
 # Quickly change names to be consistent with papers Sorry, person reading code.
 # This will be confusing and inconsistent
@@ -762,6 +762,7 @@ def draw_tree_model(model, **kwargs):
         netx_graph = model.to_junction_tree()
 
         # prettify nodes
+
         def fixtupkeys(dict_):
             return {
                 ', '.join(k) if isinstance(k, tuple) else k: fixtupkeys(v)
@@ -889,8 +890,8 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     textprops = {
         'family': 'monospace',
         'horizontalalignment': 'left',
-        #'horizontalalignment': 'center',
-        #'size': 12,
+        # 'horizontalalignment': 'center',
+        # 'size': 12,
         'size': 8,
     }
 

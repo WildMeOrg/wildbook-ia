@@ -100,7 +100,7 @@ def get_pyqt():
     have_guitool = ut.check_module_installed('guitool')
     try:
         if have_guitool:
-            from wbia.guitool import __PYQT__ as PyQt
+            from wbia.guitool import __PYQT__ as PyQt  # NOQA
 
             pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
         else:
@@ -182,10 +182,10 @@ def _init_mpl_rcparams():
         # print('ggplot_style = %r' % (ggplot_style,))
         custom_gg = {
             'axes.axisbelow': True,
-            #'axes.edgecolor': 'white',
+            # 'axes.edgecolor': 'white',
             'axes.facecolor': '#E5E5E5',
             'axes.edgecolor': 'none',
-            #'axes.facecolor': 'white',
+            # 'axes.facecolor': 'white',
             'axes.grid': True,
             'axes.labelcolor': '#555555',
             'axes.labelsize': 'large',

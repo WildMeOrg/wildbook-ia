@@ -719,7 +719,6 @@ def weighted_bridge_augmentation(G, avail, weight=None):
     >>> sorted(weighted_bridge_augmentation(G, avail=avail))
     [(1, 5), (2, 5), (4, 5)]
     """
-
     if weight is None:
         weight = 'weight'
 
@@ -755,7 +754,7 @@ def weighted_bridge_augmentation(G, avail, weight=None):
         for (mu, mv), uv, w in _lightest_meta_edges(mapping, avail_uv, avail_w)
     }
 
-    """
+    r"""
     Mapping of terms from (Khuller and Thurimella):
         C         : G_0 = (V, E^0)
            This is the metagraph where each node is a 2-edge-cc in G.
@@ -979,7 +978,7 @@ if sys.version_info[0] == 2:
         """
 
         def _randbelow(n):
-            'Return a random int in the range [0,n). Raises ValueError if n==0.'
+            """Return a random int in the range [0,n). Raises ValueError if n==0."""
             getrandbits = rng.getrandbits
             k = n.bit_length()  # don't use (n-1) here because n can be 1
             r = getrandbits(k)  # 0 <= r < 2**k

@@ -95,7 +95,7 @@ def ishow_name(
                 aid = vh.get_ibsdat(ax, 'aid')
                 print('... aid=%r' % aid)
                 if event.button == 3:  # right-click
-                    import wbia.guitool
+                    from wbia import guitool
                     from wbia.viz.interact import interact_chip
 
                     height = fig.canvas.geometry().height()
@@ -185,6 +185,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.aid2 = aid2
         self.col_offset_list = [0, 0]
         # ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
+
         def _nonefn():
             return None
 
@@ -509,10 +510,10 @@ class MatchVerificationInteraction(AbstractInteraction):
         if kwargs.get('make_buttons', True):
             # divider = pt.ensure_divider(ax)
             butkw = {
-                #'divider': divider,
+                # 'divider': divider,
                 'ax': ax,
                 'size': '13%'
-                #'size': '15%'
+                # 'size': '15%'
             }
         # Chip matching/naming options
         nid = ibs.get_annot_name_rowids(aid)
@@ -732,7 +733,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def on_key_press(self, event=None):
         if event.key == 'escape':
-            import wbia.guitool
+            from wbia import guitool
 
             if guitool.are_you_sure():
                 self.close()

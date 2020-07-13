@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+import utool as ut
+from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+import numpy as np
+
+
 # @profile
 # def edge_hashids(samples):
 #     qvuuids = samples.annots1.visual_uuids
@@ -186,6 +191,7 @@ def demo_single_pairwise_feature_vector():
         matches = infr._exec_pairwise_match(edges, config)
 
         import wbia.plottool as pt
+        import sklearn.metrics
 
         pt.qtensure()
         thresholds = np.linspace(0, 1.0, 100)

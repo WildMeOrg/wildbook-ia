@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import splitext, join, exists, commonprefix
-import utool as ut
-
-(print, rrr, profile) = ut.inject2(__name__, '[sharkspotter]')
-import wbia
 from wbia.scripts import classify_shark
 import numpy as np
 import vtool as vt
+import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__, '[sharkspotter]')
 
 modelStateLocation = (
     'https://wildbookiarepository.azureedge.net/models/classifier.lenet.whale_shark.pkl'
@@ -38,7 +36,7 @@ def classifyShark(ibs, gid_list):
     images = images.compress([ext_ not in ['.gif'] for ext_ in images.exts])
 
     gid_list = images.gids
-    uuid_gid_list = [str(item) for item in images.uuids]
+    # uuid_gid_list = [str(item) for item in images.uuids]
     results_list = depc.get_property(
         'localizations', gid_list, None, config=config
     )  # NOQA

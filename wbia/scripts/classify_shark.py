@@ -513,7 +513,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
         ibs = wbia.opendb('WS_ALL')
     if config is None:
         config = {
-            #'dim_size': (256, 256),
+            # 'dim_size': (256, 256),
             'dim_size': (224, 224),
             'resize_dim': 'wh',
         }
@@ -722,17 +722,17 @@ class ClfProblem(object):
             x_train = data.take(train_idx, axis=0)
             y_train = target.take(train_idx, axis=0)
             param_grid = {
-                #'C': [1, .5, .1, 5, 10, 100],
-                #'C': [1, 1e-1, 1e-2, 1e-3]
-                #'C': [1, 1e-1, 1e-2, 1e-3]
-                #'C': np.linspace(1, 1e-5, 15)
-                #'C': np.linspace(.2, 1e-5, 15)
-                #'C': np.logspace(np.log10(1e-3), np.log10(.1), 30, base=10)
-                #'C': np.linspace(.1, .3, 20),
-                #'C': np.linspace(1.0, .22, 20),
+                # 'C': [1, .5, .1, 5, 10, 100],
+                # 'C': [1, 1e-1, 1e-2, 1e-3]
+                # 'C': [1, 1e-1, 1e-2, 1e-3]
+                # 'C': np.linspace(1, 1e-5, 15)
+                # 'C': np.linspace(.2, 1e-5, 15)
+                # 'C': np.logspace(np.log10(1e-3), np.log10(.1), 30, base=10)
+                # 'C': np.linspace(.1, .3, 20),
+                # 'C': np.linspace(1.0, .22, 20),
                 'C': np.linspace(0.25, 0.01, 40),
-                #'loss': ['l2', 'l1'],
-                #'penalty': ['l2', 'l1'],
+                # 'loss': ['l2', 'l1'],
+                # 'penalty': ['l2', 'l1'],
             }
             _clf = sklearn.svm.SVC(
                 kernel=str('linear'),
@@ -771,12 +771,12 @@ class ClfProblem(object):
             # ydata_mean = c_ydata
             # y_data_max = ydata_mean + y_data_std
             # y_data_min = ydata_mean - y_data_std
-            ##import wbia.plottool as pt
-            ##pt.figure(fnum=pt.ensure_fnum(None))
+            # # import wbia.plottool as pt
+            # # pt.figure(fnum=pt.ensure_fnum(None))
             # ax = pt.gca()
             # ax.fill_between(c_xdata, c_ydata, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
             # ax.fill_between(c_xdata, c_ydata, y_data_min, alpha=.2, color=pt.LIGHT_BLUE)
-            ##pt.figure(fnum=pt.ensure_fnum(None))
+            # # pt.figure(fnum=pt.ensure_fnum(None))
             # hist = c_ydata
             # centers = c_xdata
             # pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
@@ -977,7 +977,7 @@ def predict_ws_injury_interim_svm(ibs, aids, **kwargs):
     Returns relative confidence
     """
     config = {
-        #'dim_size': (256, 256),
+        # 'dim_size': (256, 256),
         'dim_size': (224, 224),
         'resize_dim': 'wh',
     }
@@ -1140,7 +1140,7 @@ def shark_svm():
             # examples wrong.
 
             param_grid = {
-                #'C': np.linspace(.1, .2, 10),
+                # 'C': np.linspace(.1, .2, 10),
                 'C': [
                     0.0001,
                     0.001,
@@ -1159,7 +1159,7 @@ def shark_svm():
                     1000,
                     10000,
                 ]
-                #'C': np.linspace(.1, .2, 3),
+                # 'C': np.linspace(.1, .2, 3),
             }
             clf = sklearn.svm.SVC(
                 kernel=str('linear'),

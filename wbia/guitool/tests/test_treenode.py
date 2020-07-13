@@ -44,9 +44,9 @@ def _test_build_internal_structure(_module, lang):
         return range(N)
 
     def ider_level1(input_):
-        _single = lambda x: [
-            y for y in range(x ** 2, x ** 2 + max(0, ((N // 1) - x - 1)))
-        ]
+        def _single(x):
+            return [y for y in range(x ** 2, x ** 2 + max(0, ((N // 1) - x - 1)))]
+
         if isinstance(input_, list):
             return [_single(x) for x in input_]
         else:

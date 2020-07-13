@@ -11,6 +11,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import time
 import utool as ut
 from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__ import QtGui as QtWidgets
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 

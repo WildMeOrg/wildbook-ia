@@ -612,11 +612,11 @@ def gravity_match_weighter(nns_list, nnvalid0_list, qreq_):
     # qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
     # qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_internal_query_config2())  # FIXME: Highly inefficient
     # qfx2_oris  = ktool.get_oris(qfx2_kpts)
-    ## Get the orientation distance
+    # # Get the orientation distance
     # qfx2_oridist = vt.rowwise_oridist(qfx2_nnori, qfx2_oris)
-    ## Normalize into a weight (close orientations are 1, far are 0)
+    # # Normalize into a weight (close orientations are 1, far are 0)
     # qfx2_gvweight = (TAU - qfx2_oridist) / TAU
-    ## Apply gravity vector weight to the score
+    # # Apply gravity vector weight to the score
     # qfx2_score *= qfx2_gvweight
 
 

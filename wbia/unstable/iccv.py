@@ -988,7 +988,7 @@ def end_to_end():
     expt_dpath = fig_dpath.joinpath(expt_dname)
     ut.ensuredir(str(expt_dpath))
     # expt_dpath.mkdir(exist_ok=True)
-    from six.moves import cPickle as pickle
+    from six.moves import cPickle
 
     for count, (dials, metrics_df, infr) in expt_metrics.items():
         ete_info = {
@@ -1011,7 +1011,7 @@ def end_to_end():
         except Exception:
             for k, v in vars(ete_info['infr']).items():
                 print('k = %r' % (k,))
-                pickle.dumps(v)
+                cPickle.dumps(v)
             raise
 
     dbname = ibs.dbname
@@ -1068,7 +1068,7 @@ def draw_ete(dbname):
         if False:
             infr.show(groupby='orig_name_label')
         if 0:
-            from wbia.algo.graph.nx_utils import edges_inside, edges_cross
+            # from wbia.algo.graph.nx_utils import edges_inside, edges_cross
 
             groups_nid = ut.ddict(list)
             groups_type = ut.ddict(list)
@@ -1126,7 +1126,7 @@ def draw_ete(dbname):
     ax = pt.gca()
     for key in keys:
         ete_info = infos[key]
-        count = ete_info['expt_count']
+        # count = ete_info['expt_count']
         metrics = ete_info['metrics_df']
         dials = ete_info['dials']
         # metrics.keys()

@@ -90,8 +90,8 @@ def test_scoremech():
     cm, qreq_ = cm1, qreq1_
     cm.evaluate_nsum_name_score(qreq_)
     cm.evaluate_maxcsum_name_score(qreq_)
-    fmech = cm.algo_name_scores['nsum']
-    amech = cm.algo_name_scores['maxcsum']
+    # fmech = cm.algo_name_scores['nsum']
+    # amech = cm.algo_name_scores['maxcsum']
     if qreq_.qparams.K == 1 and qreq_.qparams.query_rotation_heuristic is False:
         import numpy as np
 

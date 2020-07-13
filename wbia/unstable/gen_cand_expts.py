@@ -237,9 +237,9 @@ def precompute_data():
             (
                 'preload_flags',
                 [
-                    #'--preload-chip',
-                    #'--preload-feat',
-                    #'--preload-feeatweight',
+                    # '--preload-chip',
+                    # '--preload-feat',
+                    # '--preload-feeatweight',
                     '--preload',
                     '--preindex',
                 ],

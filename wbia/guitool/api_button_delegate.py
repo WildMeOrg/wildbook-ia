@@ -61,8 +61,10 @@ class APIButtonDelegate(DELEGATE_BASE):
         dgt.button_clicked.connect(dgt.on_button_click)
 
     def get_index_butkw(dgt, qtindex):
-        """ The model data for a button should be a (text, callback) tuple.  OR
-        it could be a function which accepts an qtindex and returns a button """
+        """
+        The model data for a button should be a (text, callback) tuple.  OR
+        it could be a function which accepts an qtindex and returns a button
+        """
         data = qtindex.model().data(qtindex, QtCore.Qt.DisplayRole)
         # Get info
         if isinstance(data, tuple):
@@ -74,7 +76,7 @@ class APIButtonDelegate(DELEGATE_BASE):
             raise AssertionError('bad type')
         text, callback = buttontup[0:2]
         butkw = {
-            #'parent': dgt.parent(),
+            # 'parent': dgt.parent(),
             'text': text,
             'clicked': callback,
         }
@@ -145,7 +147,7 @@ class APIButtonDelegate(DELEGATE_BASE):
             return DELEGATE_BASE.editorEvent(dgt, event, model, option, qtindex)
 
 
-## graveyard:
+# # graveyard:
 #    #opt = QtWidgets.QStyleOptionViewItemV4(option)
 #    #opt.initFrom(button)
 #    #painter.drawRect(option.rect)

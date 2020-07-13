@@ -211,7 +211,7 @@ class ApproximateFactor(object):
         return data_ids
 
     def consolidate(self, inplace=False):
-        """ removes duplicate entries
+        r""" removes duplicate entries
 
         Example:
             >>> # UNSTABLE_DOCTEST
@@ -772,7 +772,7 @@ def coin_example():
     def toss_pmf(side, coin):
         toss_lookup = {
             'fair': {'heads': 0.5, 'tails': 0.5},
-            #'bias': {'heads': .6, 'tails': .4},
+            # 'bias': {'heads': .6, 'tails': .4},
             'bias': {'heads': 0.9, 'tails': 0.1},
         }
         return toss_lookup[coin][side]
@@ -794,7 +794,7 @@ def coin_example():
 
 def markovmodel_test():
     """
-        >>> from wbia.algo.hots.pgm_ext import *  # NOQA
+    >>> from wbia.algo.hots.pgm_ext import *  # NOQA
     """
     from pgmpy.models import MarkovModel
     from pgmpy.factors import Factor

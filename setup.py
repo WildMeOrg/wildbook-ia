@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from os.path import exists
+from os.path import dirname, join, exists
 import sys
 
 
@@ -13,8 +13,6 @@ def parse_description():
         pandoc --from=markdown --to=rst --output=README.rst README.md
         python -c "import setup; print(setup.parse_description())"
     """
-    from os.path import dirname, join, exists
-
     readme_fpath = join(dirname(__file__), 'README.rst')
     # This breaks on pip install, so check that it exists.
     if exists(readme_fpath):
@@ -40,7 +38,6 @@ def parse_requirements(fname='requirements.txt', with_version=False):
         python -c "import setup; print(setup.parse_requirements())"
         python -c "import setup; print(chr(10).join(setup.parse_requirements(with_version=True)))"
     """
-    from os.path import exists
     import re
 
     require_fpath = fname

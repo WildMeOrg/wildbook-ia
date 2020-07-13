@@ -134,7 +134,7 @@ def get_injured_sharks():
     #        # Add an annotation to this image
     #        imgdict['annots'].append(annotdict)
 
-    ##http://springbreak.wildbook.org/rest/org.ecocean.Encounter/1111
+    # # http://springbreak.wildbook.org/rest/org.ecocean.Encounter/1111
     # get_enc_url = 'http://www.whaleshark.org/rest/org.ecocean.Encounter/%s' % (encid,)
     # resp = requests.get(get_enc_url)
     # print(ut.repr3(encdict))

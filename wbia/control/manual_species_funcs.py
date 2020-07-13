@@ -215,7 +215,6 @@ def add_species(
         ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
         ['PZ', 'GZ', 'PB', 'BP+H']
     """
-
     # Strip all spaces
     species_nice_list = [
         const.UNKNOWN if _ is None else _.strip() for _ in species_nice_list
@@ -287,7 +286,7 @@ def add_species(
     # lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
     # lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)
     # species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, species_note_list)
-    ##species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else
+    # # species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else
     #                      rowid for rowid in species_rowid_list]
     # return species_rowid_list
 

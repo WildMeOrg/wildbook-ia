@@ -16,7 +16,7 @@ from wbia.guitool.guitool_decorators import checks_qt_error
 # elif six.PY3:
 QVariant = None
 
-__STR__ = unicode if six.PY2 else str
+__STR__ = unicode if six.PY2 else str  # NOQA
 
 QString = __STR__
 
@@ -33,18 +33,18 @@ ItemDataRoles = {
     3: 'ToolTipRole',  # data displayed in the item's tooltip. (QString)
     4: 'StatusTipRole',  # data displayed in the status bar. (QString)
     5: 'WhatsThisRole',  # data displayed in "What's This?" mode. (QString)
-    13: 'SizeHintRole',  # size hint for item that will be supplied to views. (QSize)
     6: 'FontRole',  # font used for items rendered with default delegate. (QFont)
     7: 'TextAlignmentRole',  # text alignment of items with default delegate. (Qt::AlignmentFlag)
+    # 8: 'BackgroundColorRole',  # Obsolete. Use BackgroundRole instead.
+    # 9: 'TextColorRole',  # Obsolete. Use ForegroundRole instead.
     8: 'BackgroundRole',  # background brush for items with default delegate. (QBrush)
     9: 'ForegroundRole',  # foreground brush for items rendered with default delegate. (QBrush)
     10: 'CheckStateRole',  # checked state of an item. (Qt::CheckState)
-    14: 'InitialSortOrderRole',  # initial sort order of a header view (Qt::SortOrder).
     11: 'AccessibleTextRole',  # text used by accessibility extensions and plugins (QString)
     12: 'AccessibleDescriptionRole',  # accessibe description of the item for (QString)
+    13: 'SizeHintRole',  # size hint for item that will be supplied to views. (QSize)
+    14: 'InitialSortOrderRole',  # initial sort order of a header view (Qt::SortOrder).
     32: 'UserRole',  # first role that can be used for application-specific purposes.
-    8: 'BackgroundColorRole',  # Obsolete. Use BackgroundRole instead.
-    9: 'TextColorRole',  # Obsolete. Use ForegroundRole instead.
 }
 
 LOCALE = QLocale()

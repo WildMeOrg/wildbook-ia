@@ -231,9 +231,9 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
                 # +----------------------------
                 # All caches for this table
                 # colscache_ = ibs.table_cache[tblname]
-                ## All caches for the this column
+                # # All caches for the this column
                 # kwargs_cache_ = colscache_[colname]
-                ## All caches for this kwargs configuration
+                # # All caches for this kwargs configuration
                 # cache_ = kwargs_cache_[kwargs_hash]
                 cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
                 # L____________________________
@@ -545,8 +545,10 @@ def getter_numpy(func):
 
 # @decorator.decorator
 def getter_numpy_vector_output(func):
-    """ Getter decorator for functions which takes as the first input a unique
-    id list and returns a heterogeous list of values """
+    """
+    Getter decorator for functions which takes as the first input a unique
+    id list and returns a heterogeous list of values
+    """
     # getter_func = getter_vector_output(func)
     func_ = default_decorator(func)
 

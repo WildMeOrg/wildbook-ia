@@ -533,7 +533,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         pt.update()
 
     def edit_config(self, event):
-        import wbia.guitool
+        from wbia import guitool
 
         guitool.ensure_qtapp()
         from wbia.guitool import PrefWidget2

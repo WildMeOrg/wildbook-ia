@@ -138,7 +138,7 @@ class LRSchedules(NetMathParams):
         """Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs."""
         lr = init_lr
         # epoch += 1
-        if epoch % lr_decay_epoch == 0 and epoch is not 0:
+        if epoch % lr_decay_epoch == 0 and epoch != 0:
             lr *= 0.1
 
         if epoch % lr_decay_epoch == 0:

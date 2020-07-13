@@ -685,7 +685,6 @@ class APIItemModel(API_MODEL_BASE):
             the parent of the model item with the given index. If the item has
             no parent, an invalid QModelIndex is returned.
         """
-
         # model.lazy_checks()
         if qindex.isValid():
             try:
@@ -776,7 +775,7 @@ class APIItemModel(API_MODEL_BASE):
                 return 0
             return model.num_rows_loaded
             # nRows = len(model.level_index_list)
-            ##print('* nRows=%r' % nRows)
+            # # print('* nRows=%r' % nRows)
             # return nRows
         else:
             node = parent.internalPointer()
@@ -828,7 +827,7 @@ class APIItemModel(API_MODEL_BASE):
         # if not parent.isValid():
         #    return False
         # flags = model.flags(qtindex)
-        ##row = qtindex.row()
+        # # row = qtindex.row()
         # col = qtindex.column()
         # node = qtindex.internalPointer()
         # return False

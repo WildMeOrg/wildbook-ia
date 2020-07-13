@@ -272,8 +272,8 @@ class PairwiseFeatureExtractor(object):
         num = K + Knorm
         idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192, label='lnbnn scoring')
 
-        idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
-        dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
+        idx_list = [idxs[left:right] for left, right in ut.itertwo(offset_list)]
+        dist_list = [dists[left:right] for left, right in ut.itertwo(offset_list)]
         iter_ = zip(matches_, idx_list, dist_list)
         prog = ut.ProgIter(iter_, length=len(matches_), label='lnbnn scoring')
         for match_, neighb_idx, neighb_dist in prog:

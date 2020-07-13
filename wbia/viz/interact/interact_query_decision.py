@@ -192,8 +192,8 @@ class QueryVerificationInteraction(AbstractInteraction):
             'title_suffix': title_suf,
             # 'text_color': kwargs.get('color'),
             ###
-            #'show_name': False,
-            #'show_aidstr': False,
+            # 'show_name': False,
+            # 'show_aidstr': False,
             'enable_chip_title_prefix': enable_chip_title_prefix,
             'show_name': True,
             'show_aidstr': True,

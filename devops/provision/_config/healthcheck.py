@@ -26,5 +26,5 @@ try:
         raise RuntimeError
 
     sys.exit(0)
-except Exception as ex:
+except Exception:
     sys.exit(1)

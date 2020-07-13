@@ -13,7 +13,7 @@ print, rrr, profile = ut.inject2(__name__)
 
 # easier to type names to alias some of these options
 ALIAS_KEYS = {
-    #'aids'     : 'default_aids',
+    # 'aids'     : 'default_aids',
     'pername': 'sample_per_name',
     'offset': 'sample_offset',
     'refrule': 'sample_rule_ref',
@@ -115,10 +115,10 @@ OTHER_DEFAULTS = {
     # forces a consistnet sample size across combinations
     'force_const_size': None,
     'crossval_enc': None,
-    #'hack_extra' : None,  # hack param to make bigger db sizes
-    #'hack_imageset': None,
-    # Hack out errors in test data
-    #'hackerrors'    : True,
+    # 'hack_extra' : None,  # hack param to make bigger db sizes
+    # 'hack_imageset': None,
+    #  Hack out errors in test data
+    # 'hackerrors'    : True,
     'hackerrors': False,
     'joinme': None,
 }
@@ -126,21 +126,21 @@ OTHER_DEFAULTS = {
 # Defaults for the independent filter
 # THese filters are orderless
 INDEPENDENT_DEFAULTS = {
-    #'species'             : 'primary',  # specify the species
-    #'species'             : None,
+    # 'species'             : 'primary',  # specify the species
+    # 'species'             : None,
     # Timedelta Params
     'require_timestamp': None,
     'require_gps': None,
     'max_timestamp': None,
     'contributor_contains': None,
     # Quality Params
-    #'require_quality'     : None,  # if True unknown qualities are removed
-    #'minqual'             : 'poor',
+    # 'require_quality'     : None,  # if True unknown qualities are removed
+    # 'minqual'             : 'poor',
     'minqual': None,
     'been_adjusted': None,  # HACK PARAM
     # Viewpoint params
-    #'require_viewpoint'   : None,
-    #'view'                : None,
+    # 'require_viewpoint'   : None,
+    # 'view'                : None,
     'view_ext': 0,  # num viewpoints to extend in dir1 and dir2
     'view_ext1': None,  # num viewpoints to extend in dir1
     'view_ext2': None,  # num viewpoints to extend in dir2
@@ -171,8 +171,8 @@ INTRAGROUP_DEFAULTS = {
     'view_pername': None,  # formatted string filtering the viewpoints
     'min_timedelta': None,
     # minimum number of aids for each name in sample
-    #'min_pername'         : None,
-    #'max_pername'         : None,
+    # 'min_pername'         : None,
+    # 'max_pername'         : None,
     'min_spacedelta': None,
     'min_spacetimedelta': None,
 }
@@ -185,7 +185,7 @@ INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
 SUBINDEX_DEFAULTS = {
     # Final indexing
     'shuffle': False,  # randomize order before indexing
-    #'index'               : None,   # choose only a subset
+    # 'index'               : None,   # choose only a subset
 }
 for pi in SUBINDEX_DEFAULTS_PARAM_INFO:
     SUBINDEX_DEFAULTS[pi.varname] = pi.default
@@ -195,8 +195,8 @@ SAMPLE_DEFAULTS = {
     'num_names': None,
     # Gets as close to sample size without removing other props
     # Per Name / Exemplar Params
-    #'sample_per_name'     : None,  # Choos num_annots to sample from each name.
-    #'sample_rule'         : 'random',
+    # 'sample_per_name'     : None,  # Choos num_annots to sample from each name.
+    # 'sample_rule'         : 'random',
     'sample_offset': None,  # UNUSED
     'occur_offset': None,  # UNUSED
     'name_offset': None,  # UNUSED
@@ -544,7 +544,7 @@ __baseline_aidcfg = ut.augdict(
 __controlled_aidcfg = ut.augdict(
     __baseline_aidcfg,
     {
-        #'require_timestamp': True,
+        # 'require_timestamp': True,
         'view_ext': 0,
         'minqual': 'ok',
         'species': 'primary',
@@ -561,7 +561,7 @@ default = {
     'qcfg': ut.augdict(
         single_default,
         {
-            #'default_aids': (1,)
+            # 'default_aids': (1,)
         },
     ),
     'dcfg': ut.augdict(single_default, {}),
@@ -581,7 +581,7 @@ unctrl = uncontrolled = {
     'qcfg': ut.augdict(
         __baseline_aidcfg,
         {
-            #'default_aids': 'allgt',
+            # 'default_aids': 'allgt',
             'min_pername': 2,
             'species': 'primary',
         },
@@ -595,7 +595,7 @@ unctrl_comp = {
     'qcfg': ut.augdict(
         __baseline_aidcfg,
         {
-            #'default_aids': 'allgt',
+            # 'default_aids': 'allgt',
             'species': 'primary',
             'sample_per_name': 1,
             'min_pername': 2,
@@ -614,7 +614,7 @@ ctrl = controlled = {
     'qcfg': ut.augdict(
         __controlled_aidcfg,
         {
-            #'default_aids': 'allgt',
+            # 'default_aids': 'allgt',
             'sample_per_name': 1,
             'min_pername': 2,
         },
@@ -622,7 +622,7 @@ ctrl = controlled = {
     'dcfg': ut.augdict(
         __controlled_aidcfg,
         {
-            #'default_aids': 'all',
+            # 'default_aids': 'all',
             'sample_per_name': 1,
             'exclude_reference': True,
             'min_pername': 1,  # allows for singletons to be in the database
@@ -660,9 +660,9 @@ varypername = {
         ctrl['qcfg'],
         {
             'sample_per_name': [1, 2, 3],
-            #'sample_per_name': [1, 3],
-            #'sample_per_ref_name': [1, 2, 3],
-            #'sample_per_ref_name': [1, 3],
+            # 'sample_per_name': [1, 3],
+            # 'sample_per_ref_name': [1, 2, 3],
+            # 'sample_per_ref_name': [1, 3],
             'force_const_size': True,
         },
     ),
@@ -688,7 +688,7 @@ ctrl2 = {
         ctrl['qcfg'],
         {
             'min_pername': 3,
-            #'force_const_size': True,
+            # 'force_const_size': True,
         },
     ),
     'dcfg': ut.augdict(ctrl['dcfg'], {'sample_per_name': 2, 'force_const_size': True}),
@@ -715,19 +715,19 @@ varysize = {
     'qcfg': ut.augdict(
         __controlled_aidcfg,
         {
-            #'default_aids': 'allgt',
+            # 'default_aids': 'allgt',
             'sample_size': None,
             'sample_per_name': 1,
-            #'force_const_size': True,
+            # 'force_const_size': True,
             'min_pername': 4,
         },
     ),
     'dcfg': ut.augdict(
         __controlled_aidcfg,
         {
-            #'default_aids': 'all',
+            # 'default_aids': 'all',
             'sample_per_name': [1, 2, 3],
-            #'sample_per_name': [1, 3],
+            # 'sample_per_name': [1, 3],
             'exclude_reference': True,
             'sample_size': [0.25, 0.5, 0.75],  # .95], 1.0],
             'min_pername': 1,
@@ -747,23 +747,23 @@ varynannots = {
     'qcfg': ut.augdict(
         __controlled_aidcfg,
         {
-            #'default_aids': 'allgt',
+            # 'default_aids': 'allgt',
             'sample_size': None,
             'sample_per_name': 1,
-            #'force_const_size': True,
-            #'min_pername': 4,
+            # 'force_const_size': True,
+            # 'min_pername': 4,
             'min_pername': 2,
         },
     ),
     'dcfg': ut.augdict(
         __controlled_aidcfg,
         {
-            #'default_aids': 'all',
+            # 'default_aids': 'all',
             'sample_per_name': [1],
-            #'sample_per_name': [1, 3],
+            # 'sample_per_name': [1, 3],
             'exclude_reference': True,
-            #'sample_size': [.01, .125, 0.25, .375, 0.5, .625, 0.75],  # , .875],  # .95], 1.0],
-            #'sample_size': [.01, .05, .125, 0.25, .375, 0.5, 0.75],  # , .875],  # .95], 1.0],
+            # 'sample_size': [.01, .125, 0.25, .375, 0.5, .625, 0.75],  # , .875],  # .95], 1.0],
+            # 'sample_size': [.01, .05, .125, 0.25, .375, 0.5, 0.75],  # , .875],  # .95], 1.0],
             'sample_size': [
                 0.0,
                 0.01,
@@ -777,8 +777,8 @@ varynannots = {
                 0.95,
                 1.0,
             ],
-            #'sample_size': [.01, .025, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
-            #'sample_size': ((10 * np.logspace(0, np.log(100), num=11, base=np.e)).astype(np.int) / 1000).tolist(),
+            # 'sample_size': [.01, .025, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
+            # 'sample_size': ((10 * np.logspace(0, np.log(100), num=11, base=np.e)).astype(np.int) / 1000).tolist(),
             # (10 * np.logspace(0, np.log2(100), num=11, base=2)).astype(np.int) / 1000,
             'min_pername': 1,
         },
@@ -818,7 +818,7 @@ viewpoint_compare = {
             'force_const_size': True,
             'view': 'primary1',
             'sample_per_name': 1,
-            #'min_pername': 2,
+            # 'min_pername': 2,
         },
     ),
     'dcfg': ut.augdict(
@@ -888,7 +888,7 @@ wbia -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=Tr
 viewdiff_td = apply_timecontrol(viewdiff)
 viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 
-"""
+r"""
 wbia get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
 wbia get_annotcfg_list --db Oxford -a oxford --acfginfo
 ('_QSUUIDS((55)qxlgljvomqpdvlny)', '_DSUUIDS((4240)vhtqsdkrwetbftis)'),

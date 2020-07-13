@@ -2,6 +2,10 @@
 from __future__ import print_function, division, absolute_import
 import utool as ut
 import numpy as np
+from wbia.algo.hots.nn_weights import (
+    _register_nn_simple_weight_func,
+    _register_misc_weight_func,
+)
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -37,6 +41,7 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
         >>> result = str(depth2)
         >>> print(result)
     """
+    import scipy as sp
     # TODO: clip the fgweights? (dilation?)
     # TODO; normalize and paramatarize and clean
     # dcvs_on = config.get('dcvs_on')
@@ -58,13 +63,16 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     else:
         # geometric mean of the selected weights
         baseline_weights_list = [
-            spmstat.gmean(weight_tup) for weight_tup in zip(*weight_lists)
+            sp.stats.gmean(weight_tup) for weight_tup in zip(*weight_lists)
         ]
     return baseline_weights_list
 
 
 def get_mask_func(config):
+    from vtool import coverage_kpts, coverage_grid
+
     # DEPRICATE
+
     # maskscore_mode = config.get('maskscore_mode', 'grid')
     maskscore_mode = 'grid'
     # print(maskscore_mode)
@@ -442,6 +450,7 @@ def show_annot_weights(qreq_, aid, config={}):
         >>> show_annot_weights(qreq_, aid, config)
         >>> pt.show_if_requested()
     """
+    from vtool import coverage_kpts
     # import wbia.plottool as pt
     fnum = 1
     chipsize = qreq_.ibs.get_annot_chip_sizes(aid, config2_=qreq_.extern_query_config2)
@@ -458,12 +467,13 @@ def show_annot_weights(qreq_, aid, config={}):
     # pt.set_figtitle(mode)
 
 
-#### FEATURE WEIGHTS ####
+# ### FEATURE WEIGHTS ####
 # TODO: qreq_
 
 
 def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float):
     import vtool as vt
+    from wbia.algo.hots import hstypes
 
     """
     applies selectivity score from SMK paper
@@ -501,6 +511,7 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> assert qreq_.qparams.cos_on, 'bug setting custom params cos_weight'
         >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
     """
+    from wbia.algo.hots import scoring
     Knorm = qreq_.qparams.Knorm
     cos_weight_list = []
     qconfig2_ = qreq_.get_internal_query_config2()

@@ -14,6 +14,8 @@ def groundtruth_merge_loop(infr):
     """
     Finds edges to make sure the ground truth is merged
     """
+    from wbia.algo.graph import nx_utils as nxu
+
     infr.print('==============================', color='white')
     infr.print('--- GROUNDTRUTH MERGE LOOP ---', color='white')
     assert infr.test_mode, 'only run this in test mode'

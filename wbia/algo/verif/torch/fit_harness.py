@@ -6,6 +6,7 @@ from os.path import join
 from torch.autograd import Variable
 from wbia.algo.verif.torch import netmath
 import tensorboard_logger
+import utool as ut
 
 # from wbia.algo.verif.torch import gpu_util
 

@@ -2340,7 +2340,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
                 id_colname=IMAGE_ROWID,
                 unpack_scalars=False,
             )
-            #%timeit ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list, id_colname=IMAGE_ROWID, unpack_scalars=False)
+            # %timeit ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list, id_colname=IMAGE_ROWID, unpack_scalars=False)
 
     if False:
         # cur = ibs.db.connection.execute(' .indices annotations;')
@@ -2353,7 +2353,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
         #                               GROUP BY image_rowid
         #                               '''.format(input_str=', '.join(list(map(str, gid_list))))
         #                              ).fetchall()
-        #%timeit ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid IN ({input_str}) GROUP BY image_rowid'''.format(input_str=', '.join(list(map(str, gid_list))))).fetchall()
+        # %timeit ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid IN ({input_str}) GROUP BY image_rowid'''.format(input_str=', '.join(list(map(str, gid_list))))).fetchall()
         # aids_list3 = []
         """
         cur = ibs.db.connection.execute(

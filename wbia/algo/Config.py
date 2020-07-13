@@ -792,7 +792,7 @@ class ChipConfig(ConfigBase):
         super(ChipConfig, cc_cfg).__init__(name='chip_cfg')
         cc_cfg.initialize_params()
         # cc_cfg.dim_size    = 450
-        ##cc_cfg.resize_dim  = 'area'
+        # # cc_cfg.resize_dim  = 'area'
         # cc_cfg.resize_dim  = 'width'
         # cc_cfg.grabcut     = False
         # cc_cfg.histeq      = False
@@ -1110,20 +1110,20 @@ def _default_named_config(cfg, cfgname):
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 8
         cfg.query_cfg.nn_cfg.checks = 704
-        #'algorithm': 'kdtree',
+        # 'algorithm': 'kdtree',
         # [dev.tune_flann]    'checks': 6656,
         # [dev.tune_flann]    'trees': 4,
 
         # Kmeans seems a bit more accurate
-        #'algorithm': 'kmeans',
-        #'branching': 16,
-        #'cb_index': 0.6000000238418579,
-        #'centers_init': 'random',
-        #'checks': 18432,
-        #'iterations': 1,
-        #'leaf_max_size': 4,
-        #'speedup': 65.54280090332031,
-        #'target_precision': 0.9800000190734863,
+        # 'algorithm': 'kmeans',
+        # 'branching': 16,
+        # 'cb_index': 0.6000000238418579,
+        # 'centers_init': 'random',
+        # 'checks': 18432,
+        # 'iterations': 1,
+        # 'leaf_max_size': 4,
+        # 'speedup': 65.54280090332031,
+        # 'target_precision': 0.9800000190734863,
 
     elif cfgname == 'zebra_grevys':
         cfg.detect_cfg.species_text = cfgname

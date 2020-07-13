@@ -626,14 +626,13 @@ class Tabular(object):
         return colfmt
 
     def _rectify_text(self, text):
-        text = text.replace('±', '\pm')
+        text = text.replace('±', '\\pm')
         # Put all numbers in math mode
         pat = (
-            # ut.negative_lookbehind('[A-Za-z]') +
+            # ut.negative_lookbehind('[A-Za-z]')
             ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*')
-            +
-            # ut.negative_lookahead('[A-Za-z]') +
-            ''
+            # + ut.negative_lookahead('[A-Za-z]')
+            + ''
         )
         text2 = re.sub(pat, '$' + ut.bref_field('num') + '$', text)
 
@@ -743,7 +742,7 @@ class Tabular(object):
             '\n'
             + ut.codeblock(
                 """
-            \end{{table}}
+            \\end{{table}}
             """
             ).format()
         )

@@ -4,6 +4,7 @@ import six
 
 # import six
 import utool as ut
+from wbia import guitool
 
 print, rrr, profile = ut.inject2(__name__, '[expt_harn]')
 
@@ -111,7 +112,6 @@ def make_metadata_custom_api(metadata):
         >>> wgt.raise_()
         >>> guitool.qtapp_loop(wgt, frequency=100)
     """
-    import wbia.guitool
     from wbia.guitool.__PYQT__ import QtCore
 
     class MetadataViewer(guitool.APIItemWidget):
@@ -206,7 +206,6 @@ def make_metadata_custom_api(metadata):
 
 
 def make_test_result_custom_api(ibs, testres):
-    import wbia.guitool
 
     guitool.ensure_qapp()
     cfgx = 0
@@ -337,8 +336,6 @@ def draw_results(ibs, testres):
 
     metadata.write()
     if ut.get_argflag(('--guiview', '--gv')):
-        import wbia.guitool
-
         guitool.ensure_qapp()
         # wgt = make_test_result_custom_api(ibs, testres)
         wgt = make_metadata_custom_api(metadata)

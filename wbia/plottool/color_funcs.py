@@ -24,7 +24,7 @@ def _test_base01(channels):
 
 def _test_base255(channels):
     tests255 = {
-        #'is_int': all([ut.is_int(c) for c in channels]),
+        # 'is_int': all([ut.is_int(c) for c in channels]),
         'is_255': all([c >= 0.0 and c <= 255.0 for c in channels]),
     }
     return tests255
@@ -118,25 +118,24 @@ def ensure_base01(color):
 
 def convert_255_to_hex(color255):
     """
-        >>> color255 = [255, 51, 0]
+    >>> color255 = [255, 51, 0]
 
-        target_rgb01 = pt.FALSE_RED[0:3]
-        target_rgb = np.array([[target_rgb01]]).astype(np.float32) / 25
-        target_lab = vt.convert_colorspace(target_rgb, 'lab', 'rgb')
+    target_rgb01 = pt.FALSE_RED[0:3]
+    target_rgb = np.array([[target_rgb01]]).astype(np.float32) / 25
+    target_lab = vt.convert_colorspace(target_rgb, 'lab', 'rgb')
 
-        # Find closest CSS color in LAB space
-        dist_lab = {}
-        dist_rgb = {}
-        css_colors = ub.map_vals(convert_hex_to_255, mcolors.CSS4_COLORS)
-        for k, c in css_colors.items():
-            rgb = np.array([[c]]).astype(np.float32) / 255
-            lab = vt.convert_colorspace(rgb, 'lab', 'rgb')
-            dist_lab[k] = np.sqrt(((target_lab - lab) ** 2).sum())
-            dist_rgb[k] = np.sqrt(((target_rgb - rgb) ** 2).sum())
+    # Find closest CSS color in LAB space
+    dist_lab = {}
+    dist_rgb = {}
+    css_colors = ub.map_vals(convert_hex_to_255, mcolors.CSS4_COLORS)
+    for k, c in css_colors.items():
+        rgb = np.array([[c]]).astype(np.float32) / 255
+        lab = vt.convert_colorspace(rgb, 'lab', 'rgb')
+        dist_lab[k] = np.sqrt(((target_lab - lab) ** 2).sum())
+        dist_rgb[k] = np.sqrt(((target_rgb - rgb) ** 2).sum())
 
-        best_keys = ub.argsort(dist_lab)
-        ub.odict(zip(best_keys, ub.take(dist_lab, best_keys)))
-
+    best_keys = ub.argsort(dist_lab)
+    ub.odict(zip(best_keys, ub.take(dist_lab, best_keys)))
     """
     colorhex = '0x' + ''.join(['%02x' % c for c in color255])
     return colorhex
@@ -489,12 +488,12 @@ def distinct_colors(
         # cmap_ = 'Set1'
         # cmap_ = 'Dark2'
         choices = [
-            #'Set1', 'Dark2',
+            # 'Set1', 'Dark2',
             'jet',
-            #'gist_rainbow',
-            #'rainbow',
-            #'gnuplot',
-            #'Accent'
+            # 'gist_rainbow',
+            # 'rainbow',
+            # 'gnuplot',
+            # 'Accent'
         ]
         cmap_hack = ut.get_argval('--cmap-hack', type_=str, default=None)
         ncolor_hack = ut.get_argval('--ncolor-hack', type_=int, default=None)
@@ -720,12 +719,12 @@ def show_all_colormaps():
     if cmap_ is not None:
         maps = [getattr(plt.cm, cmap_)]
 
-    l = len(maps) + 1
+    length = len(maps) + 1
     for i, m in enumerate(maps):
         if TRANSPOSE:
-            pylab.subplot(l, 1, i + 1)
+            pylab.subplot(length, 1, i + 1)
         else:
-            pylab.subplot(1, l, i + 1)
+            pylab.subplot(1, length, i + 1)
 
         # pylab.axis("off")
         ax = plt.gca()

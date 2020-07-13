@@ -18,7 +18,7 @@ print, rrr, profile = ut.inject2(__name__)
 
 
 def build_cmsinfo(cm_list, qreq_):
-    """
+    r"""
     Helper function to report results over multiple queries (chip matches).
     Basically given a group of queries of the same name, we only care if one of
     them is correct.  This emulates encounters.
@@ -124,7 +124,7 @@ def build_cmsinfo(cm_list, qreq_):
         sorted_namescores = name_score_list[sortx]
         sorted_dnids = unique_dnids[sortx]
 
-        ## infer agg name results
+        # infer agg name results
         success = sorted_dnids == qnid
         failure = np.logical_and(~success, sorted_dnids > 0)
         gt_name_rank = None if not np.any(success) else np.where(success)[0][0]
@@ -294,13 +294,13 @@ class TestResult(ut.NiceRepr):
         testres.testnameid = None
 
     @classmethod
-    def from_cms(TestResult, cm_list, qreq_):
+    def from_cms(cls, cm_list, qreq_):
         cfg_list = [qreq_.qparams]  # should actually be the specified dict
         cfgx2_lbl = ['unspecified']
         cmsinfo = build_cmsinfo(cm_list, qreq_)
         cfgx2_cmsinfo = [cmsinfo]
         cfgx2_qreq_ = [qreq_]
-        testres = TestResult(cfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_)
+        testres = cls(cfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_)
         return testres
 
     def __str__(testres):
@@ -805,7 +805,7 @@ class TestResult(ut.NiceRepr):
             ('normonly_on=False,?', ''),
             ('bar_l2_on=True', 'dist'),
             ('bar_l2_on=False,?', ''),
-            ('joinme=\d+,?', ''),
+            (r'joinme=\d+,?', ''),
             ('dcrossval_enc', 'denc_per_name'),
             ('sv_on', 'SV'),
             ('rotation_invariance', 'RI'),
@@ -835,7 +835,7 @@ class TestResult(ut.NiceRepr):
             (
                 '[qd]?exclude_reference='
                 + ut.regex_or(['True', 'False', 'None'])
-                + '\,?',
+                + r'\,?',
                 '',
             ),
             # ('=True', '=On'),
@@ -1094,9 +1094,9 @@ class TestResult(ut.NiceRepr):
         )
         label_list = testres.get_short_cfglbls()
         label_list = [
-            ('%6.2f%%' % (percent,)) +
+            ('%6.2f%%' % (percent,))
             # ut.scalar_str(percent, precision=2)
-            ' - ' + label
+            + ' - ' + label
             for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)
         ]
         sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
@@ -1944,7 +1944,6 @@ class TestResult(ut.NiceRepr):
             >>> import wbia.plottool as pt
             >>> ut.show_if_requested()
         """
-
         ibs = testres.ibs
         test_qaids = testres.get_test_qaids() if qaids is None else qaids
 
@@ -2467,10 +2466,10 @@ class TestResult(ut.NiceRepr):
 
             if False:
                 # Chip size stats
-                ave_dlen = [
+                ave_dlen = [  # NOQA
                     np.sqrt(
                         np.array(
-                            testres.ibs.get_annot_chip_dlensqrd(  # NOQA
+                            testres.ibs.get_annot_chip_dlensqrd(
                                 testres.qaids, config2_=qreq_.query_config2_
                             )
                         )
@@ -2478,18 +2477,18 @@ class TestResult(ut.NiceRepr):
                     for qreq_ in testres.cfgx2_qreq_
                 ]
 
-                ave_width_inimg = [
+                ave_width_inimg = [  # NOQA
                     np.array(
-                        testres.ibs.get_annot_bboxes(  # NOQA
+                        testres.ibs.get_annot_bboxes(
                             testres.qaids, config2_=qreq_.query_config2_
                         )
                     )[:, 2 + 0].mean()
                     for qreq_ in testres.cfgx2_qreq_
                 ]
 
-                ave_width = [
+                ave_width = [  # NOQA
                     np.array(
-                        testres.ibs.get_annot_chip_sizes(  # NOQA
+                        testres.ibs.get_annot_chip_sizes(
                             testres.qaids, config2_=qreq_.query_config2_
                         )
                     )[:, 0].mean()

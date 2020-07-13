@@ -7,8 +7,6 @@ import utool as ut
 import hmac
 import requests
 
-import utool as ut
-
 
 (print, rrr, profile) = ut.inject2(__name__)
 

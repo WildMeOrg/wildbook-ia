@@ -69,13 +69,13 @@ def crftest():
         return np.clip(rng.normal(mu, sigma), 0, np.inf)
 
     pairwise_aidxs = list(ut.iprod(range(num_annots), range(num_annots)))
-    pairwise_labels = np.array(
+    pairwise_labels = np.array(  # NOQA
         [hidden_nids[a1] == hidden_nids[a2] for a1, a2 in pairwise_aidxs]
     )
     pairwise_scores = np.array([metric(*zz) for zz in pairwise_aidxs])
-    pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
+    pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)  # NOQA
 
-    graph = pystruct.models.EdgeFeatureGraphCRF(
+    graph = pystruct.models.EdgeFeatureGraphCRF(  # NOQA
         n_states=num_annots,
         n_features=num_names,
         n_edge_features=1,
@@ -109,7 +109,7 @@ def crftest():
 
     inf = opengm.inference.GraphCut(gm)
     inf.infer()
-    arg = inf.arg()
+    arg = inf.arg()  # NOQA
 
 
 def chain_crf():
@@ -118,6 +118,6 @@ def chain_crf():
     letters = load_letters()
     X, y, folds = ut.take(letters, ['data', 'labels', 'folds'])
     X, y = np.array(X), np.array(y)
-    X_train, X_test = X[folds == 1], X[folds != 1]
-    y_train, y_test = y[folds == 1], y[folds != 1]
+    X_train, X_test = X[folds == 1], X[folds != 1]  # NOQA
+    y_train, y_test = y[folds == 1], y[folds != 1]  # NOQA
     len(X_train)

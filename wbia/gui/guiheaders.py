@@ -67,16 +67,16 @@ def make_table_declarations(ibs):
         IMAGE_TABLE: [
             'gid',
             'thumb',
-            #'nAids',
+            # 'nAids',
             'img_gname',
-            #'ext',
+            # 'ext',
             'reviewed',  # detection reviewed flag is not fullyused
             'datetime',
             'gps',
             'orientation',
             'party_tag',
             'contributor_tag',
-            #'gdconf',
+            # 'gdconf',
             'imgnotes',
             'image_uuid',
         ],
@@ -85,7 +85,7 @@ def make_table_declarations(ibs):
         # --nonametree
         # even just aid seems to be very slow
         ANNOTATION_TABLE: [
-            #'annotation_uuid',
+            # 'annotation_uuid',
             'aid',
             'thumb',
             'annot_gname',
@@ -97,26 +97,26 @@ def make_table_declarations(ibs):
             'age_min',
             'age_max',
             'sex_text',
-            #'rdconf',
-            #'nGt',  # ## <put back in
+            # 'rdconf',
+            # 'nGt',  # ## <put back in
             'imagesettext_names',
             'annotnotes',  # ## <put back in
             'tag_text',  # < Hack should have actual tag structure
-            #'annot_visual_uuid',
-            #'nFeats',
-            #'bbox',
-            #'theta',
-            #'verts',
-            #'num_verts',
+            # 'annot_visual_uuid',
+            # 'nFeats',
+            # 'bbox',
+            # 'theta',
+            # 'verts',
+            # 'num_verts',
         ],
         NAME_TABLE: ['nid', 'name', 'nAids', 'namenotes'],
         QRES_TABLE: ['rank', 'score', 'name', 'aid'],
         IMAGESET_TABLE: [
             'imagesettext',
             'nImgs',
-            #'num_imgs_reviewed',
-            #'num_annotmatch_reviewed',
-            #'imageset_end_datetime',
+            # 'num_imgs_reviewed',
+            # 'num_annotmatch_reviewed',
+            # 'imageset_end_datetime',
             # 'imageset_processed_flag',
             # 'imageset_shipped_flag',
             'imgsetid',
@@ -157,7 +157,7 @@ def make_table_declarations(ibs):
             )
         TABLE_COLNAMES[IMAGESET_TABLE].extend(
             [
-                #'percent_imgs_reviewed_str',
+                # 'percent_imgs_reviewed_str',
                 'imageset_start_datetime',
                 # 'imageset_end_datetime',
                 'imageset_duration',
@@ -509,7 +509,7 @@ def make_wbia_headers_dict(ibs):
         'name': ibs.get_name_texts,
         'nAids': ibs.get_name_num_annotations,
         'namenotes': ibs.get_name_notes,
-        #'has_split'  : ibs.get_name_has_split,
+        # 'has_split'  : ibs.get_name_has_split,
     }
     setters[NAME_TABLE] = {
         'name': ibs.set_name_texts,

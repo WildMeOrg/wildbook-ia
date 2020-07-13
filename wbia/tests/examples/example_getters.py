@@ -8,10 +8,10 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 import multiprocessing
-
-sys.path.append(os.path.expanduser('~/code/wbia'))  # Put IBEIS in PYTHONPATH  # NOQA
 import wbia  # IBEIS module
 import utool  # Useful Utility Tools
+
+sys.path.append(os.path.expanduser('~/code/wbia'))  # Put IBEIS in PYTHONPATH  # NOQA
 
 (print, rrr, profile) = utool.inject2(__name__)
 

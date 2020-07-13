@@ -249,7 +249,7 @@ class ChipConfig(dtool.Config):
             'maxwh',
             '',
             # 'resize_dim', 'width', '',
-            #'resize_dim', 'area', '',
+            # 'resize_dim', 'area', '',
             valid_values=['area', 'width', 'height', 'diag', 'maxwh', 'wh'],
             hideif=lambda cfg: cfg['dim_size'] is None,
         ),
@@ -1585,9 +1585,9 @@ class IndexerConfig(dtool.Config):
         # FeatWeightConfig,
     ]
 
-    def get_flann_params(cfg):
-        default_params = vt.get_flann_params(cfg['algorithm'])
-        flann_params = ut.update_existing(default_params, cfg.asdict())
+    def get_flann_params(self):
+        default_params = vt.get_flann_params(self['algorithm'])
+        flann_params = ut.update_existing(default_params, self.asdict())
         return flann_params
 
 

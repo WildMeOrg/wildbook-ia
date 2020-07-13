@@ -454,8 +454,8 @@ def split_analysis(ibs):
 
     filter_kw = {
         'multiple': None,
-        #'view': ['right'],
-        #'minqual': 'good',
+        # 'view': ['right'],
+        # 'minqual': 'good',
         'is_known': True,
         'min_pername': 1,
     }
@@ -832,7 +832,7 @@ def split_analysis(ibs):
     # nAids_list = np.array(ut.lmap(len, ibs.get_name_aids(all_nids)))
     # nAids_list = np.array(ut.lmap(len, ibs.get_name_aids(remain_nids)))
 
-    ##graph = infr.graph
+    # #graph = infr.graph
 
     # g2 = infr.graph.copy()
     # [ut.nx_delete_edge_attr(g2, a) for a in infr.visual_edge_attrs]
@@ -981,7 +981,7 @@ def draw_twoday_count(ibs, visit_info_list_):
                 ams_list, aids_list, aids1_list, aids2_list
             ):
                 edge_nodes = set(aids1 + aids2)
-                ##if len(edge_nodes) != len(set(aids)):
+                # #if len(edge_nodes) != len(set(aids)):
                 #    #print('--')
                 #    #print('aids = %r' % (aids,))
                 #    #print('edge_nodes = %r' % (edge_nodes,))
@@ -1152,12 +1152,8 @@ def draw_twoday_count(ibs, visit_info_list_):
 
         graph1_, graph2_ = ut.take_column(visit_info_list, 'graph')
         if False:
-            _ = pt.show_nx(
-                graph1_, layout='custom', node_labels=False, as_directed=False
-            )  # NOQA
-            _ = pt.show_nx(
-                graph2_, layout='custom', node_labels=False, as_directed=False
-            )  # NOQA
+            pt.show_nx(graph1_, layout='custom', node_labels=False, as_directed=False)
+            pt.show_nx(graph2_, layout='custom', node_labels=False, as_directed=False)
 
         graph_list = [graph1_, graph2_]
         twoday_graph = stack_graphs(graph_list, vert=True, pad=None)
@@ -1193,9 +1189,7 @@ def draw_twoday_count(ibs, visit_info_list_):
         if debug:
             print('twoday_graph(post) info' + ut.repr3(ut.graph_info(twoday_graph)))
 
-        _ = pt.show_nx(
-            twoday_graph, layout='custom', node_labels=False, as_directed=False
-        )  # NOQA
+        pt.show_nx(twoday_graph, layout='custom', node_labels=False, as_directed=False)
 
 
 def cheetah_stats(ibs):
@@ -1305,8 +1299,8 @@ def print_feature_info(testres):
 
     # kpts = np.vstack(cx2_kpts)
     # print('[dbinfo] --- LaTeX --- ')
-    ##_printopts = np.get_printoptions()
-    ##np.set_printoptions(precision=3)
+    # # _printopts = np.get_printoptions()
+    # # np.set_printoptions(precision=3)
     # scales = np.array(sorted(scales))
     # tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
     # tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
@@ -1314,7 +1308,7 @@ def print_feature_info(testres):
     # print(tex_nKpts)
     # print(tex_kpts_stats)
     # print(tex_scale_stats)
-    ##np.set_printoptions(**_printopts)
+    # # np.set_printoptions(**_printopts)
     # print('[dbinfo] ---/LaTeX --- ')
     # return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
 

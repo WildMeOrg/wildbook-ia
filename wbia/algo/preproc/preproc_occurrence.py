@@ -526,27 +526,27 @@ def plot_gps_html(gps_list):
     gmap.draw('mymap.html')
     ut.startfile('mymap.html')
 
-    ## Scale
+    # # Scale
     # bbox = vt.scale_bbox(bbox, 10.0)
     # extent = vt.extent_from_bbox(bbox)
     # basemap_extent = dict(llcrnrlon=extent[2], urcrnrlon=extent[3],
     #                      llcrnrlat=extent[0], urcrnrlat=extent[1])
-    ## Whole globe
-    ##basemap_extent = dict(llcrnrlon=0, llcrnrlat=-80,
-    ##                      urcrnrlon=360, urcrnrlat=80)
+    # # Whole globe
+    # #basemap_extent = dict(llcrnrlon=0, llcrnrlat=-80,
+    # #                      urcrnrlon=360, urcrnrlat=80)
 
     # from mpl_toolkits.basemap import Basemap
     # from matplotlib.colors import LightSource  # NOQA
     # from mpl_toolkits.basemap import shiftgrid, cm  # NOQA
     # from netCDF4 import Dataset
-    ## Read information to make background pretty
+    # # Read information to make background pretty
     # print('Grab topo information')
     # etopodata = Dataset('http://ferret.pmel.noaa.gov/thredds/dodsC/data/PMEL/etopo5.nc')
     # print('Read topo information')
     # topoin = etopodata.variables['ROSE'][:]
     # lons = etopodata.variables['ETOPO05_X'][:]
     # lats = etopodata.variables['ETOPO05_Y'][:]
-    ## shift data so lons go from -180 to 180 instead of 20 to 380.
+    # # shift data so lons go from -180 to 180 instead of 20 to 380.
     # print('Shift data')
     # topoin, lons = shiftgrid(180., topoin, lons, start=False)
 
@@ -555,18 +555,18 @@ def plot_gps_html(gps_list):
     # fig = pt.figure(fnum=fnum, doclf=True, docla=True)  # NOQA
     # print('Draw projection')
     # m = Basemap(projection='mill', **basemap_extent)
-    ## setup Lambert Conformal basemap.
-    ##m = Basemap(projection='cea',resolution='h', **basemap_extent)
+    # # setup Lambert Conformal basemap.
+    # #m = Basemap(projection='cea',resolution='h', **basemap_extent)
 
-    ## transform to nx x ny regularly spaced 5km native projection grid
+    # # transform to nx x ny regularly spaced 5km native projection grid
     # print('projection grid')
     # nx = int((m.xmax - m.xmin) / 5000.) + 1
     # ny = int((m.ymax - m.ymin) / 5000.) + 1
     # topodat = m.transform_scalar(topoin, lons, lats, nx, ny)
 
-    ## plot image over map with imshow.
+    # # plot image over map with imshow.
     # im = m.imshow(topodat, cm.GMT_haxby)  # NOQA
-    ## draw coastlines and political boundaries.
+    # # draw coastlines and political boundaries.
     # m.drawcoastlines()
     # m.drawcountries()
     # m.drawstates()
