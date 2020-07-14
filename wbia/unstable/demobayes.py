@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 import utool as ut
 import numpy as np
-from wbia.algo.hots.bayes import make_name_model, temp_model, draw_tree_model
+from wbia.unstable.bayes import make_name_model, temp_model, draw_tree_model
 
 print, rrr, profile = ut.inject2(__name__)
 
