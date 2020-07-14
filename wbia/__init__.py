@@ -208,7 +208,7 @@ def run_experiment(
             db_flag,
             db_value,
             '-a',
-            ' '.join(a).replace('(', '\(').replace(')', '\)'),
+            ' '.join(a).replace('(', r'\(').replace(')', r'\)'),
             '-t',
             ' '.join(t),
         ]

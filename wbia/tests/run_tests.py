@@ -351,7 +351,7 @@ def convert_tests_from_wbia_to_nose(module_list):
         import re
 
         src = re.sub('# ENABLE_DOCTEST\n', '', src)
-        src = re.sub('from [^*]* import \* *# NOQA\n', '', src)
+        src = re.sub(r'from [^*]* import \* *# NOQA\n', '', src)
         src = re.sub(r'from [^*]* import \*\n', '', src)
 
         src = ut.str_between(src, None, 'ut.quit_if_noshow').rstrip('\n')

@@ -256,9 +256,8 @@ def _mpl_set_backend(target_backend):
         print('[pt] LEAVE THE BACKEND ALONE !!! was specified')
         print('[pt] not changing mpl backend')
     else:
-        # mpl.use(target_backend, warn=True, force=True)
-        mpl.use(target_backend, warn=True, force=False)
-        # mpl.use(target_backend, warn=False, force=False)
+        # mpl.use(target_backend, force=True)
+        mpl.use(target_backend, force=False)
         current_backend = mpl.get_backend()
     if not ut.QUIET and ut.VERBOSE:
         print('[pt] current backend is: %r' % current_backend)

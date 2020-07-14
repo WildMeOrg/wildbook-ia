@@ -98,9 +98,7 @@ def test_foo(future):
     print('FOO %r' % (future,))
 
 
-GRAPH_ACTOR_CLASS = (
-    futures_actors.ProcessActor if ut.LINUX or ut.WIN32 else futures_actors.ThreadActor
-)
+GRAPH_ACTOR_CLASS = futures_actors.ProcessActor
 
 
 class GraphActor(GRAPH_ACTOR_CLASS):

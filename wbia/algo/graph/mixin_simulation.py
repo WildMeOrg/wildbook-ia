@@ -358,7 +358,7 @@ class SimulationHelpers(object):
             if was_reviewed:
                 if prev_decision == decision:
                     test_action = 'correct duplicate'
-                    action_color = 'darkyellow'
+                    action_color = 'yellow'
                 else:
                     infr.mistake_edges.remove(edge)
                     test_action = 'correction'
