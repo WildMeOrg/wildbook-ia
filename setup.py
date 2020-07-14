@@ -160,7 +160,7 @@ def autogen_explicit_imports():
     controller_inject.dev_autogen_explicit_injects()
 
 
-NAME = 'wbia'
+NAME = 'wildbook-ia'
 
 
 if __name__ == '__main__':
