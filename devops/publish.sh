@@ -20,7 +20,7 @@ TAG=${TAG:-latest}
 REGISTRY=${REGISTRY:-}
 # Set the image prefix
 if [ -n "$REGISTRY" ]; then
-    IMG_PREFIX="${REGISTRY}/WildbookOrg/wildbook-ia/"
+    IMG_PREFIX="${REGISTRY}/wildbookorg/wildbook-ia/"
 else
     IMG_PREFIX="wildme/"
 fi
