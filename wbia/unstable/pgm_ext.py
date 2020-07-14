@@ -4,7 +4,7 @@ import six  # NOQA
 import utool as ut
 import numpy as np
 from six.moves import zip, map
-from wbia.algo.hots import pgm_viz
+from wbia.unstable import pgm_viz
 
 try:
     import pgmpy
