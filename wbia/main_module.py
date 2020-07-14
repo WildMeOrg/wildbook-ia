@@ -68,7 +68,7 @@ def _init_matplotlib():
 
 
 def _init_gui(activate=True):
-    import wbia.guitool
+    from wbia import guitool
 
     if NOT_QUIET:
         print('[main] _init_gui()')
@@ -195,7 +195,7 @@ def _init_numpy():
 
 
 def _guitool_loop(main_locals, ipy=False):
-    import wbia.guitool
+    from wbia import guitool
     from wbia import params
 
     print('[main] guitool loop')
