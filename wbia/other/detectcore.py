@@ -388,22 +388,10 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
         categories.append({'id': index, 'name': species, 'supercategory': 'animal'})
         category_dict[species] = index
 
-    def _add_annotation_or_part(
-        image_index,
-        annot_index,
-        annot_uuid,
-        bbox,
-        theta,
-        species_name,
-        viewpoint,
-        interest,
-        annot_name,
-        decrease,
-        width,
-        height,
-        part_index=None,
-        part_uuid=None,
-    ):
+    def _add_annotation_or_part(image_index, annot_index, annot_uuid,
+                                bbox, theta, species_name, viewpoint, interest, annot_name,
+                                decrease, width, height, individuals,
+                                part_index=None, part_uuid=None):
         is_part = part_index is not None
 
         R = vt.rotation_around_bbox_mat3x3(theta, bbox)
@@ -618,25 +606,15 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
             # if viewpoint is None:
             #     continue
 
+            individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
+
             # Transformation matrix
-            annot, area = _add_annotation_or_part(
-                image_index,
-                annot_index,
-                annot_uuid,
-                bbox,
-                theta,
-                species_name,
-                viewpoint,
-                interest,
-                annot_name,
-                decrease,
-                width,
-                height,
-            )
-            print('\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area,))
+            annot, area = _add_annotation_or_part(image_index, annot_index, annot_uuid,
+                                                  bbox, theta, species_name, viewpoint, interest, annot_name,
+                                                  decrease, width, height, individuals)
+            print('\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area, ))
 
             if include_reviews:
-                individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
                 reviews = ibs.get_review_rowids_from_single([aid])[0]
                 user_list = ibs.get_review_identity(reviews)
                 aid_tuple_list = ibs.get_review_aid_tuple(reviews)
@@ -679,26 +657,11 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
                     if part_species_name not in species_list:
                         continue
 
-                    part, area = _add_annotation_or_part(
-                        image_index,
-                        annot_index,
-                        annot_uuid,
-                        part_bbox,
-                        part_theta,
-                        part_species_name,
-                        viewpoint,
-                        interest,
-                        annot_name,
-                        decrease,
-                        width,
-                        height,
-                        part_index=part_index,
-                        part_uuid=part_uuid,
-                    )
-                    print(
-                        '\t\tAdding part %r with area %0.04f pixels^2'
-                        % (part_species_name, area,)
-                    )
+                    part, area = _add_annotation_or_part(image_index, annot_index, annot_uuid,
+                                                         part_bbox, part_theta, part_species_name, viewpoint, interest, annot_name,
+                                                         decrease, width, height, individuals,
+                                                         part_index=part_index, part_uuid=part_uuid)
+                    print('\t\tAdding part %r with area %0.04f pixels^2' % (part_species_name, area, ))
                     output_dict[dataset]['parts'].append(part)
 
                 part_index += 1
