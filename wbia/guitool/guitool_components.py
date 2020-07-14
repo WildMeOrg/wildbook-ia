@@ -420,7 +420,8 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         python -m wbia.guitool.guitool_components ProgHook --show  --progtext
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool as gt
         >>> app = gt.ensure_qtapp()[0]
@@ -880,6 +881,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         progressBar.show()
         qtapp = guitool.get_qtapp()
         qtapp.processEvents()
+
     return progressBar
 
 

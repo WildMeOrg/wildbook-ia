@@ -85,7 +85,7 @@ def submit_query_request(
     # Create new query request object to store temporary state
     if verbose:
         # print('[mc4] --- Submit QueryRequest_ --- ')
-        print(ub.color_text('[mc4] --- Submit QueryRequest_ --- ', 'darkyellow'))
+        print(ub.color_text('[mc4] --- Submit QueryRequest_ --- ', 'yellow'))
     assert qreq_ is not None, 'query request must be prebuilt'
 
     # Check fo empty queries
