@@ -161,7 +161,7 @@ def make_name_model(
 
     # Match Factor
     def match_pmf(match_type, n1, n2):
-        return {True: {'same': 1.0, 'diff': 0.0}, False: {'same': 0.0, 'diff': 1.0},}[
+        return {True: {'same': 1.0, 'diff': 0.0}, False: {'same': 0.0, 'diff': 1.0}}[
             n1 == n2
         ][match_type]
 
@@ -760,6 +760,7 @@ def draw_tree_model(model, **kwargs):
         fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
         ax = pt.gca()
         netx_graph = model.to_junction_tree()
+
         # prettify nodes
         def fixtupkeys(dict_):
             return {
