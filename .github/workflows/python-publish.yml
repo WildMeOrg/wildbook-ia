@@ -27,12 +27,12 @@ jobs:
       - name: Build wheel
         env:
           # Build and test for cpython >= 3.6 on x86_64 architecture
-          CIBW_BUILD: cp3?-*
-          CIBW_SKIP: cp35-* *-win32 *-win_amd64 *-manylinux_i686 *-manylinux_aarch64 *-manylinux_ppc64le *-manylinux_s390x
+          CIBW_BUILD: "cp3?-*"
+          CIBW_SKIP: "cp35-* *-win32 *-win_amd64 *-manylinux_i686 *-manylinux_aarch64 *-manylinux_ppc64le *-manylinux_s390x"
           # Using manylinux2014 because running the test command requires
           # pyqt5 which only has wheels for manylinux2014
           CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64
-          CIBW_TEST_COMMAND: python -c "import wbia; from wbia.__main__ import main; main()"
+          CIBW_TEST_COMMAND: "{project}/scripts/test"
         run: |
           python -m pip install cibuildwheel==1.4.2
           python -m cibuildwheel --output-dir wheelhouse
@@ -54,7 +54,6 @@ jobs:
 
       - name: Build sdist
         run: |
-          pip install scikit-build
           python setup.py sdist
 
       - uses: actions/upload-artifact@v2
@@ -65,15 +64,15 @@ jobs:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     # upload to PyPI on every tag starting with 'v'
-    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    # if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     steps:
       - uses: actions/download-artifact@v2
         with:
           name: artifact
           path: dist
 
-      - uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_PASSWORD }}
-          # To test: repository_url: https://test.pypi.org/legacy/
+      # - uses: pypa/gh-action-pypi-publish@master
+      #   with:
+      #     user: __token__
+      #     password: ${{ secrets.PYPI_PASSWORD }}
+      #     # To test: repository_url: https://test.pypi.org/legacy/

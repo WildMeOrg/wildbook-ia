@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+echo "TESTING three four five"
+echo "Is this thing on?"
+echo "---"
+echo "Why did the cow cross the road?"
+echo "To photobomb the wildme zebra picture (crickets) O.o"
