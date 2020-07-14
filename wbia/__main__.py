@@ -35,6 +35,15 @@ def dependencies_for_myprogram():
     importlib.import_module('mpl_toolkits').__path__
 
 
+def main():  # nocover
+    import wbia
+
+    print('Looks like the imports worked')
+    print('wbia = {!r}'.format(wbia))
+    print('wbia.__file__ = {!r}'.format(wbia.__file__))
+    print('wbia.__version__ = {!r}'.format(wbia.__version__))
+
+
 def run_wbia():
     r"""
     CommandLine:
@@ -44,10 +53,10 @@ def run_wbia():
     """
     import wbia  # NOQA
 
-    # ut.set_process_title('IBEIS_main')
+    # ut.set_process_title('wbia_main')
     # main_locals = wbia.main()
     # wbia.main_loop(main_locals)
-    # ut.set_process_title('IBEIS_main')
+    # ut.set_process_title('wbia_main')
     cmdline_varags = ut.get_cmdline_varargs()
     if len(cmdline_varags) > 0 and cmdline_varags[0] == 'rsync':
         from wbia.scripts import rsync_wbiadb

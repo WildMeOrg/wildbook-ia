@@ -16,7 +16,7 @@ import csv
 print, rrr, profile = ut.inject2(__name__)
 
 
-SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
+SUCCESS_FLAG_FNAME = '_hsdb_to_wbia_convert_success'
 
 
 def is_hsdb(dbdir):

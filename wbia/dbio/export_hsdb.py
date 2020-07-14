@@ -179,9 +179,9 @@ def export_wbia_to_hotspotter(ibs):
 def dump_hots_tables(ibs):
     """ Dumps hotspotter like tables to disk """
     ibsdir = ibs.get_ibsdir()
-    gtbl_name = join(ibsdir, 'IBEIS_DUMP_images_table.csv')
-    ntbl_name = join(ibsdir, 'IBEIS_DUMP_names_table.csv')
-    rtbl_name = join(ibsdir, 'IBEIS_DUMP_annotations_table.csv')
+    gtbl_name = join(ibsdir, 'images_table.csv')
+    ntbl_name = join(ibsdir, 'names_table.csv')
+    rtbl_name = join(ibsdir, 'annotations_table.csv')
     with open(gtbl_name, 'w') as file_:
         gtbl_str = ibs.db.get_table_csv('images', exclude_columns=[])
         file_.write(gtbl_str)
@@ -244,14 +244,14 @@ def get_hots_flat_table(ibs):
 
 
 def dump_hots_flat_table(ibs):
-    flat_table_fpath = join(ibs.dbdir, 'IBEIS_DUMP_flat_table.csv')
+    flat_table_fpath = join(ibs.dbdir, 'flat_table.csv')
     flat_table_str = ibs.get_flat_table()
     print('[ibs] dumping flat table to: %r' % flat_table_fpath)
     with open(flat_table_fpath, 'w') as file_:
         file_.write(flat_table_str)
 
 
-SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
+SUCCESS_FLAG_FNAME = '_hsdb_to_wbia_convert_success'
 
 
 if __name__ == '__main__':

@@ -760,7 +760,7 @@ def devmain():
     # Run IBEIS Main, create controller, and possibly gui
     print('++dev')
     main_locals = wbia.main(gui=ut.get_argflag('--gui'))
-    # utool.set_process_title('IBEIS_dev')
+    # utool.set_process_title('wbia-dev')
 
     #
     #

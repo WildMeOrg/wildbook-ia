@@ -2444,7 +2444,7 @@ def get_consecutive_newname_list_via_species(
         >>> print(result)
         (
             [1, 2, 3, 4, 5, 6, 7],
-            ['IBEIS_PZ_0001', 'IBEIS_PZ_0002', 'IBEIS_UNKNOWN_0001', 'IBEIS_UNKNOWN_0002', 'IBEIS_GZ_0001', 'IBEIS_PB_0001', 'IBEIS_UNKNOWN_0003'],
+            ['WBIA_PZ_0001', 'WBIA_PZ_0002', 'WBIA_UNKNOWN_0001', 'WBIA_UNKNOWN_0002', 'WBIA_GZ_0001', 'WBIA_PB_0001', 'WBIA_UNKNOWN_0003'],
         )
 
     Example:
@@ -2461,7 +2461,7 @@ def get_consecutive_newname_list_via_species(
         >>> print(result)
         (
             [4, 5, 6, 7],
-            ['IBEIS_UNKNOWN_Occurrence_1_0001', 'IBEIS_GZ_Occurrence_1_0001', 'IBEIS_PB_Occurrence_1_0001', 'IBEIS_UNKNOWN_Occurrence_1_0002'],
+            ['WBIA_UNKNOWN_Occurrence_1_0001', 'WBIA_GZ_Occurrence_1_0001', 'WBIA_PB_Occurrence_1_0001', 'WBIA_UNKNOWN_Occurrence_1_0002'],
         )
     """
     wildbook_existing_name_set = set(wildbook_existing_name_list)
@@ -2606,7 +2606,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> next_name4 = make_next_name(ibs1, num, str_format, const.TEST_SPECIES.ZEB_GREVY)
         >>> name_list = [next_name1, next_name2, next_name3, next_name4]
         >>> next_name_list1 = make_next_name(ibs2, 5, str_format)
-        >>> temp_nids = ibs2.add_names(['IBEIS_PZ_0045', 'IBEIS_PZ_0048'])
+        >>> temp_nids = ibs2.add_names(['WBIA_PZ_0045', 'WBIA_PZ_0048'])
         >>> next_name_list2 = make_next_name(ibs2, 5, str_format)
         >>> ibs2.delete_names(temp_nids)
         >>> next_name_list3 = make_next_name(ibs2, 5, str_format)
@@ -2615,10 +2615,10 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> result = ut.repr4(names)
         >>> print(result)
         (
-            ['IBEIS_PZ_0008', 'IBEIS_PZ_0042', 'IBEIS_UNKNOWN_0004', 'IBEIS_GZ_0008'],
-            ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
-            ['IBEIS_PZ_0044', 'IBEIS_PZ_0046', 'IBEIS_PZ_0047', 'IBEIS_PZ_0049', 'IBEIS_PZ_0050'],
-            ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
+            ['WBIA_PZ_0008', 'WBIA_PZ_0042', 'WBIA_UNKNOWN_0004', 'WBIA_GZ_0008'],
+            ['WBIA_PZ_0042', 'WBIA_PZ_0043', 'WBIA_PZ_0044', 'WBIA_PZ_0045', 'WBIA_PZ_0046'],
+            ['WBIA_PZ_0044', 'WBIA_PZ_0046', 'WBIA_PZ_0047', 'WBIA_PZ_0049', 'WBIA_PZ_0050'],
+            ['WBIA_PZ_0042', 'WBIA_PZ_0043', 'WBIA_PZ_0044', 'WBIA_PZ_0045', 'WBIA_PZ_0046'],
         )
 
     """
@@ -8891,7 +8891,7 @@ def export_ggr_folders(ibs, output_path=None):
             imageset_dict[imageset_text] = set(ibs.get_imageset_gids(imageset_rowid))
 
     header = [
-        'IBEIS_IMAGE_UUID',
+        'IMAGE_UUID',
         'FILEPATH',
         'GGR_CAR_NUMBER',
         'GGR_PERSON_LETTER',

@@ -1,7 +1,6 @@
+brunette
 codecov >= 2.0.15
 coverage >= 4.3.4
 pytest >= 3.3.1
 pytest-cov
-sphinx_rtd_theme >= 0.4.2
-sphinxcontrib-openapi >= 0.3.2
 xdoctest >= 0.3.0

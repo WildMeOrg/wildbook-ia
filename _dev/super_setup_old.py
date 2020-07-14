@@ -1382,7 +1382,7 @@ def get_sysinfo(verbose=0):
     WIN32 = sys.platform.startswith('win32')
 
     if verbose:
-        print('[super_setup] __IBEIS_SUPER_SETUP__')
+        print('[super_setup] __SUPER_SETUP__')
 
     if 'CODE_DIR' in os.environ:
         CODE_DIR = os.environ.get('CODE_DIR')

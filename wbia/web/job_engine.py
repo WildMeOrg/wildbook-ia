@@ -106,11 +106,8 @@ def update_proctitle(procname, dbname=None):
         print('CHANGING PROCESS TITLE')
         old_title = setproctitle.getproctitle()
         print('old_title = %r' % (old_title,))
-        # new_title = 'IBEIS_' + procname + ' ' + old_title
-        # new_title = procname + ' ' + old_title
-        # new_title = 'wbia_zmq_loop'
         hostname = ut.get_computer_name()
-        new_title = 'IBEIS_%s_%s_%s' % (dbname, hostname, procname,)
+        new_title = 'WBIA_%s_%s_%s' % (dbname, hostname, procname,)
         print('new_title = %r' % (new_title,))
         setproctitle.setproctitle(new_title)
     except ImportError:
