@@ -9,7 +9,7 @@ import numpy as np
 from wbia.plottool.tests.test_helpers import dummy_bbox, imread_many
 
 
-def test_viz_image(imgpaths):
+def _test_viz_image(imgpaths):
     nImgs = len(imgpaths)
     assert len(imgpaths) < 20, '%d > 20 out of scope of this test' % nImgs
     tau = np.pi * 2
@@ -44,5 +44,5 @@ if __name__ == '__main__':
     TEST_IMAGES_URL = 'https://wildbookiarepository.azureedge.net/data/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
     imgpaths = utool.list_images(test_image_dir, fullpath=True)  # test image paths
-    test_viz_image(imgpaths)
+    _test_viz_image(imgpaths)
     exec(df2.present())

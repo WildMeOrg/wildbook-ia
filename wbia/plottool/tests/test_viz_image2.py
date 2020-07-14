@@ -9,7 +9,7 @@ import numpy as np
 from wbia.plottool.tests.test_helpers import dummy_bbox
 
 
-def test_viz_image(img_fpath):
+def _test_viz_image(img_fpath):
     # Read image
     img = cv2.imread(img_fpath)
     tau = np.pi * 2  # References: tauday.com
@@ -44,6 +44,6 @@ if __name__ == '__main__':
     # Get one image filepath to load and display
     img_fpath = imgpaths[0]
     # Run Test
-    test_viz_image(img_fpath)
+    _test_viz_image(img_fpath)
     # Magic exec which displays or puts you into IPython with --cmd flag
     exec(df2.present())

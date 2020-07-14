@@ -10,7 +10,7 @@ import utool
 # import wbia
 
 
-def test_interact_multimage(imgpaths):
+def _test_interact_multimage(imgpaths):
     print('len: ', len(imgpaths))
     bboxes_list = [[]] * len(imgpaths)
 
@@ -34,5 +34,5 @@ if __name__ == '__main__':
     imgpaths = utool.list_images(
         test_image_dir, fullpath=True, recursive=False
     )  # test image paths
-    iteract_obj = test_interact_multimage(imgpaths)
+    iteract_obj = _test_interact_multimage(imgpaths)
     exec(df2.present())
