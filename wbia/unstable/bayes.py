@@ -12,7 +12,7 @@ import six  # NOQA
 import utool as ut
 import numpy as np
 from six.moves import zip
-from wbia.algo.hots import pgm_ext
+from wbia.unstable import pgm_ext
 
 print, rrr, profile = ut.inject2(__name__)
 
