@@ -487,8 +487,7 @@ def request_memcached_wbia_nnindexer(
     if (
         not force_rebuild
         and use_memcache
-        and nnindex_cfgstr
-        in NEIGHBOR_CACHE.has_key()  # NOQA (has_key is for a lru cache)
+        and NEIGHBOR_CACHE.has_key(nnindex_cfgstr)  # NOQA (has_key is for a lru cache)
     ):
         if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
             print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
