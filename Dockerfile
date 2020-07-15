@@ -64,6 +64,8 @@ RUN set -x \
        libxrender1 \
        #: opencv2 dependency
        libxext6 \
+       #: opencv2 dependency
+       libgl1 \
        #: dev debug dependency
        #: python3-dev required to build 'annoy'
        python3-dev \
