@@ -69,8 +69,10 @@ def read_thumb_as_qimg(thumb_path):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.api_thumb_delegate import *  # NOQA
-        >>> import wbia.guitool
+        >>> from wbia import guitool
         >>> # build test data
         >>> thumb_path = ut.grab_test_imgpath('carl.jpg')
         >>> # execute function
@@ -469,6 +471,8 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.api_thumb_delegate import *  # NOQA
         >>> # build test data
         >>> bbox_list = [(100, 50, 400, 200)]
@@ -501,6 +505,8 @@ def make_thread_thumb(img_path, dsize, new_verts_list, interest_list):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.api_thumb_delegate import *  # NOQA
         >>> import wbia.plottool as pt
         >>> # build test data

@@ -216,6 +216,8 @@ def newFileDialog(
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_dialogs import *  # NOQA
         >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
@@ -573,7 +575,9 @@ def msgbox(msg='', title='msgbox', detailed_msg=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import wbia.guitool
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
+        >>> from wbia import guitool
         >>> guitool.ensure_qtapp()
         >>> from wbia.guitool.guitool_dialogs import *  # NOQA
         >>> from wbia.guitool.guitool_dialogs import _register_msgbox  # NOQA
@@ -661,6 +665,8 @@ def popup_menu(widget, pos, context_options):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_dialogs import *  # NOQA
         >>> import wbia.guitool
         >>> import wbia.plottool as pt

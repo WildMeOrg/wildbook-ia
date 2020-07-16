@@ -67,6 +67,7 @@ class APITreeView(API_VIEW_BASE):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> # TODO figure out how to test these
             >>> from wbia.guitool.api_tree_view import *  # NOQA
             >>> import wbia.guitool as gt
@@ -128,6 +129,7 @@ def testdata_tree_view():
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> import wbia.guitool as gt
         >>> from wbia.guitool.api_tree_view import *  # NOQA
         >>> wgt = testdata_tree_view()

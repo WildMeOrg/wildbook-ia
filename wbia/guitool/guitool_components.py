@@ -44,6 +44,8 @@ def rectifyQtEnum(type_, value, default=ut.NoParam):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> newvals = []
         >>> newvals.append(rectifyQtEnum('Orientation', 'vert'))
@@ -574,6 +576,8 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from wbia.guitool.guitool_components import *  # NOQA
             >>> import wbia.guitool as gt
             >>> app = gt.ensure_qtapp()[0]
@@ -924,6 +928,8 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}, min_wi
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool
         >>> guitool.ensure_qtapp()
@@ -1077,6 +1083,8 @@ def newLineEdit(
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> parent = None
         >>> text = None
@@ -1129,6 +1137,8 @@ class TagEdit(QtWidgets.QLineEdit):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
@@ -1405,6 +1415,8 @@ class GuitoolWidget(WIDGET_BASE):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
@@ -1644,6 +1656,8 @@ class ConfigConfirmWidget(GuitoolWidget):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool
         >>> import dtool
@@ -1959,6 +1973,8 @@ def newButton(
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
@@ -2064,6 +2080,8 @@ def newComboBox(
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()
@@ -2226,6 +2244,8 @@ def newCheckBox(
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool as gt
         >>> app = gt.ensure_qtapp()[0]
@@ -2365,6 +2385,8 @@ class Spoiler(WIDGET_BASE):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> # build test data
         >>> import wbia.guitool
@@ -2732,6 +2754,8 @@ class FlowLayout(QtWidgets.QLayout):
         python -m wbia.guitool.guitool_components FlowLayout
 
     Ignore:
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> import sys
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool as gt
@@ -2866,6 +2890,8 @@ class ComboRadioHybrid(GuitoolWidget):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.guitool_components import *  # NOQA
         >>> import wbia.guitool as gt
         >>> gt.ensure_qtapp()

@@ -1082,6 +1082,7 @@ def simple_thumbnail_widget():
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> import wbia.guitool as guitool
         >>> from wbia.guitool.api_item_model import *  # NOQA
         >>> guitool.ensure_qapp()  # must be ensured before any embeding

@@ -36,6 +36,7 @@ def simple_api_item_widget():
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.api_item_widget import *  # NOQA
         >>> import wbia.guitool as gt
         >>> gt.ensure_qapp()  # must be ensured before any embeding
@@ -96,6 +97,7 @@ def simple_api_tree_widget():
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.api_item_widget import *  # NOQA
         >>> import wbia.guitool
         >>> guitool.ensure_qapp()  # must be ensured before any embeding
