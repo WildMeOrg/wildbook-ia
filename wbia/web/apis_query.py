@@ -138,7 +138,6 @@ def process_graph_match_html(ibs, **kwargs):
         Method: POST
         URL:    /api/review/query/graph/
     """
-
     def sanitize(state):
         state = state.strip().lower()
         state = ''.join(state.split())
@@ -436,17 +435,7 @@ def review_graph_match_html(
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.lower() in (
-        'bc_dtw',
-        'oc_wdtw',
-        'curvrankdorsal',
-        'curvrankfinfindrhybriddorsal',
-        'curvrankfluke',
-        'deepsense',
-        'finfindr',
-        'kaggle7',
-        'kaggleseven',
-    ):
+    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfinfindrhybriddorsal', 'curvrankfluke', 'deepsense', 'finfindr', 'kaggle7', 'kaggleseven', 'pie'):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
         cls = chip_match.ChipMatch
@@ -581,7 +570,13 @@ def review_query_chips_test(**kwargs):
     elif 'use_finfindr' in request.args:
         query_config_dict = {'pipeline_root': 'Finfindr'}
     elif 'use_kaggle7' in request.args or 'use_kaggleseven' in request.args:
-        query_config_dict = {'pipeline_root': 'KaggleSeven'}
+        query_config_dict = {
+            'pipeline_root' : 'KaggleSeven'
+        }
+    elif 'use_pie' in request.args:
+        query_config_dict = {
+            'pipeline_root' : 'Pie'
+        }
     else:
         query_config_dict = {}
     result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)
