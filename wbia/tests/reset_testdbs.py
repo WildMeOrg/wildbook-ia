@@ -156,8 +156,6 @@ def ensure_smaller_testingdbs():
 
 def reset_testdbs(**kwargs):
     # Step 0) Parse Args
-    import wbia
-
     wbia.ENABLE_WILDBOOK_SIGNAL = False
     default_args = {'reset_' + key: False for key in six.iterkeys(TEST_DBNAMES_MAP)}
     default_args['reset_all'] = False
@@ -176,7 +174,7 @@ def reset_testdbs(**kwargs):
 
     # Step 3) Ensure DBs that dont exist
     ensure_smaller_testingdbs()
-    workdir = wbia.sysres.get_workdir()
+    workdir = sysres.get_workdir()
     if not ut.checkpath(join(workdir, 'PZ_MTEST'), verbose=True):
         wbia.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
@@ -187,7 +185,7 @@ def reset_testdbs(**kwargs):
         wbia.init.sysres.ensure_testdb2()
 
     # Step 4) testdb1 becomes the main database
-    workdir = wbia.sysres.get_workdir()
+    workdir = sysres.get_workdir()
     TESTDB1 = join(workdir, 'testdb1')
     sysres.set_default_dbdir(TESTDB1)
 
