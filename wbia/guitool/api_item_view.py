@@ -75,6 +75,7 @@ def _init_itemview_behavior(view):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> # TODO figure out how to test these
         >>> from wbia.guitool.api_item_view import *  # NOQA
         >>> from wbia.guitool import api_table_view
@@ -326,6 +327,7 @@ def keyPressEvent(view, event):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from wbia.guitool.api_item_view import *  # NOQA
         >>> import wbia.guitool as gt
         >>> app = gt.ensure_qapp()[0]

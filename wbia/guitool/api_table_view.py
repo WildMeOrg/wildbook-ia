@@ -67,8 +67,10 @@ class APITableView(API_VIEW_BASE):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from wbia.guitool.api_table_view import *  # NOQA
-            >>> import wbia.guitool
+            >>> from wbia import guitool
             >>> guitool.ensure_qapp()
             >>> view = APITableView()
             >>> view._init_header_behavior()
@@ -122,8 +124,10 @@ class APITableView(API_VIEW_BASE):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # GUI_DOCTEST
+            >>> # xdoctest: +REQUIRES(--gui)
             >>> from wbia.guitool.api_table_view import *  # NOQA
-            >>> import wbia.guitool
+            >>> from wbia import guitool
             >>> guitool.ensure_qapp()
             >>> view = APITableView()
             >>> view._init_header_behavior()
