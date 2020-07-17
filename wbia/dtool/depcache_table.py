@@ -21,18 +21,19 @@ FIXME:
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+import re
+import itertools as it
+from os.path import join, exists
+
+import networkx as nx
+import six
 import utool as ut
 import ubelt as ub
-import six
-import itertools as it
 from six.moves import zip, range
-from os.path import join, exists
 
 from wbia.dtool.sql_control import SQLDatabaseController
 from wbia.dtool.types import TYPE_TO_SQLTYPE
 
-import networkx as nx
-import re
 
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
 

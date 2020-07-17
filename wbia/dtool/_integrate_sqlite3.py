@@ -3,10 +3,9 @@
 from __future__ import absolute_import, division, print_function
 import io
 import uuid
-
-import numpy as np
 from sqlite3 import register_adapter, register_converter
 
+import numpy as np
 import utool as ut
 
 
