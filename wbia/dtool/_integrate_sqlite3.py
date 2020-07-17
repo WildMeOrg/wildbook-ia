@@ -185,22 +185,5 @@ REGISTER_SQLITE3_TYPES()
 #    # isolation_level='DEFERRED',
 #    # cached_statements=1000
 
-TYPE_TO_SQLTYPE = {
-    np.ndarray: 'NDARRAY',
-    uuid.UUID: 'UUID',
-    np.float32: 'REAL',
-    np.float64: 'REAL',
-    float: 'REAL',
-    int: 'INTEGER',
-    str: 'TEXT',
-    # bool: 'BOOL',  # TODO
-    bool: 'INTEGER',
-    dict: 'DICT',
-    list: 'LIST',
-}
-
-if six.PY2:
-    TYPE_TO_SQLTYPE[six.text_type] = 'TEXT'
-
 # Clean namespace
 del REGISTER_SQLITE3_TYPES
