@@ -7,10 +7,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # See `_integrate_sqlite3` module for details.
 import sqlite3
 
-import utool as ut
-
-ut.noinject(__name__, '[dtool]')
-
 from wbia.dtool import _integrate_sqlite3 as lite
 from wbia.dtool import base
 from wbia.dtool import sql_control

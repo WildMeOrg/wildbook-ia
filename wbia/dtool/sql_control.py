@@ -5,20 +5,19 @@ Interface into SQL for the IBEIS Controller
 TODO; need to use some sort of sticky bit so
 sql files are created with reasonable permissions.
 """
-# from __future__ import absolute_import, division, print_function
 from __future__ import absolute_import, division, print_function, unicode_literals
-import six
-import re
-import parse
-import utool as ut
 import collections
+import parse
+import re
 import threading
 from functools import partial
-from six.moves import map, zip, cStringIO
 from os.path import join, exists, dirname, basename
 
-# XXX (16-Jul-12020) in transition
-from wbia.dtool import _integrate_sqlite3 as lite  # NOQA
+import six
+import utool as ut
+from six.moves import map, zip, cStringIO
+
+from wbia.dtool import sqlite3 as lite
 
 print, rrr, profile = ut.inject2(__name__)
 
