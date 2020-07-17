@@ -25,12 +25,12 @@ import utool as ut
 import ubelt as ub
 import six
 import itertools as it
-from wbia.dtool.sql_control import SQLDatabaseController
 from six.moves import zip, range
 from os.path import join, exists
 
-# XXX (16-Jul-12020) in transition
-from wbia.dtool import _integrate_sqlite3 as lite  # NOQA
+from wbia.dtool.sql_control import SQLDatabaseController
+from wbia.dtool.types import TYPE_TO_SQLTYPE
+
 import networkx as nx
 import re
 
@@ -672,7 +672,7 @@ class _TableInternalSetup(ub.NiceRepr):
             is_functup = is_tuple and ut.is_func_or_method(coltype[0])
             is_exttype = isinstance(coltype, ExternType)
             # Check column input main types
-            is_normal = coltype in lite.TYPE_TO_SQLTYPE
+            is_normal = coltype in TYPE_TO_SQLTYPE
             # is_normal   = not (is_tuple or is_func)
             isnested = is_tuple and not (is_func or is_externtup)
             is_external = is_func or is_functup or is_externtup or is_exttype
@@ -682,7 +682,7 @@ class _TableInternalSetup(ub.NiceRepr):
             colattr['data_colx'] = data_colx
             if is_normal:
                 # Normal non-nested column
-                sqltype = lite.TYPE_TO_SQLTYPE[coltype]
+                sqltype = TYPE_TO_SQLTYPE[coltype]
                 colattr['intern_colname'] = colname
                 colattr['sqltype'] = sqltype
                 colattr['is_normal'] = is_normal
@@ -694,7 +694,7 @@ class _TableInternalSetup(ub.NiceRepr):
                     nestattr = ut.odict()
                     nestattrs.append(nestattr)
                     flat_colname = '%s_%d' % (colname, count)
-                    sqltype = lite.TYPE_TO_SQLTYPE[subtype]
+                    sqltype = TYPE_TO_SQLTYPE[subtype]
                     nestattr['flat_colname'] = flat_colname
                     nestattr['sqltype'] = sqltype
             elif is_external:
@@ -718,7 +718,7 @@ class _TableInternalSetup(ub.NiceRepr):
                 else:
                     read_func = coltype
                 intern_colname = colname + EXTERN_SUFFIX
-                sqltype = lite.TYPE_TO_SQLTYPE[str]
+                sqltype = TYPE_TO_SQLTYPE[str]
                 colattr['is_external'] = True
                 colattr['intern_colname'] = intern_colname
                 colattr['write_func'] = write_func
@@ -730,7 +730,7 @@ class _TableInternalSetup(ub.NiceRepr):
                     coltype, '__setstate__'
                 ), ('External classes must have __getstate__ and ' '__setstate__ methods')
                 read_func, write_func = make_extern_io_funcs(table, coltype)
-                sqltype = lite.TYPE_TO_SQLTYPE[str]
+                sqltype = TYPE_TO_SQLTYPE[str]
                 intern_colname = colname + EXTERN_SUFFIX
                 # raise AssertionError('external class columns')
                 colattr['is_external'] = True
