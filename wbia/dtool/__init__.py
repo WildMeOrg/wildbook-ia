@@ -2,6 +2,11 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+# The following is meant to be used in place of `import sqlite3`
+# because importing it from here will ensure our type integrations are loaded.
+# See `_integrate_sqlite3` module for details.
+import sqlite3
+
 import utool as ut
 
 ut.noinject(__name__, '[dtool]')

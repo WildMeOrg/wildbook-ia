@@ -7,9 +7,6 @@ import uuid
 import numpy as np
 from sqlite3 import register_adapter, register_converter
 
-# XXX (16-Jul-12020) don't do this
-from sqlite3 import *  # noqa
-
 import utool as ut
 
 
