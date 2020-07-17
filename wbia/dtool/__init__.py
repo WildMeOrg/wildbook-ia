@@ -6,7 +6,7 @@ import utool as ut
 
 ut.noinject(__name__, '[dtool]')
 
-from wbia.dtool import __SQLITE__ as lite
+from wbia.dtool import _integrate_sqlite3 as lite
 from wbia.dtool import base
 from wbia.dtool import sql_control
 from wbia.dtool import depcache_control
