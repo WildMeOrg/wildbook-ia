@@ -16,7 +16,9 @@ import threading
 from functools import partial
 from six.moves import map, zip, cStringIO
 from os.path import join, exists, dirname, basename
-from wbia.dtool import __SQLITE__ as lite  # NOQA
+
+# XXX (16-Jul-12020) in transition
+from wbia.dtool import _integrate_sqlite3 as lite  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 

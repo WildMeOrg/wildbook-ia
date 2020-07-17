@@ -862,10 +862,6 @@ def check_annot_consistency(ibs, aid_list=None):
 @register_ibs_method
 def check_annot_corrupt_uuids(ibs, aid_list=None):
     """
-    # del dtool.__SQLITE__.converters['UUID']
-    # import uuid
-    # del dtool.__SQLITE__.adapters[(uuid.UUID, dtool.__SQLITE__.PrepareProtocol)]
-
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia  # NOQA
         >>> ibs = wbia.opendb('PZ_MTEST')

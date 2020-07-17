@@ -28,7 +28,9 @@ import itertools as it
 from wbia.dtool.sql_control import SQLDatabaseController
 from six.moves import zip, range
 from os.path import join, exists
-from wbia.dtool import __SQLITE__ as lite  # NOQA
+
+# XXX (16-Jul-12020) in transition
+from wbia.dtool import _integrate_sqlite3 as lite  # NOQA
 import networkx as nx
 import re
 
