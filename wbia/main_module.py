@@ -6,6 +6,7 @@ wbia.opendb and wbia.main are the main entry points
 from __future__ import absolute_import, division, print_function
 
 # from six.moves import builtins
+from contextlib import contextmanager
 import sys
 import multiprocessing
 
@@ -363,7 +364,7 @@ def opendb_in_background(*args, **kwargs):
     return proc
 
 
-def opendb_bg_web(*args, **kwargs):
+def opendb_bg_web(*args, managed=False, **kwargs):
     """
     Wrapper around opendb_in_background, returns a nice web_ibs
     object to execute web calls using normal python-like syntax
@@ -375,6 +376,7 @@ def opendb_bg_web(*args, **kwargs):
             domain (str): if specified assumes server is already running
                 somewhere otherwise kwargs is passed to opendb_in_background
             start_job_queue (bool)
+            managed (bool): if True, return a context manager that terminates the server upon completion of the block
 
     Returns:
         web_ibs - this is a KillableProcess object with special functions
@@ -513,6 +515,16 @@ def opendb_bg_web(*args, **kwargs):
                 pass
 
     wait_until_started()
+
+    @contextmanager
+    def managed_server():
+        try:
+            yield web_ibs
+        finally:
+            web_ibs.terminate2()
+
+    if managed:
+        return managed_server()
     return web_ibs
 
 
