@@ -69,10 +69,9 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
         >>> # xdoctest: +REQUIRES(--web)
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_ibs.send_wbia_request('/api/image/src/', type_='get', gid=1)
+        >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
+        ...     web_ibs.send_wbia_request('/api/image/src/', type_='get', gid=1)
         >>> print(resp)
-        >>> web_ibs.terminate2()
 
     RESTful:
         Method: GET
@@ -127,10 +126,9 @@ def annot_src_api(rowid=None, fresh=False, **kwargs):
         >>> # WEB_DOCTEST
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_ibs.send_wbia_request('/api/annot/src/', type_='get', aid=1)
+        >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
+        ...     web_ibs.send_wbia_request('/api/annot/src/', type_='get', aid=1)
         >>> print(resp)
-        >>> web_ibs.terminate2()
 
     RESTful:
         Method: GET
@@ -175,10 +173,9 @@ def background_src_api(rowid=None, fresh=False, **kwargs):
         >>> # WEB_DOCTEST
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_ibs.send_wbia_request('/api/annot/src/', type_='get', aid=1)
+        >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
+        ...     web_ibs.send_wbia_request('/api/annot/src/', type_='get', aid=1)
         >>> print(resp)
-        >>> web_ibs.terminate2()
 
     RESTful:
         Method: GET
@@ -223,10 +220,9 @@ def image_src_api_json(uuid=None, **kwargs):
         >>> # xdoctest: +REQUIRES(--web)
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_ibs.send_wbia_request('/api/image/src/', type_='get', gid=1)
+        >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
+        ...     web_ibs.send_wbia_request('/api/image/src/', type_='get', gid=1)
         >>> print(resp)
-        >>> web_ibs.terminate2()
 
     RESTful:
         Method: GET
@@ -445,19 +441,18 @@ def hello_world(*args, **kwargs):
         >>> import wbia
         >>> import requests
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> web_port = ibs.get_web_port_via_scan()
-        >>> if web_port is None:
-        >>>     raise ValueError('IA web server is not running on any expected port')
-        >>> domain = 'http://127.0.0.1:%s' % (web_port, )
-        >>> url = domain + '/api/test/helloworld/?test0=0'
-        >>> payload = {
-        >>>     'test1' : 'test1',
-        >>>     'test2' : None,  # NOTICE test2 DOES NOT SHOW UP
-        >>> }
-        >>> resp = requests.post(url, data=payload)
-        >>> print(resp)
-        >>> web_ibs.terminate2()
+        >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
+        ...     web_port = ibs.get_web_port_via_scan()
+        ...     if web_port is None:
+        ...         raise ValueError('IA web server is not running on any expected port')
+        ...     domain = 'http://127.0.0.1:%s' % (web_port, )
+        ...     url = domain + '/api/test/helloworld/?test0=0'
+        ...     payload = {
+        ...         'test1' : 'test1',
+        ...         'test2' : None,  # NOTICE test2 DOES NOT SHOW UP
+        ...     }
+        ...     resp = requests.post(url, data=payload)
+        ...     print(resp)
     """
     print('+------------ HELLO WORLD ------------')
     print('Args: %r' % (args,))
