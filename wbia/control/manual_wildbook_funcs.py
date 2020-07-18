@@ -442,13 +442,13 @@ def wildbook_signal_imgsetid_list(
         >>> set_shipped_flag = True
         >>> open_url_on_complete = True
         >>> if ut.get_argflag('--bg'):
-        >>>     web_ibs = wbia.opendb_bg_web(defaultdb)
-        >>> result = ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, wb_target, dryrun)
+        >>>     with wbia.opendb_bg_web(defaultdb, managed=True) as web_ibs:
+        ...         result = web_ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, wb_target, dryrun)
+        >>> else:
+        ...     result = ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, wb_target, dryrun)
         >>> # cleanup
         >>> #ibs.delete_imagesets(new_imgsetid)
         >>> print(result)
-        >>> if ut.get_argflag('--bg'):
-        >>>     web_ibs.terminate2()
 
     """
     try:

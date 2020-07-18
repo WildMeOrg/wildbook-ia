@@ -158,20 +158,19 @@ def initialize_job_manager(ibs):
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
         >>> import requests
-        >>> web_instance = wbia.opendb_bg_web(db='testdb1')
-        >>> web_port = ibs.get_web_port_via_scan()
-        >>> if web_port is None:
-        >>>     raise ValueError('IA web server is not running on any expected port')
-        >>> baseurl = 'http://127.0.1.1:%s' % (web_port, )
-        >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
-        >>> payload = ut.map_dict_vals(ut.to_json, _payload)
-        >>> resp1 = requests.post(baseurl + '/api/test/helloworld/?f=b', data=payload)
-        >>> #resp2 = requests.post(baseurl + '/api/image/json/', data=payload)
-        >>> #print(resp2)
-        >>> web_instance.terminate()
-        >>> #json_dict = resp2.json()
-        >>> #text = json_dict['response']
-        >>> #print(text)
+        >>> with wbia.opendb_bg_web(db='testdb1', managed=True) as web_instance:
+        ...     web_port = ibs.get_web_port_via_scan()
+        ...     if web_port is None:
+        ...         raise ValueError('IA web server is not running on any expected port')
+        ...     baseurl = 'http://127.0.1.1:%s' % (web_port, )
+        ...     _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
+        ...     payload = ut.map_dict_vals(ut.to_json, _payload)
+        ...     resp1 = requests.post(baseurl + '/api/test/helloworld/?f=b', data=payload)
+        ...     #resp2 = requests.post(baseurl + '/api/image/json/', data=payload)
+        ...     #print(resp2)
+        ...     #json_dict = resp2.json()
+        ...     #text = json_dict['response']
+        ...     #print(text)
     """
     ibs.job_manager = ut.DynStruct()
 
@@ -247,10 +246,9 @@ def get_job_id_list(ibs):
         >>> # xdoctest: +REQUIRES(--web)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> # Test get status of a job id that does not exist
-        >>> response = web_ibs.send_wbia_request('/api/engine/job/', jobid='badjob')
-        >>> web_ibs.terminate2()
+        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
+        ...     # Test get status of a job id that does not exist
+        ...     response = web_ibs.send_wbia_request('/api/engine/job/', jobid='badjob')
 
     """
     status = ibs.job_manager.jobiface.get_job_id_list()
@@ -290,10 +288,9 @@ def get_job_status(ibs, jobid=None):
         >>> # xdoctest: +REQUIRES(--web)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> # Test get status of a job id that does not exist
-        >>> response = web_ibs.send_wbia_request('/api/engine/job/status/', jobid='badjob')
-        >>> web_ibs.terminate2()
+        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
+        ...     # Test get status of a job id that does not exist
+        ...     response = web_ibs.send_wbia_request('/api/engine/job/status/', jobid='badjob')
 
     """
     if jobid is None:
@@ -327,10 +324,9 @@ def get_job_metadata(ibs, jobid):
         >>> # WEB_DOCTEST
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> # Test get metadata of a job id that does not exist
-        >>> response = web_ibs.send_wbia_request('/api/engine/job/metadata/', jobid='badjob')
-        >>> web_ibs.terminate2()
+        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
+        ...     # Test get metadata of a job id that does not exist
+        ...     response = web_ibs.send_wbia_request('/api/engine/job/metadata/', jobid='badjob')
 
     """
     status = ibs.job_manager.jobiface.get_job_metadata(jobid)

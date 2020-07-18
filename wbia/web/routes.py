@@ -4003,9 +4003,8 @@ def turk_identification(
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1')
-        >>> resp = web_ibs.get('/turk/identification/lnbnn/')
-        >>> web_ibs.terminate2()
+        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:
+        ...     resp = web_ibs.get('/turk/identification/lnbnn/')
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
         >>> ut.render_html(resp.content)
@@ -4708,9 +4707,8 @@ def turk_identification_hardcase(*args, **kwargs):
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('PZ_Master1')
-        >>> resp = web_ibs.get('/turk/identification/hardcase/')
-        >>> web_ibs.terminate2()
+        >>> with wbia.opendb_bg_web('PZ_Master1', managed=True) as web_ibs:
+        ...     resp = web_ibs.get('/turk/identification/hardcase/')
 
     Ignore:
         import wbia
@@ -4769,9 +4767,8 @@ def turk_identification_graph(
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1')
-        >>> resp = web_ibs.get('/turk/identification/graph/')
-        >>> web_ibs.terminate2()
+        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:
+        ...     resp = web_ibs.get('/turk/identification/graph/')
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
         >>> ut.render_html(resp.content)

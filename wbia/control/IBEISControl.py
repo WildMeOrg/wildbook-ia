@@ -1144,12 +1144,11 @@ class IBEISController(BASE_CLASS):
             >>> from wbia.control.IBEISControl import *  # NOQA
             >>> import wbia
             >>> import wbia.web
-            >>> web_ibs = wbia.opendb_bg_web('testdb1', wait=.5, start_job_queue=False)
-            >>> resp = web_ibs.send_wbia_request('/log/current/', 'get')
+            >>> with wbia.opendb_bg_web('testdb1', wait=.5, start_job_queue=False, managed=True) as web_ibs:
+            ...     resp = web_ibs.send_wbia_request('/log/current/', 'get')
             >>> print('\n-------Logs ----: \n' )
             >>> print(resp)
             >>> print('\nL____ END LOGS ___\n')
-            >>> web_ibs.terminate2()
         """
         text = ut.get_current_log_text()
         return text

@@ -262,28 +262,27 @@ def start_identify_annots(
         >>> # xdoctest: +REQUIRES(--web)
         >>> from wbia.web.apis_engine import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_wbia_request('/api/annot/', 'get')[0:2]
-        >>> uuid_list = web_ibs.send_wbia_request('/api/annot/uuid/', type_='get', aid_list=aids)
-        >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)
-        >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
-        >>> data = dict(
-        >>>     qannot_uuid_list=quuid_list, dannot_uuid_list=duuid_list,
-        >>>     pipecfg={},
-        >>>     callback_url='http://127.0.1.1:5832'
-        >>> )
-        >>> # Start callback server
-        >>> bgserver = ensure_simple_server()
-        >>> # --
-        >>> jobid = web_ibs.send_wbia_request('/api/engine/query/annot/rowid/', **data)
-        >>> status_response = web_ibs.wait_for_results(jobid, delays=[1, 5, 30])
-        >>> print('status_response = %s' % (status_response,))
-        >>> result_response = web_ibs.read_engine_results(jobid)
-        >>> print('result_response = %s' % (result_response,))
-        >>> cm_dict = result_response['json_result'][0]
-        >>> print('Finished test')
-        >>> web_ibs.terminate2()
-        >>> bgserver.terminate2()
+        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
+        ...     aids = web_ibs.send_wbia_request('/api/annot/', 'get')[0:2]
+        ...     uuid_list = web_ibs.send_wbia_request('/api/annot/uuid/', type_='get', aid_list=aids)
+        ...     quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)
+        ...     duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
+        ...     data = dict(
+        ...         qannot_uuid_list=quuid_list, dannot_uuid_list=duuid_list,
+        ...         pipecfg={},
+        ...         callback_url='http://127.0.1.1:5832'
+        ...     )
+        ...     # Start callback server
+        ...     bgserver = ensure_simple_server()
+        ...     # --
+        ...     jobid = web_ibs.send_wbia_request('/api/engine/query/annot/rowid/', **data)
+        ...     status_response = web_ibs.wait_for_results(jobid, delays=[1, 5, 30])
+        ...     print('status_response = %s' % (status_response,))
+        ...     result_response = web_ibs.read_engine_results(jobid)
+        ...     print('result_response = %s' % (result_response,))
+        ...     cm_dict = result_response['json_result'][0]
+        ...     print('Finished test')
+        ...     bgserver.terminate2()
 
     Ignore:
         qaids = daids = ibs.get_valid_aids()
@@ -448,30 +447,29 @@ def start_identify_annots_query(
         >>> import wbia
         >>> #domain = 'localhost'
         >>> domain = None
-        >>> web_ibs = wbia.opendb_bg_web('testdb1', domain=domain)  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_wbia_request('/api/annot/', 'get')[0:3]
-        >>> uuid_list = web_ibs.send_wbia_request('/api/annot/uuid/', type_='get', aid_list=aids)
-        >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
-        >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
-        >>> query_config_dict = {
-        >>>    #'pipeline_root' : 'BC_DTW'
-        >>> }
-        >>> data = dict(
-        >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
-        >>>     query_config_dict=query_config_dict,
-        >>> )
-        >>> jobid = web_ibs.send_wbia_request('/api/engine/query/graph/', **data)
-        >>> print('jobid = %r' % (jobid,))
-        >>> status_response = web_ibs.wait_for_results(jobid)
-        >>> result_response = web_ibs.read_engine_results(jobid)
-        >>> print('result_response = %s' % (ut.repr3(result_response),))
-        >>> inference_result = result_response['json_result']
-        >>> if isinstance(inference_result, six.string_types):
-        >>>    print(inference_result)
-        >>> cm_dict = inference_result['cm_dict']
-        >>> quuid = quuid_list[0]
-        >>> cm = cm_dict[str(quuid)]
-        >>> web_ibs.terminate2()
+        >>> with wbia.opendb_bg_web('testdb1', domain=domain, managed=True) as web_ibs:  # , domain='http://52.33.105.88')
+        ...     aids = web_ibs.send_wbia_request('/api/annot/', 'get')[0:3]
+        ...     uuid_list = web_ibs.send_wbia_request('/api/annot/uuid/', type_='get', aid_list=aids)
+        ...     quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
+        ...     duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
+        ...     query_config_dict = {
+        ...        #'pipeline_root' : 'BC_DTW'
+        ...     }
+        ...     data = dict(
+        ...         query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
+        ...         query_config_dict=query_config_dict,
+        ...     )
+        ...     jobid = web_ibs.send_wbia_request('/api/engine/query/graph/', **data)
+        ...     print('jobid = %r' % (jobid,))
+        ...     status_response = web_ibs.wait_for_results(jobid)
+        ...     result_response = web_ibs.read_engine_results(jobid)
+        ...     print('result_response = %s' % (ut.repr3(result_response),))
+        ...     inference_result = result_response['json_result']
+        ...     if isinstance(inference_result, six.string_types):
+        ...        print(inference_result)
+        ...     cm_dict = inference_result['cm_dict']
+        ...     quuid = quuid_list[0]
+        ...     cm = cm_dict[str(quuid)]
 
     """
     valid_states = {
