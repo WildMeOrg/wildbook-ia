@@ -437,7 +437,7 @@ def hello_world(*args, **kwargs):
         >>> web_ibs = wbia.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
         >>> print('web_ibs = %r' % (web_ibs,))
         >>> print('Server will run until control c')
-        >>> #web_ibs.terminate2()
+        >>> web_ibs.terminate2()
 
     Example1:
         >>> # xdoctest: +REQUIRES(--web)
