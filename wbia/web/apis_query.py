@@ -6,7 +6,7 @@ SeeAlso:
     routes.turk_identification
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from wbia.control import accessor_decors, controller_inject
+from wbia.control import controller_inject
 from wbia.algo.hots import pipeline
 from flask import url_for, request, current_app  # NOQA
 from os.path import join, dirname, abspath, exists
@@ -33,7 +33,6 @@ GRAPH_CLIENT_PEEK = 100
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/query/annot/rowid/', methods=['GET'])
 def get_recognition_query_aids(ibs, is_known, species=None):
     """

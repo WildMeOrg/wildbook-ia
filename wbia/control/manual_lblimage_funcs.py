@@ -7,7 +7,6 @@ from wbia import constants as const
 from wbia.control.accessor_decors import (
     adder,
     getter_1to1,
-    default_decorator,
     getter_1toM,
 )
 import utool as ut
@@ -166,7 +165,6 @@ def get_lblimage_values(ibs, lblimage_rowid_list, _lbltype=None):
 
 
 @register_ibs_method
-@default_decorator
 def get_lblimage_gids(ibs, lblimage_rowid_list):
     # verbose = len(lblimage_rowid_list) > 20
     # TODO: Optimize IF POSSIBLE

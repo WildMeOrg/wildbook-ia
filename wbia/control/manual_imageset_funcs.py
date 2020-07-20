@@ -343,7 +343,6 @@ def get_imageset_fraction_annotmatch_reviewed(ibs, imgsetid_list):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 # @register_api('/api/imageset/aids/filtered/custom/', methods=['GET'])
 def get_imageset_custom_filtered_aids(ibs, imgsetid_list):
     r"""
@@ -581,7 +580,6 @@ def get_imageset_image_uuids(ibs, imgsetid_list):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 # @register_api('/api/imageset/gsgrids/', methods=['GET'])
 def get_imageset_gsgrids(ibs, imgsetid_list=None, gid_list=None):
     r"""
@@ -923,7 +921,6 @@ def get_imageset_gps_lats(ibs, imageset_rowid_list):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/imageset/info/', methods=['PUT'])
 def update_imageset_info(ibs, imageset_rowid_list, **kwargs):
     r"""
