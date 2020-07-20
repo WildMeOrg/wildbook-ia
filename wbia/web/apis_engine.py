@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import utool as ut
 import uuid  # NOQA
-from wbia.control import accessor_decors, controller_inject
+from wbia.control import controller_inject
 import wbia.constants as const
 
 print, rrr, profile = ut.inject2(__name__)
@@ -93,7 +93,6 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/uuid/check/', methods=['GET', 'POST'])
 def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_list=[]):
     r"""
@@ -188,7 +187,6 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/query/annot/rowid/', methods=['GET', 'POST'])
 def start_identify_annots(
     ibs,
@@ -329,7 +327,6 @@ def start_identify_annots(
 
 
 @register_ibs_method
-# @accessor_decors.default_decorator
 @register_api('/api/engine/query/graph/complete/', methods=['GET', 'POST'])
 def start_identify_annots_query_complete(
     ibs,
@@ -401,7 +398,6 @@ def start_identify_annots_query_complete(
 
 
 @register_ibs_method
-# @accessor_decors.default_decorator
 @register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
 def start_identify_annots_query(
     ibs,
@@ -624,7 +620,6 @@ def start_identify_annots_query(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/wic/cnn/', methods=['POST'])
 def start_wic_image(
     ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs
@@ -662,7 +657,6 @@ def start_wic_image(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
 def start_detect_image_yolo(
     ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs
@@ -700,7 +694,6 @@ def start_detect_image_yolo(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/labeler/cnn/', methods=['POST'])
 def start_labeler_cnn(
     ibs, annot_uuid_list, callback_url=None, callback_method=None, **kwargs
@@ -729,7 +722,6 @@ def start_labeler_cnn(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/review/query/chip/best/', methods=['POST'])
 def start_review_query_chips_best(
     ibs, annot_uuid, callback_url=None, callback_method=None, **kwargs
@@ -758,7 +750,6 @@ def start_review_query_chips_best(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/test/engine/detect/cnn/yolo/', methods=['GET'])
 def start_detect_image_test_yolo(ibs):
     from random import shuffle  # NOQA
@@ -772,7 +763,6 @@ def start_detect_image_test_yolo(ibs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/detect/cnn/lightnet/', methods=['POST', 'GET'])
 def start_detect_image_lightnet(
     ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs
@@ -810,7 +800,6 @@ def start_detect_image_lightnet(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/test/engine/detect/cnn/lightnet/', methods=['GET'])
 def start_detect_image_test_lightnet(ibs):
     from random import shuffle  # NOQA
@@ -824,7 +813,6 @@ def start_detect_image_test_lightnet(ibs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/classify/whaleshark/injury/', methods=['POST'])
 def start_predict_ws_injury_interim_svm(
     ibs, annot_uuid_list, callback_url=None, callback_method=None, **kwargs
@@ -879,7 +867,6 @@ def start_predict_ws_injury_interim_svm(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/query/web/', methods=['GET'])
 def start_web_query_all(ibs):
     """
@@ -892,7 +879,6 @@ def start_web_query_all(ibs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/engine/flukebook/sync/', methods=['GET'])
 def start_flukebook_sync(ibs, **kwargs):
     """

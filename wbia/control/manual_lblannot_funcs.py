@@ -10,7 +10,6 @@ from wbia.control.accessor_decors import (
     setter,
     getter_1to1,
     getter_1toM,
-    default_decorator,
     ider,
 )
 import utool as ut
@@ -151,7 +150,6 @@ def get_alr_annot_rowids(ibs, alrid_list):
 
 
 @register_ibs_method
-@default_decorator
 def get_alr_annot_rowids_from_lblannot_rowid(ibs, lblannot_rowid_list):
     """
     This is a 1toM getter

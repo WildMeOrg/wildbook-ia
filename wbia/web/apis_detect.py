@@ -21,7 +21,6 @@ register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/wic/cnn/', methods=['PUT', 'GET', 'POST'])
 def wic_cnn(ibs, gid_list, testing=False, algo='cnn', model_tag='candidacy', **kwargs):
@@ -46,14 +45,12 @@ def wic_cnn(ibs, gid_list, testing=False, algo='cnn', model_tag='candidacy', **k
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 def wic_cnn_json(ibs, gid_list, config={}, **kwargs):
     return wic_cnn(ibs, gid_list, **config)
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 @register_api('/api/detect/randomforest/', methods=['PUT', 'GET'])
 def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
@@ -443,7 +440,6 @@ def process_detection_html(ibs, **kwargs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
     """
@@ -507,7 +503,6 @@ def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 def detect_cnn_json_wrapper(ibs, image_uuid_list, detect_func, **kwargs):
     """
     Detect with CNN (general).
@@ -529,7 +524,6 @@ def detect_cnn_json_wrapper(ibs, image_uuid_list, detect_func, **kwargs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/detect/cnn/yolo/json/', methods=['POST'])
 def detect_cnn_yolo_json_wrapper(ibs, image_uuid_list, **kwargs):
     return detect_cnn_json_wrapper(
@@ -538,14 +532,12 @@ def detect_cnn_yolo_json_wrapper(ibs, image_uuid_list, **kwargs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
     return detect_cnn_json(ibs, gid_list, ibs.detect_cnn_yolo, config=config, **kwargs)
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET', 'POST'])
 def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs):
@@ -705,7 +697,6 @@ def models_cnn(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/labeler/cnn/', methods=['PUT', 'GET', 'POST'])
 def labeler_cnn(
@@ -733,7 +724,6 @@ def labeler_cnn(
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/aoi/cnn/', methods=['PUT', 'GET', 'POST'])
 def aoi_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
@@ -757,7 +747,6 @@ def aoi_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 @register_api('/api/detect/cnn/yolo/exists/', methods=['GET'], __api_plural_check__=False)
 def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
@@ -807,7 +796,6 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/detect/cnn/lightnet/json/', methods=['POST'])
 def detect_cnn_lightnet_json_wrapper(ibs, image_uuid_list, **kwargs):
     return detect_cnn_json_wrapper(
@@ -816,7 +804,6 @@ def detect_cnn_lightnet_json_wrapper(ibs, image_uuid_list, **kwargs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 def detect_cnn_lightnet_json(ibs, gid_list, config={}, **kwargs):
     return detect_cnn_json(
@@ -825,7 +812,6 @@ def detect_cnn_lightnet_json(ibs, gid_list, config={}, **kwargs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/lightnet/', methods=['PUT', 'GET', 'POST'])
 def detect_cnn_lightnet(
@@ -1134,7 +1120,6 @@ def log_detections(ibs, aid_list, fallback=True):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/detect/species/enabled/', methods=['GET'], __api_plural_check__=False)
 def has_species_detector(ibs, species_text):
     """
@@ -1149,7 +1134,6 @@ def has_species_detector(ibs, species_text):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/detect/species/', methods=['GET'], __api_plural_check__=False)
 def get_species_with_detectors(ibs):
     """
@@ -1164,7 +1148,6 @@ def get_species_with_detectors(ibs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/detect/species/working/', methods=['GET'], __api_plural_check__=False)
 def get_working_species(ibs):
     """
@@ -1191,7 +1174,6 @@ def get_working_species(ibs):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/detect/whaleSharkInjury/', methods=['PUT', 'GET'])
 def detect_ws_injury(ibs, gid_list):
     """

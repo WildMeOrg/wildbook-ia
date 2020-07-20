@@ -48,20 +48,6 @@ if ut.VERBOSE:
 # -----------------
 
 
-# DECORATORS::OTHERS
-
-
-def default_decorator(input_):
-    """
-    DEPRICATE
-    This should be the first decorator applied to all Controller functions
-    """
-    func_ = input_
-    # return profile(func_)
-    # return ut.indent_func(profile(func_))
-    return func_
-
-
 # DECORATORS::ADDER
 
 
@@ -401,8 +387,6 @@ def dev_cache_getter(tblname, colname, *args, **kwargs):
 
 # @decorator.decorator
 def adder(func):
-    func_ = default_decorator(func)
-
     @ut.accepts_scalar_input
     @ut.ignores_exc_tb
     def wrp_adder(*args, **kwargs):
@@ -415,7 +399,7 @@ def adder(func):
         if VERB_CONTROL:
             print('[ADD]: ' + get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
-        return func_(*args, **kwargs)
+        return func(*args, **kwargs)
 
     wrp_adder = ut.preserve_sig(wrp_adder, func)
     # wrp_adder = ut.on_exception_report_input(wrp_adder)
@@ -426,15 +410,13 @@ def adder(func):
 
 # @decorator.decorator
 def deleter(func):
-    func_ = default_decorator(func)
-
     @ut.accepts_scalar_input
     @ut.ignores_exc_tb
     def wrp_deleter(*args, **kwargs):
         if VERB_CONTROL:
             print('[DELETE]: ' + get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
-        return func_(*args, **kwargs)
+        return func(*args, **kwargs)
 
     wrp_deleter = ut.preserve_sig(wrp_deleter, func)
     return wrp_deleter
@@ -443,15 +425,7 @@ def deleter(func):
 # DECORATORS::SETTER
 
 # @decorator.decorator
-# def setter_general(func):
-#    func = default_decorator(func)
-#    return func
-
-
-# @decorator.decorator
 def setter(func):
-    func_ = default_decorator(func)
-
     @ut.accepts_scalar_input2(argx_list=[0, 1], outer_wrapper=False)
     @ut.ignores_exc_tb
     def wrp_setter(*args, **kwargs):
@@ -464,7 +438,7 @@ def setter(func):
             print('L------')
             # builtins.print('\n' + funccall_str + '\n')
         # print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
-        return func_(*args, **kwargs)
+        return func(*args, **kwargs)
 
     wrp_setter = ut.preserve_sig(wrp_setter, func)
     # wrp_setter = ut.on_exception_report_input(wrp_setter)
@@ -479,8 +453,6 @@ def getter(func):
     Getter decorator for functions which takes as the first input a unique id
     list and returns a heterogeous list of values
     """
-    # func_ = func
-    func_ = default_decorator(func)
 
     @ut.accepts_scalar_input
     @ut.ignores_exc_tb
@@ -494,7 +466,7 @@ def getter(func):
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
             print('\n' + funccall_str + '\n')
             print('L------')
-        return func_(*args, **kwargs)
+        return func(*args, **kwargs)
 
     wrp_getter = ut.preserve_sig(wrp_getter, func)
     # wrp_getter = ut.on_exception_report_input(wrp_getter)
@@ -507,12 +479,11 @@ def getter_vector_output(func):
     Getter decorator for functions which takes as the first input a unique id
     list and returns a homogenous list of values
     """
-    func_ = default_decorator(func)
 
     @ut.accepts_scalar_input_vector_output
     @ut.ignores_exc_tb
     def getter_vector_wrp(*args, **kwargs):
-        return func_(*args, **kwargs)
+        return func(*args, **kwargs)
 
     getter_vector_wrp = ut.preserve_sig(getter_vector_wrp, func)
     return getter_vector_wrp
@@ -530,13 +501,12 @@ def getter_numpy(func):
     list and returns a heterogeous list of values
     """
     # getter_func = getter(func)
-    func_ = default_decorator(func)
 
     @ut.accepts_numpy
     @ut.accepts_scalar_input
     @ut.ignores_exc_tb
     def getter_numpy_wrp(*args, **kwargs):
-        return func_(*args, **kwargs)
+        return func(*args, **kwargs)
 
     getter_numpy_wrp = ut.preserve_sig(getter_numpy_wrp, func)
     # getter_numpy_wrp = ut.on_exception_report_input(getter_numpy_wrp)
@@ -550,13 +520,12 @@ def getter_numpy_vector_output(func):
     id list and returns a heterogeous list of values
     """
     # getter_func = getter_vector_output(func)
-    func_ = default_decorator(func)
 
     @ut.accepts_numpy
     @ut.accepts_scalar_input_vector_output
     @ut.ignores_exc_tb
     def getter_numpy_vector_wrp(*args, **kwargs):
-        return func_(*args, **kwargs)
+        return func(*args, **kwargs)
 
     getter_numpy_vector_wrp = ut.preserve_sig(getter_numpy_vector_wrp, func)
     return getter_numpy_vector_wrp
@@ -564,8 +533,7 @@ def getter_numpy_vector_output(func):
 
 def ider(func):
     """ This function takes returns ids subject to conditions """
-    ider_func = default_decorator(func)
-    ider_func = ut.preserve_sig(ider_func, func)
+    ider_func = ut.preserve_sig(func, func)
     return ider_func
 
 

@@ -1107,7 +1107,6 @@ def _default_config(ibs, cfgname=None, new=True):
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
 @register_api('/api/query/cfg/', methods=['PUT'])
 def update_query_cfg(ibs, **kwargs):
     r"""
