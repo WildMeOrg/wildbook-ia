@@ -26,8 +26,11 @@ jobs:
 
       - name: Build wheel
         env:
+          # Build and test for cpython >= 3.6 on x86_64 architecture
           CIBW_BUILD: cp3?-*
           CIBW_SKIP: cp35-* *-win32 *-win_amd64 *-manylinux_i686 *-manylinux_aarch64 *-manylinux_ppc64le *-manylinux_s390x
+          # Using manylinux2014 because running the test command requires
+          # pyqt5 which only has wheels for manylinux2014
           CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64
           CIBW_TEST_COMMAND: python -c "import wbia; from wbia.__main__ import main; main()"
         run: |
