@@ -374,17 +374,6 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 
-from wbia.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
-
-# __version__ = VERSION_CURRENT
-__version__ = '2.0.0'
-
-# __version__ = '1.6.0'
-# if __version__ != VERSION_CURRENT:
-#     raise AssertionError(
-#         'need to update version in __init__ file from %r to %r so setup.py can work nicely' % (
-#             __version__, VERSION_CURRENT))
-
 """
 Regen Command:
     Kinda have to work with the output of these. This module is hard to
