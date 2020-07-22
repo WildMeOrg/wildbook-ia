@@ -311,6 +311,8 @@ def reduce_marginalize(phi, query_variables=None, evidence={}, inplace=False):
     Hack for reduction followed by marginalization
 
     Example:
+        >>> # FIXME failing-test (22-Jul-2020) NameError: name 'joint' is not defined
+        >>> # xdoctest: +SKIP
         >>> reduced_joint = joint.observe(
         >>>     query_variables, evidence, inplace=False)
         >>> new_rows = reduced_joint._row_labels()
