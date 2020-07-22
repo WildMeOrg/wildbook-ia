@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.IBEISControl &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.control.IBEISControl &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.control.IBEISControl</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -120,10 +120,10 @@
     <span class="s1">&#39;wbia.control.manual_test_funcs&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.control.manual_species_funcs&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.control.manual_annotgroup_funcs&#39;</span><span class="p">,</span>
-    <span class="c1">#&#39;wbia.control.manual_dependant_funcs&#39;,</span>
+    <span class="c1"># &#39;wbia.control.manual_dependant_funcs&#39;,</span>
     <span class="s1">&#39;wbia.control.manual_chip_funcs&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.control.manual_feat_funcs&#39;</span><span class="p">,</span>
-    <span class="c1">#&#39;wbia.algo.hots.query_request&#39;,</span>
+    <span class="c1"># &#39;wbia.algo.hots.query_request&#39;,</span>
     <span class="s1">&#39;wbia.control.docker_control&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.web.apis_detect&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.web.apis_engine&#39;</span><span class="p">,</span>
@@ -135,10 +135,10 @@
     <span class="s1">&#39;wbia.core_parts&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.algo.smk.vocab_indexer&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.algo.smk.smk_pipeline&#39;</span><span class="p">,</span>
-    <span class="c1"># ((&#39;--no-cnn&#39;, &#39;--nocnn&#39;), &#39;ibeis_cnn&#39;),</span>
-    <span class="c1"># ((&#39;--no-cnn&#39;, &#39;--nocnn&#39;), &#39;ibeis_cnn._plugin&#39;),</span>
+    <span class="c1"># ((&#39;--no-cnn&#39;, &#39;--nocnn&#39;), &#39;wbia_cnn&#39;),</span>
+    <span class="p">((</span><span class="s1">&#39;--no-cnn&#39;</span><span class="p">,</span> <span class="s1">&#39;--nocnn&#39;</span><span class="p">),</span> <span class="s1">&#39;wbia_cnn._plugin&#39;</span><span class="p">),</span>
     <span class="c1"># ((&#39;--no-fluke&#39;, &#39;--nofluke&#39;), &#39;ibeis_flukematch.plugin&#39;),</span>
-    <span class="c1"># ((&#39;--no-curvrank&#39;, &#39;--nocurvrank&#39;), &#39;ibeis_curvrank._plugin&#39;),</span>
+    <span class="c1"># ((&#39;--no-curvrank&#39;, &#39;--nocurvrank&#39;), &#39;wbia_curvrank._plugin&#39;),</span>
     <span class="c1"># &#39;wbia_plugin_identification_example&#39;,</span>
 <span class="p">]</span>
 
@@ -165,6 +165,11 @@
         <span class="p">((</span><span class="s1">&#39;--no-2d-orient&#39;</span><span class="p">,</span> <span class="s1">&#39;--no2dorient&#39;</span><span class="p">),</span> <span class="s1">&#39;wbia_2d_orientation._plugin&#39;</span><span class="p">),</span>
     <span class="p">]</span>
 
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--pie&#39;</span><span class="p">):</span>
+    <span class="n">AUTOLOAD_PLUGIN_MODNAMES</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="p">((</span><span class="s1">&#39;--no-pie&#39;</span><span class="p">,</span> <span class="s1">&#39;--nopie&#39;</span><span class="p">),</span> <span class="s1">&#39;wbia_pie._plugin&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd"># Should import</span>
@@ -189,7 +194,7 @@
         <span class="c1"># ut.import_modname(modname)</span>
         <span class="n">ub</span><span class="o">.</span><span class="n">import_module_from_name</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;ibeis_cnn&#39;</span> <span class="ow">in</span> <span class="n">modname</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;wbia_cnn&#39;</span> <span class="ow">in</span> <span class="n">modname</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">warnings</span>
 
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to load plugin: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="p">))</span>
@@ -705,7 +710,6 @@
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span>
             <span class="n">fpath</span><span class="o">=</span><span class="n">sqldb_fpath</span><span class="p">,</span>
-            <span class="n">text_factory</span><span class="o">=</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span>
             <span class="n">inmemory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
             <span class="n">always_check_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -795,7 +799,6 @@
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span>
             <span class="n">fpath</span><span class="o">=</span><span class="n">sqlstaging_fpath</span><span class="p">,</span>
-            <span class="n">text_factory</span><span class="o">=</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span>
             <span class="n">inmemory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
             <span class="n">always_check_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1179,12 +1182,11 @@
 <span class="sd">            &gt;&gt;&gt; from wbia.control.IBEISControl import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; import wbia</span>
 <span class="sd">            &gt;&gt;&gt; import wbia.web</span>
-<span class="sd">            &gt;&gt;&gt; web_ibs = wbia.opendb_bg_web(&#39;testdb1&#39;, wait=.5, start_job_queue=False)</span>
-<span class="sd">            &gt;&gt;&gt; resp = web_ibs.send_wbia_request(&#39;/log/current/&#39;, &#39;get&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;testdb1&#39;, start_job_queue=False, managed=True) as web_ibs:</span>
+<span class="sd">            ...     resp = web_ibs.send_wbia_request(&#39;/log/current/&#39;, &#39;get&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; print(&#39;\n-------Logs ----: \n&#39; )</span>
 <span class="sd">            &gt;&gt;&gt; print(resp)</span>
 <span class="sd">            &gt;&gt;&gt; print(&#39;\nL____ END LOGS ___\n&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; web_ibs.terminate2()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_current_log_text</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">text</span></div>
@@ -1255,7 +1257,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># HACK: (this should probably be a db setting)</span>
                 <span class="c1"># use an specific aid to get the icon</span>
-                <span class="n">aid</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Oxford&#39;</span><span class="p">:</span> <span class="mi">73</span><span class="p">,</span> <span class="s1">&#39;seaturtles&#39;</span><span class="p">:</span> <span class="mi">37</span><span class="p">,}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Oxford&#39;</span><span class="p">:</span> <span class="mi">73</span><span class="p">,</span> <span class="s1">&#39;seaturtles&#39;</span><span class="p">:</span> <span class="mi">37</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># otherwise just grab a random aid</span>
                     <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
@@ -1370,7 +1372,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -1429,15 +1431,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

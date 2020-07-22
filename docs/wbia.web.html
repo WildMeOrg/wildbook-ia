@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web package &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.web package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -18,22 +18,22 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.web.futures_utils package" href="wbia.web.futures_utils.html" />
     <link rel="prev" title="wbia.viz.interact package" href="wbia.viz.interact.html" />
-
+   
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <div class="section" id="wbia-web-package">
 <h1>wbia.web package<a class="headerlink" href="#wbia-web-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="subpackages">
@@ -66,10 +66,9 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># WEB_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/src/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/src/1/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -92,10 +91,9 @@ URL:    /api/annot/src/&lt;rowid&gt;/</dd>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># WEB_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/src/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/background/src/1/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -125,7 +123,7 @@ python -m wbia.web.apis –exec-hello_world:1</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="n">browser</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url_suffix</span><span class="o">=</span><span class="s1">&#39;/api/test/helloworld/?test0=0&#39;</span><span class="p">)</span>  <span class="c1"># start_job_queue=False)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;web_ibs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_ibs</span><span class="p">,))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Server will run until control c&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#web_ibs.terminate2()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -135,19 +133,18 @@ python -m wbia.web.apis –exec-hello_world:1</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">requests</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_port</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_web_port_via_scan</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">web_port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;IA web server is not running on any expected port&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">domain</span> <span class="o">=</span> <span class="s1">&#39;http://127.0.0.1:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_port</span><span class="p">,</span> <span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="n">domain</span> <span class="o">+</span> <span class="s1">&#39;/api/test/helloworld/?test0=0&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;test1&#39;</span> <span class="p">:</span> <span class="s1">&#39;test1&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;test2&#39;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># NOTICE test2 DOES NOT SHOW UP</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">web_port</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_web_port_via_scan</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">web_port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;IA web server is not running on any expected port&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">domain</span> <span class="o">=</span> <span class="s1">&#39;http://127.0.0.1:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_port</span><span class="p">,</span> <span class="p">)</span>
+<span class="gp">... </span>    <span class="n">url</span> <span class="o">=</span> <span class="n">domain</span> <span class="o">+</span> <span class="s1">&#39;/api/test/helloworld/?test0=0&#39;</span>
+<span class="gp">... </span>    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>        <span class="s1">&#39;test1&#39;</span> <span class="p">:</span> <span class="s1">&#39;test1&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">&#39;test2&#39;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># NOTICE test2 DOES NOT SHOW UP</span>
+<span class="gp">... </span>    <span class="p">}</span>
+<span class="gp">... </span>    <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd>
@@ -182,10 +179,9 @@ URL:    /api/image/feature/json/&lt;uuid&gt;/</dd>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># xdoctest: +REQUIRES(--web)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/image/src/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/image/src/1/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -203,10 +199,9 @@ URL:    /api/image/src/&lt;rowid&gt;/</dd>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># xdoctest: +REQUIRES(--web)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/image/src/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/image/src/json/1/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -920,28 +915,27 @@ python -m wbia.web.apis_engine –exec-start_identify_annots:1 –domain <a clas
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># xdoctest: +REQUIRES(--web)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.apis_engine</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">uuid_list</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/uuid/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">quuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--quuids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">duuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--duuids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">quuid_list</span><span class="p">,</span> <span class="n">dannot_uuid_list</span><span class="o">=</span><span class="n">duuid_list</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">pipecfg</span><span class="o">=</span><span class="p">{},</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">callback_url</span><span class="o">=</span><span class="s1">&#39;http://127.0.1.1:5832&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Start callback server</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bgserver</span> <span class="o">=</span> <span class="n">ensure_simple_server</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># --</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">jobid</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/annot/rowid/&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">status_response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">wait_for_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">delays</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">30</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;status_response = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status_response</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result_response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">read_engine_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result_response = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result_response</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_dict</span> <span class="o">=</span> <span class="n">result_response</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finished test&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bgserver</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="gp">... </span>    <span class="n">aids</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">uuid_list</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/uuid/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">quuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--quuids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">duuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--duuids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">quuid_list</span><span class="p">,</span> <span class="n">dannot_uuid_list</span><span class="o">=</span><span class="n">duuid_list</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">pipecfg</span><span class="o">=</span><span class="p">{},</span>
+<span class="gp">... </span>        <span class="n">callback_url</span><span class="o">=</span><span class="s1">&#39;http://127.0.1.1:5832&#39;</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span>    <span class="c1"># Start callback server</span>
+<span class="gp">... </span>    <span class="n">bgserver</span> <span class="o">=</span> <span class="n">ensure_simple_server</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="c1"># --</span>
+<span class="gp">... </span>    <span class="n">jobid</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/annot/rowid/&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">status_response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">wait_for_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">delays</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">30</span><span class="p">])</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;status_response = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status_response</span><span class="p">,))</span>
+<span class="gp">... </span>    <span class="n">result_response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">read_engine_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result_response = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result_response</span><span class="p">,))</span>
+<span class="gp">... </span>    <span class="n">cm_dict</span> <span class="o">=</span> <span class="n">result_response</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finished test&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">bgserver</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -997,30 +991,29 @@ python -m wbia.web.apis_engine start_identify_annots_query –show –domain=loc
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1">#domain = &#39;localhost&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">domain</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">domain</span><span class="p">)</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">uuid_list</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/uuid/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">quuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--quuids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">duuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--duuids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
-<span class="gp">&gt;&gt;&gt; </span>   <span class="c1">#&#39;pipeline_root&#39; : &#39;BC_DTW&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">query_annot_uuid_list</span><span class="o">=</span><span class="n">quuid_list</span><span class="p">,</span> <span class="n">database_annot_uuid_list</span><span class="o">=</span><span class="n">duuid_list</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">query_config_dict</span><span class="o">=</span><span class="n">query_config_dict</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">jobid</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/graph/&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;jobid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">status_response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">wait_for_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result_response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">read_engine_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result_response = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">result_response</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">inference_result</span> <span class="o">=</span> <span class="n">result_response</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inference_result</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>   <span class="nb">print</span><span class="p">(</span><span class="n">inference_result</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_dict</span> <span class="o">=</span> <span class="n">inference_result</span><span class="p">[</span><span class="s1">&#39;cm_dict&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">quuid</span> <span class="o">=</span> <span class="n">quuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span> <span class="o">=</span> <span class="n">cm_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">quuid</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">domain</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="gp">... </span>    <span class="n">aids</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">uuid_list</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/uuid/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">quuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--quuids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">duuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--duuids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>       <span class="c1">#&#39;pipeline_root&#39; : &#39;BC_DTW&#39;</span>
+<span class="gp">... </span>    <span class="p">}</span>
+<span class="gp">... </span>    <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">query_annot_uuid_list</span><span class="o">=</span><span class="n">quuid_list</span><span class="p">,</span> <span class="n">database_annot_uuid_list</span><span class="o">=</span><span class="n">duuid_list</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">query_config_dict</span><span class="o">=</span><span class="n">query_config_dict</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span>    <span class="n">jobid</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/graph/&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;jobid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
+<span class="gp">... </span>    <span class="n">status_response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">wait_for_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result_response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">read_engine_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result_response = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">result_response</span><span class="p">),))</span>
+<span class="gp">... </span>    <span class="n">inference_result</span> <span class="o">=</span> <span class="n">result_response</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inference_result</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+<span class="gp">... </span>       <span class="nb">print</span><span class="p">(</span><span class="n">inference_result</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">cm_dict</span> <span class="o">=</span> <span class="n">inference_result</span><span class="p">[</span><span class="s1">&#39;cm_dict&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">quuid</span> <span class="o">=</span> <span class="n">quuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">cm</span> <span class="o">=</span> <span class="n">cm_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">quuid</span><span class="p">)]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2822,7 +2815,7 @@ enum:
 
 <dl class="function">
 <dt id="wbia.web.apis_microsoft.microsoft_detect_batch">
-<code class="descclassname">wbia.web.apis_microsoft.</code><code class="descname">microsoft_detect_batch</code><span class="sig-paren">(</span><em>ibs</em>, <em>images</em>, <em>model</em>, <em>score_threshold=0.0</em>, <em>use_nms=True</em>, <em>nms_threshold=0.4</em>, <em>async_=True</em>, <em>callback_url=None</em>, <em>callback_method=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_detect_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_detect_batch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">wbia.web.apis_microsoft.</code><code class="descname">microsoft_detect_batch</code><span class="sig-paren">(</span><em>ibs</em>, <em>images</em>, <em>model</em>, <em>score_threshold=0.0</em>, <em>use_nms=True</em>, <em>nms_threshold=0.4</em>, <em>asynchronous=True</em>, <em>callback_url=None</em>, <em>callback_method=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_detect_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_detect_batch" title="Permalink to this definition">¶</a></dt>
 <dd><p>The asynchronous variant of POST ‘detect’ that takes in a list of Image models and returns a task ID.</p>
 <p>It may be more ideal for a particular application to upload many images at one time and perform processing later in a large batch.  This type of batch detection is certainly much more efficient because the detection on GPU can process more images in parallel.  However, if you intend to run the detector on an upload as quickly as possible, please use the on-demand, non-batched API.
 —
@@ -4035,6 +4028,11 @@ python -m wbia.web.apis_query review_graph_match_html –show –domain=localhos
 <code class="descclassname">wbia.web.apis_sync.</code><code class="descname">sync_get_training_data</code><span class="sig-paren">(</span><em>ibs</em>, <em>species_name</em>, <em>force_update=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_sync.html#sync_get_training_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_sync.sync_get_training_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="function">
+<dt id="wbia.web.apis_sync.sync_get_training_data_uuid_list">
+<code class="descclassname">wbia.web.apis_sync.</code><code class="descname">sync_get_training_data_uuid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>auuid_list</em>, <em>force_update=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_sync.html#sync_get_training_data_uuid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_sync.sync_get_training_data_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-wbia.web.app">
 <span id="wbia-web-app-module"></span><h2>wbia.web.app module<a class="headerlink" href="#module-wbia.web.app" title="Permalink to this headline">¶</a></h2>
@@ -4259,7 +4257,7 @@ python -m wbia.tag_funcs –exec-start_web_annot_groupreview –db GIRM_Master1<
 <dl class="class">
 <dt id="wbia.web.graph_server.GraphActor">
 <em class="property">class </em><code class="descclassname">wbia.web.graph_server.</code><code class="descname">GraphActor</code><a class="reference internal" href="_modules/wbia/web/graph_server.html#GraphActor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.graph_server.GraphActor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">futures_actors.thread_actor.ThreadActor</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">futures_actors.process_actor.ProcessActor</span></code></p>
 <dl class="docutils">
 <dt>CommandLine:</dt>
 <dd>python -m wbia.web.graph_server GraphActor</dd>
@@ -4726,10 +4724,9 @@ python -m wbia.web.job_engine –exec-get_job_status:0 –fg</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># xdoctest: +REQUIRES(--web)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.job_engine</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Test get status of a job id that does not exist</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="s1">&#39;badjob&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="gp">... </span>    <span class="c1"># Test get status of a job id that does not exist</span>
+<span class="gp">... </span>    <span class="n">response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="s1">&#39;badjob&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4755,10 +4752,9 @@ python -m wbia.web.job_engine –exec-get_job_metadata:0 –fg</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># WEB_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.job_engine</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Test get metadata of a job id that does not exist</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/metadata/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="s1">&#39;badjob&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="gp">... </span>    <span class="c1"># Test get metadata of a job id that does not exist</span>
+<span class="gp">... </span>    <span class="n">response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/metadata/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="s1">&#39;badjob&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4797,10 +4793,9 @@ python -m wbia.web.job_engine –exec-get_job_status:0 –fg</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># xdoctest: +REQUIRES(--web)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.job_engine</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Test get status of a job id that does not exist</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/status/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="s1">&#39;badjob&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="gp">... </span>    <span class="c1"># Test get status of a job id that does not exist</span>
+<span class="gp">... </span>    <span class="n">response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/status/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="s1">&#39;badjob&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4850,20 +4845,19 @@ that can talk to the background processes.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.web.job_engine</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">requests</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_instance</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_port</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_web_port_via_scan</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">web_port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;IA web server is not running on any expected port&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">baseurl</span> <span class="o">=</span> <span class="s1">&#39;http://127.0.1.1:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_port</span><span class="p">,</span> <span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">_payload</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;image_attrs_list&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;annot_attrs_list&#39;</span><span class="p">:</span> <span class="p">[]}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">payload</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">,</span> <span class="n">_payload</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">resp1</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">baseurl</span> <span class="o">+</span> <span class="s1">&#39;/api/test/helloworld/?f=b&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#resp2 = requests.post(baseurl + &#39;/api/image/json/&#39;, data=payload)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#print(resp2)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#json_dict = resp2.json()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#text = json_dict[&#39;response&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#print(text)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_instance</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">web_port</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_web_port_via_scan</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">web_port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;IA web server is not running on any expected port&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">baseurl</span> <span class="o">=</span> <span class="s1">&#39;http://127.0.1.1:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_port</span><span class="p">,</span> <span class="p">)</span>
+<span class="gp">... </span>    <span class="n">_payload</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;image_attrs_list&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;annot_attrs_list&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+<span class="gp">... </span>    <span class="n">payload</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">,</span> <span class="n">_payload</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">resp1</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">baseurl</span> <span class="o">+</span> <span class="s1">&#39;/api/test/helloworld/?f=b&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="c1">#resp2 = requests.post(baseurl + &#39;/api/image/json/&#39;, data=payload)</span>
+<span class="gp">... </span>    <span class="c1">#print(resp2)</span>
+<span class="gp">... </span>    <span class="c1">#json_dict = resp2.json()</span>
+<span class="gp">... </span>    <span class="c1">#text = json_dict[&#39;response&#39;]</span>
+<span class="gp">... </span>    <span class="c1">#print(text)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4924,6 +4918,11 @@ python -m wbia.web.job_engine job_engine_tester –fg</p>
 <code class="descclassname">wbia.web.job_engine.</code><code class="descname">rcv_multipart_json</code><span class="sig-paren">(</span><em>sock</em>, <em>num=2</em>, <em>print=&lt;function make_module_print_func.&lt;locals&gt;.print&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/job_engine.html#rcv_multipart_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.job_engine.rcv_multipart_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>helper</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="wbia.web.job_engine.retry_job">
+<code class="descclassname">wbia.web.job_engine.</code><code class="descname">retry_job</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/job_engine.html#retry_job"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.job_engine.retry_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="wbia.web.job_engine.send_multipart_json">
@@ -5178,9 +5177,8 @@ python -m wbia.web.routes turk_identification –db testdb1 –show</dd>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.other.ibsfuncs</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">resp</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/turk/identification/lnbnn/&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">resp</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/turk/identification/lnbnn/&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">render_html</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
@@ -5204,9 +5202,8 @@ python -m wbia.web.routes turk_identification_graph –db testdb1 –show</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.other.ibsfuncs</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">resp</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/turk/identification/graph/&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">resp</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/turk/identification/graph/&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">render_html</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
@@ -5230,9 +5227,8 @@ python -m wbia –db PZ_MTEST –web –browser –url=/turk/identification/grap
 <div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.other.ibsfuncs</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">resp</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/turk/identification/hardcase/&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">resp</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/turk/identification/hardcase/&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd>
@@ -5788,7 +5784,7 @@ python -m wbia.web.app –exec-turk_quality –db GIRM_Master1</dd>
 
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -5881,18 +5877,18 @@ python -m wbia.web.app –exec-turk_quality –db GIRM_Master1</dd>
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
       |
       <a href="_sources/wbia.web.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

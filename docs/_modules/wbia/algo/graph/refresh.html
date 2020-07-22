@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.refresh &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.algo.graph.refresh &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.algo.graph.refresh</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
@@ -192,36 +192,36 @@
 
 <div class="viewcode-block" id="RefreshCriteria.ave"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.refresh.RefreshCriteria.ave">[docs]</a>    <span class="k">def</span> <span class="nf">ave</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.refresh import *  # NOQA</span>
-<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph import demo</span>
-<span class="sd">            &gt;&gt;&gt; infr = demo.demodata_infr(num_pccs=40, size=4, size_std=2, ignore_pair=True)</span>
-<span class="sd">            &gt;&gt;&gt; edges = list(infr.dummy_verif.find_candidate_edges(K=100))</span>
-<span class="sd">            &gt;&gt;&gt; scores = np.array(infr.dummy_verif.predict_edges(edges))</span>
-<span class="sd">            &gt;&gt;&gt; #sortx = ut.shuffle(np.arange(len(edges)), rng=321)</span>
-<span class="sd">            &gt;&gt;&gt; sortx = scores.argsort()[::-1]</span>
-<span class="sd">            &gt;&gt;&gt; edges = ut.take(edges, sortx)</span>
-<span class="sd">            &gt;&gt;&gt; scores = scores[sortx]</span>
-<span class="sd">            &gt;&gt;&gt; ys = infr.match_state_df(edges)[POSTV].values</span>
-<span class="sd">            &gt;&gt;&gt; y_remainsum = ys[::-1].cumsum()[::-1]</span>
-<span class="sd">            &gt;&gt;&gt; refresh = RefreshCriteria(window=250)</span>
-<span class="sd">            &gt;&gt;&gt; ma1 = []</span>
-<span class="sd">            &gt;&gt;&gt; ma2 = []</span>
-<span class="sd">            &gt;&gt;&gt; reals = []</span>
-<span class="sd">            &gt;&gt;&gt; xdata = []</span>
-<span class="sd">            &gt;&gt;&gt; for count, (edge, y) in enumerate(zip(edges, ys)):</span>
-<span class="sd">            &gt;&gt;&gt;     refresh.add(y, user_id=&#39;user:oracle&#39;)</span>
-<span class="sd">            &gt;&gt;&gt;     ma1.append(refresh._ewma)</span>
-<span class="sd">            &gt;&gt;&gt;     ma2.append(refresh.pos_frac)</span>
-<span class="sd">            &gt;&gt;&gt;     n_real = y_remainsum[count] / (len(edges) - count)</span>
-<span class="sd">            &gt;&gt;&gt;     reals.append(n_real)</span>
-<span class="sd">            &gt;&gt;&gt;     xdata.append(count + 1)</span>
-<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
-<span class="sd">            &gt;&gt;&gt; import wbia.plottool as pt</span>
-<span class="sd">            &gt;&gt;&gt; pt.qtensure()</span>
-<span class="sd">            &gt;&gt;&gt; pt.multi_plot(xdata, [ma1, ma2, reals], marker=&#39;&#39;,</span>
-<span class="sd">            &gt;&gt;&gt;               label_list=[&#39;exp&#39;, &#39;win&#39;, &#39;real&#39;], xlabel=&#39;review num&#39;,</span>
-<span class="sd">            &gt;&gt;&gt;               ylabel=&#39;mu&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.graph.refresh import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.graph import demo</span>
+<span class="sd">        &gt;&gt;&gt; infr = demo.demodata_infr(num_pccs=40, size=4, size_std=2, ignore_pair=True)</span>
+<span class="sd">        &gt;&gt;&gt; edges = list(infr.dummy_verif.find_candidate_edges(K=100))</span>
+<span class="sd">        &gt;&gt;&gt; scores = np.array(infr.dummy_verif.predict_edges(edges))</span>
+<span class="sd">        &gt;&gt;&gt; #sortx = ut.shuffle(np.arange(len(edges)), rng=321)</span>
+<span class="sd">        &gt;&gt;&gt; sortx = scores.argsort()[::-1]</span>
+<span class="sd">        &gt;&gt;&gt; edges = ut.take(edges, sortx)</span>
+<span class="sd">        &gt;&gt;&gt; scores = scores[sortx]</span>
+<span class="sd">        &gt;&gt;&gt; ys = infr.match_state_df(edges)[POSTV].values</span>
+<span class="sd">        &gt;&gt;&gt; y_remainsum = ys[::-1].cumsum()[::-1]</span>
+<span class="sd">        &gt;&gt;&gt; refresh = RefreshCriteria(window=250)</span>
+<span class="sd">        &gt;&gt;&gt; ma1 = []</span>
+<span class="sd">        &gt;&gt;&gt; ma2 = []</span>
+<span class="sd">        &gt;&gt;&gt; reals = []</span>
+<span class="sd">        &gt;&gt;&gt; xdata = []</span>
+<span class="sd">        &gt;&gt;&gt; for count, (edge, y) in enumerate(zip(edges, ys)):</span>
+<span class="sd">        &gt;&gt;&gt;     refresh.add(y, user_id=&#39;user:oracle&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;     ma1.append(refresh._ewma)</span>
+<span class="sd">        &gt;&gt;&gt;     ma2.append(refresh.pos_frac)</span>
+<span class="sd">        &gt;&gt;&gt;     n_real = y_remainsum[count] / (len(edges) - count)</span>
+<span class="sd">        &gt;&gt;&gt;     reals.append(n_real)</span>
+<span class="sd">        &gt;&gt;&gt;     xdata.append(count + 1)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.qtensure()</span>
+<span class="sd">        &gt;&gt;&gt; pt.multi_plot(xdata, [ma1, ma2, reals], marker=&#39;&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;               label_list=[&#39;exp&#39;, &#39;win&#39;, &#39;real&#39;], xlabel=&#39;review num&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;               ylabel=&#39;mu&#39;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;exp&#39;</span><span class="p">:</span>
             <span class="c1"># Compute exponentially weighted moving average</span>
@@ -280,7 +280,7 @@
             <span class="k">break</span>
     <span class="n">xdata</span> <span class="o">=</span> <span class="n">xdata</span>
     <span class="n">ydatas</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
-        <span class="p">[(</span><span class="s1">&#39;Est. probability any remain&#39;</span><span class="p">,</span> <span class="n">pprob_any</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Fraction remaining&#39;</span><span class="p">,</span> <span class="n">rfrac_any</span><span class="p">),]</span>
+        <span class="p">[(</span><span class="s1">&#39;Est. probability any remain&#39;</span><span class="p">,</span> <span class="n">pprob_any</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Fraction remaining&#39;</span><span class="p">,</span> <span class="n">rfrac_any</span><span class="p">)]</span>
     <span class="p">)</span>
 
     <span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
@@ -718,7 +718,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -779,15 +779,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

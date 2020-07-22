@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.guitool.api_button_delegate &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.guitool.api_button_delegate &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.guitool.api_button_delegate</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -96,8 +96,10 @@
         <span class="n">dgt</span><span class="o">.</span><span class="n">button_clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dgt</span><span class="o">.</span><span class="n">on_button_click</span><span class="p">)</span>
 
 <div class="viewcode-block" id="APIButtonDelegate.get_index_butkw"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_button_delegate.APIButtonDelegate.get_index_butkw">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_butkw</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; The model data for a button should be a (text, callback) tuple.  OR</span>
-<span class="sd">        it could be a function which accepts an qtindex and returns a button &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The model data for a button should be a (text, callback) tuple.  OR</span>
+<span class="sd">        it could be a function which accepts an qtindex and returns a button</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">)</span>
         <span class="c1"># Get info</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
@@ -109,7 +111,7 @@
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;bad type&#39;</span><span class="p">)</span>
         <span class="n">text</span><span class="p">,</span> <span class="n">callback</span> <span class="o">=</span> <span class="n">buttontup</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">butkw</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="c1">#&#39;parent&#39;: dgt.parent(),</span>
+            <span class="c1"># &#39;parent&#39;: dgt.parent(),</span>
             <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
             <span class="s1">&#39;clicked&#39;</span><span class="p">:</span> <span class="n">callback</span><span class="p">,</span>
         <span class="p">}</span>
@@ -180,7 +182,7 @@
             <span class="k">return</span> <span class="n">DELEGATE_BASE</span><span class="o">.</span><span class="n">editorEvent</span><span class="p">(</span><span class="n">dgt</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span></div></div>
 
 
-<span class="c1">## graveyard:</span>
+<span class="c1"># # graveyard:</span>
 <span class="c1">#    #opt = QtWidgets.QStyleOptionViewItemV4(option)</span>
 <span class="c1">#    #opt.initFrom(button)</span>
 <span class="c1">#    #painter.drawRect(option.rect)</span>
@@ -239,7 +241,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -298,15 +300,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

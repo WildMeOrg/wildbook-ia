@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.dtool.depcache_table &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.dtool.depcache_table &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.dtool.depcache_table</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -56,16 +56,19 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
-<span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
-<span class="kn">from</span> <span class="nn">wbia.dtool.sql_control</span> <span class="k">import</span> <span class="n">SQLDatabaseController</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
-<span class="kn">from</span> <span class="nn">wbia.dtool</span> <span class="k">import</span> <span class="n">__SQLITE__</span> <span class="k">as</span> <span class="n">lite</span>  <span class="c1"># NOQA</span>
-<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
-<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">wbia.dtool.sql_control</span> <span class="k">import</span> <span class="n">SQLDatabaseController</span>
+<span class="kn">from</span> <span class="nn">wbia.dtool.types</span> <span class="k">import</span> <span class="n">TYPE_TO_SQLTYPE</span>
+
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[depcache_table]&#39;</span><span class="p">)</span>
 
@@ -705,7 +708,7 @@
             <span class="n">is_functup</span> <span class="o">=</span> <span class="n">is_tuple</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_func_or_method</span><span class="p">(</span><span class="n">coltype</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">is_exttype</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coltype</span><span class="p">,</span> <span class="n">ExternType</span><span class="p">)</span>
             <span class="c1"># Check column input main types</span>
-            <span class="n">is_normal</span> <span class="o">=</span> <span class="n">coltype</span> <span class="ow">in</span> <span class="n">lite</span><span class="o">.</span><span class="n">TYPE_TO_SQLTYPE</span>
+            <span class="n">is_normal</span> <span class="o">=</span> <span class="n">coltype</span> <span class="ow">in</span> <span class="n">TYPE_TO_SQLTYPE</span>
             <span class="c1"># is_normal   = not (is_tuple or is_func)</span>
             <span class="n">isnested</span> <span class="o">=</span> <span class="n">is_tuple</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_func</span> <span class="ow">or</span> <span class="n">is_externtup</span><span class="p">)</span>
             <span class="n">is_external</span> <span class="o">=</span> <span class="n">is_func</span> <span class="ow">or</span> <span class="n">is_functup</span> <span class="ow">or</span> <span class="n">is_externtup</span> <span class="ow">or</span> <span class="n">is_exttype</span>
@@ -715,7 +718,7 @@
             <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;data_colx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_colx</span>
             <span class="k">if</span> <span class="n">is_normal</span><span class="p">:</span>
                 <span class="c1"># Normal non-nested column</span>
-                <span class="n">sqltype</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">TYPE_TO_SQLTYPE</span><span class="p">[</span><span class="n">coltype</span><span class="p">]</span>
+                <span class="n">sqltype</span> <span class="o">=</span> <span class="n">TYPE_TO_SQLTYPE</span><span class="p">[</span><span class="n">coltype</span><span class="p">]</span>
                 <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;intern_colname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">colname</span>
                 <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;sqltype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sqltype</span>
                 <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;is_normal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">is_normal</span>
@@ -727,7 +730,7 @@
                     <span class="n">nestattr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">()</span>
                     <span class="n">nestattrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nestattr</span><span class="p">)</span>
                     <span class="n">flat_colname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
-                    <span class="n">sqltype</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">TYPE_TO_SQLTYPE</span><span class="p">[</span><span class="n">subtype</span><span class="p">]</span>
+                    <span class="n">sqltype</span> <span class="o">=</span> <span class="n">TYPE_TO_SQLTYPE</span><span class="p">[</span><span class="n">subtype</span><span class="p">]</span>
                     <span class="n">nestattr</span><span class="p">[</span><span class="s1">&#39;flat_colname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_colname</span>
                     <span class="n">nestattr</span><span class="p">[</span><span class="s1">&#39;sqltype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sqltype</span>
             <span class="k">elif</span> <span class="n">is_external</span><span class="p">:</span>
@@ -751,7 +754,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">read_func</span> <span class="o">=</span> <span class="n">coltype</span>
                 <span class="n">intern_colname</span> <span class="o">=</span> <span class="n">colname</span> <span class="o">+</span> <span class="n">EXTERN_SUFFIX</span>
-                <span class="n">sqltype</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">TYPE_TO_SQLTYPE</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+                <span class="n">sqltype</span> <span class="o">=</span> <span class="n">TYPE_TO_SQLTYPE</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
                 <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;is_external&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;intern_colname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">intern_colname</span>
                 <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;write_func&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">write_func</span>
@@ -763,7 +766,7 @@
                     <span class="n">coltype</span><span class="p">,</span> <span class="s1">&#39;__setstate__&#39;</span>
                 <span class="p">),</span> <span class="p">(</span><span class="s1">&#39;External classes must have __getstate__ and &#39;</span> <span class="s1">&#39;__setstate__ methods&#39;</span><span class="p">)</span>
                 <span class="n">read_func</span><span class="p">,</span> <span class="n">write_func</span> <span class="o">=</span> <span class="n">make_extern_io_funcs</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">coltype</span><span class="p">)</span>
-                <span class="n">sqltype</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">TYPE_TO_SQLTYPE</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+                <span class="n">sqltype</span> <span class="o">=</span> <span class="n">TYPE_TO_SQLTYPE</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
                 <span class="n">intern_colname</span> <span class="o">=</span> <span class="n">colname</span> <span class="o">+</span> <span class="n">EXTERN_SUFFIX</span>
                 <span class="c1"># raise AssertionError(&#39;external class columns&#39;)</span>
                 <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;is_external&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
@@ -871,14 +874,14 @@
                     <span class="p">{</span>
                         <span class="s1">&#39;intern_colname&#39;</span><span class="p">:</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">INPUT_SIZE_SUFFIX</span><span class="p">,</span>
                         <span class="s1">&#39;sqltype&#39;</span><span class="p">:</span> <span class="s1">&#39;INTEGER NOT NULL&#39;</span><span class="p">,</span>
-                        <span class="c1">#&#39;doc&#39;: &#39;size of an input set for this model&#39;,</span>
+                        <span class="c1"># &#39;doc&#39;: &#39;size of an input set for this model&#39;,</span>
                     <span class="p">}</span>
                 <span class="p">]</span>
                 <span class="c1"># File that maintains manifest of model inputs</span>
                 <span class="c1"># INPUT_FPATH_SUFFIX = &#39;setfpath&#39;</span>
                 <span class="c1"># extra_cols += [{</span>
-                <span class="c1">#&#39;intern_colname&#39;: prefix + &#39;_&#39; + INPUT_FPATH_SUFFIX,</span>
-                <span class="c1">#&#39;sqltype&#39;: &#39;TEXT&#39;</span>
+                <span class="c1"># &#39;intern_colname&#39;: prefix + &#39;_&#39; + INPUT_FPATH_SUFFIX,</span>
+                <span class="c1"># &#39;sqltype&#39;: &#39;TEXT&#39;</span>
                 <span class="c1"># }]</span>
                 <span class="n">colattr</span><span class="p">[</span><span class="s1">&#39;extra_cols&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extra_cols</span>
                 <span class="c1"># colattr[&#39;issuper&#39;] = True</span>
@@ -1754,7 +1757,6 @@
 <span class="sd">            &gt;&gt;&gt; data = depc.get(&#39;indexer&#39;, [[1, 2, 3]], &#39;data&#39;, _debug=True)</span>
 <span class="sd">            &gt;&gt;&gt; depc.print_all_tables()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_parent_ids</span><span class="p">)</span>
         <span class="n">chunksize</span> <span class="o">=</span> <span class="n">nInput</span> <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">chunksize</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">table</span><span class="o">.</span><span class="n">chunksize</span>
 
@@ -2921,7 +2923,7 @@
     <span class="c1"># unique_args_list = [unique_configs]</span>
 
     <span class="c1"># raw_prop_lists = []</span>
-    <span class="c1">##func = ut.partial(table.preproc_func, table.depc)</span>
+    <span class="c1"># # func = ut.partial(table.preproc_func, table.depc)</span>
     <span class="c1"># def groupmap_func(group_args, unique_args):</span>
     <span class="c1">#    config_ = unique_args[0]</span>
     <span class="c1">#    argsT = group_args</span>
@@ -2954,8 +2956,10 @@
         <span class="n">keepwrap</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">showprog</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Access data in this table using the table PRIMARY KEY rowids (not</span>
-<span class="sd">        depc PRIMARY ids) &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Access data in this table using the table PRIMARY KEY rowids (not</span>
+<span class="sd">        depc PRIMARY ids)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">prop_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
             <span class="n">colnames</span><span class="p">,</span>
@@ -3035,7 +3039,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -3092,15 +3096,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

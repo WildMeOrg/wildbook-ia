@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.smk package &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.algo.smk package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -18,22 +18,22 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.algo.verif package" href="wbia.algo.verif.html" />
     <link rel="prev" title="wbia.algo.preproc package" href="wbia.algo.preproc.html" />
-
+   
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <div class="section" id="wbia-algo-smk-package">
 <h1>wbia.algo.smk package<a class="headerlink" href="#wbia-algo-smk-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
@@ -784,7 +784,8 @@ the number of features to from 12.5M to 19.2M by lowering feature detection thre
 <dl class="method">
 <dt id="wbia.algo.smk.script_smk.SMK.gamma">
 <code class="descname">gamma</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/smk/script_smk.html#SMK.gamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.smk.script_smk.SMK.gamma" title="Permalink to this definition">¶</a></dt>
-<dd><p>gamma(X) = (M(X, X)) ** (-1/2)</p>
+<dd><p>Compute gamma of X</p>
+<p>gamma(X) = (M(X, X)) ** (-1/2)</p>
 </dd></dl>
 
 <dl class="method">
@@ -869,8 +870,12 @@ the number of features to from 12.5M to 19.2M by lowering feature detection thre
 <dl class="function">
 <dt id="wbia.algo.smk.script_smk.load_internal_data">
 <code class="descclassname">wbia.algo.smk.script_smk.</code><code class="descname">load_internal_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/smk/script_smk.html#load_internal_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.smk.script_smk.load_internal_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia TestResult –db Oxford         -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None         -a oxford         –dev-mode</p>
-<p>wbia TestResult –db GZ_Master1         -p smk:nWords=[64000],nAssign=[1],SV=[False],fg_on=False         -a ctrl:qmingt=2         –dev-mode</p>
+<dd><dl class="docutils">
+<dt>wbia TestResult –db Oxford </dt>
+<dd>-p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None -a oxford –dev-mode</dd>
+<dt>wbia TestResult –db GZ_Master1 </dt>
+<dd>-p smk:nWords=[64000],nAssign=[1],SV=[False],fg_on=False -a ctrl:qmingt=2 –dev-mode</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -2109,7 +2114,7 @@ makeinit.py –modname=wbia.algo.smk</p>
 
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -2204,18 +2209,18 @@ makeinit.py –modname=wbia.algo.smk</p>
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
       |
       <a href="_sources/wbia.algo.smk.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

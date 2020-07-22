@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.routes &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.web.routes &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.web.routes</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -175,8 +175,8 @@
                 <span class="s1">&#39;drew.blount&#39;</span><span class="p">,</span>
             <span class="p">],</span>
         <span class="p">),</span>
-        <span class="s1">&#39;kitware&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;Kitware&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jon.crall&#39;</span><span class="p">,],),</span>
-        <span class="s1">&#39;ctrl-h&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;CTRL-H&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jon.hannis&#39;</span><span class="p">,</span> <span class="s1">&#39;melinda.hannis&#39;</span><span class="p">,],),</span>
+        <span class="s1">&#39;kitware&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;Kitware&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jon.crall&#39;</span><span class="p">],),</span>
+        <span class="s1">&#39;ctrl-h&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;CTRL-H&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jon.hannis&#39;</span><span class="p">,</span> <span class="s1">&#39;melinda.hannis&#39;</span><span class="p">],),</span>
     <span class="p">}</span>
     <span class="n">organization_dict_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">organization_dict</span><span class="p">)</span>
 
@@ -815,7 +815,10 @@
     <span class="k">if</span> <span class="n">DEMOGRAPHICS_INCLUDE_UNREVIEWED_AMBIGOUS</span><span class="p">:</span>
         <span class="n">age_total</span> <span class="o">+=</span> <span class="n">age_unreviewed</span> <span class="o">+</span> <span class="n">age_ambiguous</span>
     <span class="n">age_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">if</span> <span class="n">age_total</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">age_total</span>
-    <span class="n">age_fmt_str</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">% 2.02f%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="n">age_total</span><span class="p">,)</span>
+
+    <span class="k">def</span> <span class="nf">age_fmt_str</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">% 2.02f%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="n">age_total</span><span class="p">,)</span>
+
     <span class="n">age_str_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">age_fmt_str</span><span class="p">(</span><span class="n">age</span><span class="p">)</span> <span class="k">for</span> <span class="n">age</span> <span class="ow">in</span> <span class="n">age_list_</span><span class="p">]</span> <span class="k">for</span> <span class="n">age_list_</span> <span class="ow">in</span> <span class="n">age_list</span><span class="p">]</span>
     <span class="n">age_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">age_fmt_str</span><span class="p">(</span><span class="n">age_unreviewed</span><span class="p">))</span>
     <span class="n">age_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">age_fmt_str</span><span class="p">(</span><span class="n">age_ambiguous</span><span class="p">))</span>
@@ -2610,7 +2613,7 @@
                     <span class="p">}</span>
                     <span class="n">annotation_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span>
                     <span class="n">THROW_TEST_AOI_TURKING_MANIFEST</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                        <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;addition&#39;</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="n">annotation</span><span class="p">,}</span>
+                        <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;addition&#39;</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="n">annotation</span><span class="p">}</span>
                     <span class="p">)</span>
             <span class="k">elif</span> <span class="n">throw_test_aoi_turking_mode</span> <span class="o">==</span> <span class="s1">&#39;deletion&#39;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -2618,7 +2621,7 @@
                     <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">index_list</span><span class="p">:</span>
                         <span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
                         <span class="n">THROW_TEST_AOI_TURKING_MANIFEST</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                            <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;deletion&#39;</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="n">annotation</span><span class="p">,}</span>
+                            <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;deletion&#39;</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="n">annotation</span><span class="p">}</span>
                         <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">THROW_TEST_AOI_TURKING_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
@@ -4035,9 +4038,8 @@
 <span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.other.ibsfuncs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs = wbia.opendb_bg_web(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; resp = web_ibs.get(&#39;/turk/identification/lnbnn/&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;testdb1&#39;, managed=True) as web_ibs:</span>
+<span class="sd">        ...     resp = web_ibs.get(&#39;/turk/identification/lnbnn/&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
 <span class="sd">        &gt;&gt;&gt; ut.render_html(resp.content)</span>
@@ -4581,6 +4583,8 @@
         <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">quality_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_quality_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
+        <span class="n">interest_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
         <span class="n">bad_flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">species_</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">for</span> <span class="n">species_</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">]</span>
         <span class="n">bad_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bad_flag_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -4588,15 +4592,15 @@
             <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
         <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species_</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">quality</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
-            <span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">quality_list</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species_</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">interest</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">quality_list</span><span class="p">,</span> <span class="n">interest_list</span>
         <span class="p">):</span>
             <span class="n">flag</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="n">species_</span> <span class="o">!=</span> <span class="n">species</span><span class="p">:</span>
                 <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="s1">&#39;left&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">viewpoint</span><span class="p">:</span>
                 <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="n">quality</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;junk&#39;</span><span class="p">,</span> <span class="s1">&#39;poor&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">interest</span> <span class="ow">and</span> <span class="n">quality</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;junk&#39;</span><span class="p">,</span> <span class="s1">&#39;poor&#39;</span><span class="p">]:</span>
                 <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">flag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
 
@@ -4740,9 +4744,8 @@
 <span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.other.ibsfuncs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs = wbia.opendb_bg_web(&#39;PZ_Master1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; resp = web_ibs.get(&#39;/turk/identification/hardcase/&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;PZ_Master1&#39;, managed=True) as web_ibs:</span>
+<span class="sd">        ...     resp = web_ibs.get(&#39;/turk/identification/hardcase/&#39;)</span>
 
 <span class="sd">    Ignore:</span>
 <span class="sd">        import wbia</span>
@@ -4801,9 +4804,8 @@
 <span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.other.ibsfuncs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs = wbia.opendb_bg_web(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; resp = web_ibs.get(&#39;/turk/identification/graph/&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;testdb1&#39;, managed=True) as web_ibs:</span>
+<span class="sd">        ...     resp = web_ibs.get(&#39;/turk/identification/graph/&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
 <span class="sd">        &gt;&gt;&gt; ut.render_html(resp.content)</span>
@@ -4997,7 +4999,7 @@
         <span class="n">refer_query_uuid</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">query_uuid</span>
         <span class="n">refer_graph_uuid_str</span> <span class="o">=</span> <span class="s1">&#39;graph_uuid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">refer_query_uuid</span><span class="p">),)</span>
         <span class="n">refer_graph_uuid_str</span> <span class="o">=</span> <span class="n">refer_graph_uuid_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebReviewFinishedException</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="k">except</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebReviewFinishedException</span><span class="p">:</span>
         <span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">except</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebUnknownUUIDException</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;turk&#39;</span><span class="p">))</span>
@@ -5453,21 +5455,21 @@
             <span class="n">value_sex</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">value_age_min</span><span class="p">,</span> <span class="n">value_age_max</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est</span><span class="p">([</span><span class="n">aid</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">value_age</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">value_age_min</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
-            <span class="n">value_age_max</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">value_age_max</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">value_age_min</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">value_age_max</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">value_age_max</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="p">):</span>
             <span class="n">value_age</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">value_age_min</span> <span class="ow">is</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">value_age_min</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">value_age</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
             <span class="n">value_age</span> <span class="o">=</span> <span class="mi">3</span>
-        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="mi">6</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="o">==</span> <span class="mi">6</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span>
             <span class="n">value_age</span> <span class="o">=</span> <span class="mi">4</span>
-        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="mi">12</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">23</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="o">==</span> <span class="mi">12</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">23</span><span class="p">:</span>
             <span class="n">value_age</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="mi">24</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">35</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="o">==</span> <span class="mi">24</span> <span class="ow">and</span> <span class="n">value_age_max</span> <span class="o">==</span> <span class="mi">35</span><span class="p">:</span>
             <span class="n">value_age</span> <span class="o">=</span> <span class="mi">6</span>
-        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="ow">is</span> <span class="mi">36</span> <span class="ow">and</span> <span class="p">(</span><span class="n">value_age_max</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">value_age_max</span> <span class="o">&gt;</span> <span class="mi">36</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">value_age_min</span> <span class="o">==</span> <span class="mi">36</span> <span class="ow">and</span> <span class="p">(</span><span class="n">value_age_max</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">value_age_max</span> <span class="o">&gt;</span> <span class="mi">36</span><span class="p">):</span>
             <span class="n">value_age</span> <span class="o">=</span> <span class="mi">7</span>
 
         <span class="n">review</span> <span class="o">=</span> <span class="s1">&#39;review&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
@@ -5737,7 +5739,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -5794,15 +5796,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.guitool.qtype &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.guitool.qtype &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.guitool.qtype</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -51,7 +51,7 @@
 <span class="c1"># elif six.PY3:</span>
 <span class="n">QVariant</span> <span class="o">=</span> <span class="kc">None</span>
 
-<span class="n">__STR__</span> <span class="o">=</span> <span class="n">unicode</span> <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span> <span class="k">else</span> <span class="nb">str</span>
+<span class="n">__STR__</span> <span class="o">=</span> <span class="n">unicode</span> <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span> <span class="k">else</span> <span class="nb">str</span>  <span class="c1"># NOQA</span>
 
 <span class="n">QString</span> <span class="o">=</span> <span class="n">__STR__</span>
 
@@ -68,18 +68,18 @@
     <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;ToolTipRole&#39;</span><span class="p">,</span>  <span class="c1"># data displayed in the item&#39;s tooltip. (QString)</span>
     <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;StatusTipRole&#39;</span><span class="p">,</span>  <span class="c1"># data displayed in the status bar. (QString)</span>
     <span class="mi">5</span><span class="p">:</span> <span class="s1">&#39;WhatsThisRole&#39;</span><span class="p">,</span>  <span class="c1"># data displayed in &quot;What&#39;s This?&quot; mode. (QString)</span>
-    <span class="mi">13</span><span class="p">:</span> <span class="s1">&#39;SizeHintRole&#39;</span><span class="p">,</span>  <span class="c1"># size hint for item that will be supplied to views. (QSize)</span>
     <span class="mi">6</span><span class="p">:</span> <span class="s1">&#39;FontRole&#39;</span><span class="p">,</span>  <span class="c1"># font used for items rendered with default delegate. (QFont)</span>
     <span class="mi">7</span><span class="p">:</span> <span class="s1">&#39;TextAlignmentRole&#39;</span><span class="p">,</span>  <span class="c1"># text alignment of items with default delegate. (Qt::AlignmentFlag)</span>
+    <span class="c1"># 8: &#39;BackgroundColorRole&#39;,  # Obsolete. Use BackgroundRole instead.</span>
+    <span class="c1"># 9: &#39;TextColorRole&#39;,  # Obsolete. Use ForegroundRole instead.</span>
     <span class="mi">8</span><span class="p">:</span> <span class="s1">&#39;BackgroundRole&#39;</span><span class="p">,</span>  <span class="c1"># background brush for items with default delegate. (QBrush)</span>
     <span class="mi">9</span><span class="p">:</span> <span class="s1">&#39;ForegroundRole&#39;</span><span class="p">,</span>  <span class="c1"># foreground brush for items rendered with default delegate. (QBrush)</span>
     <span class="mi">10</span><span class="p">:</span> <span class="s1">&#39;CheckStateRole&#39;</span><span class="p">,</span>  <span class="c1"># checked state of an item. (Qt::CheckState)</span>
-    <span class="mi">14</span><span class="p">:</span> <span class="s1">&#39;InitialSortOrderRole&#39;</span><span class="p">,</span>  <span class="c1"># initial sort order of a header view (Qt::SortOrder).</span>
     <span class="mi">11</span><span class="p">:</span> <span class="s1">&#39;AccessibleTextRole&#39;</span><span class="p">,</span>  <span class="c1"># text used by accessibility extensions and plugins (QString)</span>
     <span class="mi">12</span><span class="p">:</span> <span class="s1">&#39;AccessibleDescriptionRole&#39;</span><span class="p">,</span>  <span class="c1"># accessibe description of the item for (QString)</span>
+    <span class="mi">13</span><span class="p">:</span> <span class="s1">&#39;SizeHintRole&#39;</span><span class="p">,</span>  <span class="c1"># size hint for item that will be supplied to views. (QSize)</span>
+    <span class="mi">14</span><span class="p">:</span> <span class="s1">&#39;InitialSortOrderRole&#39;</span><span class="p">,</span>  <span class="c1"># initial sort order of a header view (Qt::SortOrder).</span>
     <span class="mi">32</span><span class="p">:</span> <span class="s1">&#39;UserRole&#39;</span><span class="p">,</span>  <span class="c1"># first role that can be used for application-specific purposes.</span>
-    <span class="mi">8</span><span class="p">:</span> <span class="s1">&#39;BackgroundColorRole&#39;</span><span class="p">,</span>  <span class="c1"># Obsolete. Use BackgroundRole instead.</span>
-    <span class="mi">9</span><span class="p">:</span> <span class="s1">&#39;TextColorRole&#39;</span><span class="p">,</span>  <span class="c1"># Obsolete. Use ForegroundRole instead.</span>
 <span class="p">}</span>
 
 <span class="n">LOCALE</span> <span class="o">=</span> <span class="n">QLocale</span><span class="p">()</span>
@@ -216,7 +216,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -275,15 +275,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

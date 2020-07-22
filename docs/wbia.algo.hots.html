@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.hots package &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.algo.hots package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -18,22 +18,22 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.algo.preproc package" href="wbia.algo.preproc.html" />
     <link rel="prev" title="wbia.algo.graph.tests package" href="wbia.algo.graph.tests.html" />
-
+   
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <div class="section" id="wbia-algo-hots-package">
 <h1>wbia.algo.hots package<a class="headerlink" href="#wbia-algo-hots-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
@@ -670,14 +670,18 @@ python -m wbia.algo.hots.chip_match –test-ChipMatch.to_json:1 –show</dd>
 
 <dl class="function">
 <dt id="wbia.algo.hots.chip_match.safe_check_lens_eq">
-<code class="descclassname">wbia.algo.hots.chip_match.</code><code class="descname">safe_check_lens_eq</code><span class="sig-paren">(</span><em>None</em>, <em>1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/hots/chip_match.html#safe_check_lens_eq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.hots.chip_match.safe_check_lens_eq" title="Permalink to this definition">¶</a></dt>
-<dd><p>safe_check_lens_eq([3], [2, 4])</p>
+<code class="descclassname">wbia.algo.hots.chip_match.</code><code class="descname">safe_check_lens_eq</code><span class="sig-paren">(</span><em>arr1</em>, <em>arr2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/hots/chip_match.html#safe_check_lens_eq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.hots.chip_match.safe_check_lens_eq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if it is safe to check if two arrays are equal</p>
+<p>safe_check_lens_eq(None, 1)
+safe_check_lens_eq([3], [2, 4])</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="wbia.algo.hots.chip_match.safe_check_nested_lens_eq">
-<code class="descclassname">wbia.algo.hots.chip_match.</code><code class="descname">safe_check_nested_lens_eq</code><span class="sig-paren">(</span><em>None</em>, <em>1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/hots/chip_match.html#safe_check_nested_lens_eq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.hots.chip_match.safe_check_nested_lens_eq" title="Permalink to this definition">¶</a></dt>
-<dd><p>safe_check_nested_lens_eq([[3, 4]], [[2, 4]])
+<code class="descclassname">wbia.algo.hots.chip_match.</code><code class="descname">safe_check_nested_lens_eq</code><span class="sig-paren">(</span><em>arr1</em>, <em>arr2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/hots/chip_match.html#safe_check_nested_lens_eq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.hots.chip_match.safe_check_nested_lens_eq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if it is safe to check if two arrays are equal (nested)</p>
+<p>safe_check_nested_lens_eq(None, 1)
+safe_check_nested_lens_eq([[3, 4]], [[2, 4]])
 safe_check_nested_lens_eq([[1, 2, 3], [1, 2]], [[1, 2, 3], [1, 2]])
 safe_check_nested_lens_eq([[1, 2, 3], [1, 2]], [[1, 2, 3], [1]])</p>
 </dd></dl>
@@ -4778,7 +4782,7 @@ makeinit.py –modname=wbia.algo.hots</p>
 
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -4873,18 +4877,18 @@ makeinit.py –modname=wbia.algo.hots</p>
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
       |
       <a href="_sources/wbia.algo.hots.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

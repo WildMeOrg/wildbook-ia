@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.scripts package &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.scripts package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -18,22 +18,22 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.templates package" href="wbia.templates.html" />
     <link rel="prev" title="wbia.plottool.tests package" href="wbia.plottool.tests.html" />
-
+   
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <div class="section" id="wbia-scripts-package">
 <h1>wbia.scripts package<a class="headerlink" href="#wbia-scripts-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
@@ -384,8 +384,260 @@ This function is often injected as rrr of classes</p>
 <dd></dd></dl>
 
 </div>
-<div class="section" id="wbia-scripts-classify-shark-module">
-<h2>wbia.scripts.classify_shark module<a class="headerlink" href="#wbia-scripts-classify-shark-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-wbia.scripts.classify_shark">
+<span id="wbia-scripts-classify-shark-module"></span><h2>wbia.scripts.classify_shark module<a class="headerlink" href="#module-wbia.scripts.classify_shark" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="wbia.scripts.classify_shark.ClfProblem">
+<em class="property">class </em><code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">ClfProblem</code><span class="sig-paren">(</span><em>ds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfProblem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Harness for researching a classification problem</p>
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfProblem.classifier_test">
+<code class="descname">classifier_test</code><span class="sig-paren">(</span><em>clf</em>, <em>test_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfProblem.classifier_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfProblem.classifier_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfProblem.fit_new_classifier">
+<code class="descname">fit_new_classifier</code><span class="sig-paren">(</span><em>train_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfProblem.fit_new_classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfProblem.fit_new_classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="http://leon.bottou.org/research/stochastic">http://leon.bottou.org/research/stochastic</a>
+<a class="reference external" href="http://blog.explainmydata.com/2012/06/ntrain-24853-ntest-25147-ncorrupt.html">http://blog.explainmydata.com/2012/06/ntrain-24853-ntest-25147-ncorrupt.html</a>
+<a class="reference external" href="http://scikit-learn.org/stable/modules/svm.html#svm-classification">http://scikit-learn.org/stable/modules/svm.html#svm-classification</a>
+<a class="reference external" href="http://scikit-learn.org/stable/modules/grid_search.html">http://scikit-learn.org/stable/modules/grid_search.html</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfProblem.fit_new_linear_svm">
+<code class="descname">fit_new_linear_svm</code><span class="sig-paren">(</span><em>train_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfProblem.fit_new_linear_svm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfProblem.fit_new_linear_svm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfProblem.gen_crossval_idxs">
+<code class="descname">gen_crossval_idxs</code><span class="sig-paren">(</span><em>n_folds=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfProblem.gen_crossval_idxs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfProblem.gen_crossval_idxs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfProblem.gridsearch_linear_svm_params">
+<code class="descname">gridsearch_linear_svm_params</code><span class="sig-paren">(</span><em>train_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfProblem.gridsearch_linear_svm_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfProblem.gridsearch_linear_svm_params" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts.classify_shark</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">classify_shark</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">classify_shark</span><span class="o">.</span><span class="n">get_sharks_dataset</span><span class="p">(</span><span class="s1">&#39;binary&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">problem</span> <span class="o">=</span> <span class="n">classify_shark</span><span class="o">.</span><span class="n">ClfProblem</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">problem</span><span class="o">.</span><span class="n">print_support_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfProblem.print_support_info">
+<code class="descname">print_support_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfProblem.print_support_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfProblem.print_support_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfProblem.stratified_2sample_idxs">
+<code class="descname">stratified_2sample_idxs</code><span class="sig-paren">(</span><em>frac=0.2</em>, <em>split_frac=0.75</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfProblem.stratified_2sample_idxs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfProblem.stratified_2sample_idxs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="wbia.scripts.classify_shark.ClfSingleResult">
+<em class="property">class </em><code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">ClfSingleResult</code><span class="sig-paren">(</span><em>ds=None</em>, <em>test_idx=None</em>, <em>y_true=None</em>, <em>y_pred=None</em>, <em>y_conf=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfSingleResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfSingleResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Reports the results of a classification problem</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ClfSingleResult</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfSingleResult.compile_results">
+<code class="descname">compile_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfSingleResult.compile_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfSingleResult.compile_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.ClfSingleResult.print_report">
+<code class="descname">print_report</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#ClfSingleResult.print_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.ClfSingleResult.print_report" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="wbia.scripts.classify_shark.WhaleSharkInjuryModel">
+<em class="property">class </em><code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">WhaleSharkInjuryModel</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#WhaleSharkInjuryModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.WhaleSharkInjuryModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">wbia_cnn.models.abstract_models.AbstractCategoricalModel</span></code></p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts.classify_shark</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">classify_shark</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">classify_shark</span><span class="o">.</span><span class="n">get_sharks_dataset</span><span class="p">(</span><span class="s1">&#39;binary&#39;</span><span class="p">,</span> <span class="s1">&#39;chip&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">problem</span> <span class="o">=</span> <span class="n">classify_shark</span><span class="o">.</span><span class="n">ClfProblem</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">problem</span><span class="o">.</span><span class="n">print_support_info</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">ibs</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.WhaleSharkInjuryModel.augment">
+<code class="descname">augment</code><span class="sig-paren">(</span><em>Xb</em>, <em>yb=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#WhaleSharkInjuryModel.augment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.WhaleSharkInjuryModel.augment" title="Permalink to this definition">¶</a></dt>
+<dd><p>X_valid, y_valid = dataset.subset(‘valid’)
+num = 10
+Xb = X_valid[:num]
+Xb = Xb / 255.0 if ut.is_int(Xb) else Xb
+Xb = Xb.astype(np.float32, copy=True)
+yb = None if yb is None else yb.astype(np.int32, copy=True)
+# Rescale the batch data to the range 0 to 1
+<a href="#id5"><span class="problematic" id="id6">Xb_</span></a>, <a href="#id7"><span class="problematic" id="id8">yb_</span></a> = model.augment(Xb)
+<a href="#id9"><span class="problematic" id="id10">yb_</span></a> = None
+&gt;&gt;&gt; ut.quit_if_noshow()
+&gt;&gt;&gt; import wbia.plottool as pt
+&gt;&gt;&gt; pt.qt4ensure()
+&gt;&gt;&gt; from wbia_cnn import augment
+&gt;&gt;&gt; augment.show_augmented_patches(Xb, <a href="#id11"><span class="problematic" id="id12">Xb_</span></a>, yb, <a href="#id13"><span class="problematic" id="id14">yb_</span></a>, data_per_label=1)
+&gt;&gt;&gt; ut.show_if_requested()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_inception">
+<code class="descname">def_inception</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#WhaleSharkInjuryModel.def_inception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_inception" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_lenet">
+<code class="descname">def_lenet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#WhaleSharkInjuryModel.def_lenet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_lenet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_resnet">
+<code class="descname">def_resnet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#WhaleSharkInjuryModel.def_resnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_resnet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.WhaleSharkInjuryModel.init_arch">
+<code class="descname">init_arch</code><span class="sig-paren">(</span><em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#WhaleSharkInjuryModel.init_arch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.WhaleSharkInjuryModel.init_arch" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first">python -m wbia.scripts.classify_shark WhaleSharkInjuryModel.init_arch
+python -m wbia.scripts.classify_shark WhaleSharkInjuryModel.init_arch –show</p>
+<p class="last">python -m wbia.scripts.classify_shark shark_net –dry –show
+python -m wbia.scripts.classify_shark shark_net –vd</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts.classify_shark</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--datashape&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                 <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">WhaleSharkInjuryModel</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">output_dims</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                              <span class="n">data_shape</span><span class="o">=</span><span class="n">data_shape</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">init_arch</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">print_model_info_str</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">show_arch</span><span class="p">(</span><span class="n">fullinfo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.WhaleSharkInjuryModel.rrr">
+<code class="descname">rrr</code><span class="sig-paren">(</span><em>verbose=True</em>, <em>reload_module=True</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.scripts.classify_shark.WhaleSharkInjuryModel.rrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>special class reloading function
+This function is often injected as rrr of classes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="wbia.scripts.classify_shark.WhaleSharkInjuryModel.special_output">
+<code class="descname">special_output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#WhaleSharkInjuryModel.special_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.WhaleSharkInjuryModel.special_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.get_model_state">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">get_model_state</code><span class="sig-paren">(</span><em>clf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#get_model_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.get_model_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.get_shark_dataset">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">get_shark_dataset</code><span class="sig-paren">(</span><em>target_type='binary'</em>, <em>data_type='chip'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#get_shark_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.get_shark_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts.classify_shark</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target_type</span> <span class="o">=</span> <span class="s1">&#39;binary&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_type</span> <span class="o">=</span> <span class="s1">&#39;hog&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">get_shark_dataset</span><span class="p">(</span><span class="n">target_type</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.get_shark_labels_and_metadata">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">get_shark_labels_and_metadata</code><span class="sig-paren">(</span><em>target_type=None</em>, <em>ibs=None</em>, <em>config=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#get_shark_labels_and_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.get_shark_labels_and_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts.classify_shark</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target_type</span> <span class="o">=</span> <span class="s1">&#39;multiclass3&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_type</span> <span class="o">=</span> <span class="s1">&#39;hog&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.inspect_results">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">inspect_results</code><span class="sig-paren">(</span><em>ds</em>, <em>result_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#inspect_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.inspect_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.predict_svc_ovr">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">predict_svc_ovr</code><span class="sig-paren">(</span><em>clf</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#predict_svc_ovr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.predict_svc_ovr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.predict_ws_injury_interim_svm">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">predict_ws_injury_interim_svm</code><span class="sig-paren">(</span><em>ibs</em>, <em>aids</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#predict_ws_injury_interim_svm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.predict_ws_injury_interim_svm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns relative confidence</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.set_model_state">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">set_model_state</code><span class="sig-paren">(</span><em>clf</em>, <em>model_state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#set_model_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.set_model_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.shark_net">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">shark_net</code><span class="sig-paren">(</span><em>dry=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#shark_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.shark_net" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.scripts.classify_shark shark_net
+python -m wbia.scripts.classify_shark shark_net –dry
+python -m wbia.scripts.classify_shark shark_net –vd –monitor</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts.classify_shark</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shark_net</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="wbia.scripts.classify_shark.shark_svm">
+<code class="descclassname">wbia.scripts.classify_shark.</code><code class="descname">shark_svm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/classify_shark.html#shark_svm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.classify_shark.shark_svm" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="http://scikit-learn.org/stable/model_selection.html">http://scikit-learn.org/stable/model_selection.html</a></p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m wbia.scripts.classify_shark shark_svm –show
+python -m wbia.scripts.classify_shark shark_svm</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.scripts.classify_shark</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shark_svm</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="module-wbia.scripts.fix_annotation_orientation_issue">
 <span id="wbia-scripts-fix-annotation-orientation-issue-module"></span><h2>wbia.scripts.fix_annotation_orientation_issue module<a class="headerlink" href="#module-wbia.scripts.fix_annotation_orientation_issue" title="Permalink to this headline">¶</a></h2>
@@ -606,8 +858,13 @@ like the distribution of injured sharks.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="wbia-scripts-labelshark-module">
-<h2>wbia.scripts.labelShark module<a class="headerlink" href="#wbia-scripts-labelshark-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-wbia.scripts.labelShark">
+<span id="wbia-scripts-labelshark-module"></span><h2>wbia.scripts.labelShark module<a class="headerlink" href="#module-wbia.scripts.labelShark" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="wbia.scripts.labelShark.classifyShark">
+<code class="descclassname">wbia.scripts.labelShark.</code><code class="descname">classifyShark</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/labelShark.html#classifyShark"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.labelShark.classifyShark" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-wbia.scripts.name_recitifer">
 <span id="wbia-scripts-name-recitifer-module"></span><h2>wbia.scripts.name_recitifer module<a class="headerlink" href="#module-wbia.scripts.name_recitifer" title="Permalink to this headline">¶</a></h2>
@@ -1632,7 +1889,11 @@ python -m wbia.scripts.specialdraw show_id_graph –show</dd>
 <code class="descclassname">wbia.scripts.specialdraw.</code><code class="descname">simple_vsone_matches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/scripts/specialdraw.html#simple_vsone_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.scripts.specialdraw.simple_vsone_matches" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>CommandLine:</dt>
-<dd>python -m wbia.scripts.specialdraw simple_vsone_matches –show             –db GZ_Master1 –aids=2811,2810</dd>
+<dd><dl class="first last docutils">
+<dt>python -m wbia.scripts.specialdraw simple_vsone_matches –show </dt>
+<dd>–db GZ_Master1 –aids=2811,2810</dd>
+</dl>
+</dd>
 </dl>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
@@ -2434,7 +2695,7 @@ python -m wbia Chap5.draw error_tables GZ_Master1</dd>
 
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -2527,18 +2788,18 @@ python -m wbia Chap5.draw error_tables GZ_Master1</dd>
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
       |
       <a href="_sources/wbia.scripts.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

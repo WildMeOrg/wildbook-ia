@@ -1,6 +1,6 @@
 var DOCUMENTATION_OPTIONS = {
     URL_ROOT: document.getElementById("documentation_options").getAttribute('data-url_root'),
-    VERSION: '2.2.4',
+    VERSION: '3.0.2',
     LANGUAGE: 'None',
     COLLAPSE_INDEX: false,
     FILE_SUFFIX: '.html',
@@ -12,7 +12,7 @@ var DOCUMENTATION_OPTIONS = {
 
 
 
-/* Non-minified version JS is _stemmer.js if file is provided */
+/* Non-minified version JS is _stemmer.js if file is provided */ 
 /**
  * Porter Stemmer
  */
@@ -292,3 +292,5 @@ function splitQuery(query) {
     }
     return result;
 }
+
+

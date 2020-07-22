@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control package &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.control package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -18,22 +18,22 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.dbio package" href="wbia.dbio.html" />
     <link rel="prev" title="wbia.algo.verif.torch package" href="wbia.algo.verif.torch.html" />
-
+   
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <div class="section" id="wbia-control-package">
 <h1>wbia.control package<a class="headerlink" href="#wbia-control-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
@@ -586,12 +586,11 @@ python -m wbia.control.IBEISControl –exec-get_current_log_text –domain <a cl
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.control.IBEISControl</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.web</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">wait</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">resp</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/log/current/&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">resp</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_wbia_request</span><span class="p">(</span><span class="s1">&#39;/log/current/&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">-------Logs ----: </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">L____ END LOGS ___</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1570,13 +1569,6 @@ signature. If this does not exist you should use None.
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.control.accessor_decors.default_decorator">
-<code class="descclassname">wbia.control.accessor_decors.</code><code class="descname">default_decorator</code><span class="sig-paren">(</span><em>input_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/control/accessor_decors.html#default_decorator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.control.accessor_decors.default_decorator" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRICATE
-This should be the first decorator applied to all Controller functions</p>
 </dd></dl>
 
 <dl class="function">
@@ -14621,13 +14613,13 @@ python -m wbia wildbook_signal_imgsetid_list –break</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">set_shipped_flag</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">open_url_on_complete</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--bg&#39;</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">web_ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="n">defaultdb</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">wildbook_signal_imgsetid_list</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">set_shipped_flag</span><span class="p">,</span> <span class="n">open_url_on_complete</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">with</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">web_ibs</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">result</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">wildbook_signal_imgsetid_list</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">set_shipped_flag</span><span class="p">,</span> <span class="n">open_url_on_complete</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">wildbook_signal_imgsetid_list</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">set_shipped_flag</span><span class="p">,</span> <span class="n">open_url_on_complete</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># cleanup</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs.delete_imagesets(new_imgsetid)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--bg&#39;</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -15077,7 +15069,7 @@ makeinit.py -x DBCACHE_SCHEMA_CURRENT DB_SCHEMA_CURRENT _grave_template manual_w
 
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -15170,18 +15162,18 @@ makeinit.py -x DBCACHE_SCHEMA_CURRENT DB_SCHEMA_CURRENT _grave_template manual_w
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
       |
       <a href="_sources/wbia.control.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

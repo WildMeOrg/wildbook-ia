@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.gui.guiback &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.gui.guiback &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.gui.guiback</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -239,14 +239,14 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">pcfg</span> <span class="o">=</span> <span class="n">TmpPipelineConfig</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">review_cfg</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
-            <span class="p">{</span><span class="s1">&#39;filter_reviewed&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;ranks_top&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;filter_true_matches&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,}</span>
+            <span class="p">{</span><span class="s1">&#39;filter_reviewed&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;ranks_top&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;filter_true_matches&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">info_cfg</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
             <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">parse_annot_config_stats_filter_kws</span><span class="p">()}</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exemplar_cfg</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
             <span class="p">{</span>
-                <span class="c1">#&#39;imgsetid&#39;: None,</span>
+                <span class="c1"># &#39;imgsetid&#39;: None,</span>
                 <span class="s1">&#39;exemplars_per_view&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">exemplars_per_view</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
@@ -269,7 +269,7 @@
             <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_primary_database_species</span><span class="p">()</span>
             <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;require_viewpoint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;view&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_primary_species_viewpoint</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">])</span>
-            <span class="c1">#&#39;right,frontright,backright&#39;</span>
+            <span class="c1"># &#39;right,frontright,backright&#39;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s1">&#39;Custom Annot Selector&#39;</span><span class="p">)</span>
 
@@ -663,10 +663,10 @@
             <span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Apply now and continue&#39;</span><span class="p">,</span> <span class="s1">&#39;Apply now and wait&#39;</span><span class="p">]</span>
             <span class="n">reply</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span>
                 <span class="n">msg</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    Information display is out of date. You should apply the</span>
 <span class="sd">                    modified configuration before you continue.</span>
-<span class="sd">                    &#39;&#39;&#39;</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
                 <span class="p">),</span>
                 <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
             <span class="p">)</span>
@@ -1041,9 +1041,7 @@
         <span class="k">if</span> <span class="n">web</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">show_images_in_web</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s1">&#39;sel_aids&#39;</span><span class="p">:</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="s1">&#39;select_callback&#39;</span><span class="p">:</span> <span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">,}</span>
-            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;sel_aids&#39;</span><span class="p">:</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="s1">&#39;select_callback&#39;</span><span class="p">:</span> <span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">})</span>
             <span class="n">interact</span><span class="o">.</span><span class="n">ishow_image</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_images_in_web"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_images_in_web">[docs]</a>    <span class="k">def</span> <span class="nf">show_images_in_web</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1092,9 +1090,7 @@
         <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_name"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_name">[docs]</a>    <span class="k">def</span> <span class="nf">show_name</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-            <span class="p">{</span><span class="s1">&#39;sel_aids&#39;</span><span class="p">:</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="s1">&#39;select_aid_callback&#39;</span><span class="p">:</span> <span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">,}</span>
-        <span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;sel_aids&#39;</span><span class="p">:</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="s1">&#39;select_aid_callback&#39;</span><span class="p">:</span> <span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">})</span>
         <span class="c1"># nid = back.ibs.get_name_rowids_from_text(name)</span>
         <span class="n">interact</span><span class="o">.</span><span class="n">ishow_name</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">pass</span></div>
@@ -1292,7 +1288,7 @@
 
     <span class="k">def</span> <span class="nf">_set_selection3</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">id_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;set&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">           text = &#39;51e10019-968b-5f2e-2287-8432464d7547 &#39;</span>
+<span class="sd">        text = &#39;51e10019-968b-5f2e-2287-8432464d7547 &#39;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">ensure_uuids_are_ids</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">uuid_to_id_fn</span><span class="p">):</span>
@@ -1897,13 +1893,13 @@
         <span class="n">reply</span><span class="p">,</span> <span class="n">new_config</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span>
             <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Occurrence Grouping&#39;</span><span class="p">,</span>
             <span class="n">msg</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                <span class="sd">&#39;&#39;&#39;</span>
+                <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Choose how we should group the %d ungrouped images into occurrences.</span>
 <span class="sd">                We can either:</span>
 <span class="sd">                    (1) append new occurrences</span>
 <span class="sd">                    (2) add to the %d existing occurrences</span>
 <span class="sd">                    (3) redo everything</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                &quot;&quot;&quot;</span>
             <span class="p">)</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ungrouped_gid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">existing_imgset_id_list</span><span class="p">)),</span>
             <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
@@ -2037,9 +2033,9 @@
             <span class="n">reply</span><span class="p">,</span> <span class="n">new_config</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span>
                 <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Run Detection Confirmation&#39;</span><span class="p">,</span>
                 <span class="n">msg</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    Preparing to run detection on %d images in \&#39;%s\&#39;.</span>
-<span class="sd">                    &#39;&#39;&#39;</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
                 <span class="p">)</span>
                 <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">imgset_text</span><span class="p">),</span>
                 <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
@@ -2081,7 +2077,7 @@
                 <span class="n">fmtdict</span><span class="p">[</span><span class="s1">&#39;num_gids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
                 <span class="c1"># Finish building confirmation message</span>
                 <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
-                <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;Press </span><span class="se">\&#39;</span><span class="s1">Yes</span><span class="se">\&#39;</span><span class="s1"> to continue&#39;</span><span class="p">]</span>
+                <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Press &#39;Yes&#39; to continue&quot;</span><span class="p">]</span>
                 <span class="n">msg_fmtstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_fmtstr_list</span><span class="p">)</span>
                 <span class="n">msg_str</span> <span class="o">=</span> <span class="n">msg_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="n">use_msg</span><span class="o">=</span><span class="n">msg_str</span><span class="p">):</span>
@@ -2107,7 +2103,7 @@
                 <span class="n">fmtdict</span><span class="p">[</span><span class="s1">&#39;species_phrase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species</span>
                 <span class="c1"># Finish building confirmation message</span>
                 <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
-                <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;Press </span><span class="se">\&#39;</span><span class="s1">Yes</span><span class="se">\&#39;</span><span class="s1"> to continue&#39;</span><span class="p">]</span>
+                <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Press &#39;Yes&#39; to continue&quot;</span><span class="p">]</span>
                 <span class="n">msg_fmtstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_fmtstr_list</span><span class="p">)</span>
                 <span class="n">msg_str</span> <span class="o">=</span> <span class="n">msg_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="n">use_msg</span><span class="o">=</span><span class="n">msg_str</span><span class="p">):</span>
@@ -2456,8 +2452,8 @@
     <span class="p">):</span>
         <span class="n">daids_mode</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">daids_mode</span> <span class="k">if</span> <span class="n">daids_mode</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">daids_mode</span>
         <span class="n">daids_mode_valid_kw_dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;is_exemplar&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,},</span>
-            <span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;imgsetid&#39;</span><span class="p">:</span> <span class="n">imgsetid</span><span class="p">,},</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;is_exemplar&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;imgsetid&#39;</span><span class="p">:</span> <span class="n">imgsetid</span><span class="p">},</span>
             <span class="s1">&#39;all&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="p">}</span>
         <span class="k">if</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2518,9 +2514,7 @@
 
         <span class="k">def</span> <span class="nf">get_unique_species_phrase</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
             <span class="k">def</span> <span class="nf">boldspecies</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
-                <span class="n">species_bold_nice</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">species_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
-                <span class="p">)</span>
+                <span class="n">species_bold_nice</span> <span class="o">=</span> <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),)</span>
                 <span class="k">return</span> <span class="n">species_bold_nice</span>
 
             <span class="n">species_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
@@ -2598,7 +2592,7 @@
 
         <span class="c1"># Finish building confirmation message</span>
         <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
-        <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;Press </span><span class="se">\&#39;</span><span class="s1">Yes</span><span class="se">\&#39;</span><span class="s1"> to continue&#39;</span><span class="p">]</span>
+        <span class="n">msg_fmtstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Press &#39;Yes&#39; to continue&quot;</span><span class="p">]</span>
         <span class="n">msg_fmtstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_fmtstr_list</span><span class="p">)</span>
         <span class="n">msg_str</span> <span class="o">=</span> <span class="n">msg_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
 
@@ -2686,10 +2680,10 @@
         <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_exemplar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;can_match_samename&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="c1">#&#39;K&#39;: 3,</span>
-            <span class="c1">#&#39;Knorm&#39;: 3,</span>
-            <span class="c1">#&#39;prescore_method&#39;: &#39;csum&#39;,</span>
-            <span class="c1">#&#39;score_method&#39;: &#39;csum&#39;</span>
+            <span class="c1"># &#39;K&#39;: 3,</span>
+            <span class="c1"># &#39;Knorm&#39;: 3,</span>
+            <span class="c1"># &#39;prescore_method&#39;: &#39;csum&#39;,</span>
+            <span class="c1"># &#39;score_method&#39;: &#39;csum&#39;</span>
         <span class="p">}</span>
         <span class="n">query_msg</span> <span class="o">=</span> <span class="s1">&#39;Checking for MERGE cases (this is an exemplars-vs-exemplars query)&#39;</span>
         <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">(</span>
@@ -2761,8 +2755,8 @@
             <span class="s1">&#39;can_match_samename&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="n">updated_config</span><span class="p">[</span><span class="s1">&#39;K&#39;</span><span class="p">],</span>
             <span class="s1">&#39;Knorm&#39;</span><span class="p">:</span> <span class="n">updated_config</span><span class="p">[</span><span class="s1">&#39;Knorm&#39;</span><span class="p">],</span>
-            <span class="c1">#&#39;prescore_method&#39;: &#39;csum&#39;,</span>
-            <span class="c1">#&#39;score_method&#39;: &#39;csum&#39;</span>
+            <span class="c1"># &#39;prescore_method&#39;: &#39;csum&#39;,</span>
+            <span class="c1"># &#39;score_method&#39;: &#39;csum&#39;</span>
         <span class="p">}</span>
         <span class="n">query_msg</span> <span class="o">=</span> <span class="s1">&#39;Checking for MERGE cases (this is an special query)&#39;</span>
         <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">(</span>
@@ -2805,10 +2799,10 @@
         <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">enable_custom_filter</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">user_warning</span><span class="p">(</span>
                 <span class="n">msg</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                other_cfg.enable_custom_filter=True is not longer supported.</span>
 <span class="sd">                Please turn off in Preferences</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                &quot;&quot;&quot;</span>
                 <span class="p">)</span>
             <span class="p">)</span>
 
@@ -2898,7 +2892,7 @@
 
         <span class="n">confirm_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">use_msg</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                <span class="sd">&#39;&#39;&#39;</span>
+                <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            This action will process the current ImageSet and search for the images (%d total) which contain zebras.</span>
 
 <span class="sd">            Note: this process is meant for images from sources like camera traps and aerial drones, where the vast majority of the images have no zebras in them.  If you expect the majority of your images to contain zebras, run the standard Detect for better detection accuracy (but will be slower).</span>
@@ -2912,7 +2906,7 @@
 <span class="sd">            \t %r</span>
 
 <span class="sd">            This new ImageSet will contain the images where zebras were detected.</span>
-<span class="sd">            &#39;&#39;&#39;</span>
+<span class="sd">            &quot;&quot;&quot;</span>
             <span class="p">)</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="n">imgset_dest_name</span><span class="p">,),</span>
             <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Process ImageSet?&#39;</span><span class="p">,</span>
@@ -2998,11 +2992,11 @@
         <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">contains_special_imagesets</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">])</span> <span class="ow">or</span> <span class="n">imgsetid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">user_warning</span><span class="p">(</span>
                 <span class="n">msg</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                This operation is only allowed for OCCURRENCES.</span>
 <span class="sd">                Tried to send a special ImageSet to Wildbook as an occurrence.</span>
 <span class="sd">                Special ImageSets are living entities and are never truely complete.</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                &quot;&quot;&quot;</span>
                 <span class="p">)</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -3060,7 +3054,7 @@
 
             <span class="n">confirm_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
                 <span class="n">use_msg</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Have you finished reviewing ALL detections,</span>
 <span class="sd">                Intra-Occurence IDs, and Vs-Exemplar IDs?</span>
 
@@ -3068,7 +3062,7 @@
 
 <span class="sd">                Selecting YES will remove this occurrence, mark all images are</span>
 <span class="sd">                reviewed and processed, and then send it to wildbook.</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                &quot;&quot;&quot;</span>
                 <span class="p">)</span>
                 <span class="o">%</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_list</span><span class="p">),</span>
                 <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Complete Occurrence?&#39;</span><span class="p">,</span>
@@ -3738,17 +3732,17 @@
         <span class="k">if</span> <span class="n">invalid</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    [guiback] The following encounter folder structures (1 level) are not valid: %r</span>
 <span class="sd">                    [guiback]     * The selected folders must contain images</span>
 <span class="sd">                    [guiback]     * The selected folders must NOT contain any sub-folders</span>
 <span class="sd">                    [guiback]     * The selected folders must NOT be empty</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                &quot;&quot;&quot;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">invalid_list</span><span class="p">,)</span>
                 <span class="p">)</span>
             <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    [guiback] The following encounter folder structures (2 levels) are not valid: %r</span>
 <span class="sd">                    [guiback]     * The selected folders must NOT contain images</span>
 <span class="sd">                    [guiback]     * The selected folders must contain sub-folders</span>
@@ -3756,7 +3750,7 @@
 <span class="sd">                    [guiback]     * The sub-folders in the selected folders must contain images</span>
 <span class="sd">                    [guiback]     * The sub-folders in the selected folders must NOT contain any sub-folders</span>
 <span class="sd">                    [guiback]     * The sub-folders in the selected folders must NOT be empty</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                &quot;&quot;&quot;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">invalid_list</span><span class="p">,)</span>
                 <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[guiback] Encounters are valid, continue with import&#39;</span><span class="p">)</span>
@@ -4245,7 +4239,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -4302,15 +4296,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

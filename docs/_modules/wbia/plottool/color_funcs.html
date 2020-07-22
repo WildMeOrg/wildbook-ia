@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.plottool.color_funcs &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.plottool.color_funcs &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.plottool.color_funcs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -59,7 +59,7 @@
 
 <span class="k">def</span> <span class="nf">_test_base255</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
     <span class="n">tests255</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="c1">#&#39;is_int&#39;: all([ut.is_int(c) for c in channels]),</span>
+        <span class="c1"># &#39;is_int&#39;: all([ut.is_int(c) for c in channels]),</span>
         <span class="s1">&#39;is_255&#39;</span><span class="p">:</span> <span class="nb">all</span><span class="p">([</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="mf">255.0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">]),</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">tests255</span>
@@ -153,25 +153,24 @@
 
 <div class="viewcode-block" id="convert_255_to_hex"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.convert_255_to_hex">[docs]</a><span class="k">def</span> <span class="nf">convert_255_to_hex</span><span class="p">(</span><span class="n">color255</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        &gt;&gt;&gt; color255 = [255, 51, 0]</span>
+<span class="sd">    &gt;&gt;&gt; color255 = [255, 51, 0]</span>
 
-<span class="sd">        target_rgb01 = pt.FALSE_RED[0:3]</span>
-<span class="sd">        target_rgb = np.array([[target_rgb01]]).astype(np.float32) / 25</span>
-<span class="sd">        target_lab = vt.convert_colorspace(target_rgb, &#39;lab&#39;, &#39;rgb&#39;)</span>
+<span class="sd">    target_rgb01 = pt.FALSE_RED[0:3]</span>
+<span class="sd">    target_rgb = np.array([[target_rgb01]]).astype(np.float32) / 25</span>
+<span class="sd">    target_lab = vt.convert_colorspace(target_rgb, &#39;lab&#39;, &#39;rgb&#39;)</span>
 
-<span class="sd">        # Find closest CSS color in LAB space</span>
-<span class="sd">        dist_lab = {}</span>
-<span class="sd">        dist_rgb = {}</span>
-<span class="sd">        css_colors = ub.map_vals(convert_hex_to_255, mcolors.CSS4_COLORS)</span>
-<span class="sd">        for k, c in css_colors.items():</span>
-<span class="sd">            rgb = np.array([[c]]).astype(np.float32) / 255</span>
-<span class="sd">            lab = vt.convert_colorspace(rgb, &#39;lab&#39;, &#39;rgb&#39;)</span>
-<span class="sd">            dist_lab[k] = np.sqrt(((target_lab - lab) ** 2).sum())</span>
-<span class="sd">            dist_rgb[k] = np.sqrt(((target_rgb - rgb) ** 2).sum())</span>
+<span class="sd">    # Find closest CSS color in LAB space</span>
+<span class="sd">    dist_lab = {}</span>
+<span class="sd">    dist_rgb = {}</span>
+<span class="sd">    css_colors = ub.map_vals(convert_hex_to_255, mcolors.CSS4_COLORS)</span>
+<span class="sd">    for k, c in css_colors.items():</span>
+<span class="sd">        rgb = np.array([[c]]).astype(np.float32) / 255</span>
+<span class="sd">        lab = vt.convert_colorspace(rgb, &#39;lab&#39;, &#39;rgb&#39;)</span>
+<span class="sd">        dist_lab[k] = np.sqrt(((target_lab - lab) ** 2).sum())</span>
+<span class="sd">        dist_rgb[k] = np.sqrt(((target_rgb - rgb) ** 2).sum())</span>
 
-<span class="sd">        best_keys = ub.argsort(dist_lab)</span>
-<span class="sd">        ub.odict(zip(best_keys, ub.take(dist_lab, best_keys)))</span>
-
+<span class="sd">    best_keys = ub.argsort(dist_lab)</span>
+<span class="sd">    ub.odict(zip(best_keys, ub.take(dist_lab, best_keys)))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">colorhex</span> <span class="o">=</span> <span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%02x</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">color255</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">colorhex</span></div>
@@ -524,12 +523,12 @@
         <span class="c1"># cmap_ = &#39;Set1&#39;</span>
         <span class="c1"># cmap_ = &#39;Dark2&#39;</span>
         <span class="n">choices</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="c1">#&#39;Set1&#39;, &#39;Dark2&#39;,</span>
+            <span class="c1"># &#39;Set1&#39;, &#39;Dark2&#39;,</span>
             <span class="s1">&#39;jet&#39;</span><span class="p">,</span>
-            <span class="c1">#&#39;gist_rainbow&#39;,</span>
-            <span class="c1">#&#39;rainbow&#39;,</span>
-            <span class="c1">#&#39;gnuplot&#39;,</span>
-            <span class="c1">#&#39;Accent&#39;</span>
+            <span class="c1"># &#39;gist_rainbow&#39;,</span>
+            <span class="c1"># &#39;rainbow&#39;,</span>
+            <span class="c1"># &#39;gnuplot&#39;,</span>
+            <span class="c1"># &#39;Accent&#39;</span>
         <span class="p">]</span>
         <span class="n">cmap_hack</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--cmap-hack&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">ncolor_hack</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--ncolor-hack&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -755,12 +754,12 @@
     <span class="k">if</span> <span class="n">cmap_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">maps</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span> <span class="n">cmap_</span><span class="p">)]</span>
 
-    <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">maps</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">maps</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">maps</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">TRANSPOSE</span><span class="p">:</span>
-            <span class="n">pylab</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">pylab</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">pylab</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">pylab</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># pylab.axis(&quot;off&quot;)</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
@@ -801,7 +800,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -860,15 +859,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

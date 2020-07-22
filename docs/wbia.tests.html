@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.tests package &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.tests package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -18,202 +18,29 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.viz package" href="wbia.viz.html" />
     <link rel="prev" title="wbia.templates package" href="wbia.templates.html" />
-
+   
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <div class="section" id="wbia-tests-package">
 <h1>wbia.tests package<a class="headerlink" href="#wbia-tests-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-wbia.tests.assert_modules">
-<span id="wbia-tests-assert-modules-module"></span><h2>wbia.tests.assert_modules module<a class="headerlink" href="#module-wbia.tests.assert_modules" title="Permalink to this headline">¶</a></h2>
-<p>Very useful script to ensure you have all the modules you need</p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.tests.assert_modules
-python -m wbia.tests.assert_modules –test-assert_modules –nolibdep
-python -m wbia.tests.assert_modules –test-assert_modules</dd>
-<dt>MacFix:</dt>
-<dd># Remove the copy of pyrf
-/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/
-sudo rm -rf pyrf-1.0.0.dev1-py2.7.egg/</dd>
-<dt>Updater For Linux:</dt>
-<dd><p class="first">sudo pip install matplotlib –upgrade
-sudo pip install Pillow –upgrade
-sudo pip install scipy –upgrade
-sudo pip install numpy –upgrade</p>
-<p class="last">./super_setup.py –bootstrap –upgrade</p>
-</dd>
-</dl>
-<dl class="function">
-<dt id="wbia.tests.assert_modules.PyQt4_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">PyQt4_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#PyQt4_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.PyQt4_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.assert_modules">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">assert_modules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#assert_modules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.assert_modules" title="Permalink to this definition">¶</a></dt>
-<dd><p>checkinfo functions return info_dict
-checkinfo_func</p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.tests.assert_modules –test-assert_modules</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DOCTEST_ENABLE</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.tests.assert_modules</span> <span class="k">import</span> <span class="o">*</span>   <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">detailed_msg</span> <span class="o">=</span> <span class="n">assert_modules</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">detailed_msg</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.check_alternate_installs">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">check_alternate_installs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#check_alternate_installs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.check_alternate_installs" title="Permalink to this definition">¶</a></dt>
-<dd><p>/Library/Python/2.7/site-packages</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.check_modules_exists">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">check_modules_exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#check_modules_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.check_modules_exists" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.checkinfo">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">checkinfo</code><span class="sig-paren">(</span><em>target=None</em>, <em>pipname=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#checkinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.checkinfo" title="Permalink to this definition">¶</a></dt>
-<dd><p>checkinfo functions return info_dict containing __version__</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.flask_cors_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">flask_cors_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#flask_cors_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.flask_cors_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.flask_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">flask_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#flask_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.flask_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.get_site_package_directories">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">get_site_package_directories</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#get_site_package_directories"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.get_site_package_directories" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.lasagne_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">lasagne_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#lasagne_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.lasagne_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.matplotlib_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">matplotlib_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#matplotlib_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.matplotlib_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.module_stdinfo_dict">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">module_stdinfo_dict</code><span class="sig-paren">(</span><em>module</em>, <em>versionattr='__version__'</em>, <em>version=None</em>, <em>libdep=None</em>, <em>name=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#module_stdinfo_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.module_stdinfo_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.networkx_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">networkx_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#networkx_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.networkx_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.numpy_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">numpy_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#numpy_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.numpy_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.opencv_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">opencv_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#opencv_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.opencv_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.pandas_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">pandas_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#pandas_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.pandas_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.pillow_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">pillow_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#pillow_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.pillow_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.pyflann_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">pyflann_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#pyflann_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.pyflann_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.pygraphviz_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">pygraphviz_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#pygraphviz_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.pygraphviz_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.pyhesaff_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">pyhesaff_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#pyhesaff_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.pyhesaff_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.pyrf_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">pyrf_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#pyrf_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.pyrf_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.reg_std_version_check">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">reg_std_version_check</code><span class="sig-paren">(</span><em>version</em>, <em>modname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#reg_std_version_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.reg_std_version_check" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.scipy_linalg_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">scipy_linalg_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#scipy_linalg_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.scipy_linalg_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.scipy_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">scipy_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#scipy_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.scipy_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.statsmodels_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">statsmodels_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#statsmodels_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.statsmodels_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.theano_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">theano_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#theano_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.theano_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.tornado_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">tornado_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#tornado_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.tornado_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.version_ge_target">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">version_ge_target</code><span class="sig-paren">(</span><em>version</em>, <em>target=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#version_ge_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.version_ge_target" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.tests.assert_modules.vtool_version">
-<code class="descclassname">wbia.tests.assert_modules.</code><code class="descname">vtool_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/tests/assert_modules.html#vtool_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.tests.assert_modules.vtool_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="wbia-tests-assert-modules-module">
+<h2>wbia.tests.assert_modules module<a class="headerlink" href="#wbia-tests-assert-modules-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-wbia.tests.reset_testdbs">
 <span id="wbia-tests-reset-testdbs-module"></span><h2>wbia.tests.reset_testdbs module<a class="headerlink" href="#module-wbia.tests.reset_testdbs" title="Permalink to this headline">¶</a></h2>
@@ -312,7 +139,7 @@ checkinfo_func</p>
 
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -405,18 +232,18 @@ checkinfo_func</p>
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
       |
       <a href="_sources/wbia.tests.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

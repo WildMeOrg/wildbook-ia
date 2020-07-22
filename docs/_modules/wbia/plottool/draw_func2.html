@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.plottool.draw_func2 &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.plottool.draw_func2 &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.plottool.draw_func2</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot; Lots of functions for drawing and plotting visiony things &quot;&quot;&quot;</span>
@@ -248,9 +248,9 @@
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="OffsetImage2.get_window_extent"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.draw_func2.OffsetImage2.get_window_extent">[docs]</a>    <span class="k">def</span> <span class="nf">get_window_extent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the bounding box in display space.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">matplotlib.transforms</span> <span class="k">as</span> <span class="nn">mtransforms</span>
 
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">xd</span><span class="p">,</span> <span class="n">yd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_extent</span><span class="p">(</span><span class="n">renderer</span><span class="p">)</span>
@@ -396,8 +396,8 @@
     <span class="c1"># coordinates of *xy* and *xytext*, and may be one of the</span>
     <span class="c1"># following values:</span>
 
-    <span class="c1">#&#39;figure points&#39; #&#39;figure pixels&#39; #&#39;figure fraction&#39; #&#39;axes points&#39;</span>
-    <span class="c1">#&#39;axes pixels&#39; #&#39;axes fraction&#39; #&#39;data&#39; #&#39;offset points&#39; #&#39;polar&#39;</span>
+    <span class="c1"># &#39;figure points&#39; #&#39;figure pixels&#39; #&#39;figure fraction&#39; #&#39;axes points&#39;</span>
+    <span class="c1"># &#39;axes pixels&#39; #&#39;axes fraction&#39; #&#39;data&#39; #&#39;offset points&#39; #&#39;polar&#39;</span>
 
     <span class="k">if</span> <span class="n">as_artist</span><span class="p">:</span>
         <span class="c1"># Hack while I am trying to get constant size images working</span>
@@ -482,7 +482,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DEPRICATE</span>
 
-<span class="sd">    updates adjust_subplots based on command line &quot;&quot;&quot;</span>
+<span class="sd">    updates adjust_subplots based on command line</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">adjust_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--adjust&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">adjust_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># --adjust=[.02,.02,.05]</span>
@@ -825,7 +826,6 @@
 <span class="sd">        http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)))</span> <span class="o">+</span> <span class="s1">&#39; show_if_requested()&#39;</span><span class="p">)</span>
 
@@ -966,8 +966,8 @@
         <span class="c1"># caption_str = ut.get_argval(&#39;--caption&#39;, type_=str,</span>
         <span class="c1"># default=basename(fpath).replace(&#39;_&#39;, &#39; &#39;))</span>
         <span class="n">label_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--label&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_label</span><span class="p">)</span>
-        <span class="n">width_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--width&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\textwidth&#39;</span><span class="p">)</span>
-        <span class="n">width_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--width&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\textwidth&#39;</span><span class="p">)</span>
+        <span class="n">width_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--width&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">textwidth&#39;</span><span class="p">)</span>
+        <span class="n">width_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--width&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">textwidth&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;width_str = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">width_str</span><span class="p">,))</span>
         <span class="n">height_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--height&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">caplbl_str</span> <span class="o">=</span> <span class="n">label_str</span>
@@ -975,7 +975,7 @@
         <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">4</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">latex_block</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="s1">&#39;\ImageCommand{&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">ImageCommand{&#39;</span>
                     <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">)</span>
                     <span class="o">+</span> <span class="s1">&#39;}{&#39;</span>
                     <span class="o">+</span> <span class="n">width_str</span>
@@ -988,7 +988,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">width_str</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
                 <span class="n">latex_block</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="s1">&#39;\MultiImageCommandII&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">MultiImageCommandII&#39;</span>
                     <span class="o">+</span> <span class="s1">&#39;{&#39;</span>
                     <span class="o">+</span> <span class="n">label_str</span>
                     <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
@@ -1017,7 +1017,7 @@
                 <span class="n">unflat_fpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_reshape</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">,</span> <span class="n">newshape</span><span class="p">,</span> <span class="n">trail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">fpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_transpose</span><span class="p">(</span><span class="n">unflat_fpath_list</span><span class="p">))</span>
 
-            <span class="n">caption_str</span> <span class="o">=</span> <span class="s1">&#39;\caplbl{&#39;</span> <span class="o">+</span> <span class="n">caplbl_str</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span> <span class="o">+</span> <span class="n">caption_str</span>
+            <span class="n">caption_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">caplbl{&#39;</span> <span class="o">+</span> <span class="n">caplbl_str</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span> <span class="o">+</span> <span class="n">caption_str</span>
             <span class="n">figure_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_latex</span><span class="o">.</span><span class="n">get_latex_figure_str</span><span class="p">(</span>
                 <span class="n">fpath_list</span><span class="p">,</span>
                 <span class="n">label_str</span><span class="o">=</span><span class="n">label_str</span><span class="p">,</span>
@@ -1051,11 +1051,11 @@
             <span class="p">)</span>
             <span class="n">latex_block</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+                    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                \begin{comment}</span>
 <span class="sd">                %s</span>
 <span class="sd">                \end{comment}</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                &quot;&quot;&quot;</span>
                 <span class="p">)</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">cmdline_str</span><span class="p">,)</span>
                 <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -1452,13 +1452,12 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    # returns in figure coordinates?</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">xy</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">get_axis_xy_width_height</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="draw_border"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.draw_func2.draw_border">[docs]</a><span class="k">def</span> <span class="nf">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">GREEN</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="s1">&#39;draws rectangle border around a subplot&#39;</span>
+    <span class="sd">&quot;&quot;&quot;draws rectangle border around a subplot&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">adjust</span><span class="p">:</span>
         <span class="n">xy</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">get_axis_xy_width_height</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -2243,8 +2242,8 @@
             <span class="n">pylab</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">markerline</span><span class="p">,</span> <span class="s1">&#39;markerfacecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
             <span class="n">pylab</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">stemlines</span><span class="p">,</span> <span class="s1">&#39;markerfacecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">stemlines</span><span class="p">:</span>
-                    <span class="n">l</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">stemlines</span><span class="p">:</span>
+                    <span class="n">line</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
             <span class="n">pylab</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># baseline should be invisible</span>
     <span class="k">if</span> <span class="n">setlims</span><span class="p">:</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
@@ -3152,7 +3151,7 @@
 
     <span class="n">cb</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sm</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="c1">## Add the colorbar to the correct label</span>
+    <span class="c1"># # Add the colorbar to the correct label</span>
     <span class="c1"># axis = cb.ax.yaxis  # if orientation == &#39;horizontal&#39; else cb.ax.yaxis</span>
     <span class="c1"># position = &#39;bottom&#39; if orientation == &#39;horizontal&#39; else &#39;right&#39;</span>
     <span class="c1"># axis.set_ticks_position(position)</span>
@@ -3739,7 +3738,7 @@
 
     <span class="n">plt_imshow_kwargs</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;interpolation&#39;</span><span class="p">:</span> <span class="n">interpolation</span><span class="p">,</span>
-        <span class="c1">#&#39;cmap&#39;: plt.get_cmap(&#39;gray&#39;),</span>
+        <span class="c1"># &#39;cmap&#39;: plt.get_cmap(&#39;gray&#39;),</span>
     <span class="p">}</span>
     <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">plt_imshow_kwargs</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alpha</span>
@@ -3863,9 +3862,9 @@
     <span class="n">quiv_kw</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;xy&#39;</span><span class="p">,</span>
         <span class="s1">&#39;scale_units&#39;</span><span class="p">:</span> <span class="s1">&#39;xy&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;angles&#39;: &#39;uv&#39;,</span>
-        <span class="c1">#&#39;scale&#39;: 80,</span>
-        <span class="c1">#&#39;width&#39;:</span>
+        <span class="c1"># &#39;angles&#39;: &#39;uv&#39;,</span>
+        <span class="c1"># &#39;scale&#39;: 80,</span>
+        <span class="c1"># &#39;width&#39;:</span>
         <span class="s1">&#39;headaxislength&#39;</span><span class="p">:</span> <span class="mf">4.5</span><span class="p">,</span>
         <span class="c1"># &#39;headlength&#39;: 5,</span>
         <span class="s1">&#39;headlength&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
@@ -3873,8 +3872,8 @@
         <span class="s1">&#39;headwidth&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
         <span class="s1">&#39;minshaft&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s1">&#39;minlength&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="c1">#&#39;color&#39;: &#39;r&#39;,</span>
-        <span class="c1">#&#39;edgecolor&#39;: &#39;k&#39;,</span>
+        <span class="c1"># &#39;color&#39;: &#39;r&#39;,</span>
+        <span class="c1"># &#39;edgecolor&#39;: &#39;k&#39;,</span>
         <span class="s1">&#39;linewidths&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,),</span>
         <span class="s1">&#39;pivot&#39;</span><span class="p">:</span> <span class="s1">&#39;tail&#39;</span><span class="p">,</span>  <span class="c1"># &#39;middle&#39;,</span>
     <span class="p">}</span>
@@ -5021,7 +5020,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -5080,15 +5079,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

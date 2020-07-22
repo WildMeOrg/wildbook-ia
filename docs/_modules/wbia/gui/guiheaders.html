@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.gui.guiheaders &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.gui.guiheaders &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.gui.guiheaders</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -102,16 +102,16 @@
         <span class="n">IMAGE_TABLE</span><span class="p">:</span> <span class="p">[</span>
             <span class="s1">&#39;gid&#39;</span><span class="p">,</span>
             <span class="s1">&#39;thumb&#39;</span><span class="p">,</span>
-            <span class="c1">#&#39;nAids&#39;,</span>
+            <span class="c1"># &#39;nAids&#39;,</span>
             <span class="s1">&#39;img_gname&#39;</span><span class="p">,</span>
-            <span class="c1">#&#39;ext&#39;,</span>
+            <span class="c1"># &#39;ext&#39;,</span>
             <span class="s1">&#39;reviewed&#39;</span><span class="p">,</span>  <span class="c1"># detection reviewed flag is not fullyused</span>
             <span class="s1">&#39;datetime&#39;</span><span class="p">,</span>
             <span class="s1">&#39;gps&#39;</span><span class="p">,</span>
             <span class="s1">&#39;orientation&#39;</span><span class="p">,</span>
             <span class="s1">&#39;party_tag&#39;</span><span class="p">,</span>
             <span class="s1">&#39;contributor_tag&#39;</span><span class="p">,</span>
-            <span class="c1">#&#39;gdconf&#39;,</span>
+            <span class="c1"># &#39;gdconf&#39;,</span>
             <span class="s1">&#39;imgnotes&#39;</span><span class="p">,</span>
             <span class="s1">&#39;image_uuid&#39;</span><span class="p">,</span>
         <span class="p">],</span>
@@ -120,7 +120,7 @@
         <span class="c1"># --nonametree</span>
         <span class="c1"># even just aid seems to be very slow</span>
         <span class="n">ANNOTATION_TABLE</span><span class="p">:</span> <span class="p">[</span>
-            <span class="c1">#&#39;annotation_uuid&#39;,</span>
+            <span class="c1"># &#39;annotation_uuid&#39;,</span>
             <span class="s1">&#39;aid&#39;</span><span class="p">,</span>
             <span class="s1">&#39;thumb&#39;</span><span class="p">,</span>
             <span class="s1">&#39;annot_gname&#39;</span><span class="p">,</span>
@@ -132,26 +132,26 @@
             <span class="s1">&#39;age_min&#39;</span><span class="p">,</span>
             <span class="s1">&#39;age_max&#39;</span><span class="p">,</span>
             <span class="s1">&#39;sex_text&#39;</span><span class="p">,</span>
-            <span class="c1">#&#39;rdconf&#39;,</span>
-            <span class="c1">#&#39;nGt&#39;,  # ## &lt;put back in</span>
+            <span class="c1"># &#39;rdconf&#39;,</span>
+            <span class="c1"># &#39;nGt&#39;,  # ## &lt;put back in</span>
             <span class="s1">&#39;imagesettext_names&#39;</span><span class="p">,</span>
             <span class="s1">&#39;annotnotes&#39;</span><span class="p">,</span>  <span class="c1"># ## &lt;put back in</span>
             <span class="s1">&#39;tag_text&#39;</span><span class="p">,</span>  <span class="c1"># &lt; Hack should have actual tag structure</span>
-            <span class="c1">#&#39;annot_visual_uuid&#39;,</span>
-            <span class="c1">#&#39;nFeats&#39;,</span>
-            <span class="c1">#&#39;bbox&#39;,</span>
-            <span class="c1">#&#39;theta&#39;,</span>
-            <span class="c1">#&#39;verts&#39;,</span>
-            <span class="c1">#&#39;num_verts&#39;,</span>
+            <span class="c1"># &#39;annot_visual_uuid&#39;,</span>
+            <span class="c1"># &#39;nFeats&#39;,</span>
+            <span class="c1"># &#39;bbox&#39;,</span>
+            <span class="c1"># &#39;theta&#39;,</span>
+            <span class="c1"># &#39;verts&#39;,</span>
+            <span class="c1"># &#39;num_verts&#39;,</span>
         <span class="p">],</span>
         <span class="n">NAME_TABLE</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;nid&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;nAids&#39;</span><span class="p">,</span> <span class="s1">&#39;namenotes&#39;</span><span class="p">],</span>
         <span class="n">QRES_TABLE</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;rank&#39;</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">],</span>
         <span class="n">IMAGESET_TABLE</span><span class="p">:</span> <span class="p">[</span>
             <span class="s1">&#39;imagesettext&#39;</span><span class="p">,</span>
             <span class="s1">&#39;nImgs&#39;</span><span class="p">,</span>
-            <span class="c1">#&#39;num_imgs_reviewed&#39;,</span>
-            <span class="c1">#&#39;num_annotmatch_reviewed&#39;,</span>
-            <span class="c1">#&#39;imageset_end_datetime&#39;,</span>
+            <span class="c1"># &#39;num_imgs_reviewed&#39;,</span>
+            <span class="c1"># &#39;num_annotmatch_reviewed&#39;,</span>
+            <span class="c1"># &#39;imageset_end_datetime&#39;,</span>
             <span class="c1"># &#39;imageset_processed_flag&#39;,</span>
             <span class="c1"># &#39;imageset_shipped_flag&#39;,</span>
             <span class="s1">&#39;imgsetid&#39;</span><span class="p">,</span>
@@ -176,9 +176,9 @@
             <span class="c1"># &#39;has_split&#39;,</span>
             <span class="c1"># &#39;namenotes&#39;,</span>
         <span class="p">],</span>
-        <span class="n">IMAGE_GRID</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;thumb&#39;</span><span class="p">,],</span>
+        <span class="n">IMAGE_GRID</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;thumb&#39;</span><span class="p">],</span>
         <span class="c1"># TEST TABLE</span>
-        <span class="n">THUMB_TABLE</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;img_gname&#39;</span><span class="p">,</span> <span class="s1">&#39;thumb&#39;</span><span class="p">,],</span>
+        <span class="n">THUMB_TABLE</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;img_gname&#39;</span><span class="p">,</span> <span class="s1">&#39;thumb&#39;</span><span class="p">],</span>
     <span class="p">}</span>
 
     <span class="c1"># dynamicly defined headers</span>
@@ -188,11 +188,11 @@
         <span class="k">if</span> <span class="n">accessor_decors</span><span class="o">.</span><span class="n">API_CACHE</span><span class="p">:</span>
             <span class="c1"># Too slow without api cache</span>
             <span class="n">TABLE_COLNAMES</span><span class="p">[</span><span class="n">IMAGESET_TABLE</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-                <span class="p">[</span><span class="s1">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span> <span class="s1">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">,]</span>
+                <span class="p">[</span><span class="s1">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span> <span class="s1">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">]</span>
             <span class="p">)</span>
         <span class="n">TABLE_COLNAMES</span><span class="p">[</span><span class="n">IMAGESET_TABLE</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="c1">#&#39;percent_imgs_reviewed_str&#39;,</span>
+                <span class="c1"># &#39;percent_imgs_reviewed_str&#39;,</span>
                 <span class="s1">&#39;imageset_start_datetime&#39;</span><span class="p">,</span>
                 <span class="c1"># &#39;imageset_end_datetime&#39;,</span>
                 <span class="s1">&#39;imageset_duration&#39;</span><span class="p">,</span>
@@ -202,7 +202,7 @@
 
     <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">show_shipped_imagesets</span><span class="p">:</span>
         <span class="n">TABLE_COLNAMES</span><span class="p">[</span><span class="n">IMAGESET_TABLE</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-            <span class="p">[</span><span class="s1">&#39;imageset_processed_flag&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_shipped_flag&#39;</span><span class="p">,]</span>
+            <span class="p">[</span><span class="s1">&#39;imageset_processed_flag&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_shipped_flag&#39;</span><span class="p">]</span>
         <span class="p">)</span>
 
     <span class="c1"># THUMB_TABLE     : [&#39;thumb&#39; &#39;thumb&#39; &#39;thumb&#39; &#39;thumb&#39;],</span>
@@ -544,7 +544,7 @@
         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">,</span>
         <span class="s1">&#39;nAids&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_num_annotations</span><span class="p">,</span>
         <span class="s1">&#39;namenotes&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_notes</span><span class="p">,</span>
-        <span class="c1">#&#39;has_split&#39;  : ibs.get_name_has_split,</span>
+        <span class="c1"># &#39;has_split&#39;  : ibs.get_name_has_split,</span>
     <span class="p">}</span>
     <span class="n">setters</span><span class="p">[</span><span class="n">NAME_TABLE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">set_name_texts</span><span class="p">,</span>
@@ -669,7 +669,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -726,15 +726,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

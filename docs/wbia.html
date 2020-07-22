@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia - Wildbook IA &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia - Wildbook IA &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -18,22 +18,22 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.algo package" href="wbia.algo.html" />
     <link rel="prev" title="Welcome to Wildbook IA’s documentation!" href="index.html" />
-
+   
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <div class="section" id="wbia-wildbook-ia">
 <h1>wbia - Wildbook IA<a class="headerlink" href="#wbia-wildbook-ia" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
@@ -57,82 +57,6 @@
 <li class="toctree-l1"><a class="reference internal" href="wbia.web.html">wbia.web package</a></li>
 </ul>
 </div>
-<span class="target" id="module-wbia"></span><p>IBEIS: main package init</p>
-<dl class="docutils">
-<dt>TODO: LAZY IMPORTS?</dt>
-<dd><a class="reference external" href="http://code.activestate.com/recipes/473888-lazy-module-imports/">http://code.activestate.com/recipes/473888-lazy-module-imports/</a></dd>
-</dl>
-<dl class="function">
-<dt id="wbia.import_subs">
-<code class="descclassname">wbia.</code><code class="descname">import_subs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#import_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.import_subs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.reload_subs">
-<code class="descclassname">wbia.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.reload_subs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reloads wbia and submodules</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.rrrr">
-<code class="descclassname">wbia.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.rrrr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reloads wbia and submodules</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.run_experiment">
-<code class="descclassname">wbia.</code><code class="descname">run_experiment</code><span class="sig-paren">(</span><em>e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['default'], initial_aids=None, qaid_override=None, daid_override=None, lazy=False, **kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#run_experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.run_experiment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convience function</p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>wbia -e print</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>e</strong> (<em>str</em>) – (default = ‘print’)</li>
-<li><strong>db</strong> (<em>str</em>) – (default = ‘PZ_MTEST’)</li>
-<li><strong>a</strong> (<em>list</em>) – (default = [‘unctrl’])</li>
-<li><strong>t</strong> (<em>list</em>) – (default = [‘default’])</li>
-<li><strong>qaid_override</strong> (<em>None</em>) – (default = None)</li>
-<li><strong>lazy</strong> (<em>bool</em>) – (default = False)</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">func -  live python function</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">function</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.__init__ –exec-run_experiment –show</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="s1">&#39;rank_cmc&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db</span> <span class="o">=</span> <span class="s1">&#39;testdb1&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default:species=primary&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">initial_aids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_override</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">testres</span> <span class="o">=</span> <span class="n">run_experiment</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                         <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;testres = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">testres</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">testres</span><span class="o">.</span><span class="n">draw_func</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd></dl>
-
 <div class="section" id="wbia-main">
 <h2>wbia.__main__<a class="headerlink" href="#wbia-main" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-wbia.__main__"></span><p>Runs IBIES gui</p>
@@ -143,6 +67,11 @@
 <p class="rubric">References</p>
 <p><a class="reference external" href="http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe">http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe</a></p>
 </dd></dl>
+
+<dl class="function">
+<dt id="wbia.__main__.main">
+<code class="descclassname">wbia.__main__.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/__main__.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.__main__.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="wbia.__main__.run_wbia">
@@ -2175,7 +2104,7 @@ diff: we know this is the different animal through non-visual means</p>
 <p>Path names for internal IBEIS database</p>
 <dl class="attribute">
 <dt id="wbia.constants.PATH_NAMES.backups">
-<code class="descname">backups</code><em class="property"> = '_wbia_backups'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.backups" title="Permalink to this definition">¶</a></dt>
+<code class="descname">backups</code><em class="property"> = '_ibeis_backups'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.backups" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2185,7 +2114,7 @@ diff: we know this is the different animal through non-visual means</p>
 
 <dl class="attribute">
 <dt id="wbia.constants.PATH_NAMES.cache">
-<code class="descname">cache</code><em class="property"> = '_wbia_cache'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.cache" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cache</code><em class="property"> = '_ibeis_cache'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.cache" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2220,7 +2149,7 @@ diff: we know this is the different animal through non-visual means</p>
 
 <dl class="attribute">
 <dt id="wbia.constants.PATH_NAMES.logs">
-<code class="descname">logs</code><em class="property"> = '_wbia_logs'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.logs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">logs</code><em class="property"> = '_ibeis_logs'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.logs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2245,12 +2174,12 @@ diff: we know this is the different animal through non-visual means</p>
 
 <dl class="attribute">
 <dt id="wbia.constants.PATH_NAMES.sqldb">
-<code class="descname">sqldb</code><em class="property"> = '_wbia_database.sqlite3'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.sqldb" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sqldb</code><em class="property"> = '_ibeis_database.sqlite3'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.sqldb" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="wbia.constants.PATH_NAMES.sqlstaging">
-<code class="descname">sqlstaging</code><em class="property"> = '_wbia_staging.sqlite3'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.sqlstaging" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sqlstaging</code><em class="property"> = '_ibeis_staging.sqlite3'</em><a class="headerlink" href="#wbia.constants.PATH_NAMES.sqlstaging" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2420,27 +2349,27 @@ diff: we know this is the different animal through non-visual means</p>
 <p>all paths are relative to ibs.dbdir</p>
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.backups">
-<code class="descname">backups</code><em class="property"> = '_ibsdb/_wbia_backups'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.backups" title="Permalink to this definition">¶</a></dt>
+<code class="descname">backups</code><em class="property"> = '_ibsdb/_ibeis_backups'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.backups" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.bigcache">
-<code class="descname">bigcache</code><em class="property"> = '_ibsdb/_wbia_cache/qres_bigcache_new'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.bigcache" title="Permalink to this definition">¶</a></dt>
+<code class="descname">bigcache</code><em class="property"> = '_ibsdb/_ibeis_cache/qres_bigcache_new'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.bigcache" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.cache">
-<code class="descname">cache</code><em class="property"> = '_ibsdb/_wbia_cache'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.cache" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cache</code><em class="property"> = '_ibsdb/_ibeis_cache'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.cache" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.chips">
-<code class="descname">chips</code><em class="property"> = '_ibsdb/_wbia_cache/chips'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.chips" title="Permalink to this definition">¶</a></dt>
+<code class="descname">chips</code><em class="property"> = '_ibsdb/_ibeis_cache/chips'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.chips" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.distinctdir">
-<code class="descname">distinctdir</code><em class="property"> = '_ibsdb/_wbia_cache/distinctiveness_model'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.distinctdir" title="Permalink to this definition">¶</a></dt>
+<code class="descname">distinctdir</code><em class="property"> = '_ibsdb/_ibeis_cache/distinctiveness_model'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.distinctdir" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2450,7 +2379,7 @@ diff: we know this is the different animal through non-visual means</p>
 
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.flann">
-<code class="descname">flann</code><em class="property"> = '_ibsdb/_wbia_cache/flann'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.flann" title="Permalink to this definition">¶</a></dt>
+<code class="descname">flann</code><em class="property"> = '_ibsdb/_ibeis_cache/flann'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.flann" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2460,7 +2389,7 @@ diff: we know this is the different animal through non-visual means</p>
 
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.logs">
-<code class="descname">logs</code><em class="property"> = '_ibsdb/_wbia_logs'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.logs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">logs</code><em class="property"> = '_ibsdb/_ibeis_logs'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.logs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2470,12 +2399,12 @@ diff: we know this is the different animal through non-visual means</p>
 
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.qres">
-<code class="descname">qres</code><em class="property"> = '_ibsdb/_wbia_cache/qres_new'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.qres" title="Permalink to this definition">¶</a></dt>
+<code class="descname">qres</code><em class="property"> = '_ibsdb/_ibeis_cache/qres_new'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.qres" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="wbia.constants.REL_PATHS.thumbs">
-<code class="descname">thumbs</code><em class="property"> = '_ibsdb/_wbia_cache/thumbs'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.thumbs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">thumbs</code><em class="property"> = '_ibsdb/_ibeis_cache/thumbs'</em><a class="headerlink" href="#wbia.constants.REL_PATHS.thumbs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -3503,7 +3432,7 @@ this equation. Move the firewall towards the controller</p>
 </table>
 <dl class="docutils">
 <dt>SeeAlso:</dt>
-<dd>~/code/ibeis_cnn/ibeis_cnn/_plugin.py</dd>
+<dd>~/code/wbia_cnn/wbia_cnn/_plugin.py</dd>
 <dt>CommandLine:</dt>
 <dd>python -m wbia.core_annots –test-compute_feats:0 –show
 python -m wbia.core_annots –test-compute_feats:1</dd>
@@ -3637,10 +3566,11 @@ ibs.get_annot_feat_rowids(aid_list)</p>
 </table>
 <dl class="docutils">
 <dt>CommandLine:</dt>
-<dd>python -m wbia.core_annots –exec-compute_labels_annotations</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<dd>python -m wbia.core_annots –exec-compute_labels_annotations
+python -m wbia.core_annots –exec-compute_labels_annotations:0
+python -m wbia.core_annots –exec-compute_labels_annotations:1</dd>
+<dt>Example0:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.core_images</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdb</span> <span class="o">=</span> <span class="s1">&#39;PZ_MTEST&#39;</span>
@@ -3664,6 +3594,23 @@ ibs.get_annot_feat_rowids(aid_list)</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd>
+<dt>Example1:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.core_images</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdb</span> <span class="o">=</span> <span class="s1">&#39;WD_Master&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;densenet&#39;</span><span class="p">,</span> <span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;wilddog_v3+wilddog_v2+wilddog_v1&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># depc.delete_property(&#39;labeler&#39;, aid_list)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -4006,7 +3953,7 @@ procedure.</p>
 <dd>python -m wbia.core_annots –exec-postprocess_mask –cnn –show –aid=1 –db PZ_MTEST
 python -m wbia –tf postprocess_mask –cnn –show –db PZ_MTEST –adapteq=True</dd>
 <dt>SeeAlso:</dt>
-<dd>python -m ibeis_cnn –tf generate_species_background_mask –show –db PZ_Master1 –aid 9970</dd>
+<dd>python -m wbia_cnn –tf generate_species_background_mask –show –db PZ_Master1 –aid 9970</dd>
 <dt>Ignore:</dt>
 <dd>input_tuple = aid_list
 tablename = ‘probchip’
@@ -5830,7 +5777,7 @@ controller</li>
 
 <dl class="function">
 <dt id="wbia.main_module.opendb_bg_web">
-<code class="descclassname">wbia.main_module.</code><code class="descname">opendb_bg_web</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/main_module.html#opendb_bg_web"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.main_module.opendb_bg_web" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">wbia.main_module.</code><code class="descname">opendb_bg_web</code><span class="sig-paren">(</span><em>*args</em>, <em>managed=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/main_module.html#opendb_bg_web"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.main_module.opendb_bg_web" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper around opendb_in_background, returns a nice web_ibs
 object to execute web calls using normal python-like syntax</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -5843,7 +5790,8 @@ object to execute web calls using normal python-like syntax</p>
 domain (str): if specified assumes server is already running</p>
 <blockquote>
 <div>somewhere otherwise kwargs is passed to opendb_in_background</div></blockquote>
-<p>start_job_queue (bool)</p>
+<p>start_job_queue (bool)
+managed (bool): if True, return a context manager that terminates the server upon completion of the block</p>
 </li>
 </ul>
 </td>
@@ -6608,25 +6556,33 @@ BE VERY CAREFUL WITH THIS FUNCTION</p>
 <dd><a class="reference external" href="http://code.activestate.com/recipes/473888-lazy-module-imports/">http://code.activestate.com/recipes/473888-lazy-module-imports/</a></dd>
 </dl>
 <dl class="function">
-<dt>
-<code class="descclassname">wbia.</code><code class="descname">import_subs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#import_subs"><span class="viewcode-link">[source]</span></a></dt>
+<dt id="wbia.import_subs">
+<code class="descclassname">wbia.</code><code class="descname">import_subs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#import_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.import_subs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt>
-<code class="descclassname">wbia.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#reload_subs"><span class="viewcode-link">[source]</span></a></dt>
+<dt id="wbia.reload_subs">
+<code class="descclassname">wbia.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.reload_subs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reloads wbia and submodules</p>
 </dd></dl>
 
 <dl class="function">
-<dt>
-<code class="descclassname">wbia.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span></dt>
-<dd><p>Reloads wbia and submodules</p>
+<dt id="wbia.rrrr">
+<code class="descclassname">wbia.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Regen Command:</dt>
+<dd><p class="first">Kinda have to work with the output of these. This module is hard to
+autogenerate correctly.</p>
+<p class="last">cd /home/joncrall/code/wbia/wbia/other
+makeinit.py -x web viz tests gui
+makeinit.py -x constants params main_module other control dbio tests</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
-<dt>
-<code class="descclassname">wbia.</code><code class="descname">run_experiment</code><span class="sig-paren">(</span><em>e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['default'], initial_aids=None, qaid_override=None, daid_override=None, lazy=False, **kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#run_experiment"><span class="viewcode-link">[source]</span></a></dt>
+<dt id="wbia.run_experiment">
+<code class="descclassname">wbia.</code><code class="descname">run_experiment</code><span class="sig-paren">(</span><em>e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['default'], initial_aids=None, qaid_override=None, daid_override=None, lazy=False, **kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia.html#run_experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.run_experiment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convience function</p>
 <dl class="docutils">
 <dt>CommandLine:</dt>
@@ -6683,7 +6639,7 @@ BE VERY CAREFUL WITH THIS FUNCTION</p>
 
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -6774,18 +6730,18 @@ BE VERY CAREFUL WITH THIS FUNCTION</p>
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
       |
       <a href="_sources/wbia.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

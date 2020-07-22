@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.tag_funcs &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.tag_funcs &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-
+   
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.tag_funcs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
@@ -55,10 +55,10 @@
 
 
 <span class="n">ANNOTMATCH_PROPS_STANDARD</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="c1">#&#39;SceneryMatch&#39;,</span>
-    <span class="c1">#&#39;Photobomb&#39;,</span>
-    <span class="c1">#&#39;Hard&#39;,</span>
-    <span class="c1">#&#39;NonDistinct&#39;,</span>
+    <span class="c1"># &#39;SceneryMatch&#39;,</span>
+    <span class="c1"># &#39;Photobomb&#39;,</span>
+    <span class="c1"># &#39;Hard&#39;,</span>
+    <span class="c1"># &#39;NonDistinct&#39;,</span>
 <span class="p">]</span>
 
 <span class="n">ANNOTMATCH_PROPS_OTHER</span> <span class="o">=</span> <span class="p">[</span>
@@ -106,14 +106,14 @@
     <span class="s1">&#39;Shadowing&#39;</span><span class="p">:</span> <span class="s1">&#39;Lighting&#39;</span><span class="p">,</span>
     <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="s1">&#39;GoodCoverage&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="c1">#&#39;Hard&#39;           : &#39;NeedsWork&#39;,</span>
+    <span class="c1"># &#39;Hard&#39;           : &#39;NeedsWork&#39;,</span>
     <span class="s1">&#39;shouldhavemore&#39;</span><span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
     <span class="s1">&#39;BadCoverage&#39;</span><span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
     <span class="s1">&#39;ScoringIssue&#39;</span><span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
     <span class="s1">&#39;TooSmallMatches&#39;</span><span class="p">:</span> <span class="s1">&#39;FeatureScale&#39;</span><span class="p">,</span>
     <span class="s1">&#39;TooLargeMatches&#39;</span><span class="p">:</span> <span class="s1">&#39;FeatureScale&#39;</span><span class="p">,</span>
-    <span class="c1">#&#39;BadShoulder&#39; : &#39;BadShoulder&#39;,</span>
-    <span class="c1">#&#39;GoodCoverage&#39;: None,</span>
+    <span class="c1"># &#39;BadShoulder&#39; : &#39;BadShoulder&#39;,</span>
+    <span class="c1"># &#39;GoodCoverage&#39;: None,</span>
 <span class="p">}</span>
 
 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">PROP_MAPPING</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -137,35 +137,35 @@
         <span class="s1">&#39;interesting&#39;</span><span class="p">,</span>
         <span class="s1">&#39;splitcase&#39;</span><span class="p">,</span>
         <span class="s1">&#39;joincase&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;orientation&#39;,</span>
+        <span class="c1"># &#39;orientation&#39;,</span>
         <span class="s1">&#39;random&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;badtail&#39;, &#39;badshoulder&#39;, &#39;splitcase&#39;, &#39;joincase&#39;, &#39;goodcoverage&#39;, &#39;interesting&#39;, &#39;hard&#39;</span>
+        <span class="c1"># &#39;badtail&#39;, &#39;badshoulder&#39;, &#39;splitcase&#39;, &#39;joincase&#39;, &#39;goodcoverage&#39;, &#39;interesting&#39;, &#39;hard&#39;</span>
     <span class="p">]</span>
     <span class="n">tags_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="c1">#&#39;quality&#39;: &#39;Quality&#39;,</span>
-        <span class="c1">#&#39;scoringissue&#39;: &#39;ScoringIssue&#39;,</span>
-        <span class="c1">#&#39;orientation&#39;: &#39;Orientation&#39;,</span>
-        <span class="c1">#&#39;orientation&#39;: &#39;MildViewpoint&#39;,</span>
+        <span class="c1"># &#39;quality&#39;: &#39;Quality&#39;,</span>
+        <span class="c1"># &#39;scoringissue&#39;: &#39;ScoringIssue&#39;,</span>
+        <span class="c1"># &#39;orientation&#39;: &#39;Orientation&#39;,</span>
+        <span class="c1"># &#39;orientation&#39;: &#39;MildViewpoint&#39;,</span>
         <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="s1">&#39;Viewpoint&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;pose&#39;: &#39;SimilarPose&#39;,</span>
+        <span class="c1"># &#39;pose&#39;: &#39;SimilarPose&#39;,</span>
         <span class="s1">&#39;pose&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;lighting&#39;: &#39;Lighting&#39;,</span>
-        <span class="c1">#&#39;occlusion&#39;: &#39;Occlusion&#39;,</span>
-        <span class="c1">#&#39;featurescale&#39;: &#39;FeatureScale&#39;,</span>
-        <span class="c1">#&#39;edgematch&#39;: &#39;EdgeMatches&#39;,</span>
-        <span class="c1">#&#39;featurescale&#39;: &#39;Pose&#39;,</span>
-        <span class="c1">#&#39;featurescale&#39;: &#39;FeatureScale&#39;,</span>
+        <span class="c1"># &#39;lighting&#39;: &#39;Lighting&#39;,</span>
+        <span class="c1"># &#39;occlusion&#39;: &#39;Occlusion&#39;,</span>
+        <span class="c1"># &#39;featurescale&#39;: &#39;FeatureScale&#39;,</span>
+        <span class="c1"># &#39;edgematch&#39;: &#39;EdgeMatches&#39;,</span>
+        <span class="c1"># &#39;featurescale&#39;: &#39;Pose&#39;,</span>
+        <span class="c1"># &#39;featurescale&#39;: &#39;FeatureScale&#39;,</span>
         <span class="s1">&#39;nondistinct&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
         <span class="s1">&#39;featurescale&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
         <span class="s1">&#39;edgematch&#39;</span><span class="p">:</span> <span class="s1">&#39;SimilarPose&#39;</span><span class="p">,</span>
         <span class="s1">&#39;badtail&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
         <span class="s1">&#39;badshoulder&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;mildviewpoint&#39;: &#39;MildViewpoint&#39;,</span>
+        <span class="c1"># &#39;mildviewpoint&#39;: &#39;MildViewpoint&#39;,</span>
         <span class="s1">&#39;mildviewpoint&#39;</span><span class="p">:</span> <span class="s1">&#39;Viewpoint&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;toolargematches&#39;: &#39;CoarseFeatures&#39;,</span>
-        <span class="c1">#&#39;badcoverage&#39;: &#39;LowCoverage&#39;,</span>
-        <span class="c1">#&#39;shouldhavemore&#39;: &#39;LowCoverage&#39;,</span>
-        <span class="c1">#&#39;viewpoint&#39;: &#39;Viewpoint&#39;,</span>
+        <span class="c1"># &#39;toolargematches&#39;: &#39;CoarseFeatures&#39;,</span>
+        <span class="c1"># &#39;badcoverage&#39;: &#39;LowCoverage&#39;,</span>
+        <span class="c1"># &#39;shouldhavemore&#39;: &#39;LowCoverage&#39;,</span>
+        <span class="c1"># &#39;viewpoint&#39;: &#39;Viewpoint&#39;,</span>
     <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">filter_tags</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
@@ -200,7 +200,6 @@
 <span class="sd">        &gt;&gt;&gt; annotmatch_rowids = filter_annotmatch_by_tags(ibs, min_num=1)</span>
 <span class="sd">        &gt;&gt;&gt; rename_and_reduce_tags(ibs, annotmatch_rowids)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">tags_list_</span> <span class="o">=</span> <span class="n">get_annotmatch_case_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">fix_tags</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
@@ -462,7 +461,6 @@
 <span class="sd">        &gt;&gt;&gt; pt.draw_timedelta_pie(timedelta_list, label=&#39;timestamp of tags=%r&#39; % (has_any,))</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="n">annotmatch_rowids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">()</span>
 
@@ -558,9 +556,9 @@
     <span class="k">if</span> <span class="n">logic</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logic</span> <span class="o">=</span> <span class="s1">&#39;and&#39;</span>
 
-    <span class="n">logic_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span> <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,}[</span><span class="n">logic</span><span class="p">]</span>
+    <span class="n">logic_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span> <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">}[</span><span class="n">logic</span><span class="p">]</span>
 
-    <span class="n">default_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">,</span> <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">,}[</span><span class="n">logic</span><span class="p">]</span>
+    <span class="n">default_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">,</span> <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">}[</span><span class="n">logic</span><span class="p">]</span>
 
     <span class="n">tags_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">fix_tags</span><span class="p">(</span><span class="n">tags_</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags_</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
     <span class="n">flags</span> <span class="o">=</span> <span class="n">default_func</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tags_list_</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
@@ -1113,7 +1111,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -1170,15 +1168,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

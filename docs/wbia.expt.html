@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.expt package &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.expt package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -18,257 +18,29 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.gui package" href="wbia.gui.html" />
     <link rel="prev" title="wbia.dtool package" href="wbia.dtool.html" />
-
+   
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <div class="section" id="wbia-expt-package">
 <h1>wbia.expt package<a class="headerlink" href="#wbia-expt-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-wbia.expt.annotation_configs">
-<span id="wbia-expt-annotation-configs-module"></span><h2>wbia.expt.annotation_configs module<a class="headerlink" href="#module-wbia.expt.annotation_configs" title="Permalink to this headline">¶</a></h2>
-<p>Definitions for common aid configurations</p>
-<p>Rename to annot_cfgdef</p>
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.apply_qualcontrol">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">apply_qualcontrol</code><span class="sig-paren">(</span><em>acfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#apply_qualcontrol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.apply_qualcontrol" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.apply_timecontrol">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">apply_timecontrol</code><span class="sig-paren">(</span><em>acfg</em>, <em>min_timedelta='6h'</em>, <em>require_timestamp=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#apply_timecontrol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.apply_timecontrol" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.compress_acfg_list_for_printing">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">compress_acfg_list_for_printing</code><span class="sig-paren">(</span><em>acfg_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#compress_acfg_list_for_printing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.compress_acfg_list_for_printing" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia –tf compress_acfg_list_for_printing</dd>
-<dt>Ignore:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt.annotation_configs</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qcfg_list</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_list</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">qcfg</span><span class="p">}</span> <span class="k">for</span> <span class="n">qcfg</span> <span class="ow">in</span> <span class="n">qcfg_list</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nonvaried_dict</span><span class="p">,</span> <span class="n">varied_dicts</span> <span class="o">=</span> <span class="n">compress_acfg_list_for_printing</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;varied_dicts = </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">varied_dicts</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;nonvaried_dict = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">nonvaried_dict</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.compress_aidcfg">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">compress_aidcfg</code><span class="sig-paren">(</span><em>acfg</em>, <em>filter_nones=False</em>, <em>filter_empty=False</em>, <em>force_noncommon=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#compress_aidcfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.compress_aidcfg" title="Permalink to this definition">¶</a></dt>
-<dd><p>Idea is to add a third subconfig named <cite>common</cite> that is the intersection of
-<cite>qcfg</cite> and <cite>dcfg</cite>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>acfg</strong> (<em>dict</em>) – </td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">acfg</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>#python -m wbia –tf compress_aidcfg
-python -m wbia.expt.annotation_configs –exec-compress_aidcfg –show</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt.annotation_configs</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg</span> <span class="o">=</span> <span class="n">default</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg</span> <span class="o">=</span> <span class="n">compress_aidcfg</span><span class="p">(</span><span class="n">acfg</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;acfg = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">acfg</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.ctrl">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">ctrl</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 1, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': None, 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': None, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 2, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': None, 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': None, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.ctrl" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg –db PZ_Master1 -a timectrl</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.default2">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">default2</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': None, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': None, 'min_unixtime': None, 'minqual': None, 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': None, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': None, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': None, 'view': None, 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': None, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': None, 'min_unixtime': None, 'minqual': None, 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': None, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': None, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': None, 'view': None, 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.default2" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg –db PZ_Master1 -a unctrl</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.flatten_acfg_list">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">flatten_acfg_list</code><span class="sig-paren">(</span><em>acfg_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#flatten_acfg_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.flatten_acfg_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a new config where subconfig params are prefixed by subconfig keys</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.get_varied_acfg_labels">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">get_varied_acfg_labels</code><span class="sig-paren">(</span><em>acfg_list</em>, <em>mainkey='_cfgname'</em>, <em>checkname=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#get_varied_acfg_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.get_varied_acfg_labels" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt.annotation_configs</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.partition_acfg_list">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">partition_acfg_list</code><span class="sig-paren">(</span><em>acfg_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#partition_acfg_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.partition_acfg_list" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.print_acfg">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">print_acfg</code><span class="sig-paren">(</span><em>acfg</em>, <em>expanded_aids=None</em>, <em>ibs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#print_acfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.print_acfg" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.print_acfg_list">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">print_acfg_list</code><span class="sig-paren">(</span><em>acfg_list</em>, <em>expanded_aids_list=None</em>, <em>ibs=None</em>, <em>combined=False</em>, <em>only_summary=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#print_acfg_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.print_acfg_list" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>acfg_list</strong> (<em>list</em>) – </li>
-<li><strong>expanded_aids_list</strong> (<em>list</em>) – (default = None)</li>
-<li><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object(default = None)</li>
-<li><strong>combined</strong> (<em>bool</em>) – (default = False)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.expt.annotation_configs –exec-print_acfg_list</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt.annotation_configs</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">expt</span><span class="o">.</span><span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">combined</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">print_acfg_list</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">combined</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.shorten_to_alias_labels">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">shorten_to_alias_labels</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#shorten_to_alias_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.shorten_to_alias_labels" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.timectrlL">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">timectrlL</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 1, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '6h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': False, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 2, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '6h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': False, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.timectrlL" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg –db PZ_Master1 -a timequalctrl</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.timectrlhard">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">timectrlhard</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 1, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '6h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': ('needswork', 'correctable', 'mildviewpoint'), 'has_none': ('viewpoint', 'photobomb', 'error:viewpoint', 'quality'), 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 2, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '6h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.timectrlhard" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg -a viewdiff –db PZ_Master1 –verbtd –nocache –per_vp=True
-wbia -e print_acfg -a viewdiff_td –db PZ_Master1 –verbtd –nocache –per_vp=True</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.unctrl_comp">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">unctrl_comp</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': None, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': None, 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': None, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': None, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 1, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 2, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': None, 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': None, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.unctrl_comp" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg –db PZ_Master1 -a ctrl
-wbia -e print_acfg –db PZ_Master1 -a unctrl ctrl::unctrl:qpername=1,qview_ext=0
-wbia -e print_acfg –db PZ_Master1 -a unctrl ctrl::unctrl_comp</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="wbia.expt.annotation_configs.unflatten_acfgdict">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">unflatten_acfgdict</code><span class="sig-paren">(</span><em>flat_dict, prefix_list=['dcfg', 'qcfg']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/expt/annotation_configs.html#unflatten_acfgdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.expt.annotation_configs.unflatten_acfgdict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.varynannots_td1h">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">varynannots_td1h</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 1, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '1h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': [1], 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': [0.0, 0.01, 0.05, 0.125, 0.25, 0.375, 0.5, 0.75, 0.875, 0.95, 1.0], 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 2, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '1h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.varynannots_td1h" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg -a viewpoint_compare –db PZ_Master1 –verbtd –nocache
-python -m wbia –tf parse_acfg_combo_list -a viewpoint_compare
-python -m wbia –tf get_annotcfg_list –db PZ_Master1 -a viewpoint_compare         –verbtd
-# Check composition of names per viewpoint
-python -m wbia –tf group_annots_by_multi_prop –db PZ_Master1         –props=yaw_texts,name_rowids –keys1 frontleft
-python -m wbia –tf get_annot_stats_dict –db PZ_Master1         –per_name_vpedge=True</p>
-<p>TODO: Need to explicitly setup the common config I think?
-wbia -e print_acfg -a viewdiff:min_timedelta=1h –db PZ_Master1 –verbtd –nocache-aid
-wbia –tf get_annotcfg_list -a viewdiff:min_timedelta=1h –db PZ_Master1         –verbtd –nocache-aid</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.varypername2_td">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">varypername2_td</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': True, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 1, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '6h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': [1, 2], 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': True, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 3, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '6h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.varypername2_td" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg –db PZ_Master1 -a ctrl2
-wbia -e print_acfg –db PZ_Master1 -a timectrl2
-wbia -e rank_cmc –db PZ_Master1 -a timectrl2 -t invarbest</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.varypername_td1h">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">varypername_td1h</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': True, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 2, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '1h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': [1, 2, 3], 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': True, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 4, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '1h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.varypername_td1h" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg –db PZ_Master1 -a varypername_tdqual</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.varypername_tdqual">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">varypername_tdqual</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': True, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 2, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '6h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': True, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': [1, 2, 3], 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': True, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 4, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '6h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': True, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.varypername_tdqual" title="Permalink to this definition">¶</a></dt>
-<dd><p>python -m wbia –tf get_num_annots_per_name –db PZ_Master1
-wbia -e print_acfg -a varysize2 –db PZ_Master1 –verbtd –nocache
-wbia -e print_acfg -a varysize2 –db NNP_MasterGIRM_core –verbtd –nocache</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.varysize">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">varysize</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 1, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': None, 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': None, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': [1, 2, 3], 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': [0.25, 0.5, 0.75], 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': None, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 4, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': None, 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': None, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': None}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.varysize" title="Permalink to this definition">¶</a></dt>
-<dd><p>wbia -e print_acfg -a varysize2_td –db PZ_Master1 –verbtd –nocache</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="wbia.expt.annotation_configs.viewdiff_td1h">
-<code class="descclassname">wbia.expt.annotation_configs.</code><code class="descname">viewdiff_td1h</code><em class="property"> = {'dcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': True, 'force_const_size': True, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 1, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '1h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': 1, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': ['primary'], 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': '#primary&gt;0&amp;#primary1&gt;0'}, 'qcfg': {'any_endswith': None, 'any_match': None, 'any_startswith': None, 'been_adjusted': None, 'contributor_contains': None, 'crossval_enc': None, 'exclude_ref_contact': None, 'exclude_reference': None, 'force_const_size': True, 'hackerrors': False, 'has_all': None, 'has_any': None, 'has_none': None, 'index': None, 'is_exemplar': None, 'is_known': True, 'joinme': None, 'logic': None, 'max_num': None, 'max_numfeat': None, 'max_pername': None, 'max_pername_global': None, 'max_timestamp': None, 'max_unixtime': None, 'min_num': None, 'min_numfeat': None, 'min_pername': 2, 'min_pername_global': None, 'min_spacedelta': None, 'min_spacetimedelta': None, 'min_timedelta': '1h', 'min_unixtime': None, 'minqual': 'ok', 'multiple': None, 'name_offset': None, 'none_match': None, 'num_names': None, 'occur_offset': None, 'require_gps': None, 'require_quality': None, 'require_timestamp': True, 'require_viewpoint': None, 'reviewed': None, 'same_imageset': None, 'sample_occur': None, 'sample_offset': None, 'sample_per_name': 1, 'sample_per_ref_name': None, 'sample_rule': 'random', 'sample_rule_ref': 'random', 'sample_seed': 0, 'sample_size': None, 'shuffle': False, 'species': 'primary', 'view': 'primary1', 'view_ext': 0, 'view_ext1': None, 'view_ext2': None, 'view_pername': '#primary&gt;0&amp;#primary1&gt;0'}}</em><a class="headerlink" href="#wbia.expt.annotation_configs.viewdiff_td1h" title="Permalink to this definition">¶</a></dt>
-<dd><p>qhas_any=(query,),dpername=2,exclude_reference=True –acfginfo –verbtd  –veryverbtd
-wbia get_annotcfg_list –db Oxford -a oxford –acfginfo
-(‘_QSUUIDS((55)qxlgljvomqpdvlny)’, ‘_DSUUIDS((4240)vhtqsdkrwetbftis)’),</p>
-<p>wbia draw_rank_cmc –db Oxford –save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">wbia get_annotcfg_list –db Oxford -a default</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<div class="section" id="wbia-expt-annotation-configs-module">
+<h2>wbia.expt.annotation_configs module<a class="headerlink" href="#wbia-expt-annotation-configs-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-wbia.expt.cfghelpers">
 <span id="wbia-expt-cfghelpers-module"></span><h2>wbia.expt.cfghelpers module<a class="headerlink" href="#module-wbia.expt.cfghelpers" title="Permalink to this headline">¶</a></h2>
@@ -2319,9 +2091,15 @@ query.</p>
 </table>
 <dl class="docutils">
 <dt>CommandLine:</dt>
-<dd>python -m wbia get_query_result_info
-python -m wbia get_query_result_info:0 –db lynx             -a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1
-python -m wbia get_query_result_info:0 –db lynx             -a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1 –cmd</dd>
+<dd><p class="first">python -m wbia get_query_result_info
+python -m wbia get_query_result_info:0 –db lynx </p>
+<blockquote>
+<div>-a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1</div></blockquote>
+<dl class="last docutils">
+<dt>python -m wbia get_query_result_info:0 –db lynx </dt>
+<dd>-a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1 –cmd</dd>
+</dl>
+</dd>
 </dl>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
@@ -2335,9 +2113,14 @@ python -m wbia get_query_result_info:0 –db lynx             -a :qsame_imageset
 </div>
 <dl class="docutils">
 <dt>Ignore:</dt>
-<dd><p class="first">wbia -e rank_cmc –db humpbacks -a :has_any=hasnotch,mingt=2                 -t :proot=BC_DTW –show –nocache-big</p>
-<p>wbia -e rank_cmc –db humpbacks -a :is_known=True,mingt=2                 -t :pipeline_root=BC_DTW</p>
-<p>wbia -e rank_cmc –db humpbacks -a :is_known=True                 -t :pipeline_root=BC_DTW                 –qaid=1,9,15,16,18 –daid-override=1,9,15,16,18,21,22                 –show –debug-depc</p>
+<dd><dl class="first docutils">
+<dt>wbia -e rank_cmc –db humpbacks -a :has_any=hasnotch,mingt=2 </dt>
+<dd>-t :proot=BC_DTW –show –nocache-big</dd>
+<dt>wbia -e rank_cmc –db humpbacks -a :is_known=True,mingt=2 </dt>
+<dd>-t :pipeline_root=BC_DTW</dd>
+<dt>wbia -e rank_cmc –db humpbacks -a :is_known=True </dt>
+<dd>-t :pipeline_root=BC_DTW –qaid=1,9,15,16,18 –daid-override=1,9,15,16,18,21,22 –show –debug-depc</dd>
+</dl>
 <p class="last">–clear-all-depcache</p>
 </dd>
 </dl>
@@ -2407,7 +2190,7 @@ makeinit.py</p>
 
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -2500,18 +2283,18 @@ makeinit.py</p>
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
       |
       <a href="_sources/wbia.expt.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

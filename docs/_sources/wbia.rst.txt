@@ -22,14 +22,6 @@ wbia - Wildbook IA
    wbia.viz
    wbia.web
 
-.. automodule:: wbia
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: my_project.main
-   :members:
-
 wbia.\_\_main\_\_
 ----------
 

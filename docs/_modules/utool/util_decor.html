@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>utool.util_decor &#8212; wbia 2.2.4 documentation</title>
+    <title>utool.util_decor &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-
+   
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for utool.util_decor</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
@@ -50,6 +50,7 @@
 <span class="kn">from</span> <span class="nn">utool</span> <span class="k">import</span> <span class="n">util_type</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="k">import</span> <span class="n">util_inject</span>
 <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="k">import</span> <span class="n">meta_util_six</span>
+
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[decor]&#39;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">util_type</span><span class="o">.</span><span class="n">HAVE_NUMPY</span><span class="p">:</span>
@@ -57,12 +58,12 @@
 
 <span class="c1"># Commandline to toggle certain convinience decorators</span>
 <span class="n">SIG_PRESERVE</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--sigpreserve&#39;</span><span class="p">)</span>
-<span class="c1">#SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag(&#39;--sigpreserve&#39;)</span>
+<span class="c1"># SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag(&#39;--sigpreserve&#39;)</span>
 <span class="n">ONEX_REPORT_INPUT</span> <span class="o">=</span> <span class="s1">&#39;--onex-report-input&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="c1">#IGNORE_TRACEBACK = &#39;--smalltb&#39; in sys.argv or &#39;--ignoretb&#39; in sys.argv</span>
+<span class="c1"># IGNORE_TRACEBACK = &#39;--smalltb&#39; in sys.argv or &#39;--ignoretb&#39; in sys.argv</span>
 <span class="c1"># FIXME: dupliated in _internal/py2_syntax_funcs</span>
 <span class="n">IGNORE_TRACEBACK</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;--nosmalltb&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s1">&#39;--noignoretb&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-<span class="c1">#if util_arg.STRICT:</span>
+<span class="c1"># if util_arg.STRICT:</span>
 <span class="c1">#    IGNORE_TRACEBACK = False</span>
 
 <span class="c1"># do not ignore traceback when profiling</span>
@@ -70,9 +71,9 @@
 <span class="n">UNIQUE_NUMPY</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="n">NOINDENT_DECOR</span> <span class="o">=</span> <span class="kc">False</span>
 
-<span class="c1">#os.environ.get(&#39;UTOOL_AUTOGEN_SPHINX_RUNNING&#39;, &#39;OFF&#39;)</span>
+<span class="c1"># os.environ.get(&#39;UTOOL_AUTOGEN_SPHINX_RUNNING&#39;, &#39;OFF&#39;)</span>
 
-<span class="c1">#def composed(*decs):</span>
+<span class="c1"># def composed(*decs):</span>
 <span class="c1">#    &quot;&quot;&quot; combines multiple decorators &quot;&quot;&quot;</span>
 <span class="c1">#    def deco(f):</span>
 <span class="c1">#        for dec in reversed(decs):</span>
@@ -93,6 +94,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
     <span class="nd">@ut</span><span class="o">.</span><span class="n">indent_func</span>
     <span class="k">def</span> <span class="nf">foobar</span><span class="p">():</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;foobar&#39;</span><span class="p">)</span>
@@ -102,9 +104,9 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;printing foobar&#39;</span><span class="p">)</span>
         <span class="n">foobar</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="c1">#import sys</span>
-        <span class="c1">#exc_type, exc_value, exc_traceback = sys.exc_info()</span>
-        <span class="c1">#print(exc_traceback)</span>
+        <span class="c1"># import sys</span>
+        <span class="c1"># exc_type, exc_value, exc_traceback = sys.exc_info()</span>
+        <span class="c1"># print(exc_traceback)</span>
         <span class="c1"># TODO: ensure decorators are not printed in stack trace</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;There is no error. This is a test&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -113,8 +115,10 @@
     <span class="c1"># Use version that has special python2 only syntax.</span>
     <span class="c1"># can not include it here for that reason</span>
     <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="k">import</span> <span class="n">py2_syntax_funcs</span>
+
     <span class="n">ignores_exc_tb</span> <span class="o">=</span> <span class="n">py2_syntax_funcs</span><span class="o">.</span><span class="n">ignores_exc_tb</span>
 <span class="k">else</span><span class="p">:</span>
+
     <span class="k">def</span> <span class="nf">ignores_exc_tb</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        PYTHON 3 VERSION</span>
@@ -133,6 +137,7 @@
 <span class="sd">            http://legacy.python.org/dev/peps/pep-3109/</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">outer_wrapper</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;outer_wrapper&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
         <span class="k">def</span> <span class="nf">ignores_exc_tb_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
             <span class="c1"># HACK JUST TURN THIS OFF</span>
             <span class="k">return</span> <span class="n">func</span>
@@ -141,11 +146,12 @@
                 <span class="c1"># if the global enforces that we should not ignore anytracebacks</span>
                 <span class="c1"># then just return the original function without any modifcation</span>
                 <span class="k">return</span> <span class="n">func</span>
-            <span class="c1">#@wraps(func)</span>
+
+            <span class="c1"># @wraps(func)</span>
             <span class="k">def</span> <span class="nf">wrp_noexectb</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="c1">#import utool</span>
-                    <span class="c1">#if utool.DEBUG:</span>
+                    <span class="c1"># import utool</span>
+                    <span class="c1"># if utool.DEBUG:</span>
                     <span class="c1">#    print(&#39;[IN IGNORETB] args=%r&#39; % (args,))</span>
                     <span class="c1">#    print(&#39;[IN IGNORETB] kwargs=%r&#39; % (kwargs,))</span>
                     <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -163,9 +169,11 @@
                     <span class="n">ex</span> <span class="o">=</span> <span class="n">exc_type</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span>
                     <span class="n">ex</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exc_traceback</span>
                     <span class="k">raise</span> <span class="n">ex</span>
+
             <span class="k">if</span> <span class="n">outer_wrapper</span><span class="p">:</span>
                 <span class="n">wrp_noexectb</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_noexectb</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">wrp_noexectb</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># called with one arg means its a function call</span>
             <span class="n">func</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -176,7 +184,7 @@
 
 
 <span class="c1"># NEW PYTHON 2.7/3 VERSION</span>
-<span class="c1">#def ignores_exc_tb(*args, **kwargs):</span>
+<span class="c1"># def ignores_exc_tb(*args, **kwargs):</span>
 <span class="c1">#    &quot;&quot;&quot;</span>
 <span class="c1">#    ignore_exc_tb decorates a function and remove both itself</span>
 <span class="c1">#    and the function from any exception traceback that occurs.</span>
@@ -249,25 +257,29 @@
 <span class="sd">    decorated function name and the arguments passed to it will be printed to</span>
 <span class="sd">    the utool print function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">_closure_onexceptreport</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ONEX_REPORT_INPUT</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">func</span>
+
         <span class="nd">@ignores_exc_tb</span><span class="p">(</span><span class="n">outer_wrapper</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="c1">#@wraps(func)</span>
+        <span class="c1"># @wraps(func)</span>
         <span class="k">def</span> <span class="nf">wrp_onexceptreport</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="c1">#import utool</span>
-                <span class="c1">#if utool.DEBUG:</span>
+                <span class="c1"># import utool</span>
+                <span class="c1"># if utool.DEBUG:</span>
                 <span class="c1">#    print(&#39;[IN EXCPRPT] args=%r&#39; % (args,))</span>
                 <span class="c1">#    print(&#39;[IN EXCPRPT] kwargs=%r&#39; % (kwargs,))</span>
                 <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="kn">from</span> <span class="nn">utool</span> <span class="k">import</span> <span class="n">util_str</span>
+
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR occured! Reporting input to function&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="kn">from</span> <span class="nn">utool</span> <span class="k">import</span> <span class="n">util_inspect</span>
                     <span class="kn">from</span> <span class="nn">utool</span> <span class="k">import</span> <span class="n">util_list</span>
                     <span class="kn">from</span> <span class="nn">utool</span> <span class="k">import</span> <span class="n">util_dict</span>
+
                     <span class="n">argspec</span> <span class="o">=</span> <span class="n">util_inspect</span><span class="o">.</span><span class="n">get_func_argspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
                     <span class="n">in_kwargs_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
                     <span class="n">kwarg_keys</span> <span class="o">=</span> <span class="n">util_list</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">in_kwargs_flags</span><span class="p">)</span>
@@ -276,29 +288,42 @@
                     <span class="n">arg_keys</span> <span class="o">=</span> <span class="n">util_list</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
                     <span class="n">arg_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">arg_keys</span><span class="p">]</span>
                     <span class="n">num_nodefault</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
-                    <span class="n">default_vals</span> <span class="o">=</span> <span class="p">(([</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">num_nodefault</span><span class="p">))</span> <span class="o">+</span>
-                                    <span class="nb">list</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span><span class="p">))</span>
-                    <span class="n">args_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="n">default_vals</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+                    <span class="n">default_vals</span> <span class="o">=</span> <span class="p">([</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">num_nodefault</span><span class="p">))</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
+                    <span class="n">args_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="n">default_vals</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
                     <span class="n">arg_vals</span> <span class="o">=</span> <span class="n">util_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">args_</span><span class="p">,</span> <span class="n">arg_idxs</span><span class="p">)</span>
-                    <span class="n">requested_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">util_list</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
-                        <span class="p">[</span><span class="nb">zip</span><span class="p">(</span><span class="n">kwarg_keys</span><span class="p">,</span> <span class="n">kwarg_vals</span><span class="p">),</span> <span class="nb">zip</span><span class="p">(</span><span class="n">arg_keys</span><span class="p">,</span> <span class="n">arg_vals</span><span class="p">)]))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;input dict = &#39;</span> <span class="o">+</span> <span class="n">util_str</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span>
-                        <span class="n">util_dict</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">requested_dict</span><span class="p">,</span> <span class="n">keys</span><span class="p">)))</span>
+                    <span class="n">requested_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                        <span class="n">util_list</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                            <span class="p">[</span><span class="nb">zip</span><span class="p">(</span><span class="n">kwarg_keys</span><span class="p">,</span> <span class="n">kwarg_vals</span><span class="p">),</span> <span class="nb">zip</span><span class="p">(</span><span class="n">arg_keys</span><span class="p">,</span> <span class="n">arg_vals</span><span class="p">)]</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s1">&#39;input dict = &#39;</span>
+                        <span class="o">+</span> <span class="n">util_str</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">util_dict</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">requested_dict</span><span class="p">,</span> <span class="n">keys</span><span class="p">))</span>
+                    <span class="p">)</span>
                     <span class="c1"># (print out specific keys only)</span>
                     <span class="k">pass</span>
-                <span class="n">arg_strs</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">repr</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">)))</span>
-                                      <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">])</span>
-                <span class="n">kwarg_strs</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-                    <span class="n">util_str</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
-                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)])</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">ERROR: funcname=</span><span class="si">%r</span><span class="s1">,</span><span class="se">\n</span><span class="s1"> * args=</span><span class="si">%s</span><span class="s1">,</span><span class="se">\n</span><span class="s1"> * kwargs=</span><span class="si">%r</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">arg_strs</span><span class="p">,</span> <span class="n">kwarg_strs</span><span class="p">))</span>
+                <span class="n">arg_strs</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">)))</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">kwarg_strs</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">util_str</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">ERROR: funcname=</span><span class="si">%r</span><span class="s1">,</span><span class="se">\n</span><span class="s1"> * args=</span><span class="si">%s</span><span class="s1">,</span><span class="se">\n</span><span class="s1"> * kwargs=</span><span class="si">%r</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span>
+                    <span class="n">arg_strs</span><span class="p">,</span>
+                    <span class="n">kwarg_strs</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39; * len(args) = </span><span class="si">%r</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
                 <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39; * len(kwargs) = </span><span class="si">%r</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">pad_stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">raise</span>
+
         <span class="n">wrp_onexceptreport</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_onexceptreport</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_onexceptreport</span>
+
     <span class="k">if</span> <span class="n">func_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_closure_onexceptreport</span>
     <span class="k">else</span><span class="p">:</span>
@@ -311,26 +336,30 @@
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
             <span class="kn">import</span> <span class="nn">inspect</span>  <span class="c1"># NOQA</span>
+
             <span class="n">trace</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span>
             <span class="n">locals_</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_locals</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-- &lt;TRACE LOCALS&gt; --&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
                 <span class="n">frame</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">locals_</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_locals</span>
-                <span class="n">local_repr_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-                                   <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">locals_</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="n">local_repr_dict</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">locals_</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">}</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;LOCALS LEVEL </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">level</span><span class="p">,))</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">local_repr_dict</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-- &lt;/TRACE LOCALS&gt; --&#39;</span><span class="p">)</span>
-            <span class="c1">#import utool</span>
-            <span class="c1">#utool.embed()</span>
+            <span class="c1"># import utool</span>
+            <span class="c1"># utool.embed()</span>
             <span class="k">raise</span>
+
     <span class="k">return</span> <span class="n">_wrapper</span>
 
 
-<span class="c1">#class DebugContext(object):</span>
+<span class="c1"># class DebugContext(object):</span>
 <span class="c1">#    def __enter__():</span>
 <span class="c1">#        pass</span>
 <span class="c1">#    def __exit__(self, exc_type, exc_value, exc_traceback):</span>
@@ -341,26 +370,32 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    does the actual work of indent_func</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">closure_indent</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">TRACE</span><span class="p">:</span>
+
             <span class="nd">@ignores_exc_tb</span><span class="p">(</span><span class="n">outer_wrapper</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="c1">#@wraps(func)</span>
+            <span class="c1"># @wraps(func)</span>
             <span class="k">def</span> <span class="nf">wrp_indent</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                 <span class="k">with</span> <span class="n">util_print</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span><span class="p">):</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    ...trace[in]&#39;</span><span class="p">)</span>
                     <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    ...trace[out]&#39;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">ret</span>
+
         <span class="k">else</span><span class="p">:</span>
+
             <span class="nd">@ignores_exc_tb</span><span class="p">(</span><span class="n">outer_wrapper</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="c1">#@wraps(func)</span>
+            <span class="c1"># @wraps(func)</span>
             <span class="k">def</span> <span class="nf">wrp_indent</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                 <span class="k">with</span> <span class="n">util_print</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span><span class="p">):</span>
                     <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">ret</span>
+
         <span class="n">wrp_indent_</span> <span class="o">=</span> <span class="n">ignores_exc_tb</span><span class="p">(</span><span class="n">wrp_indent</span><span class="p">)</span>
         <span class="n">wrp_indent_</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_indent</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_indent_</span>
+
     <span class="k">return</span> <span class="n">closure_indent</span>
 
 
@@ -388,6 +423,7 @@
 <span class="sd">    Causes output of function to be printed in an XML style block</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">funcname</span> <span class="o">=</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">wrp_tracefunc2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
@@ -397,11 +433,13 @@
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&lt;/</span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,))</span>
         <span class="k">return</span> <span class="n">ret</span>
+
     <span class="n">wrp_tracefunc2_</span> <span class="o">=</span> <span class="n">ignores_exc_tb</span><span class="p">(</span><span class="n">wrp_tracefunc2</span><span class="p">)</span>
     <span class="n">wrp_tracefunc2_</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_tracefunc2_</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_tracefunc2_</span>
 
-<span class="c1">#----------</span>
+
+<span class="c1"># ----------</span>
 
 
 <span class="k">def</span> <span class="nf">accepts_scalar_input</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -433,11 +471,11 @@
 <span class="sd">        &gt;&gt;&gt; assert 2 == foobar(self, 1)</span>
 <span class="sd">        &gt;&gt;&gt; assert [2, 3] == foobar(self, [1, 2])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#@on_exception_report_input</span>
+    <span class="c1"># @on_exception_report_input</span>
     <span class="nd">@ignores_exc_tb</span><span class="p">(</span><span class="n">outer_wrapper</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="c1">#@wraps(func)</span>
+    <span class="c1"># @wraps(func)</span>
     <span class="k">def</span> <span class="nf">wrp_asi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1">#if HAVE_PANDAS:</span>
+        <span class="c1"># if HAVE_PANDAS:</span>
         <span class="c1">#    if isinstance(input_, (pd.DataFrame, pd.Series)):</span>
         <span class="c1">#        input_ = input_.values</span>
         <span class="k">if</span> <span class="n">util_iter</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
@@ -445,10 +483,11 @@
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># If input is scalar, wrap input, execute, and unpack result</span>
-            <span class="c1">#ret = func(self, (input_,), *args, **kwargs)</span>
+            <span class="c1"># ret = func(self, (input_,), *args, **kwargs)</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">[</span><span class="n">input_</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
     <span class="n">wrp_asi</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_asi</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_asi</span>
 
@@ -469,11 +508,12 @@
 <span class="sd">            code that operates on lists. Ensures that decorated function gets</span>
 <span class="sd">            the argument as an iterable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">argx_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)),</span> <span class="p">(</span>
-        <span class="s1">&#39;accepts_scalar_input2 must be called with argument positions&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+        <span class="n">argx_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
+    <span class="p">),</span> <span class="s1">&#39;accepts_scalar_input2 must be called with argument positions&#39;</span>
 
     <span class="k">def</span> <span class="nf">closure_asi2</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-        <span class="c1">#@on_exception_report_input</span>
+        <span class="c1"># @on_exception_report_input</span>
         <span class="nd">@ignores_exc_tb</span><span class="p">(</span><span class="n">outer_wrapper</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">wrp_asi2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c1"># Hack in case wrapping a function with varargs</span>
@@ -484,14 +524,17 @@
                 <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># If input is scalar, wrap input, execute, and unpack result</span>
-                <span class="n">args_wrapped</span> <span class="o">=</span> <span class="p">[(</span><span class="n">arg</span><span class="p">,)</span> <span class="k">if</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">argx_list_</span> <span class="k">else</span> <span class="n">arg</span>
-                                <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">)]</span>
+                <span class="n">args_wrapped</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="n">arg</span><span class="p">,)</span> <span class="k">if</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">argx_list_</span> <span class="k">else</span> <span class="n">arg</span> <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+                <span class="p">]</span>
                 <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args_wrapped</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="n">outer_wrapper</span><span class="p">:</span>
             <span class="n">wrp_asi2</span> <span class="o">=</span> <span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_asi2</span><span class="p">,</span> <span class="n">func</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">wrp_asi2</span>
+
     <span class="k">return</span> <span class="n">closure_asi2</span>
 
 
@@ -506,8 +549,9 @@
         <span class="k">return</span> <span class="kc">True</span>
     <span class="n">argx_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">util_iter</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">argx</span><span class="p">])</span> <span class="k">for</span> <span class="n">argx</span> <span class="ow">in</span> <span class="n">argx_list_</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">argx_flags</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">argx_flags</span><span class="p">]),</span> <span class="p">(</span>
-            <span class="s1">&#39;invalid mixing of iterable and scalar inputs&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">argx_flags</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">argx_flags</span><span class="p">]</span>
+        <span class="p">),</span> <span class="s1">&#39;invalid mixing of iterable and scalar inputs&#39;</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;!!! ASSERTION ERROR IN UTIL_DECOR !!!&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">argx</span> <span class="ow">in</span> <span class="n">argx_list_</span><span class="p">:</span>
@@ -534,11 +578,12 @@
 <span class="sd">        something where when you couln&#39;t unpack it becuase it was already</span>
 <span class="sd">        empty...</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="nd">@ignores_exc_tb</span><span class="p">(</span><span class="n">outer_wrapper</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="c1">#@wraps(func)</span>
+    <span class="c1"># @wraps(func)</span>
     <span class="k">def</span> <span class="nf">wrp_asivo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1">#import utool</span>
-        <span class="c1">#if utool.DEBUG:</span>
+        <span class="c1"># import utool</span>
+        <span class="c1"># if utool.DEBUG:</span>
         <span class="c1">#    print(&#39;[IN SIVO] args=%r&#39; % (args,))</span>
         <span class="c1">#    print(&#39;[IN SIVO] kwargs=%r&#39; % (kwargs,))</span>
         <span class="k">if</span> <span class="n">util_iter</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
@@ -553,18 +598,20 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;error in asivo&#39;</span>
                 <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
     <span class="k">return</span> <span class="n">wrp_asivo</span>
+
 
 <span class="c1"># TODO: Rename to listget_1to1 1toM etc...</span>
 <span class="n">getter_1to1</span> <span class="o">=</span> <span class="n">accepts_scalar_input</span>
 <span class="n">getter_1toM</span> <span class="o">=</span> <span class="n">accepts_scalar_input_vector_output</span>
-<span class="c1">#----------</span>
+<span class="c1"># ----------</span>
 
 
 <span class="k">def</span> <span class="nf">accepts_numpy</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Allows the first input to be a numpy array and get result in numpy form &quot;&quot;&quot;</span>
-    <span class="c1">#@ignores_exc_tb</span>
-    <span class="c1">#@wraps(func)</span>
+    <span class="c1"># @ignores_exc_tb</span>
+    <span class="c1"># @wraps(func)</span>
     <span class="k">def</span> <span class="nf">wrp_accepts_numpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">util_type</span><span class="o">.</span><span class="n">HAVE_NUMPY</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
             <span class="c1"># If the input is not numpy, just call the function</span>
@@ -590,6 +637,7 @@
                 <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">output_arr</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">output_shape</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">output_list</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">input_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
     <span class="n">wrp_accepts_numpy</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_accepts_numpy</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_accepts_numpy</span>
 
@@ -601,14 +649,18 @@
 <span class="sd">    References:</span>
 <span class="sd">        http://code.activestate.com/recipes/578231-fastest-memoization-decorator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">class</span> <span class="nc">_memorizer</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
+
         <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">args</span><span class="p">]</span>
+
         <span class="k">def</span> <span class="nf">__missing__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">key</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">ret</span>
+
     <span class="k">return</span> <span class="n">_memorizer</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 
 
@@ -618,18 +670,22 @@
 <span class="sd">    References:</span>
 <span class="sd">        http://code.activestate.com/recipes/578231-fastest-memoization-decorator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">class</span> <span class="nc">memodict_single</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">__missing__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">ret</span>
+
     <span class="k">return</span> <span class="n">memodict_single</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span>
 
 
 <span class="k">def</span> <span class="nf">memoize_zero</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Memoization decorator for a function taking no arguments &quot;&quot;&quot;</span>
     <span class="n">wrp_memoize_single</span> <span class="o">=</span> <span class="n">memoize_single</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">wrp_memoize_zero</span><span class="p">():</span>
         <span class="k">return</span> <span class="n">wrp_memoize_single</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">wrp_memoize_zero</span>
 
 
@@ -675,12 +731,14 @@
 <span class="sd">        &gt;&gt;&gt; assert foo_memo(&#39;a&#39;) == &#39;b&#39; and foo_memo(&#39;c&#39;) == &#39;d&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cache</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">_util_decor_memoize_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
     <span class="c1"># @functools.wraps(func)</span>
     <span class="k">def</span> <span class="nf">memoizer</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
             <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
     <span class="n">memoizer</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">memoizer</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="n">memoizer</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">cache</span>
     <span class="k">return</span> <span class="n">memoizer</span>
@@ -688,55 +746,60 @@
 
 <span class="k">def</span> <span class="nf">interested</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="nd">@indent_func</span>
-    <span class="c1">#@ignores_exc_tb</span>
-    <span class="c1">#@wraps(func)</span>
+    <span class="c1"># @ignores_exc_tb</span>
+    <span class="c1"># @wraps(func)</span>
     <span class="k">def</span> <span class="nf">wrp_interested</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;#</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;#</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
-            <span class="s1">&#39;&lt;!INTERESTED&gt;: &#39;</span> <span class="o">+</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&lt;!INTERESTED&gt;: &#39;</span> <span class="o">+</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;INTERESTING... &#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &lt;----&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">wrp_interested</span>
 
 
 <span class="k">def</span> <span class="nf">tracefunc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">lbl</span> <span class="o">=</span> <span class="s1">&#39;[trace.&#39;</span> <span class="o">+</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+
     <span class="k">def</span> <span class="nf">wrp_tracefunc</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">lbl</span> <span class="o">+</span> <span class="s1">&#39; +--- ENTER ---&#39;</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">util_print</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span> <span class="o">+</span> <span class="s1">&#39; |&#39;</span><span class="p">):</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">lbl</span> <span class="o">+</span> <span class="s1">&#39; L___ EXIT ____&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span>
+
     <span class="k">return</span> <span class="n">wrp_tracefunc</span>
 
 
 <span class="k">def</span> <span class="nf">show_return_value</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="k">import</span> <span class="n">func_str</span>
-    <span class="c1">#@wraps(func)</span>
+
+    <span class="c1"># @wraps(func)</span>
     <span class="k">def</span> <span class="nf">wrp_show_return_value</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c1">#print(&#39;%s(*%r, **%r) returns %r&#39; % (meta_util_six.get_funcname(func), args, kwargs, rv))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>  <span class="o">+</span> <span class="s1">&#39; -&gt; ret=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ret</span><span class="p">,))</span>
+        <span class="c1"># print(&#39;%s(*%r, **%r) returns %r&#39; % (meta_util_six.get_funcname(func), args, kwargs, rv))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; -&gt; ret=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ret</span><span class="p">,))</span>
         <span class="k">return</span> <span class="n">ret</span>
+
     <span class="k">return</span> <span class="n">wrp_show_return_value</span>
 
 
 <span class="k">def</span> <span class="nf">time_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="c1">#@wraps(func)</span>
+    <span class="c1"># @wraps(func)</span>
     <span class="k">def</span> <span class="nf">wrp_time</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">util_time</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="n">wrp_time</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_time</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_time</span>
 
 
-<span class="c1">#def rename_func(newname):</span>
+<span class="c1"># def rename_func(newname):</span>
 <span class="c1">#    import utool as ut</span>
 <span class="c1">#    return ut.partial(ut.set_funcname, newname=newname)</span>
 
 
-<span class="c1">#class copy_argspec(object):</span>
+<span class="c1"># class copy_argspec(object):</span>
 <span class="c1">#    &quot;&quot;&quot;</span>
 <span class="c1">#    copy_argspec is a signature modifying decorator.</span>
 <span class="c1">#    Specifically, it copies the signature from `source_func` to the wrapper, and</span>
@@ -789,6 +852,7 @@
 <span class="sd">    Returns a memcached version of a function</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">closuremem_</span> <span class="o">=</span> <span class="p">[{}]</span>
+
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">mem</span> <span class="o">=</span> <span class="n">closuremem_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
@@ -797,6 +861,7 @@
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">mem</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mem</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
     <span class="k">return</span> <span class="n">wrapper</span>
 
 
@@ -804,9 +869,10 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Changes docstr of one functio to that of another</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">docstr_applier</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-        <span class="c1">#docstr = meta_util_six.get_funcdoc(docstr_func)</span>
-        <span class="c1">#meta_util_six.set_funcdoc(func, docstr)</span>
+        <span class="c1"># docstr = meta_util_six.get_funcdoc(docstr_func)</span>
+        <span class="c1"># meta_util_six.set_funcdoc(func, docstr)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">docstr_func</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="n">olddoc</span> <span class="o">=</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">olddoc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -817,6 +883,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">preserved_func</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">docstr_func</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">preserved_func</span>
+
     <span class="k">return</span> <span class="n">docstr_applier</span>
 
 
@@ -861,7 +928,7 @@
 <span class="sd">        &gt;&gt;&gt; result = str(_wrp_preserve1)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#if True:</span>
+    <span class="c1"># if True:</span>
     <span class="c1">#    import functools</span>
     <span class="c1">#    return functools.wraps(orig_func)(wrapper)</span>
     <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="k">import</span> <span class="n">meta_util_six</span>
@@ -909,7 +976,7 @@
 <span class="s1">                raise</span>
 <span class="s1">        &#39;&#39;&#39;</span>
         <span class="c1"># Put wrapped function into a scope</span>
-        <span class="n">globals_</span> <span class="o">=</span>  <span class="p">{</span><span class="s1">&#39;wrapper&#39;</span><span class="p">:</span> <span class="n">wrapper</span><span class="p">}</span>
+        <span class="n">globals_</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;wrapper&#39;</span><span class="p">:</span> <span class="n">wrapper</span><span class="p">}</span>
         <span class="n">locals_</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># argspec is :ArgSpec(args=[&#39;bar&#39;, &#39;baz&#39;], varargs=None, keywords=None,</span>
         <span class="c1"># defaults=(True,))</span>
@@ -928,16 +995,16 @@
         <span class="n">src</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">src_fmt</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">src_fmtdict</span><span class="p">)</span>
         <span class="c1"># Define the new function on the fly</span>
         <span class="c1"># (I wish there was a non exec / eval way to do this)</span>
-        <span class="c1">#print(src)</span>
+        <span class="c1"># print(src)</span>
         <span class="n">code</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="s1">&#39;&lt;string&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;exec&#39;</span><span class="p">)</span>
         <span class="n">six</span><span class="o">.</span><span class="n">exec_</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">globals_</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
-        <span class="c1">#six.exec_(src, globals_, locals_)</span>
+        <span class="c1"># six.exec_(src, globals_, locals_)</span>
         <span class="c1"># Use functools.update_wapper to complete preservation</span>
         <span class="n">_wrp_preserve</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">update_wrapper</span><span class="p">(</span><span class="n">locals_</span><span class="p">[</span><span class="s1">&#39;_wrp_preserve&#39;</span><span class="p">],</span> <span class="n">orig_func</span><span class="p">)</span>
         <span class="c1"># Keep debug info</span>
         <span class="n">_utinfo</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span>
         <span class="c1"># Set an internal sig variable that we may use</span>
-        <span class="c1">#_wrp_preserve.__sig__ = defsig</span>
+        <span class="c1"># _wrp_preserve.__sig__ = defsig</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># PRESERVES SOME SIGNATURES NO EXEC</span>
         <span class="c1"># signature preservation is turned off. just preserve the name.</span>
@@ -948,23 +1015,26 @@
     <span class="n">DEBUG_WRAPPED_DOCSTRING</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="n">DEBUG_WRAPPED_DOCSTRING</span><span class="p">:</span>
         <span class="n">new_docstr_fmtstr</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-            <span class="sd">&#39;&#39;&#39;</span>
+            <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Wrapped function {wrap_name}({orig_name})</span>
 
 <span class="sd">            orig_argspec = {orig_argspec}</span>
 
 <span class="sd">            orig_docstr = {orig_docstr}</span>
-<span class="sd">            &#39;&#39;&#39;</span>
+<span class="sd">            &quot;&quot;&quot;</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">new_docstr_fmtstr</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-            <span class="sd">&#39;&#39;&#39;</span>
+            <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            {orig_docstr}</span>
-<span class="sd">            &#39;&#39;&#39;</span>
+<span class="sd">            &quot;&quot;&quot;</span>
         <span class="p">)</span>
     <span class="n">new_docstr</span> <span class="o">=</span> <span class="n">new_docstr_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">wrap_name</span><span class="o">=</span><span class="n">wrap_name</span><span class="p">,</span> <span class="n">orig_name</span><span class="o">=</span><span class="n">orig_name</span><span class="p">,</span> <span class="n">orig_docstr</span><span class="o">=</span><span class="n">orig_docstr</span><span class="p">,</span>
-        <span class="n">orig_argspec</span><span class="o">=</span><span class="n">orig_argspec</span><span class="p">)</span>
+        <span class="n">wrap_name</span><span class="o">=</span><span class="n">wrap_name</span><span class="p">,</span>
+        <span class="n">orig_name</span><span class="o">=</span><span class="n">orig_name</span><span class="p">,</span>
+        <span class="n">orig_docstr</span><span class="o">=</span><span class="n">orig_docstr</span><span class="p">,</span>
+        <span class="n">orig_argspec</span><span class="o">=</span><span class="n">orig_argspec</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">meta_util_six</span><span class="o">.</span><span class="n">set_funcdoc</span><span class="p">(</span><span class="n">_wrp_preserve</span><span class="p">,</span> <span class="n">new_docstr</span><span class="p">)</span>
     <span class="n">_wrp_preserve</span><span class="o">.</span><span class="n">_utinfo</span> <span class="o">=</span> <span class="n">_utinfo</span>
     <span class="k">return</span> <span class="n">_wrp_preserve</span>
@@ -973,6 +1043,7 @@
 <span class="k">def</span> <span class="nf">dummy_args_decor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">dummy_args_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func</span>
+
     <span class="k">return</span> <span class="n">dummy_args_closure</span>
 
 
@@ -983,6 +1054,7 @@
 <span class="sd">    References:</span>
 <span class="sd">        https://stackoverflow.com/questions/1697501/python-staticmethod-with-property</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">classmethod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fget</span><span class="p">)</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">owner</span><span class="p">)()</span>
 
@@ -995,13 +1067,15 @@
 <span class="sd">        python -m utool.util_decor --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -1056,15 +1130,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

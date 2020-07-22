@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.core_annots &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.core_annots &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-
+   
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.core_annots</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
@@ -284,7 +284,7 @@
             <span class="s1">&#39;maxwh&#39;</span><span class="p">,</span>
             <span class="s1">&#39;&#39;</span><span class="p">,</span>
             <span class="c1"># &#39;resize_dim&#39;, &#39;width&#39;, &#39;&#39;,</span>
-            <span class="c1">#&#39;resize_dim&#39;, &#39;area&#39;, &#39;&#39;,</span>
+            <span class="c1"># &#39;resize_dim&#39;, &#39;area&#39;, &#39;&#39;,</span>
             <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;diag&#39;</span><span class="p">,</span> <span class="s1">&#39;maxwh&#39;</span><span class="p">,</span> <span class="s1">&#39;wh&#39;</span><span class="p">],</span>
             <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">),</span>
@@ -510,7 +510,7 @@
         <span class="n">filter_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="p">(</span>
                 <span class="s1">&#39;adapteq&#39;</span><span class="p">,</span>
-                <span class="p">{</span><span class="s1">&#39;tileGridSize&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">ksize</span><span class="p">,</span> <span class="n">ksize</span><span class="p">),</span> <span class="s1">&#39;clipLimit&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;adapteq_limit&#39;</span><span class="p">],},</span>
+                <span class="p">{</span><span class="s1">&#39;tileGridSize&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">ksize</span><span class="p">,</span> <span class="n">ksize</span><span class="p">),</span> <span class="s1">&#39;clipLimit&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;adapteq_limit&#39;</span><span class="p">]},</span>
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="n">ipreproc</span> <span class="o">=</span> <span class="n">image_filters</span><span class="o">.</span><span class="n">IntensityPreproc</span><span class="p">()</span>
@@ -672,7 +672,7 @@
 <div class="viewcode-block" id="ProbchipConfig"><a class="viewcode-back" href="../../wbia.html#wbia.core_annots.ProbchipConfig">[docs]</a><span class="k">class</span> <span class="nc">ProbchipConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
     <span class="c1"># TODO: incorporate into base</span>
     <span class="n">_named_defaults</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;rf&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fw_detector&#39;</span><span class="p">:</span> <span class="s1">&#39;rf&#39;</span><span class="p">,</span> <span class="s1">&#39;smooth_thresh&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;smooth_ksize&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,}</span>
+        <span class="s1">&#39;rf&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fw_detector&#39;</span><span class="p">:</span> <span class="s1">&#39;rf&#39;</span><span class="p">,</span> <span class="s1">&#39;smooth_thresh&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;smooth_ksize&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
     <span class="p">}</span>
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="c1"># ut.ParamInfo(&#39;preserve_aspect&#39;, True, hideif=True),</span>
@@ -916,7 +916,7 @@
 <span class="sd">        python -m wbia --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True</span>
 
 <span class="sd">    SeeAlso:</span>
-<span class="sd">        python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970</span>
+<span class="sd">        python -m wbia_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970</span>
 
 <span class="sd">    Ignore:</span>
 <span class="sd">        input_tuple = aid_list</span>
@@ -1134,7 +1134,7 @@
 <span class="sd">        generator : generates param tups</span>
 
 <span class="sd">    SeeAlso:</span>
-<span class="sd">        ~/code/ibeis_cnn/ibeis_cnn/_plugin.py</span>
+<span class="sd">        ~/code/wbia_cnn/wbia_cnn/_plugin.py</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m wbia.core_annots --test-compute_feats:0 --show</span>
@@ -1222,7 +1222,7 @@
             <span class="n">futures_threaded</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ibeis_cnn</span> <span class="k">import</span> <span class="n">_plugin</span>
+        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="k">import</span> <span class="n">_plugin</span>
 
         <span class="k">assert</span> <span class="n">maskmethod</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;not implemented&#39;</span>
         <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;not implemented&#39;</span>
@@ -1620,9 +1620,9 @@
         <span class="c1"># FeatWeightConfig,</span>
     <span class="p">]</span>
 
-<div class="viewcode-block" id="IndexerConfig.get_flann_params"><a class="viewcode-back" href="../../wbia.html#wbia.core_annots.IndexerConfig.get_flann_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_flann_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
-        <span class="n">default_params</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">])</span>
-        <span class="n">flann_params</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">update_existing</span><span class="p">(</span><span class="n">default_params</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">())</span>
+<div class="viewcode-block" id="IndexerConfig.get_flann_params"><a class="viewcode-back" href="../../wbia.html#wbia.core_annots.IndexerConfig.get_flann_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_flann_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">default_params</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">])</span>
+        <span class="n">flann_params</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">update_existing</span><span class="p">(</span><span class="n">default_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">asdict</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">flann_params</span></div></div>
 
 
@@ -1968,8 +1968,10 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m wbia.core_annots --exec-compute_labels_annotations</span>
+<span class="sd">        python -m wbia.core_annots --exec-compute_labels_annotations:0</span>
+<span class="sd">        python -m wbia.core_annots --exec-compute_labels_annotations:1</span>
 
-<span class="sd">    Example:</span>
+<span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.core_images import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
@@ -1991,6 +1993,19 @@
 <span class="sd">        &gt;&gt;&gt; print(results)</span>
 <span class="sd">        &gt;&gt;&gt; # depc.delete_property(&#39;labeler&#39;, aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;labeler&#39;, aid_list, None)</span>
+<span class="sd">        &gt;&gt;&gt; print(results)</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.core_images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;WD_Master&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_annot</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:8]</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;labeler_algo&#39;: &#39;densenet&#39;, &#39;labeler_weight_filepath&#39;: &#39;wilddog_v3+wilddog_v2+wilddog_v1&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; # depc.delete_property(&#39;labeler&#39;, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;labeler&#39;, aid_list, None, config=config)</span>
 <span class="sd">        &gt;&gt;&gt; print(results)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annotation Labels&#39;</span><span class="p">)</span>
@@ -2016,17 +2031,98 @@
     <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;densenet&#39;</span><span class="p">]:</span>
         <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="k">import</span> <span class="n">densenet</span>
 
-        <span class="n">config_</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">,</span> <span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">),</span>
-            <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;wh&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;axis_aligned&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_axis_aligned&#39;</span><span class="p">],</span>
-        <span class="p">}</span>
-        <span class="n">chip_filepath_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
-            <span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>
-        <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span>
-        <span class="n">result_gen</span> <span class="o">=</span> <span class="n">densenet</span><span class="o">.</span><span class="n">test_dict</span><span class="p">(</span><span class="n">chip_filepath_list</span><span class="p">,</span> <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;+&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]:</span>
+            <span class="n">config_</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">,</span> <span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">),</span>
+                <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;wh&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;axis_aligned&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_axis_aligned&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+            <span class="n">chip_filepath_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+                <span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">config</span><span class="p">[</span><span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span>
+            <span class="n">result_gen</span> <span class="o">=</span> <span class="n">densenet</span><span class="o">.</span><span class="n">test_dict</span><span class="p">(</span>
+                <span class="n">chip_filepath_list</span><span class="p">,</span> <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">labeler_weight_filepath</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span>
+            <span class="n">labeler_weight_filepath</span> <span class="o">=</span> <span class="n">labeler_weight_filepath</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">labeler_weight_filepath</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;wilddog_v3+wilddog_v2+wilddog_v1&#39;</span><span class="p">]:</span>
+                <span class="n">labeler_weight_filepath_list</span> <span class="o">=</span> <span class="n">labeler_weight_filepath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">)</span>
+
+                <span class="n">results_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">labeler_weight_filepath_</span> <span class="ow">in</span> <span class="n">labeler_weight_filepath_list</span><span class="p">:</span>
+                    <span class="n">labeler_weight_filepath_</span> <span class="o">=</span> <span class="n">labeler_weight_filepath_</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+                    <span class="n">config_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+                    <span class="n">config_</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labeler_weight_filepath_</span>
+                    <span class="n">config_</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;chip_cfg&#39;</span><span class="p">)</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_</span><span class="p">)</span>
+                    <span class="n">results_dict</span><span class="p">[</span><span class="n">labeler_weight_filepath_</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span>
+
+                <span class="n">results_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">results_dict</span><span class="p">,</span> <span class="n">labeler_weight_filepath_list</span><span class="p">)</span>
+                <span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">results_list</span><span class="p">))</span>
+
+                <span class="n">result_gen</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">results</span> <span class="ow">in</span> <span class="n">results_list</span><span class="p">:</span>
+                    <span class="n">results_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">labeler_weight_filepath_list</span><span class="p">,</span> <span class="n">results</span><span class="p">))</span>
+
+                    <span class="n">result1</span> <span class="o">=</span> <span class="n">results_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;wilddog_v1&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="n">result2</span> <span class="o">=</span> <span class="n">results_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;wilddog_v2&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="n">result3</span> <span class="o">=</span> <span class="n">results_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;wilddog_v3&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">result1</span><span class="p">,</span> <span class="n">result2</span><span class="p">,</span> <span class="n">result3</span><span class="p">]</span>
+
+                    <span class="n">flag1</span> <span class="o">=</span> <span class="n">result1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span>
+                        <span class="s1">&#39;wild_dog_dark&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;wild_dog_general&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;wild_dog_puppy&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;wild_dog_standard&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;wild_dog_tan&#39;</span><span class="p">,</span>
+                    <span class="p">]</span>
+                    <span class="n">flag2</span> <span class="o">=</span> <span class="n">result2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;wild_dog&#39;</span><span class="p">,</span> <span class="s1">&#39;wild_dog_puppy&#39;</span><span class="p">]</span>
+                    <span class="n">flag3</span> <span class="o">=</span> <span class="n">result3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;wild_dog&#39;</span><span class="p">]</span>
+
+                    <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">result1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result3</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+
+                    <span class="k">if</span> <span class="n">flag3</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">flag1</span> <span class="ow">and</span> <span class="n">flag2</span><span class="p">:</span>
+                            <span class="c1"># Body</span>
+                            <span class="n">species</span> <span class="o">=</span> <span class="n">result1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="n">viewpoint</span> <span class="o">=</span> <span class="n">result2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># Body Ambiguous</span>
+                            <span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;wild_dog_ambiguous&#39;</span>
+                            <span class="n">viewpoint</span> <span class="o">=</span> <span class="s1">&#39;ambiguous&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">flag1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">flag2</span><span class="p">:</span>
+                            <span class="c1"># Tail</span>
+                            <span class="n">species</span> <span class="o">=</span> <span class="n">result3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="n">viewpoint</span> <span class="o">=</span> <span class="s1">&#39;ignore&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># Tail Ambiguous</span>
+                            <span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;wild_dog+tail_ambiguous&#39;</span>
+                            <span class="n">viewpoint</span> <span class="o">=</span> <span class="s1">&#39;ambiguous&#39;</span>
+
+                    <span class="n">quality</span> <span class="o">=</span> <span class="s1">&#39;UNKNOWN&#39;</span>
+                    <span class="n">orientation</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">prob_key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,)</span>
+                    <span class="n">probs</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">probs</span><span class="p">[</span><span class="n">prob_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span>
+                    <span class="k">if</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+                        <span class="n">probs</span><span class="p">[</span><span class="s1">&#39;other&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">score</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">score</span><span class="p">,</span>
+                        <span class="n">species</span><span class="p">,</span>
+                        <span class="n">viewpoint</span><span class="p">,</span>
+                        <span class="n">quality</span><span class="p">,</span>
+                        <span class="n">orientation</span><span class="p">,</span>
+                        <span class="n">probs</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">result_gen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Muti-tier labeler config not supported&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s1">&#39;specified labeler algo is not supported in config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,)</span>
@@ -2220,7 +2316,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -2277,15 +2373,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

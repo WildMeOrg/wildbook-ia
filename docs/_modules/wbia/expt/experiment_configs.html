@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.expt.experiment_configs &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.expt.experiment_configs &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.expt.experiment_configs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1"># TODO: Need test harness to do (something smarter than) gridsearch of these guys</span>
@@ -51,12 +51,12 @@
     <span class="s1">&#39;proot&#39;</span><span class="p">:</span> <span class="s1">&#39;pipeline_root&#39;</span><span class="p">,</span>
     <span class="s1">&#39;RI&#39;</span><span class="p">:</span> <span class="s1">&#39;rotation_invariance&#39;</span><span class="p">,</span>
     <span class="s1">&#39;AI&#39;</span><span class="p">:</span> <span class="s1">&#39;affine_invariance&#39;</span><span class="p">,</span>
-    <span class="c1">#&#39;AQH&#39;: &#39;query_rotation_heuristic&#39;,</span>
+    <span class="c1"># &#39;AQH&#39;: &#39;query_rotation_heuristic&#39;,</span>
     <span class="s1">&#39;QRH&#39;</span><span class="p">:</span> <span class="s1">&#39;query_rotation_heuristic&#39;</span><span class="p">,</span>
     <span class="s1">&#39;SV&#39;</span><span class="p">:</span> <span class="s1">&#39;sv_on&#39;</span><span class="p">,</span>
     <span class="s1">&#39;nWords&#39;</span><span class="p">:</span> <span class="s1">&#39;num_words&#39;</span><span class="p">,</span>
-    <span class="c1">#&#39;SVxy&#39;: &#39;xy_thresh&#39;,</span>
-    <span class="c1">#&#39;SVxy&#39;: &#39;xy_thresh&#39;,</span>
+    <span class="c1"># &#39;SVxy&#39;: &#39;xy_thresh&#39;,</span>
+    <span class="c1"># &#39;SVxy&#39;: &#39;xy_thresh&#39;,</span>
 <span class="p">}</span>
 
 
@@ -99,18 +99,18 @@
 
 <span class="n">default</span> <span class="o">=</span> <span class="p">[{}]</span>
 
-<span class="n">baseline</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="mi">450</span><span class="p">,}]</span>
+<span class="n">baseline</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="mi">450</span><span class="p">}]</span>
 <span class="c1"># baseline = [{}]</span>
 
 <span class="n">smk</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;proot&#39;</span><span class="p">:</span> <span class="s1">&#39;smk&#39;</span><span class="p">}]</span>
 
 <span class="n">ScoreMech</span> <span class="o">=</span> <span class="n">candidacy_namescore</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;nsum&#39;</span><span class="p">],</span> <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;nsum&#39;</span><span class="p">],},</span>
+    <span class="p">{</span><span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;nsum&#39;</span><span class="p">],</span> <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;nsum&#39;</span><span class="p">]},</span>
     <span class="c1"># {</span>
     <span class="c1">#    &#39;score_method&#39;:      [&#39;nsum&#39;],</span>
     <span class="c1">#    &#39;prescore_method&#39;:   [&#39;csum&#39;],</span>
     <span class="c1"># },</span>
-    <span class="p">{</span><span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;csum&#39;</span><span class="p">],</span> <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;csum&#39;</span><span class="p">],},</span>
+    <span class="p">{</span><span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;csum&#39;</span><span class="p">],</span> <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;csum&#39;</span><span class="p">]},</span>
 <span class="p">]</span>
 
 
@@ -147,10 +147,10 @@
 
 
 <span class="n">featscoremetch</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],},</span>
-    <span class="p">{</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],},</span>
-    <span class="p">{</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;dist_on&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],},</span>
-    <span class="p">{</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;const_on&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],},</span>
+    <span class="p">{</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;dist_on&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;const_on&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]},</span>
     <span class="c1"># {</span>
     <span class="c1">#    &#39;lnbnn_on&#39;: False,</span>
     <span class="c1">#    &#39;lograt_on&#39;: True,</span>
@@ -161,18 +161,18 @@
 <div class="viewcode-block" id="get_candidacy_dbnames"><a class="viewcode-back" href="../../../wbia.expt.html#wbia.expt.experiment_configs.get_candidacy_dbnames">[docs]</a><span class="k">def</span> <span class="nf">get_candidacy_dbnames</span><span class="p">():</span>
     <span class="k">return</span> <span class="p">[</span>
         <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;NNP_MasterGIRM_core&#39;,</span>
+        <span class="c1"># &#39;NNP_MasterGIRM_core&#39;,</span>
         <span class="s1">&#39;PZ_Master0&#39;</span><span class="p">,</span>
         <span class="s1">&#39;NNP_Master3&#39;</span><span class="p">,</span>
         <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">,</span>
         <span class="s1">&#39;PZ_FlankHack&#39;</span><span class="p">,</span>
-        <span class="c1">#&#39;JAG_Kelly&#39;,</span>
-        <span class="c1">#&#39;JAG_Kieryn&#39;,</span>
-        <span class="c1">#&#39;LF_Bajo_bonito&#39;,</span>
-        <span class="c1">#&#39;LF_OPTIMIZADAS_NI_V_E&#39;,</span>
-        <span class="c1">#&#39;LF_WEST_POINT_OPTIMIZADAS&#39;,</span>
-        <span class="c1">#&#39;GZ_Master0&#39;,</span>
-        <span class="c1">#&#39;GIR_Tanya&#39;,</span>
+        <span class="c1"># &#39;JAG_Kelly&#39;,</span>
+        <span class="c1"># &#39;JAG_Kieryn&#39;,</span>
+        <span class="c1"># &#39;LF_Bajo_bonito&#39;,</span>
+        <span class="c1"># &#39;LF_OPTIMIZADAS_NI_V_E&#39;,</span>
+        <span class="c1"># &#39;LF_WEST_POINT_OPTIMIZADAS&#39;,</span>
+        <span class="c1"># &#39;GZ_Master0&#39;,</span>
+        <span class="c1"># &#39;GIR_Tanya&#39;,</span>
     <span class="p">]</span></div>
 
 
@@ -221,7 +221,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -280,15 +280,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

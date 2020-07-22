@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.other.detectcore &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.other.detectcore &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.other.detectcore</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;Developer convenience functions for ibs (detections).</span>
@@ -46,7 +46,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">basename</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
@@ -408,7 +408,7 @@
         <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.wildme.org&#39;</span><span class="p">,</span>
         <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
         <span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">current_year</span><span class="p">,</span>
-        <span class="s1">&#39;contributor&#39;</span><span class="p">:</span> <span class="s1">&#39;Wild Me, Jason Parham &lt;parham@wildme.org&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;contributor&#39;</span><span class="p">:</span> <span class="s1">&#39;Wild Me &lt;dev@wildme.org&gt;&#39;</span><span class="p">,</span>
         <span class="s1">&#39;date_created&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">),</span>
         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_name</span><span class="p">(),</span>
         <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()),</span>
@@ -431,9 +431,7 @@
 
         <span class="n">species</span> <span class="o">=</span> <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
 
-        <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span> <span class="s1">&#39;supercategory&#39;</span><span class="p">:</span> <span class="s1">&#39;animal&#39;</span><span class="p">,}</span>
-        <span class="p">)</span>
+        <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span> <span class="s1">&#39;supercategory&#39;</span><span class="p">:</span> <span class="s1">&#39;animal&#39;</span><span class="p">})</span>
         <span class="n">category_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
 
     <span class="k">def</span> <span class="nf">_add_annotation_or_part</span><span class="p">(</span>
@@ -449,6 +447,7 @@
         <span class="n">decrease</span><span class="p">,</span>
         <span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="p">,</span>
+        <span class="n">individuals</span><span class="p">,</span>
         <span class="n">part_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">part_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
@@ -491,7 +490,7 @@
             <span class="s1">&#39;image_id&#39;</span><span class="p">:</span> <span class="n">image_index</span><span class="p">,</span>
             <span class="s1">&#39;category_id&#39;</span><span class="p">:</span> <span class="n">category_dict</span><span class="p">[</span><span class="n">species_name</span><span class="p">],</span>
             <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">part_uuid</span> <span class="k">if</span> <span class="n">is_part</span> <span class="k">else</span> <span class="n">annot_uuid</span><span class="p">),</span>
-            <span class="c1"># &#39;individual_ids&#39;    : individuals,</span>
+            <span class="s1">&#39;individual_ids&#39;</span><span class="p">:</span> <span class="n">individuals</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="k">if</span> <span class="n">is_part</span><span class="p">:</span>
             <span class="n">annot_part</span><span class="p">[</span><span class="s1">&#39;annot_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_index</span>
@@ -589,15 +588,26 @@
             <span class="n">_image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">_image</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
             <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">image_filepath</span><span class="p">,</span> <span class="n">_image</span><span class="p">)</span>
 
+        <span class="n">image_gps</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">image_gps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_gps</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">image_gps</span><span class="p">:</span>
+            <span class="n">image_gps_lat</span><span class="p">,</span> <span class="n">image_gps_lon</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image_gps_lat</span><span class="p">,</span> <span class="n">image_gps_lon</span> <span class="o">=</span> <span class="n">image_gps</span>
+            <span class="n">image_gps_lat</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%03.06f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_gps_lat</span><span class="p">,)</span>
+            <span class="n">image_gps_lon</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%03.06f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_gps_lon</span><span class="p">,)</span>
+
         <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s1">&#39;images&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="p">{</span>
                 <span class="s1">&#39;license&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
                 <span class="s1">&#39;file_name&#39;</span><span class="p">:</span> <span class="n">image_filename</span><span class="p">,</span>
                 <span class="c1"># &#39;file_name&#39;     : basename(ibs.get_image_uris_original(gid)),</span>
+                <span class="s1">&#39;photographer&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_notes</span><span class="p">(</span><span class="n">gid</span><span class="p">),</span>
                 <span class="s1">&#39;coco_url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">height</span><span class="p">,</span>
                 <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">width</span><span class="p">,</span>
                 <span class="s1">&#39;date_captured&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_datetime_str</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;gps_lat_captured&#39;</span><span class="p">:</span> <span class="n">image_gps_lat</span><span class="p">,</span>
+                <span class="s1">&#39;gps_lon_captured&#39;</span><span class="p">:</span> <span class="n">image_gps_lon</span><span class="p">,</span>
                 <span class="s1">&#39;flickr_url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">image_index</span><span class="p">,</span>
                 <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
@@ -657,6 +667,8 @@
             <span class="c1"># if viewpoint is None:</span>
             <span class="c1">#     continue</span>
 
+            <span class="n">individuals</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">))</span>
+
             <span class="c1"># Transformation matrix</span>
             <span class="n">annot</span><span class="p">,</span> <span class="n">area</span> <span class="o">=</span> <span class="n">_add_annotation_or_part</span><span class="p">(</span>
                 <span class="n">image_index</span><span class="p">,</span>
@@ -671,11 +683,11 @@
                 <span class="n">decrease</span><span class="p">,</span>
                 <span class="n">width</span><span class="p">,</span>
                 <span class="n">height</span><span class="p">,</span>
+                <span class="n">individuals</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding annot </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">area</span><span class="p">,))</span>
 
             <span class="k">if</span> <span class="n">include_reviews</span><span class="p">:</span>
-                <span class="c1"># individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))</span>
                 <span class="n">reviews</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_single</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">user_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_identity</span><span class="p">(</span><span class="n">reviews</span><span class="p">)</span>
                 <span class="n">aid_tuple_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_aid_tuple</span><span class="p">(</span><span class="n">reviews</span><span class="p">)</span>
@@ -731,6 +743,7 @@
                         <span class="n">decrease</span><span class="p">,</span>
                         <span class="n">width</span><span class="p">,</span>
                         <span class="n">height</span><span class="p">,</span>
+                        <span class="n">individuals</span><span class="p">,</span>
                         <span class="n">part_index</span><span class="o">=</span><span class="n">part_index</span><span class="p">,</span>
                         <span class="n">part_uuid</span><span class="o">=</span><span class="n">part_uuid</span><span class="p">,</span>
                     <span class="p">)</span>
@@ -753,14 +766,14 @@
             <span class="n">annot</span> <span class="o">=</span> <span class="n">annots</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
             <span class="c1"># Map internal aids to external annot index</span>
-            <span class="c1"># individual_ids = annot[&#39;individual_ids&#39;]</span>
-            <span class="c1"># individual_ids_ = []</span>
-            <span class="c1"># for individual_id in individual_ids:</span>
-            <span class="c1">#     if individual_id not in aid_dict:</span>
-            <span class="c1">#         continue</span>
-            <span class="c1">#     individual_id_ = aid_dict[individual_id]</span>
-            <span class="c1">#     individual_ids_.append(individual_id_)</span>
-            <span class="c1"># annot[&#39;individual_ids&#39;] = individual_ids_</span>
+            <span class="n">individual_ids</span> <span class="o">=</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;individual_ids&#39;</span><span class="p">]</span>
+            <span class="n">individual_ids_</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">individual_id</span> <span class="ow">in</span> <span class="n">individual_ids</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">individual_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aid_dict</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">individual_id_</span> <span class="o">=</span> <span class="n">aid_dict</span><span class="p">[</span><span class="n">individual_id</span><span class="p">]</span>
+                <span class="n">individual_ids_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual_id_</span><span class="p">)</span>
+            <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;individual_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_ids_</span>
 
             <span class="c1"># Map reviews</span>
             <span class="k">if</span> <span class="n">include_reviews</span><span class="p">:</span>
@@ -1297,7 +1310,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -1356,15 +1369,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

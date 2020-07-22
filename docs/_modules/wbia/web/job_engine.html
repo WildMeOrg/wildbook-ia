@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.job_engine &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.web.job_engine &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-
+   
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.web.job_engine</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -104,6 +104,7 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
 <span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">six</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -140,11 +141,8 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CHANGING PROCESS TITLE&#39;</span><span class="p">)</span>
         <span class="n">old_title</span> <span class="o">=</span> <span class="n">setproctitle</span><span class="o">.</span><span class="n">getproctitle</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;old_title = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_title</span><span class="p">,))</span>
-        <span class="c1"># new_title = &#39;IBEIS_&#39; + procname + &#39; &#39; + old_title</span>
-        <span class="c1"># new_title = procname + &#39; &#39; + old_title</span>
-        <span class="c1"># new_title = &#39;wbia_zmq_loop&#39;</span>
         <span class="n">hostname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span>
-        <span class="n">new_title</span> <span class="o">=</span> <span class="s1">&#39;IBEIS_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">procname</span><span class="p">,)</span>
+        <span class="n">new_title</span> <span class="o">=</span> <span class="s1">&#39;WBIA_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">procname</span><span class="p">,)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new_title = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_title</span><span class="p">,))</span>
         <span class="n">setproctitle</span><span class="o">.</span><span class="n">setproctitle</span><span class="p">(</span><span class="n">new_title</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -163,6 +161,26 @@
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">)</span>
     <span class="n">lock_filepath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;*.lock&#39;</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">lock_filepath_list</span>
+
+
+<div class="viewcode-block" id="retry_job"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.retry_job">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">retry_job</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
+    <span class="n">shelve_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_shelves_path</span><span class="p">()</span>
+    <span class="n">job_record_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,)</span>
+    <span class="n">job_record_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="n">job_record_filename</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">job_record_filepath</span><span class="p">)</span>
+
+    <span class="n">job_record</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">job_record_filepath</span><span class="p">)</span>
+
+    <span class="n">job_action</span> <span class="o">=</span> <span class="n">job_record</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">][</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+    <span class="n">job_args</span> <span class="o">=</span> <span class="n">job_record</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">][</span><span class="s1">&#39;args&#39;</span><span class="p">]</span>
+    <span class="n">job_kwargs</span> <span class="o">=</span> <span class="n">job_record</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">][</span><span class="s1">&#39;kwargs&#39;</span><span class="p">]</span>
+
+    <span class="n">job_func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">job_action</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">job_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">job_result</span> <span class="o">=</span> <span class="n">job_func</span><span class="p">(</span><span class="o">*</span><span class="n">job_args</span><span class="p">,</span> <span class="o">**</span><span class="n">job_kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">job_action</span><span class="p">,</span> <span class="n">job_func</span><span class="p">,</span> <span class="n">job_args</span><span class="p">,</span> <span class="n">job_kwargs</span><span class="p">,</span> <span class="n">job_result</span></div>
 
 
 <div class="viewcode-block" id="initialize_job_manager"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.initialize_job_manager">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -195,20 +213,19 @@
 <span class="sd">        &gt;&gt;&gt; from wbia.web.job_engine import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
 <span class="sd">        &gt;&gt;&gt; import requests</span>
-<span class="sd">        &gt;&gt;&gt; web_instance = wbia.opendb_bg_web(db=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; web_port = ibs.get_web_port_via_scan()</span>
-<span class="sd">        &gt;&gt;&gt; if web_port is None:</span>
-<span class="sd">        &gt;&gt;&gt;     raise ValueError(&#39;IA web server is not running on any expected port&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; baseurl = &#39;http://127.0.1.1:%s&#39; % (web_port, )</span>
-<span class="sd">        &gt;&gt;&gt; _payload = {&#39;image_attrs_list&#39;: [], &#39;annot_attrs_list&#39;: []}</span>
-<span class="sd">        &gt;&gt;&gt; payload = ut.map_dict_vals(ut.to_json, _payload)</span>
-<span class="sd">        &gt;&gt;&gt; resp1 = requests.post(baseurl + &#39;/api/test/helloworld/?f=b&#39;, data=payload)</span>
-<span class="sd">        &gt;&gt;&gt; #resp2 = requests.post(baseurl + &#39;/api/image/json/&#39;, data=payload)</span>
-<span class="sd">        &gt;&gt;&gt; #print(resp2)</span>
-<span class="sd">        &gt;&gt;&gt; web_instance.terminate()</span>
-<span class="sd">        &gt;&gt;&gt; #json_dict = resp2.json()</span>
-<span class="sd">        &gt;&gt;&gt; #text = json_dict[&#39;response&#39;]</span>
-<span class="sd">        &gt;&gt;&gt; #print(text)</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(db=&#39;testdb1&#39;, managed=True) as web_instance:</span>
+<span class="sd">        ...     web_port = ibs.get_web_port_via_scan()</span>
+<span class="sd">        ...     if web_port is None:</span>
+<span class="sd">        ...         raise ValueError(&#39;IA web server is not running on any expected port&#39;)</span>
+<span class="sd">        ...     baseurl = &#39;http://127.0.1.1:%s&#39; % (web_port, )</span>
+<span class="sd">        ...     _payload = {&#39;image_attrs_list&#39;: [], &#39;annot_attrs_list&#39;: []}</span>
+<span class="sd">        ...     payload = ut.map_dict_vals(ut.to_json, _payload)</span>
+<span class="sd">        ...     resp1 = requests.post(baseurl + &#39;/api/test/helloworld/?f=b&#39;, data=payload)</span>
+<span class="sd">        ...     #resp2 = requests.post(baseurl + &#39;/api/image/json/&#39;, data=payload)</span>
+<span class="sd">        ...     #print(resp2)</span>
+<span class="sd">        ...     #json_dict = resp2.json()</span>
+<span class="sd">        ...     #text = json_dict[&#39;response&#39;]</span>
+<span class="sd">        ...     #print(text)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
 
@@ -284,10 +301,9 @@
 <span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.web.job_engine import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs = wbia.opendb_bg_web(&#39;testdb1&#39;)  # , domain=&#39;http://52.33.105.88&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; # Test get status of a job id that does not exist</span>
-<span class="sd">        &gt;&gt;&gt; response = web_ibs.send_wbia_request(&#39;/api/engine/job/&#39;, jobid=&#39;badjob&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;testdb1&#39;, managed=True) as web_ibs:  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        ...     # Test get status of a job id that does not exist</span>
+<span class="sd">        ...     response = web_ibs.send_wbia_request(&#39;/api/engine/job/&#39;, jobid=&#39;badjob&#39;)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_job_id_list</span><span class="p">()</span>
@@ -327,10 +343,9 @@
 <span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.web.job_engine import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs = wbia.opendb_bg_web(&#39;testdb1&#39;)  # , domain=&#39;http://52.33.105.88&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; # Test get status of a job id that does not exist</span>
-<span class="sd">        &gt;&gt;&gt; response = web_ibs.send_wbia_request(&#39;/api/engine/job/status/&#39;, jobid=&#39;badjob&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;testdb1&#39;, managed=True) as web_ibs:  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        ...     # Test get status of a job id that does not exist</span>
+<span class="sd">        ...     response = web_ibs.send_wbia_request(&#39;/api/engine/job/status/&#39;, jobid=&#39;badjob&#39;)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">jobid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -364,10 +379,9 @@
 <span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.web.job_engine import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs = wbia.opendb_bg_web(&#39;testdb1&#39;)  # , domain=&#39;http://52.33.105.88&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; # Test get metadata of a job id that does not exist</span>
-<span class="sd">        &gt;&gt;&gt; response = web_ibs.send_wbia_request(&#39;/api/engine/job/metadata/&#39;, jobid=&#39;badjob&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;testdb1&#39;, managed=True) as web_ibs:  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        ...     # Test get metadata of a job id that does not exist</span>
+<span class="sd">        ...     response = web_ibs.send_wbia_request(&#39;/api/engine/job/metadata/&#39;, jobid=&#39;badjob&#39;)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_job_metadata</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
@@ -820,8 +834,8 @@
                         <span class="n">restart_jobcounter_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jobcounter</span><span class="p">)</span>
                         <span class="n">restart_jobid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
                         <span class="n">restart_request_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">engine_request</span><span class="p">)</span>
-
                         <span class="n">record</span><span class="p">[</span><span class="s1">&#39;attempts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attempts</span> <span class="o">+</span> <span class="mi">1</span>
+
                         <span class="n">ut</span><span class="o">.</span><span class="n">save_cPkl</span><span class="p">(</span><span class="n">record_filepath</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
                 <span class="c1"># We may have suppressed this for being corrupted</span>
@@ -1809,7 +1823,10 @@
 
                 <span class="c1"># Check response</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">text</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+                        <span class="n">text</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">text</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="n">text</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1993,7 +2010,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -2050,15 +2067,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>

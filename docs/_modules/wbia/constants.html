@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.constants &#8212; wbia 2.2.4 documentation</title>
+    <title>wbia.constants &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -16,22 +16,22 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-
+   
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-
+          
 
           <div class="body" role="main">
-
+            
   <h1>Source code for wbia.constants</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -164,15 +164,15 @@
 <span class="n">SEX_TEXT_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">SEX_INT_TO_TEXT</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="PATH_NAMES"><a class="viewcode-back" href="../../wbia.html#wbia.constants.PATH_NAMES">[docs]</a><span class="k">class</span> <span class="nc">PATH_NAMES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="PATH_NAMES"><a class="viewcode-back" href="../../wbia.html#wbia.constants.PATH_NAMES">[docs]</a><span class="k">class</span> <span class="nc">PATH_NAMES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
     <span class="sd">&quot;&quot;&quot; Path names for internal IBEIS database &quot;&quot;&quot;</span>
 
-    <span class="n">sqldb</span> <span class="o">=</span> <span class="s1">&#39;_wbia_database.sqlite3&#39;</span>
-    <span class="n">sqlstaging</span> <span class="o">=</span> <span class="s1">&#39;_wbia_staging.sqlite3&#39;</span>
+    <span class="n">sqldb</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_database.sqlite3&#39;</span>
+    <span class="n">sqlstaging</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_staging.sqlite3&#39;</span>
     <span class="n">_ibsdb</span> <span class="o">=</span> <span class="s1">&#39;_ibsdb&#39;</span>
-    <span class="n">cache</span> <span class="o">=</span> <span class="s1">&#39;_wbia_cache&#39;</span>
-    <span class="n">backups</span> <span class="o">=</span> <span class="s1">&#39;_wbia_backups&#39;</span>
-    <span class="n">logs</span> <span class="o">=</span> <span class="s1">&#39;_wbia_logs&#39;</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_cache&#39;</span>
+    <span class="n">backups</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_backups&#39;</span>
+    <span class="n">logs</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_logs&#39;</span>
     <span class="n">chips</span> <span class="o">=</span> <span class="s1">&#39;chips&#39;</span>
     <span class="n">figures</span> <span class="o">=</span> <span class="s1">&#39;figures&#39;</span>
     <span class="n">flann</span> <span class="o">=</span> <span class="s1">&#39;flann&#39;</span>
@@ -191,7 +191,7 @@
     <span class="n">bigcache</span> <span class="o">=</span> <span class="s1">&#39;qres_bigcache_new&#39;</span></div>
 
 
-<div class="viewcode-block" id="REL_PATHS"><a class="viewcode-back" href="../../wbia.html#wbia.constants.REL_PATHS">[docs]</a><span class="k">class</span> <span class="nc">REL_PATHS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="REL_PATHS"><a class="viewcode-back" href="../../wbia.html#wbia.constants.REL_PATHS">[docs]</a><span class="k">class</span> <span class="nc">REL_PATHS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
     <span class="sd">&quot;&quot;&quot; all paths are relative to ibs.dbdir &quot;&quot;&quot;</span>
 
     <span class="n">_ibsdb</span> <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span>
@@ -205,7 +205,7 @@
     <span class="n">trees</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">trees</span><span class="p">)</span>
     <span class="n">nets</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">nets</span><span class="p">)</span>
     <span class="n">uploads</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">uploads</span><span class="p">)</span>
-    <span class="c1"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_wbia_cache</span>
+    <span class="c1"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_ibeis_cache</span>
     <span class="n">chips</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
     <span class="n">thumbs</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">thumbs</span><span class="p">)</span>
     <span class="n">flann</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">flann</span><span class="p">)</span>
@@ -221,8 +221,8 @@
     <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">backups</span><span class="p">,</span>
     <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">figures</span><span class="p">,</span>
     <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">nets</span><span class="p">,</span>
-    <span class="n">join</span><span class="p">(</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="s1">&#39;_wbia_cache*&#39;</span><span class="p">),</span>
-    <span class="c1">#&#39;_ibsdb/_wbia_cache&#39;,</span>
+    <span class="n">join</span><span class="p">(</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="s1">&#39;_ibeis_cache*&#39;</span><span class="p">),</span>
+    <span class="c1"># &#39;_ibsdb/_ibeis_cache&#39;,</span>
     <span class="s1">&#39;_ibsdb/chips&#39;</span><span class="p">,</span>  <span class="c1"># old path for caches</span>
     <span class="s1">&#39;./images&#39;</span><span class="p">,</span>  <span class="c1"># the hotspotter images dir</span>
 <span class="p">]</span>
@@ -372,7 +372,7 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="ZIPPED_URLS"><a class="viewcode-back" href="../../wbia.html#wbia.constants.ZIPPED_URLS">[docs]</a><span class="k">class</span> <span class="nc">ZIPPED_URLS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ZIPPED_URLS"><a class="viewcode-back" href="../../wbia.html#wbia.constants.ZIPPED_URLS">[docs]</a><span class="k">class</span> <span class="nc">ZIPPED_URLS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
     <span class="n">PZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/distinctivness_zebra_plains.zip&#39;</span>  <span class="c1"># DEPRICATE</span>
     <span class="n">GZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/distinctivness_zebra_grevys.zip&#39;</span>  <span class="c1"># DEPRICATE</span>
 
@@ -399,8 +399,8 @@
 
 <span class="c1"># For candidacy document</span>
 <span class="n">DBNAME_ALIAS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c1">#&#39;NNP_MasterGIRM_core&#39;: &#39;NNP_GIRM&#39;</span>
-    <span class="c1">#&#39;NNP_MasterGIRM_core&#39;: &#39;GIRM&#39;,</span>
+    <span class="c1"># &#39;NNP_MasterGIRM_core&#39;: &#39;NNP_GIRM&#39;</span>
+    <span class="c1"># &#39;NNP_MasterGIRM_core&#39;: &#39;GIRM&#39;,</span>
     <span class="s1">&#39;NNP_MasterGIRM_core&#39;</span><span class="p">:</span> <span class="s1">&#39;GIRM&#39;</span><span class="p">,</span>
     <span class="s1">&#39;PZ_Master1&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ&#39;</span><span class="p">,</span>
     <span class="s1">&#39;GZ_Master1&#39;</span><span class="p">:</span> <span class="s1">&#39;GZ&#39;</span><span class="p">,</span>
@@ -409,7 +409,7 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="TEST_SPECIES"><a class="viewcode-back" href="../../wbia.html#wbia.constants.TEST_SPECIES">[docs]</a><span class="k">class</span> <span class="nc">TEST_SPECIES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="TEST_SPECIES"><a class="viewcode-back" href="../../wbia.html#wbia.constants.TEST_SPECIES">[docs]</a><span class="k">class</span> <span class="nc">TEST_SPECIES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
     <span class="n">ZEB_PLAIN</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
     <span class="n">ZEB_GREVY</span> <span class="o">=</span> <span class="s1">&#39;zebra_grevys&#39;</span>
     <span class="n">BEAR_POLAR</span> <span class="o">=</span> <span class="s1">&#39;bear_polar&#39;</span>
@@ -646,7 +646,7 @@
 
 
 <div class="viewcode-block" id="EVIDENCE_DECISION"><a class="viewcode-back" href="../../wbia.html#wbia.constants.EVIDENCE_DECISION">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_ConstHelper</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">EVIDENCE_DECISION</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">EVIDENCE_DECISION</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    TODO: change to EVIDENCE_DECISION / VISUAL_DECISION</span>
 <span class="sd">    Enumerated types of review codes and texts</span>
@@ -694,7 +694,7 @@
 
 
 <div class="viewcode-block" id="META_DECISION"><a class="viewcode-back" href="../../wbia.html#wbia.constants.META_DECISION">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_ConstHelper</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">META_DECISION</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">META_DECISION</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Enumerated types of review codes and texts</span>
 
@@ -719,8 +719,8 @@
     <span class="n">NULL</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">DIFF</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">SAME</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="n">NULL</span><span class="p">,</span> <span class="s1">&#39;null&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">DIFF</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">SAME</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">),])</span>
-    <span class="n">INT_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="n">NULL</span><span class="p">,</span> <span class="s1">&#39;NULL&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">DIFF</span><span class="p">,</span> <span class="s1">&#39;Different&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">SAME</span><span class="p">,</span> <span class="s1">&#39;Same&#39;</span><span class="p">),])</span>
+    <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="n">NULL</span><span class="p">,</span> <span class="s1">&#39;null&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">DIFF</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">SAME</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">)])</span>
+    <span class="n">INT_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="n">NULL</span><span class="p">,</span> <span class="s1">&#39;NULL&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">DIFF</span><span class="p">,</span> <span class="s1">&#39;Different&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">SAME</span><span class="p">,</span> <span class="s1">&#39;Same&#39;</span><span class="p">)])</span>
     <span class="n">CODE_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">,</span> <span class="n">INT_TO_NICE</span><span class="p">)</span>
     <span class="n">CODE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">)</span>
     <span class="n">NICE_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">CODE_TO_NICE</span><span class="p">)</span>
@@ -1338,7 +1338,7 @@
 </pre></div>
 
           </div>
-
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -1395,15 +1395,15 @@
     </div>
     <div class="footer">
       &copy;2020, Wild Me.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>
