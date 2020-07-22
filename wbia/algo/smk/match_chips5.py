@@ -43,6 +43,7 @@ class EstimatorRequest(ut.NiceRepr):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.smk.match_chips5 import *  # NOQA
+            >>> from wbia.algo.smk.smk_pipeline import testdata_smk
             >>> import wbia
             >>> wbia, smk, qreq_ = testdata_smk()
             >>> qreq2_ = qreq_.shallowcopy(qaids=1)
