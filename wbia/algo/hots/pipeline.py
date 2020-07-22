@@ -283,6 +283,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         >>> print(result)
         >>> assert np.all(qreq_.qaids == [1, 4, 5, 6])
         >>> assert np.all(qreq_.daids == [1, 2, 3, 4, 5, 6])
+        ...
         impossible_daids_list=[[1], [4], [5, 6], [5, 6]],
         Kpad_list=[1, 1, 2, 2],
     """
