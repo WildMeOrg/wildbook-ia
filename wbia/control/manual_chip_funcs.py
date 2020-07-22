@@ -89,7 +89,7 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> chip_list = get_annot_chips(ibs, aid_list, config2_)
         >>> chip_sum_list = [chip.sum() for chip in chip_list]
-        >>> target = [96053500, 65152954, 67223241, 109358624, 73995960]
+        >>> target = [96053914, 65144289, 67223307, 109366624, 73993167]
         >>> ut.assert_almost_eq(chip_sum_list, target, 2000)
         >>> print(chip_sum_list)
     """
@@ -353,7 +353,7 @@ def get_part_chips(
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> chip_list = get_part_chips(ibs, part_rowid_list, config2_)
         >>> chip_sum_list = [chip.sum() for chip in chip_list]
-        >>> target = [86763970, 62020065, 61333964, 111418156, 63593594, 51404427, 139395045, 84060806, 41257586, 89658838]
+        >>> target = [86765003, 62011328, 61333186, 111424764, 63590900, 51397198, 139395045, 84052373, 41251798, 89657450]
         >>> ut.assert_almost_eq(chip_sum_list, target, 2000)
         >>> print(chip_sum_list)
     """
