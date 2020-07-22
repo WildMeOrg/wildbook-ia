@@ -803,9 +803,9 @@ class IBEISIO(object):
                       old_evidence_decision new_evidence_decision
             aid1 aid2
             1    2                    match               nomatch
-            5    8               unreviewed               nomatch
             6    7               unreviewed               nomatch
             7    8                    match                 match
+            5    8               unreviewed               nomatch
             4    5                      NaN                 match
         """
         old_feedback = infr._feedback_df(old)
@@ -833,7 +833,7 @@ class IBEISIO(object):
             >>> print(result)
             edge_delta_df =
             Empty DataFrame
-            Columns: [am_rowid, old_evidence_decision, new_evidence_decision, old_tags, new_tags, is_new]
+            Columns: [am_rowid, old_evidence_decision, new_evidence_decision, old_tags, new_tags, old_meta_decision, new_meta_decision, is_new]
             Index: []
 
         Example:
@@ -859,13 +859,17 @@ class IBEISIO(object):
             >>>                                                  new_feedback)
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
-                       am_rowid old_decision new_decision old_tags new_tags is_new
-            aid1 aid2
-            101  104     1004.0      nomatch        match       []       []  False
-            103  104     1002.0        match      nomatch       []       []  False
-            100  103        NaN          NaN      nomatch      NaN       []   True
-            102  103        NaN          NaN      nomatch      NaN       []   True
-            107  109        NaN          NaN      notcomp      NaN       []   True
+            edge_delta_df =
+                       am_rowid old_evidence_decision  ... new_meta_decision is_new
+            aid1 aid2                                  ...
+            101  102     1001.0                 match  ...              null  False
+            103  104     1002.0                 match  ...              null  False
+            101  104     1004.0               nomatch  ...              null  False
+            100  103        NaN                   NaN  ...              null   True
+            102  103        NaN                   NaN  ...              null   True
+            107  109        NaN                   NaN  ...              same   True
+            ...
+            [6 rows x 8 columns]
         """
         import wbia
         import pandas as pd
