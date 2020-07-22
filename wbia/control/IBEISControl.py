@@ -103,7 +103,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     # (('--no-cnn', '--nocnn'), 'wbia_cnn'),
     (('--no-cnn', '--nocnn'), 'wbia_cnn._plugin'),
     # (('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
-    # (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
+    # (('--no-curvrank', '--nocurvrank'), 'wbia_curvrank._plugin'),
     # 'wbia_plugin_identification_example',
 ]
 

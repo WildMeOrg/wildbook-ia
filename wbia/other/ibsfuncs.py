@@ -1212,17 +1212,17 @@ def check_cache_purge_parallel_wrapper(func, arguments_list):
 def check_cache_purge(ibs, ttl_days=365):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (IBEISController):  wbia controller object
         gid_list (list): (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-check_cache_purge
+        python -m wbia.other.ibsfuncs --exec-check_cache_purge
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> result = check_cache_purge(ibs)
         >>> print(result)
     """
@@ -7880,7 +7880,7 @@ def commit_ggr_fix_gps(ibs, **kwargs):
 
 @register_ibs_method
 def deduplicate_annotations(ibs, gid_list=None, min_overlap=0.10):
-    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+    from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
     import itertools
 
     if gid_list is None:
@@ -7894,7 +7894,7 @@ def deduplicate_annotations(ibs, gid_list=None, min_overlap=0.10):
 @register_ibs_method
 def assign_parts_to_annotations_marriage(ibs, gid_list=None, min_overlap=0.10):
     import itertools
-    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+    from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
 
     if gid_list is None:
         gid_list = ibs.get_valid_gids()

@@ -1932,9 +1932,9 @@ def compute_labels_annotations(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_labels_annotations
-        python -m ibeis.core_annots --exec-compute_labels_annotations:0
-        python -m ibeis.core_annots --exec-compute_labels_annotations:1
+        python -m wbia.core_annots --exec-compute_labels_annotations
+        python -m wbia.core_annots --exec-compute_labels_annotations:0
+        python -m wbia.core_annots --exec-compute_labels_annotations:1
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -1962,10 +1962,10 @@ def compute_labels_annotations(depc, aid_list, config=None):
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
         >>> defaultdb = 'WD_Master'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'wilddog_v3+wilddog_v2+wilddog_v1'}
