@@ -498,30 +498,14 @@ class SQLDatabaseController(object):
             # lite.enable_callback_tracebacks(True)
             # self.fpath = ':memory:'
 
-            if six.PY3:
-                # References:
-                # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
-                uri = 'file:' + self.fpath
-                if self.readonly:
-                    uri += '?mode=ro'
-                connection = lite.connect(
-                    uri, uri=True, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
-                )
-            else:
-                if self.readonly:
-                    assert not ut.WIN32, 'cannot open readonly on windows.'
-                    flag = os.O_RDONLY  # if self.readonly else os.O_RDWR
-                    fd = os.open(self.fpath, flag)
-                    uri = '/dev/fd/%d' % fd
-                    connection = lite.connect(
-                        uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
-                    )
-                    os.close(fd)
-                else:
-                    uri = self.fpath
-                    connection = lite.connect(
-                        uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
-                    )
+            # References:
+            # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
+            uri = 'file:' + self.fpath
+            if self.readonly:
+                uri += '?mode=ro'
+            connection = lite.connect(
+                uri, uri=True, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
+            )
 
         # Keep track of what thead this was started in
         threadid = threading.current_thread()
@@ -1558,9 +1542,6 @@ class SQLDatabaseController(object):
                     continue
             to_write = '%s\n' % line
             # Ensure python2 writes in bytes
-            if six.PY2:
-                if isinstance(to_write, unicode):  # NOQA
-                    to_write = to_write.encode('utf8')
             try:
                 file_.write(to_write)
             except UnicodeEncodeError:
