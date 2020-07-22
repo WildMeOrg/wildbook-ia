@@ -26,15 +26,15 @@ def test_neg_metagraph_simple_add_remove():
     infr = demo.demodata_infr(
         num_pccs=2, pcc_size=5, pos_redun=3, ignore_pair=True, infer=True
     )
-    cc_a, cc_b, cc_c, cc_d = infr.positive_components()
+    cc_a, cc_b = infr.positive_components()
     a1, a2, a3, a4, a5 = cc_a
     b1, b2, b3, b4, b5 = cc_b
 
     nmg = infr.neg_metagraph
 
-    # Check there are 4 meta-nodes and no edges
+    # Check there are 2 meta-nodes and no edges
     assert nmg.number_of_edges() == 0
-    assert nmg.number_of_nodes() == 4
+    assert nmg.number_of_nodes() == 2
 
     # Should add 1 edge to the negative metagraph
     u, v = a1, b1
@@ -42,7 +42,7 @@ def test_neg_metagraph_simple_add_remove():
     nid1, nid2 = infr.node_labels(u, v)
     assert nmg.edges[nid1, nid2]['weight'] == 1
     assert nmg.number_of_edges() == 1
-    assert nmg.number_of_nodes() == 4
+    assert nmg.number_of_nodes() == 2
 
     # Adding a second time should do nothing
     edge = a1, b1
@@ -50,7 +50,7 @@ def test_neg_metagraph_simple_add_remove():
     name_edge = infr.node_labels(*edge)
     assert nmg.edges[name_edge]['weight'] == 1
     assert nmg.number_of_edges() == 1
-    assert nmg.number_of_nodes() == 4
+    assert nmg.number_of_nodes() == 2
 
     # But adding a second between different nodes will increase the weight
     edge = a1, b2
@@ -58,7 +58,7 @@ def test_neg_metagraph_simple_add_remove():
     name_edge = infr.node_labels(*edge)
     assert nmg.edges[name_edge]['weight'] == 2
     assert nmg.number_of_edges() == 1
-    assert nmg.number_of_nodes() == 4
+    assert nmg.number_of_nodes() == 2
 
     infr.add_feedback((u, v), NEGTV)
     assert nmg.edges[name_edge]['weight'] == 2
