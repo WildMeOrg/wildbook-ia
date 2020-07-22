@@ -243,13 +243,13 @@ Our code uses Google-style documentation tests (doctests) that uses pytest and x
     :target: https://github.com/WildbookOrg/wildbook-ia/actions?query=branch%3Amaster+workflow%3A%22Build+and+upload+to+PyPI%22
     :alt: Build and upload to PyPI (master)
 
-.. |Pypi| image:: https://img.shields.io/pypi/v/wbia.svg
-   :target: https://pypi.python.org/pypi/wbia
+.. |Pypi| image:: https://img.shields.io/pypi/v/wildbook-ia.svg
+   :target: https://pypi.python.org/pypi/wildbook-ia
    :alt: Latest PyPI version
 
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/wildbook-ia/badge/?version=latest
     :target: http://wildbook-ia.readthedocs.io/en/latest/
     :alt: Documentation on ReadTheDocs
 
-.. |Downloads| image:: https://img.shields.io/pypi/dm/wbia.svg
-   :target: https://pypistats.org/packages/wbia
+.. |Downloads| image:: https://img.shields.io/pypi/dm/wildbook-ia.svg
+   :target: https://pypistats.org/packages/wildbook-ia
