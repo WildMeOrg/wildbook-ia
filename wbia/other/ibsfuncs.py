@@ -2774,7 +2774,7 @@ def get_consecutive_newname_list_via_species(
         >>> print(result)
         (
             [1, 2, 3, 4, 5, 6, 7],
-            ['WBIA_PZ_0001', 'WBIA_PZ_0002', 'WBIA_UNKNOWN_0001', 'WBIA_UNKNOWN_0002', 'WBIA_GZ_0001', 'WBIA_PB_0001', 'WBIA_UNKNOWN_0003'],
+            ['IBEIS_PZ_0001', 'IBEIS_PZ_0002', 'IBEIS_UNKNOWN_0001', 'IBEIS_UNKNOWN_0002', 'IBEIS_GZ_0001', 'IBEIS_PB_0001', 'IBEIS_UNKNOWN_0003'],
         )
 
     Example:
@@ -2791,7 +2791,7 @@ def get_consecutive_newname_list_via_species(
         >>> print(result)
         (
             [4, 5, 6, 7],
-            ['WBIA_UNKNOWN_Occurrence_1_0001', 'WBIA_GZ_Occurrence_1_0001', 'WBIA_PB_Occurrence_1_0001', 'WBIA_UNKNOWN_Occurrence_1_0002'],
+            ['IBEIS_UNKNOWN_Occurrence_1_0001', 'IBEIS_GZ_Occurrence_1_0001', 'IBEIS_PB_Occurrence_1_0001', 'IBEIS_UNKNOWN_Occurrence_1_0002'],
         )
     """
     wildbook_existing_name_set = set(wildbook_existing_name_list)
@@ -2945,10 +2945,10 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> result = ut.repr4(names)
         >>> print(result)
         (
-            ['WBIA_PZ_0008', 'WBIA_PZ_0042', 'WBIA_UNKNOWN_0004', 'WBIA_GZ_0008'],
-            ['WBIA_PZ_0042', 'WBIA_PZ_0043', 'WBIA_PZ_0044', 'WBIA_PZ_0045', 'WBIA_PZ_0046'],
-            ['WBIA_PZ_0044', 'WBIA_PZ_0046', 'WBIA_PZ_0047', 'WBIA_PZ_0049', 'WBIA_PZ_0050'],
-            ['WBIA_PZ_0042', 'WBIA_PZ_0043', 'WBIA_PZ_0044', 'WBIA_PZ_0045', 'WBIA_PZ_0046'],
+            ['IBEIS_PZ_0008', 'IBEIS_PZ_0042', 'IBEIS_UNKNOWN_0004', 'IBEIS_GZ_0008'],
+            ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
+            ['IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046', 'IBEIS_PZ_0047', 'IBEIS_PZ_0048'],
+            ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
         )
 
     """
