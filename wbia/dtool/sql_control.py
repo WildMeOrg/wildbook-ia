@@ -18,7 +18,6 @@ from os.path import join, exists, dirname, basename
 
 import six
 import utool as ut
-from six.moves import map, zip
 
 from wbia.dtool import sqlite3 as lite
 
