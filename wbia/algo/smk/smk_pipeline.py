@@ -564,16 +564,16 @@ def testdata_smk(*args, **kwargs):
     """
     import wbia
     import sklearn
-    import sklearn.cross_validation
+    import sklearn.model_selection
 
     # import sklearn.model_selection
     ibs, aid_list = wbia.testdata_aids(defaultdb='PZ_MTEST')
     nid_list = np.array(ibs.annots(aid_list).nids)
     rng = ut.ensure_rng(0)
-    xvalkw = dict(n_folds=4, shuffle=False, random_state=rng)
+    xvalkw = dict(n_splits=4, shuffle=False, random_state=rng)
 
-    skf = sklearn.cross_validation.StratifiedKFold(nid_list, **xvalkw)
-    train_idx, test_idx = six.next(iter(skf))
+    skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+    train_idx, test_idx = six.next(skf.split(aid_list, nid_list))
     daids = ut.take(aid_list, train_idx)
     qaids = ut.take(aid_list, test_idx)
 
