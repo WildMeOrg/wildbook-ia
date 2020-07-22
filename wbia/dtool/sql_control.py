@@ -370,7 +370,6 @@ class SQLDatabaseController(object):
         self,
         sqldb_dpath='.',
         sqldb_fname='database.sqlite3',
-        text_factory=six.text_type,
         inmemory=None,
         fpath=None,
         readonly=None,
@@ -382,7 +381,6 @@ class SQLDatabaseController(object):
         Args:
             sqldb_dpath (unicode):  directory path string(default = '.')
             sqldb_fname (unicode): (default = 'database.sqlite3')
-            text_factory (type): (default = unicode)
             inmemory (None): (default = None)
             fpath (str):  file path string(default = None)
             readonly (bool): (default = False)
@@ -440,8 +438,6 @@ class SQLDatabaseController(object):
             self.dir_ = dirname(self.fpath)
             self.fname = basename(self.fpath)
 
-        self.text_factory = text_factory
-
         is_new = not exists(self.fpath)
 
         self.thread_connections = {}
@@ -458,7 +454,6 @@ class SQLDatabaseController(object):
         if inmemory is True or (inmemory is None and COPY_TO_MEMORY):
             self.squeeze()
             self._copy_to_memory()
-            self.connection.text_factory = text_factory
 
         self.USE_FOREIGN_HACK = False
         if self.USE_FOREIGN_HACK:
@@ -510,7 +505,6 @@ class SQLDatabaseController(object):
         # Keep track of what thead this was started in
         threadid = threading.current_thread()
         self.thread_connections[threadid] = connection
-        connection.text_factory = self.text_factory
 
         return connection, uri
 
@@ -674,7 +668,6 @@ class SQLDatabaseController(object):
         self.connection = lite.connect(
             self.fpath, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
         )
-        self.connection.text_factory = self.text_factory
         self.cur = self.connection.cursor()
 
     def backup(self, backup_filepath):

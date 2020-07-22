@@ -675,7 +675,6 @@ class IBEISController(BASE_CLASS):
             readonly = True
         ibs.db = dtool.SQLDatabaseController(
             fpath=sqldb_fpath,
-            text_factory=six.text_type,
             inmemory=False,
             readonly=readonly,
             always_check_metadata=False,
@@ -765,7 +764,6 @@ class IBEISController(BASE_CLASS):
             readonly = True
         ibs.staging = dtool.SQLDatabaseController(
             fpath=sqlstaging_fpath,
-            text_factory=six.text_type,
             inmemory=False,
             readonly=readonly,
             always_check_metadata=False,

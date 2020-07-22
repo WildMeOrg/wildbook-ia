@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from os.path import split, splitext, join, exists
-import six
 import datetime
 import distutils
 import utool as ut
@@ -183,9 +182,7 @@ def copy_database(src_fpath, dst_fpath):
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
     timeout = 12 * 60 * 60  # Allow a lock of up to 12 hours for a database backup routine
-    db = dtool.SQLDatabaseController(
-        fpath=src_fpath, text_factory=six.text_type, inmemory=False, timeout=timeout
-    )
+    db = dtool.SQLDatabaseController(fpath=src_fpath, inmemory=False, timeout=timeout)
     db.backup(dst_fpath)
 
 
@@ -535,7 +532,7 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     cachedir = ut.ensure_app_resource_dir('wbia_test')
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
-    db = SQLDatabaseController(cachedir, db_fname, text_factory=six.text_type)
+    db = SQLDatabaseController(cachedir, db_fname)
     ensure_correct_version(None, db, version_expected, schema_spec, dobackup=False)
     return db
 
