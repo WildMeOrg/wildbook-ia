@@ -713,7 +713,7 @@ class AssertInvariants(object):
 
         # Self loops should correspond to the number of inconsistent components
         neg_self_loop_nids = sorted(
-            [ne[0] for ne in list(infr.neg_metagraph.selfloop_edges())]
+            [ne[0] for ne in list(nx.selfloop_edges(infr.neg_metagraph))]
         )
         incon_nids = sorted(infr.nid_to_errors.keys())
         assert neg_self_loop_nids == incon_nids
