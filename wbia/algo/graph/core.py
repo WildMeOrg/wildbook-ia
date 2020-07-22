@@ -790,6 +790,7 @@ class MiscHelpers(object):
             >>> result = infr.aids
             >>> print(result)
             >>> assert len(infr.graph) == len(infr.aids)
+            ...
             [1, 2, 3, 4, 5, 6, 7, 9, 22, 8]
         """
         nids = infr._rectify_nids(aids, nids)
