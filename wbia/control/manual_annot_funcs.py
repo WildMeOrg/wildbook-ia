@@ -1751,9 +1751,9 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
         >>> print(result)
         [
             UUID('9acc1a8e-b35f-11b5-f844-9e8fd5dd7ad9'),
-            UUID('9b03e268-aaed-9341-25ee-733859629a3a'),
+            UUID('03b2c83c-8182-b4de-e849-a57b3c734a1c'),
         ]
-        semantic_uuid_hashid = SUUIDS-13-tnvebtbaoyvqirwi
+        semantic_uuid_hashid = SUUIDS-13-vqnacxodtzkzacyd
 
     """
     semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
@@ -1846,7 +1846,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_semantic_uuid_list)
-        >>> result = annot_semantic_uuid_list
+        >>> print(annot_semantic_uuid_list)
         [UUID('9acc1a8e-b35f-11b5-f844-9e8fd5dd7ad9')]
     """
     id_iter = aid_list
@@ -1887,7 +1887,7 @@ def get_annot_visual_uuids(ibs, aid_list):
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_visual_uuid_list)
-        >>> result = annot_visual_uuid_list
+        >>> print(annot_visual_uuid_list)
         [UUID('8687dcb6-1f1f-fdd3-8b72-8f36f9f41905')]
 
         [UUID('76de0416-7c92-e1b3-4a17-25df32e9c2b4')]
