@@ -12,7 +12,7 @@ futures_actors
 ipython>=5.0.0
 lightnet
 lockfile>=0.10.2
-matplotlib>=1.5.1
+matplotlib>=3.3.0
 networkx>=2.1
 numpy>=1.14.2
 opencv-python
