@@ -184,6 +184,23 @@ AUTHOR_EMAIL = 'dev@wildme.org'
 URL = 'https://github.com/WildbookOrg/wildbook-ia'
 LICENSE = 'Apache License 2.0'
 DESCRIPTION = 'Wildbook IA (WBIA) - Machine learning service for the WildBook project'
+KEYWORDS = [
+    'wildbook',
+    'wildme',
+    'ibeis',
+    'ecological',
+    'wildlife',
+    'conservation',
+    'machine learning',
+    'ai',
+    'hotspotter',
+    'detection',
+    'classification',
+    'animal ID',
+    're-id',
+    're-identification',
+    'flukebook',
+]
 
 
 KWARGS = OrderedDict(
@@ -193,6 +210,7 @@ KWARGS = OrderedDict(
     description=DESCRIPTION,
     long_description=parse_long_description('README.rst'),
     long_description_content_type='text/x-rst',
+    keywords=', '.join(KEYWORDS),
     url=URL,
     license=LICENSE,
     install_requires=parse_requirements('requirements/runtime.txt'),
@@ -215,24 +233,37 @@ KWARGS = OrderedDict(
     # packages=find_packages(),
     packages=['wbia', 'wbia._internal', 'wbia.tests', 'wbia.util_scripts'],
     package_dir={'wbia': 'wbia'},
+    python_requires='>=3.5, <4',
     include_package_data=False,
     # List of classifiers available at:
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        'Development Status :: 6 - Mature',
-        'License :: OSI Approved :: BSD License',
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Environment :: Web Environment',
+        'Environment :: GPU',
+        'Environment :: GPU :: NVIDIA CUDA :: 11.0',
+        'Natural Language :: English',
+        'License :: OSI Approved :: Apache Software License',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Unix',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Topic :: Utilities',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3 :: Only',
     ],
+    project_urls={  # Optional
+        'Bug Reports': 'https://github.com/WildbookOrg/wildbook-ia/issues',
+        'Funding': 'https://www.wildme.org/donate/',
+        'Say Thanks!': 'https://community.wildbook.org',
+        'Source': URL,
+    },
 )
 
 if __name__ == '__main__':
