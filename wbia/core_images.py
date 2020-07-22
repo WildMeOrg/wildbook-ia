@@ -1029,7 +1029,9 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 nms_aware = config['nms_aware']
                 if nms_aware is not None:
                     try:
-                        nms_aware = nms_aware.strip().lower().replace('_', '').replace('-', '')
+                        nms_aware = (
+                            nms_aware.strip().lower().replace('_', '').replace('-', '')
+                        )
                     except Exception:
                         pass
 

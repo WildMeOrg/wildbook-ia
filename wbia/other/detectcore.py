@@ -320,11 +320,22 @@ def export_to_xml(
 
 
 @register_ibs_method
-def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
-                   target_size=2400, use_maximum_linear_dimension=True,
-                   use_existing_train_test=True, include_parts=False, gid_list=None,
-                   include_reviews=True, require_image_reviewed=False,
-                   require_named=False, output_images=True, **kwargs):
+def export_to_coco(
+    ibs,
+    species_list,
+    species_mapping={},
+    viewpoint_mapping={},
+    target_size=2400,
+    use_maximum_linear_dimension=True,
+    use_existing_train_test=True,
+    include_parts=False,
+    gid_list=None,
+    include_reviews=True,
+    require_image_reviewed=False,
+    require_named=False,
+    output_images=True,
+    **kwargs,
+):
     """Create training COCO dataset for training models."""
     from datetime import date
     import datetime
@@ -359,13 +370,13 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
     info = {
         'description': 'Wild Me %s Dataset' % (ibs.dbname,),
         # 'url'          : 'http://www.greatgrevysrally.com',
-        'url'          : 'http://www.wildme.org',
-        'version'      : '1.0',
-        'year'         : current_year,
-        'contributor'  : 'Wild Me <dev@wildme.org>',
-        'date_created' : datetime.datetime.utcnow().isoformat(' '),
-        'name'         : ibs.get_db_name(),
-        'uuid'         : str(ibs.get_db_init_uuid()),
+        'url': 'http://www.wildme.org',
+        'version': '1.0',
+        'year': current_year,
+        'contributor': 'Wild Me <dev@wildme.org>',
+        'date_created': datetime.datetime.utcnow().isoformat(' '),
+        'name': ibs.get_db_name(),
+        'uuid': str(ibs.get_db_init_uuid()),
     }
 
     licenses = [
@@ -388,10 +399,23 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
         categories.append({'id': index, 'name': species, 'supercategory': 'animal'})
         category_dict[species] = index
 
-    def _add_annotation_or_part(image_index, annot_index, annot_uuid,
-                                bbox, theta, species_name, viewpoint, interest, annot_name,
-                                decrease, width, height, individuals,
-                                part_index=None, part_uuid=None):
+    def _add_annotation_or_part(
+        image_index,
+        annot_index,
+        annot_uuid,
+        bbox,
+        theta,
+        species_name,
+        viewpoint,
+        interest,
+        annot_name,
+        decrease,
+        width,
+        height,
+        individuals,
+        part_index=None,
+        part_uuid=None,
+    ):
         is_part = part_index is not None
 
         R = vt.rotation_around_bbox_mat3x3(theta, bbox)
@@ -420,18 +444,18 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
         h_ *= decrease
 
         annot_part = {
-            'bbox'              : [xtl_, ytl_, w_, h_],
-            'theta'             : theta,
-            'viewpoint'         : viewpoint,
-            'segmentation'      : [segmentation],
-            'segmentation_bbox' : [xmin, ymin, w, h],
-            'area'              : area,
-            'iscrowd'           : 0,
-            'id'                : part_index if is_part else annot_index,
-            'image_id'          : image_index,
-            'category_id'       : category_dict[species_name],
-            'uuid'              : str(part_uuid if is_part else annot_uuid),
-            'individual_ids'    : individuals,
+            'bbox': [xtl_, ytl_, w_, h_],
+            'theta': theta,
+            'viewpoint': viewpoint,
+            'segmentation': [segmentation],
+            'segmentation_bbox': [xmin, ymin, w, h],
+            'area': area,
+            'iscrowd': 0,
+            'id': part_index if is_part else annot_index,
+            'image_id': image_index,
+            'category_id': category_dict[species_name],
+            'uuid': str(part_uuid if is_part else annot_uuid),
+            'individual_ids': individuals,
         }
         if is_part:
             annot_part['annot_id'] = annot_index
@@ -534,26 +558,28 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
             image_gps_lat, image_gps_lon = None
         else:
             image_gps_lat, image_gps_lon = image_gps
-            image_gps_lat = '%03.06f' % (image_gps_lat, )
-            image_gps_lon = '%03.06f' % (image_gps_lon, )
+            image_gps_lat = '%03.06f' % (image_gps_lat,)
+            image_gps_lon = '%03.06f' % (image_gps_lon,)
 
-        output_dict[dataset]['images'].append({
-            'license'       : 3,
-            'file_name'     : image_filename,
-            # 'file_name'     : basename(ibs.get_image_uris_original(gid)),
-            'photographer'  : ibs.get_image_notes(gid),
-            'coco_url'      : None,
-            'height'        : height,
-            'width'         : width,
-            'date_captured' : ibs.get_image_datetime_str(gid).replace('/', '-'),
-            'gps_lat_captured' : image_gps_lat,
-            'gps_lon_captured' : image_gps_lon,
-            'flickr_url'    : None,
-            'id'            : image_index,
-            'uuid'          : str(ibs.get_image_uuids(gid)),
-        })
+        output_dict[dataset]['images'].append(
+            {
+                'license': 3,
+                'file_name': image_filename,
+                # 'file_name'     : basename(ibs.get_image_uris_original(gid)),
+                'photographer': ibs.get_image_notes(gid),
+                'coco_url': None,
+                'height': height,
+                'width': width,
+                'date_captured': ibs.get_image_datetime_str(gid).replace('/', '-'),
+                'gps_lat_captured': image_gps_lat,
+                'gps_lon_captured': image_gps_lon,
+                'flickr_url': None,
+                'id': image_index,
+                'uuid': str(ibs.get_image_uuids(gid)),
+            }
+        )
 
-        print('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height), ))
+        print('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height),))
 
         aid_list = ibs.get_image_aids(gid)
         bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -609,10 +635,22 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
             individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
 
             # Transformation matrix
-            annot, area = _add_annotation_or_part(image_index, annot_index, annot_uuid,
-                                                  bbox, theta, species_name, viewpoint, interest, annot_name,
-                                                  decrease, width, height, individuals)
-            print('\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area, ))
+            annot, area = _add_annotation_or_part(
+                image_index,
+                annot_index,
+                annot_uuid,
+                bbox,
+                theta,
+                species_name,
+                viewpoint,
+                interest,
+                annot_name,
+                decrease,
+                width,
+                height,
+                individuals,
+            )
+            print('\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area,))
 
             if include_reviews:
                 reviews = ibs.get_review_rowids_from_single([aid])[0]
@@ -657,11 +695,27 @@ def export_to_coco(ibs, species_list, species_mapping={}, viewpoint_mapping={},
                     if part_species_name not in species_list:
                         continue
 
-                    part, area = _add_annotation_or_part(image_index, annot_index, annot_uuid,
-                                                         part_bbox, part_theta, part_species_name, viewpoint, interest, annot_name,
-                                                         decrease, width, height, individuals,
-                                                         part_index=part_index, part_uuid=part_uuid)
-                    print('\t\tAdding part %r with area %0.04f pixels^2' % (part_species_name, area, ))
+                    part, area = _add_annotation_or_part(
+                        image_index,
+                        annot_index,
+                        annot_uuid,
+                        part_bbox,
+                        part_theta,
+                        part_species_name,
+                        viewpoint,
+                        interest,
+                        annot_name,
+                        decrease,
+                        width,
+                        height,
+                        individuals,
+                        part_index=part_index,
+                        part_uuid=part_uuid,
+                    )
+                    print(
+                        '\t\tAdding part %r with area %0.04f pixels^2'
+                        % (part_species_name, area,)
+                    )
                     output_dict[dataset]['parts'].append(part)
 
                 part_index += 1

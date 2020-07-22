@@ -131,7 +131,7 @@ def _get_engine_lock_paths(ibs):
 @register_ibs_method
 def retry_job(ibs, jobid):
     shelve_path = ibs.get_shelves_path()
-    job_record_filename = '%s.pkl' % (jobid, )
+    job_record_filename = '%s.pkl' % (jobid,)
     job_record_filepath = join(shelve_path, job_record_filename)
     assert exists(job_record_filepath)
 

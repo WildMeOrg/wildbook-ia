@@ -4557,7 +4557,9 @@ def turk_identification_graph_refer(
             species_list = ibs.get_annot_species(aid_list)
 
         flag_list = []
-        for aid, species_, viewpoint, quality, interest in zip(aid_list, species_list, viewpoint_list, quality_list, interest_list):
+        for aid, species_, viewpoint, quality, interest in zip(
+            aid_list, species_list, viewpoint_list, quality_list, interest_list
+        ):
             flag = True
             if species_ != species:
                 flag = False

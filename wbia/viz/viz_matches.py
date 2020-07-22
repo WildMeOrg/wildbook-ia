@@ -31,8 +31,27 @@ def get_query_annot_pair_info(
     tblhack = getattr(qreq_, 'tablename', None)
 
     # print('!!! query_config2_ = %r' % (query_config2_,))
-    if (not tblhack or tblhack.lower() in ['bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfinfindrhybriddorsal', 'curvrankfluke', 'deepsense', 'finfindr', 'kaggle7', 'kaggleseven', 'pie']) and getattr(qreq_, '_isnewreq', None):
-        if hasattr(qreq_, 'get_fmatch_overlayed_chip') and draw_fmatches and draw_fmatches != 'hackoff':
+    if (
+        not tblhack
+        or tblhack.lower()
+        in [
+            'bc_dtw',
+            'oc_wdtw',
+            'curvrankdorsal',
+            'curvrankfinfindrhybriddorsal',
+            'curvrankfluke',
+            'deepsense',
+            'finfindr',
+            'kaggle7',
+            'kaggleseven',
+            'pie',
+        ]
+    ) and getattr(qreq_, '_isnewreq', None):
+        if (
+            hasattr(qreq_, 'get_fmatch_overlayed_chip')
+            and draw_fmatches
+            and draw_fmatches != 'hackoff'
+        ):
             rchip1 = qreq_.get_fmatch_overlayed_chip(qaid, config=query_config2_)
             draw_fmatches = False
         else:
@@ -58,8 +77,27 @@ def get_data_annot_pair_info(
     # print('!!! dqreq_ = %r' % (qreq_,))
     tblhack = getattr(qreq_, 'tablename', None)
 
-    if (not tblhack or tblhack.lower() in ['bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfinfindrhybriddorsal', 'curvrankfluke', 'deepsense', 'finfindr', 'kaggle7', 'kaggleseven', 'pie']) and getattr(qreq_, '_isnewreq', None):
-        if hasattr(qreq_, 'get_fmatch_overlayed_chip') and draw_fmatches and draw_fmatches != 'hackoff':
+    if (
+        not tblhack
+        or tblhack.lower()
+        in [
+            'bc_dtw',
+            'oc_wdtw',
+            'curvrankdorsal',
+            'curvrankfinfindrhybriddorsal',
+            'curvrankfluke',
+            'deepsense',
+            'finfindr',
+            'kaggle7',
+            'kaggleseven',
+            'pie',
+        ]
+    ) and getattr(qreq_, '_isnewreq', None):
+        if (
+            hasattr(qreq_, 'get_fmatch_overlayed_chip')
+            and draw_fmatches
+            and draw_fmatches != 'hackoff'
+        ):
             rchip2_list = qreq_.get_fmatch_overlayed_chip(aid_list, config=data_config2_)
             # rchip2_list = ibs.depc_annot.get_property('chips', aid_list, 'img', config=data_config2_)
             draw_fmatches = False

@@ -15,6 +15,7 @@ def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
     """
     k, K, n = resight, nvisit1, nvisit2
     from scipy.special import comb
+
     N_range = np.array(N_range)
 
     def integers(start, blk_size=10000, pos=True, neg=False):

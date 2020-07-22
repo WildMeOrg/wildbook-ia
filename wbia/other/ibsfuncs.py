@@ -869,11 +869,11 @@ def check_annot_consistency(ibs, aid_list=None):
 @register_ibs_method
 def check_annot_corrupt_uuids(ibs, aid_list=None):
     """
-        >>> from wbia.other.ibsfuncs import *  # NOQA
-        >>> import wbia  # NOQA
-        >>> ibs = wbia.opendb('PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> check_annot_corrupt_uuids(ibs, aid_list)
+    >>> from wbia.other.ibsfuncs import *  # NOQA
+    >>> import wbia  # NOQA
+    >>> ibs = wbia.opendb('PZ_MTEST')
+    >>> aid_list = ibs.get_valid_aids()
+    >>> check_annot_corrupt_uuids(ibs, aid_list)
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -1046,9 +1046,10 @@ def check_annotmatch_consistency(ibs):
     return invalid_annotmatch_rowids
 
 
-if sys.version_info >= (3,2,0):
+if sys.version_info >= (3, 2, 0):
     my_cache_decorator = functools.lru_cache(maxsize=4096)
 else:
+
     def null_decorator(ob):
         return ob
 
@@ -1123,16 +1124,34 @@ def bytes2human(n, format='%(value).02f%(symbol)s', symbols='customary'):
       '9.76562 K'
     """
     SYMBOLS = {
-        'customary'     : ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'),
-        'customary_ext' : ('byte', 'kilo', 'mega', 'giga', 'tera', 'peta', 'exa',
-                           'zetta', 'iotta'),
-        'iec'           : ('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi'),
-        'iec_ext'       : ('byte', 'kibi', 'mebi', 'gibi', 'tebi', 'pebi', 'exbi',
-                           'zebi', 'yobi'),
+        'customary': ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'),
+        'customary_ext': (
+            'byte',
+            'kilo',
+            'mega',
+            'giga',
+            'tera',
+            'peta',
+            'exa',
+            'zetta',
+            'iotta',
+        ),
+        'iec': ('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi'),
+        'iec_ext': (
+            'byte',
+            'kibi',
+            'mebi',
+            'gibi',
+            'tebi',
+            'pebi',
+            'exbi',
+            'zebi',
+            'yobi',
+        ),
     }
     n = int(n)
     if n < 0:
-        raise ValueError("n < 0")
+        raise ValueError('n < 0')
     symbols = SYMBOLS[symbols]
     prefix = {}
     for i, s in enumerate(symbols[1:]):
@@ -1146,7 +1165,7 @@ def bytes2human(n, format='%(value).02f%(symbol)s', symbols='customary'):
 
 def check_cache_purge_time_worker(args):
     try:
-        path, = args
+        (path,) = args
         assert os.path.exists(args)
         # ctime = os.path.getctime(path)
         ctime = -1
@@ -1162,14 +1181,15 @@ def check_cache_purge_time_worker(args):
 def check_cache_purge_delete_worker(args):
     size_bytes, success = None, False
     try:
-        path, = args
+        (path,) = args
         if not os.path.exists(path):
             size_bytes = 0
             success = True
         else:
             size_bytes = get_dir_size(path)
-            success = ut.delete(path, ignore_errors=False,
-                                print_exists=False, verbose=False)
+            success = ut.delete(
+                path, ignore_errors=False, print_exists=False, verbose=False
+            )
     except Exception:
         pass
     return size_bytes, success
@@ -1177,7 +1197,7 @@ def check_cache_purge_delete_worker(args):
 
 def check_cache_purge_exists_worker(args):
     try:
-        path, = args
+        (path,) = args
         exists_ = os.path.exists(path)
     except Exception:
         exists_ = False
@@ -1228,10 +1248,8 @@ def check_cache_purge(ibs, ttl_days=365):
     """
     now = datetime.datetime.now(tz=PST)
     expires = now - datetime.timedelta(days=ttl_days)
-    expires = datetime.datetime(
-        expires.year, expires.month, 1, 0, 0, 0, tzinfo=PST
-    )
-    print('Checking cached files since %r' % (expires, ))
+    expires = datetime.datetime(expires.year, expires.month, 1, 0, 0, 0, tzinfo=PST)
+    print('Checking cached files since %r' % (expires,))
     timestamp = int(expires.timestamp())
 
     blacklist = [
@@ -1256,8 +1274,7 @@ def check_cache_purge(ibs, ttl_days=365):
 
             arguments_list = list(zip(subpath_list))
             last_time_list = check_cache_purge_parallel_wrapper(
-                check_cache_purge_time_worker,
-                arguments_list
+                check_cache_purge_time_worker, arguments_list
             )
 
             flag_list = [last_time < timestamp for last_time in last_time_list]
@@ -1265,14 +1282,13 @@ def check_cache_purge(ibs, ttl_days=365):
 
             if len(delete_subpath_list) > 0:
                 print(entry)
-                print('\tChecked:  %d' % (len(subpath_list), ))
-                print('\tPurgable: %d' % (len(delete_subpath_list), ))
+                print('\tChecked:  %d' % (len(subpath_list),))
+                print('\tPurgable: %d' % (len(delete_subpath_list),))
                 delete_path_list += delete_subpath_list
 
     arguments_list = list(zip(delete_path_list))
     values_list = check_cache_purge_parallel_wrapper(
-        check_cache_purge_delete_worker,
-        arguments_list
+        check_cache_purge_delete_worker, arguments_list
     )
 
     purged_bytes = 0
@@ -1287,8 +1303,8 @@ def check_cache_purge(ibs, ttl_days=365):
             if os.path.exists(delete_path):
                 failed_list.append(delete_path)
 
-    print('Purged: %s' % (bytes2human(purged_bytes), ))
-    print('Failed: %d' % (len(failed_list), ))
+    print('Purged: %s' % (bytes2human(purged_bytes),))
+    print('Failed: %d' % (len(failed_list),))
 
     table_list = []
     table_list += ibs.depc_image.tables
@@ -1302,14 +1318,18 @@ def check_cache_purge(ibs, ttl_days=365):
         extern_colnames = tuple(ut.compress(internal_colnames, is_extern))
 
         if len(extern_colnames) > 0:
-            print('\tHas %d external columns' % (len(extern_colnames), ))
+            print('\tHas %d external columns' % (len(extern_colnames),))
 
             print('\tGetting all rowids...')
             rowid_list = table._get_all_rowids()
             print('\tGetting all extern URIs...')
             uris = table.get_internal_columns(
-                rowid_list, extern_colnames, unpack_scalars=False, eager=True,
-                keepwrap=False)
+                rowid_list,
+                extern_colnames,
+                unpack_scalars=False,
+                eager=True,
+                keepwrap=False,
+            )
             uris_list = list(it.chain.from_iterable(uris))
 
             extern_rowid_list = []
@@ -1326,17 +1346,16 @@ def check_cache_purge(ibs, ttl_days=365):
 
             arguments_list = list(zip(extern_path_list))
             extern_exists_list = check_cache_purge_parallel_wrapper(
-                check_cache_purge_exists_worker,
-                arguments_list
+                check_cache_purge_exists_worker, arguments_list
             )
 
             flag_list = [not extern_exists for extern_exists in extern_exists_list]
             corrupted_rowid_list = ut.compress(extern_rowid_list, flag_list)
             corrupted_rowid_list = list(set(corrupted_rowid_list))
 
-            print('\tHas %d total rows' % (len(rowid_list), ))
-            print('\tHas %d extern files' % (len(set(extern_path_list)), ))
-            print('\tHas %d corrupted rows' % (len(corrupted_rowid_list), ))
+            print('\tHas %d total rows' % (len(rowid_list),))
+            print('\tHas %d extern files' % (len(set(extern_path_list)),))
+            print('\tHas %d corrupted rows' % (len(corrupted_rowid_list),))
 
             if len(corrupted_rowid_list) > 0:
                 table.delete_rows(corrupted_rowid_list, delete_extern=True)
@@ -7878,103 +7897,103 @@ def commit_ggr_fix_gps(ibs, **kwargs):
     ibs.set_image_gps(assignment_gid_list, assignment_gps_list)
 
 
-@register_ibs_method
-def deduplicate_annotations(ibs, gid_list=None, min_overlap=0.10):
-    from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
-    import itertools
+# @register_ibs_method
+# def deduplicate_annotations(ibs, gid_list=None, min_overlap=0.10):
+#     from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
+#     import itertools
 
-    if gid_list is None:
-        gid_list = ibs.get_valid_gids()
+#     if gid_list is None:
+#         gid_list = ibs.get_valid_gids()
 
-    aids_list = ibs.get_image_aids(gid_list)
-    pids_list = list(map(ibs.get_annot_part_rowids, aids_list))
-    pids_list = list(map(ut.flatten, pids_list))
+#     aids_list = ibs.get_image_aids(gid_list)
+#     pids_list = list(map(ibs.get_annot_part_rowids, aids_list))
+#     pids_list = list(map(ut.flatten, pids_list))
 
 
-@register_ibs_method
-def assign_parts_to_annotations_marriage(ibs, gid_list=None, min_overlap=0.10):
-    import itertools
-    from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
+# @register_ibs_method
+# def assign_parts_to_annotations_marriage(ibs, gid_list=None, min_overlap=0.10):
+#     import itertools
+#     from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
 
-    if gid_list is None:
-        gid_list = ibs.get_valid_gids()
+#     if gid_list is None:
+#         gid_list = ibs.get_valid_gids()
 
-    aids_list = ibs.get_image_aids(gid_list)
-    pids_list = list(map(ibs.get_annot_part_rowids, aids_list))
-    pids_list = list(map(ut.flatten, pids_list))
+#     aids_list = ibs.get_image_aids(gid_list)
+#     pids_list = list(map(ibs.get_annot_part_rowids, aids_list))
+#     pids_list = list(map(ut.flatten, pids_list))
 
-    gt_dict = {}
-    for aid in aid_list:
-        gt = general_parse_gt_annots(ibs, [aid])[0][0]
-        gt_dict[aid] = gt
+#     gt_dict = {}
+#     for aid in aid_list:
+#         gt = general_parse_gt_annots(ibs, [aid])[0][0]
+#         gt_dict[aid] = gt
 
-    marriage_user_id_list = []
-    for length in range(len(user_id_list), 0, -1):
-        padding = len(user_id_list) - length
-        combination_list = list(itertools.combinations(user_id_list, length))
-        for combination in combination_list:
-            combination = sorted(combination)
-            combination += [None] * padding
-            marriage_user_id_list.append(tuple(combination))
+#     marriage_user_id_list = []
+#     for length in range(len(user_id_list), 0, -1):
+#         padding = len(user_id_list) - length
+#         combination_list = list(itertools.combinations(user_id_list, length))
+#         for combination in combination_list:
+#             combination = sorted(combination)
+#             combination += [None] * padding
+#             marriage_user_id_list.append(tuple(combination))
 
-    marriage_aid_list = []
-    for user_id1, user_id2, user_id3 in marriage_user_id_list:
-        aid_list1 = user_dict.get(user_id1, [None])
-        aid_list2 = user_dict.get(user_id2, [None])
-        aid_list3 = user_dict.get(user_id3, [None])
+#     marriage_aid_list = []
+#     for user_id1, user_id2, user_id3 in marriage_user_id_list:
+#         aid_list1 = user_dict.get(user_id1, [None])
+#         aid_list2 = user_dict.get(user_id2, [None])
+#         aid_list3 = user_dict.get(user_id3, [None])
 
-        for aid1 in aid_list1:
-            for aid2 in aid_list2:
-                for aid3 in aid_list3:
-                    marriage = [aid1, aid2, aid3]
-                    padding = len(marriage)
-                    marriage = [aid for aid in marriage if aid is not None]
-                    marriage = sorted(marriage)
-                    padding -= len(marriage)
-                    marriage = sorted(marriage)
-                    marriage += [None] * padding
-                    marriage_aid_list.append(tuple(marriage))
+#         for aid1 in aid_list1:
+#             for aid2 in aid_list2:
+#                 for aid3 in aid_list3:
+#                     marriage = [aid1, aid2, aid3]
+#                     padding = len(marriage)
+#                     marriage = [aid for aid in marriage if aid is not None]
+#                     marriage = sorted(marriage)
+#                     padding -= len(marriage)
+#                     marriage = sorted(marriage)
+#                     marriage += [None] * padding
+#                     marriage_aid_list.append(tuple(marriage))
 
-    marriage_list = []
-    for marriage_aids in marriage_aid_list:
-        aid1, aid2, aid3 = marriage_aids
-        assert aid1 in aid_list and aid1 is not None
-        assert aid2 in aid_list or  aid2 is None
-        assert aid3 in aid_list or  aid3 is None
+#     marriage_list = []
+#     for marriage_aids in marriage_aid_list:
+#         aid1, aid2, aid3 = marriage_aids
+#         assert aid1 in aid_list and aid1 is not None
+#         assert aid2 in aid_list or aid2 is None
+#         assert aid3 in aid_list or aid3 is None
 
-        aid_list_ = [aid1, aid2, aid3]
-        missing = len(aid_list_) - aid_list_.count(None)
+#         aid_list_ = [aid1, aid2, aid3]
+#         missing = len(aid_list_) - aid_list_.count(None)
 
-        gt1 = gt_dict.get(aid1, None)
-        gt2 = gt_dict.get(aid2, None)
-        gt3 = gt_dict.get(aid3, None)
+#         gt1 = gt_dict.get(aid1, None)
+#         gt2 = gt_dict.get(aid2, None)
+#         gt3 = gt_dict.get(aid3, None)
 
-        overlap1 = 0.0 if None in [gt1, gt2] else general_overlap([gt1], [gt2])[0][0]
-        overlap2 = 0.0 if None in [gt1, gt3] else general_overlap([gt1], [gt3])[0][0]
-        overlap3 = 0.0 if None in [gt2, gt3] else general_overlap([gt2], [gt3])[0][0]
+#         overlap1 = 0.0 if None in [gt1, gt2] else general_overlap([gt1], [gt2])[0][0]
+#         overlap2 = 0.0 if None in [gt1, gt3] else general_overlap([gt1], [gt3])[0][0]
+#         overlap3 = 0.0 if None in [gt2, gt3] else general_overlap([gt2], [gt3])[0][0]
 
-        # Assert min_overlap conditions
-        overlap1 = 0.0 if overlap1 < min_overlap else overlap1
-        overlap2 = 0.0 if overlap2 < min_overlap else overlap2
-        overlap3 = 0.0 if overlap3 < min_overlap else overlap3
+#         # Assert min_overlap conditions
+#         overlap1 = 0.0 if overlap1 < min_overlap else overlap1
+#         overlap2 = 0.0 if overlap2 < min_overlap else overlap2
+#         overlap3 = 0.0 if overlap3 < min_overlap else overlap3
 
-        score = np.sqrt(overlap1 + overlap2 + overlap3)
+#         score = np.sqrt(overlap1 + overlap2 + overlap3)
 
-        marriage = [missing, score, set(marriage_aids)]
-        marriage_list.append(marriage)
+#         marriage = [missing, score, set(marriage_aids)]
+#         marriage_list.append(marriage)
 
-    marriage_list = sorted(marriage_list, reverse=True)
+#     marriage_list = sorted(marriage_list, reverse=True)
 
-    segment_list = []
-    married_aid_set = set([])
-    for missing, score, marriage_aids in marriage_list:
-        polygamy = len(married_aid_set & marriage_aids) > 0
-        if not polygamy:
-            marriage_aids = marriage_aids - {None}
-            married_aid_set = married_aid_set | marriage_aids
-            segment_list.append(marriage_aids)
+#     segment_list = []
+#     married_aid_set = set([])
+#     for missing, score, marriage_aids in marriage_list:
+#         polygamy = len(married_aid_set & marriage_aids) > 0
+#         if not polygamy:
+#             marriage_aids = marriage_aids - {None}
+#             married_aid_set = married_aid_set | marriage_aids
+#             segment_list.append(marriage_aids)
 
-    return segment_list
+#     return segment_list
 
 
 def merge_ggr_staged_annots_marriage(

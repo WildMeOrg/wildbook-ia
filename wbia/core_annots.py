@@ -1995,17 +1995,21 @@ def compute_labels_annotations(depc, aid_list, config=None):
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
     elif config['labeler_algo'] in ['densenet']:
         from wbia.algo.detect import densenet
+
         if '+' not in config['labeler_weight_filepath']:
             config_ = {
                 'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
                 'resize_dim': 'wh',
                 'axis_aligned': config['labeler_axis_aligned'],
             }
-            chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config_,
-                                                   read_extern=False, ensure=True)
+            chip_filepath_list = depc.get_property(
+                'chips', aid_list, 'img', config=config_, read_extern=False, ensure=True
+            )
             config = dict(config)
             config['classifier_weight_filepath'] = config['labeler_weight_filepath']
-            result_gen = densenet.test_dict(chip_filepath_list, return_dict=True, **config)
+            result_gen = densenet.test_dict(
+                chip_filepath_list, return_dict=True, **config
+            )
         else:
             labeler_weight_filepath = config['labeler_weight_filepath']
             labeler_weight_filepath = labeler_weight_filepath.strip()
@@ -2035,11 +2039,17 @@ def compute_labels_annotations(depc, aid_list, config=None):
                     result3 = results_.get('wilddog_v3', None)
                     assert None not in [result1, result2, result3]
 
-                    flag1 = result1[1] in ['wild_dog_dark', 'wild_dog_general', 'wild_dog_puppy', 'wild_dog_standard', 'wild_dog_tan']
+                    flag1 = result1[1] in [
+                        'wild_dog_dark',
+                        'wild_dog_general',
+                        'wild_dog_puppy',
+                        'wild_dog_standard',
+                        'wild_dog_tan',
+                    ]
                     flag2 = result2[1] in ['wild_dog', 'wild_dog_puppy']
                     flag3 = result3[1] in ['wild_dog']
 
-                    score = np.mean((result1[0], result2[0], result3[0], ))
+                    score = np.mean((result1[0], result2[0], result3[0],))
 
                     if flag3:
                         if flag1 and flag2:
@@ -2062,12 +2072,19 @@ def compute_labels_annotations(depc, aid_list, config=None):
 
                     quality = 'UNKNOWN'
                     orientation = 0.0
-                    prob_key = '%s:%s' % (species, viewpoint, )
+                    prob_key = '%s:%s' % (species, viewpoint,)
                     probs = {}
                     probs[prob_key] = score
                     if score < 1.0:
                         probs['other'] = 1.0 - score
-                    result = (score, species, viewpoint, quality, orientation, probs, )
+                    result = (
+                        score,
+                        species,
+                        viewpoint,
+                        quality,
+                        orientation,
+                        probs,
+                    )
                     result_gen.append(result)
             else:
                 raise NotImplementedError('Muti-tier labeler config not supported')

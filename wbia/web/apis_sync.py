@@ -387,29 +387,29 @@ def sync_get_training_data(ibs, species_name, force_update=False, **kwargs):
 @register_ibs_method
 def sync_get_training_data_uuid_list(ibs, auuid_list, force_update=False, **kwargs):
 
-    aid_list   = ibs._sync_get_auuid_endpoint('/api/annot/rowid/uuid/', auuid_list)
-    ann_uuids  = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+    aid_list = ibs._sync_get_auuid_endpoint('/api/annot/rowid/uuid/', auuid_list)
+    ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
     local_aids = []
 
     # avoid re-downloading annots based on UUID
     if not force_update:
-        local_ann_uuids  = set(ibs.get_valid_annot_uuids())
+        local_ann_uuids = set(ibs.get_valid_annot_uuids())
         remote_ann_uuids = set(ann_uuids)
         dupe_uuids = local_ann_uuids & remote_ann_uuids  # & is set-union
-        new_uuids  = remote_ann_uuids - dupe_uuids
+        new_uuids = remote_ann_uuids - dupe_uuids
         local_aids = ibs.get_annot_aids_from_uuid(dupe_uuids)
-        aid_list   = ibs._sync_get_aids_for_uuids(new_uuids)
-        ann_uuids  = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+        aid_list = ibs._sync_get_aids_for_uuids(new_uuids)
+        ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
 
     # get needed info
     viewpoints = ibs._sync_get_annot_endpoint('/api/annot/viewpoint/', aid_list)
-    bboxes     = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
-    thetas     = ibs._sync_get_annot_endpoint('/api/annot/theta/', aid_list)
+    bboxes = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
+    thetas = ibs._sync_get_annot_endpoint('/api/annot/theta/', aid_list)
     name_texts = ibs._sync_get_annot_endpoint('/api/annot/name/text/', aid_list)
     name_uuids = ibs._sync_get_annot_endpoint('/api/annot/name/uuid/', aid_list)
-    images     = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
-    gpaths     = [ibs._construct_route_url_ibs('/api/image/src/%s/' % gid) for gid in images]
-    specieses  = ibs._sync_get_annot_endpoint('/api/annot/species/', aid_list)
+    images = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
+    gpaths = [ibs._construct_route_url_ibs('/api/image/src/%s/' % gid) for gid in images]
+    specieses = ibs._sync_get_annot_endpoint('/api/annot/species/', aid_list)
 
     gid_list = ibs.add_images(gpaths)
     nid_list = ibs.add_names(name_texts, name_uuids)
@@ -421,7 +421,7 @@ def sync_get_training_data_uuid_list(ibs, auuid_list, force_update=False, **kwar
         species_list=specieses,
         nid_list=nid_list,
         annot_uuid_list=ann_uuids,
-        viewpoint_list=viewpoints
+        viewpoint_list=viewpoints,
     )
 
     return local_aids
@@ -432,9 +432,9 @@ def _sync_get_names(ibs, aid_list):
     return ibs._sync_get_annot_endpoint('/api/annot/name/rowid/', aid_list)
 
 
-@register_ibs_method
-def _sync_get_remote_name_uuids(ibs, local_nids):
-    return ibs._sync_get_annot_endpoint('/api/annot/name/rowid/', aid_list)
+# @register_ibs_method
+# def _sync_get_remote_name_uuids(ibs, local_nids):
+#     return ibs._sync_get_annot_endpoint('/api/annot/name/rowid/', aid_list)
 
 
 @register_ibs_method
@@ -452,17 +452,16 @@ def _sync_get_auuid_endpoint(ibs, endpoint, auuid_list):
 
     # make sure auuid_list is correct format
     working_list = auuid_list.copy()
-    if (len(working_list) > 0 and type(working_list[0]) is str):
+    if len(working_list) > 0 and type(working_list[0]) is str:
         from uuid import UUID
+
         working_list = [UUID(item) for item in working_list]
 
     serialized_uuids = ut.to_json(working_list)
 
     route_url = _construct_route_url(endpoint)
-    print('\tGetting info on %d auuids from %s' % (len(auuid_list), route_url, ))
-    data_dict = {
-        'uuid_list': serialized_uuids
-    }
+    print('\tGetting info on %d auuids from %s' % (len(auuid_list), route_url,))
+    data_dict = {'uuid_list': serialized_uuids}
     return _get(endpoint, data=data_dict)
 
 

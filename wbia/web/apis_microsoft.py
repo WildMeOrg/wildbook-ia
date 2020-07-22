@@ -1010,9 +1010,9 @@ def microsoft_detect_batch(
     }
 
     if asynchronous:
-        taskid = ibs.job_manager.jobiface.queue_job('microsoft_detect',
-                                                    callback_url, callback_method,
-                                                    *args, **kwargs)
+        taskid = ibs.job_manager.jobiface.queue_job(
+            'microsoft_detect', callback_url, callback_method, *args, **kwargs
+        )
         response = _task(ibs, taskid)
     else:
         response = ibs.microsoft_detect(*args, **kwargs)
