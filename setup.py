@@ -172,14 +172,14 @@ AUTHORS = [
     'Karen Chan',
     'Michael Mulich',
     'Hendrik Weideman',
-    'A. Weinstock',
-    'Z. Jablons',
-    'Z.',
-    'D. Lowe',
-    'K. Southerland',
     'A. Batbouta',
-    'J. Wrona',
     'A. Beard',
+    'Z. Jablons',
+    'D. Lowe',
+    'Z. Rutfield',
+    'K. Southerland',
+    'A. Weinstock',
+    'J. Wrona',
 ]
 AUTHOR_EMAIL = 'dev@wildme.org'
 URL = 'https://github.com/WildbookOrg/wildbook-ia'
