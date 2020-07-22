@@ -462,6 +462,7 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         python -m wbia update_wildbook_install_config --show
 
     Example:
+        >>> # xdoctest: +REQUIRES(--tomcat)
         >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> import wbia
         >>> tomcat_dpath = find_installed_tomcat()
