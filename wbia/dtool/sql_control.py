@@ -1542,10 +1542,7 @@ class SQLDatabaseController(object):
                     continue
             to_write = '%s\n' % line
             # Ensure python2 writes in bytes
-            try:
-                file_.write(to_write)
-            except UnicodeEncodeError:
-                raise
+            file_.write(to_write)
 
     def dump_to_stdout(self, **kwargs):
         file_ = sys.stdout
