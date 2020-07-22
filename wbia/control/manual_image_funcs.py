@@ -515,7 +515,9 @@ def localize_images(ibs, gid_list_=None):
         >>> print(result)
         >>> # Clean things up
         >>> ibs.delete_images(gid_list_)
+        ...
         testdb1/_ibsdb/images/f498fa6f-6b24-b4fa-7932-2612144fedd5.jpg
+        ...
 
     Ignore:
         ibs.vd()
@@ -1591,13 +1593,13 @@ def get_image_hash(ibs, gid_list=None, algo='md5'):
         >>> image_path = ibs.get_image_paths(gid_list)
         >>> print('Hashing: %r' % (image_path, ))
         >>> hash_list = ibs.get_image_hash(gid_list, algo='md5')
-        >>> assert hash_list == ['ab31dc5e1355247a0ea5ec940802a468']
+        >>> assert hash_list == ['fb5da58f9f49676dbb513a775be6b942']
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha1')
-        >>> assert hash_list == ['66ec193a1619b3b6216d1784b4833b6194b13384']
+        >>> assert hash_list == ['f716b40e17cb2d7850def23f7d720ca28b147b62'], hash_list
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha256')
-        >>> assert hash_list == ['fd09d22ec18c32d9db2cd026a9511ab228aadf0e5f7271760413448ddd16d483']
+        >>> assert hash_list == ['24c6cb43f5301222a6a7f19ac1e0c578e16aa5c844561a8b2c16b2a478921f08'], hash_list
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha512')
-        >>> assert hash_list == ['81d1d8ee4c8640b9aad26e4cc03536ed30a43b69e166748ec940a8f00e4776be93f4ac6367a06d92b772a9a60dc104c6f999e7197c2584fdc4cffcac2da71506']
+        >>> assert hash_list == ['bbde99d7e376339905bac68a8375d00208f68344a9ca41dd02a22d6dc426dfe6bace43a41dfe49e474a5fe335f09001c0fdd3350d5b8978f5fc5cc615d3cbbed']
     """
     import hashlib
 
