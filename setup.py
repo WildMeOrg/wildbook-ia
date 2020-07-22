@@ -231,7 +231,7 @@ KWARGS = OrderedDict(
         'local_scheme': 'dirty-tag',
     },
     # packages=find_packages(),
-    packages=['wbia', 'wbia._internal', 'wbia.tests', 'wbia.util_scripts'],
+    packages=['wbia'],
     package_dir={'wbia': 'wbia'},
     python_requires='>=3.5, <4',
     include_package_data=False,
