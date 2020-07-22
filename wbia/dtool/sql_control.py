@@ -13,11 +13,12 @@ import re
 import sys
 import threading
 from functools import partial
+from io import StringIO
 from os.path import join, exists, dirname, basename
 
 import six
 import utool as ut
-from six.moves import map, zip, cStringIO
+from six.moves import map, zip
 
 from wbia.dtool import sqlite3 as lite
 
@@ -668,7 +669,7 @@ class SQLDatabaseController(object):
         """
         if NOT_QUIET:
             print('[sql] Copying database into RAM')
-        tempfile = cStringIO()
+        tempfile = StringIO()
         for line in self.connection.iterdump():
             tempfile.write('%s\n' % line)
         self.connection.close()
@@ -1538,7 +1539,7 @@ class SQLDatabaseController(object):
             self.dump_to_file(file_, **kwargs)
 
     def dump_to_string(self, **kwargs):
-        string_file = cStringIO()
+        string_file = StringIO()
         self.dump_to_file(string_file, **kwargs)
         retstr = string_file.getvalue()
         return retstr
