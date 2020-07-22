@@ -15,6 +15,7 @@ import pandas as pd
 import sklearn
 import sklearn.metrics
 import sklearn.ensemble
+import sklearn.impute
 import sklearn.pipeline
 import sklearn.neural_network
 from wbia.algo.verif import sklearn_utils
@@ -376,12 +377,7 @@ class ClfProblem(ut.NiceRepr):
             def clf_partial():
                 pipe = sklearn.pipeline.Pipeline(
                     [
-                        (
-                            'inputer',
-                            sklearn.preprocessing.Imputer(
-                                missing_values='NaN', strategy='mean', axis=0
-                            ),
-                        ),
+                        ('inputer', sklearn.impute.SimpleImputer(strategy='mean'),),
                         # ('scale', sklearn.preprocessing.StandardScaler),
                         ('est', est_class(**est_params)),
                     ]
@@ -393,12 +389,7 @@ class ClfProblem(ut.NiceRepr):
             def clf_partial():
                 pipe = sklearn.pipeline.Pipeline(
                     [
-                        (
-                            'inputer',
-                            sklearn.preprocessing.Imputer(
-                                missing_values='NaN', strategy='mean', axis=0
-                            ),
-                        ),
+                        ('inputer', sklearn.impute.SimpleImputer(strategy='mean'),),
                         ('est', est_class(**est_params)),
                     ]
                 )
