@@ -7,6 +7,8 @@ Consider moving to pytest and using xdoctest (because regular doctest does not
 accept the syntax of IBEIS doctests)
 """
 from __future__ import absolute_import, division, print_function
+
+import networkx as nx
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -130,7 +132,7 @@ def test_neg_metagraph_merge():
     # should not have a self-loop weight weight 2
     # (it decreased because we changed a previously neg edge to pos)
     assert nmg.edges[(AB, AB)]['weight'] == 2
-    assert len(list(nmg.selfloop_edges())) == 1
+    assert len(list(nx.selfloop_edges(nmg))) == 1
 
     # nothing should change between C and D
     assert nmg.edges[(C, D)]['weight'] == 1
