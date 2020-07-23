@@ -241,10 +241,6 @@ class SQLExecutionContext(object):
             # An SQLError is a serious offence.
             print('[sql] FATAL ERROR IN QUERY CONTEXT')
             print('[sql] operation=\n' + context.operation)
-            DUMP_ON_EXCEPTION = False
-            if DUMP_ON_EXCEPTION:
-                # Dump on error
-                context.db.dump()
             print('[sql] Error in context manager!: ' + str(value))
             # return a falsey value on error
             return False
