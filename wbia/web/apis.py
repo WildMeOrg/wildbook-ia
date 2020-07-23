@@ -70,7 +70,7 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
-        ...     web_ibs.send_wbia_request('/api/image/src/1/', type_='get')
+        ...     resp = web_ibs.send_wbia_request('/api/image/src/1/', type_='get', json=False)
         >>> print(resp)
 
     RESTful:
@@ -127,7 +127,7 @@ def annot_src_api(rowid=None, fresh=False, **kwargs):
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
-        ...     web_ibs.send_wbia_request('/api/annot/src/1/', type_='get')
+        ...     resp = web_ibs.send_wbia_request('/api/annot/src/1/', type_='get', json=False)
         >>> print(resp)
 
     RESTful:
@@ -174,7 +174,7 @@ def background_src_api(rowid=None, fresh=False, **kwargs):
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
-        ...     web_ibs.send_wbia_request('/api/background/src/1/', type_='get')
+        ...     resp = web_ibs.send_wbia_request('/api/background/src/1/', type_='get', json=False)
         >>> print(resp)
 
     RESTful:
@@ -221,7 +221,7 @@ def image_src_api_json(uuid=None, **kwargs):
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
-        ...     web_ibs.send_wbia_request('/api/image/src/json/1/', type_='get')
+        ...     resp = web_ibs.send_wbia_request('/api/image/src/json/0a9bc03d-a75e-8d14-0153-e2949502aba7/', type_='get', json=False)
         >>> print(resp)
 
     RESTful:
