@@ -1229,7 +1229,7 @@ def check_cache_purge_parallel_wrapper(func, arguments_list):
 
 
 @register_ibs_method
-def check_cache_purge(ibs, ttl_days=365):
+def check_cache_purge(ibs, ttl_days=365, squeeze=False):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object
@@ -1246,6 +1246,8 @@ def check_cache_purge(ibs, ttl_days=365):
         >>> result = check_cache_purge(ibs)
         >>> print(result)
     """
+    import ibeis
+
     now = datetime.datetime.now(tz=PST)
     expires = now - datetime.timedelta(days=ttl_days)
     expires = datetime.datetime(expires.year, expires.month, 1, 0, 0, 0, tzinfo=PST)
@@ -1262,6 +1264,8 @@ def check_cache_purge(ibs, ttl_days=365):
         'extern_KaggleSevenChip',
         'extern_Cropped_Chips',
     ]
+
+    squeeze_tables = []
 
     delete_path_list = []
     for entry in os.scandir(ibs.cachedir):
@@ -1359,16 +1363,57 @@ def check_cache_purge(ibs, ttl_days=365):
 
             if len(corrupted_rowid_list) > 0:
                 table.delete_rows(corrupted_rowid_list, delete_extern=True)
+                squeeze_tables.append(table)
 
-    # db_list = [
-    #     ibs.db,
-    #     ibs.staging,
-    # ]
-    # db_list += [table.db for table in table_list]
+    tables_list = [
+        (ibs.depc_image.tables, ibeis.constants.IMAGE_TABLE, set(ibs._get_all_gids()),),
+        (
+            ibs.depc_annot.tables,
+            ibeis.constants.ANNOTATION_TABLE,
+            set(ibs._get_all_aids()),
+        ),
+        (
+            ibs.depc_part.tables,
+            ibeis.constants.PART_TABLE,
+            set(ibs._get_all_part_rowids()),
+        ),
+    ]
 
-    # for db in tqdm.tqdm(db_list):
-    #     print(db.fname)
-    #     db.squeeze()
+    for table_list, parent_tablename, parent_rowid_set in tables_list:
+        for table in table_list:
+            print(table)
+            table_parent_names = list(set(table.parents()))
+            if len(table_parent_names) == 1 and table_parent_names[0] == parent_tablename:
+                table_all_rowids = table._get_all_rowids()
+                print('\tRetrieved %d rowids' % (len(table_all_rowids),))
+                table_parent_rowids_list = table.get_parent_rowids(table_all_rowids)
+                table_parent_rowids_set = list(map(set, table_parent_rowids_list))
+
+                print('\tChecking parents...')
+                table_bad_rowids = []
+                zipped = list(zip(table_all_rowids, table_parent_rowids_set))
+                for table_rowid, table_parent_rowid_set in zipped:
+                    if (
+                        table_parent_rowid_set & parent_rowid_set
+                        != table_parent_rowid_set
+                    ):
+                        table_bad_rowids.append(table_rowid)
+
+                if len(table_bad_rowids) > 0:
+                    print('\tFound %d bad rowids' % (len(table_bad_rowids),))
+                    table.delete_rows(table_bad_rowids, delete_extern=True)
+                    squeeze_tables.append(table)
+
+    if squeeze:
+        db_list = [
+            ibs.db,
+            ibs.staging,
+        ]
+        db_list += [table.db for table in set(squeeze_tables)]
+
+        for db in tqdm.tqdm(db_list):
+            print(db.fname)
+            db.squeeze()
 
     return failed_list
 
