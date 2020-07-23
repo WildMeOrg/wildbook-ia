@@ -77,7 +77,7 @@ def testdata_start_payload(aids='all'):
     return payload
 
 
-def testdata_feedback_payload(edge, decision):
+def _testdata_feedback_payload(edge, decision):
     payload = {
         'action': 'add_feedback',
         'edge': edge,
@@ -94,7 +94,7 @@ def testdata_feedback_payload(edge, decision):
     return payload
 
 
-def test_foo(future):
+def _test_foo(future):
     print('FOO %r' % (future,))
 
 
@@ -118,7 +118,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         >>> user_request = actor.handle({'action': 'continue_review'})
         >>> # Wait for a response and  the GraphActor in another proc
         >>> edge, priority, edge_data = user_request[0]
-        >>> user_resp_payload = testdata_feedback_payload(edge, 'match')
+        >>> user_resp_payload = _testdata_feedback_payload(edge, 'match')
         >>> content = actor.handle(user_resp_payload)
         >>> actor.infr.dump_logs()
 
@@ -148,7 +148,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         >>> print('user_request = {!r}'.format(user_request))
         >>> # Wait for a response and  the GraphActor in another proc
         >>> edge, priority, edge_data = user_request[0]
-        >>> user_resp_payload = testdata_feedback_payload(edge, 'match')
+        >>> user_resp_payload = _testdata_feedback_payload(edge, 'match')
         >>> content = actor.handle(user_resp_payload)
         >>> actor.infr.dump_logs()
         >>> actor.infr.status()
@@ -326,11 +326,11 @@ class GraphClient(object):
         >>> payload = testdata_start_payload()
         >>> client.post(payload).result()
         >>> f1 = client.post({'action': 'continue_review'})
-        >>> f1.add_done_callback(test_foo)
+        >>> f1.add_done_callback(_test_foo)
         >>> user_request = f1.result()
         >>> # Wait for a response and  the GraphActor in another proc
         >>> edge, priority, edge_data = user_request[0]
-        >>> user_resp_payload = testdata_feedback_payload(edge, 'match')
+        >>> user_resp_payload = _testdata_feedback_payload(edge, 'match')
         >>> f2 = client.post(user_resp_payload)
         >>> f2.result()
         >>> # Debug by getting the actor over a mp.Pipe
@@ -351,34 +351,34 @@ class GraphClient(object):
     #     >>> # The infr algorithm needs a review
     #     >>> edge, priority, edge_data = user_request[0]
     #     >>> #
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'wait', 'num': float(30)})
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
-    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
     #     >>> client.post({'action': 'continue_review'})
 
     """
