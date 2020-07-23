@@ -438,7 +438,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
 
         return requests.post(baseurl + suffix)
 
-    def send_wbia_request(suffix, type_='post', **kwargs):
+    def send_wbia_request(suffix, type_='post', json=True, **kwargs):
         """
         Posts a request to a url suffix
         """
@@ -450,23 +450,22 @@ def opendb_bg_web(*args, managed=False, **kwargs):
         payload = ut.map_dict_vals(ut.to_json, kwargs)
         if type_ == 'post':
             resp = requests.post(baseurl + suffix, data=payload)
-            json_content = resp._content
+            content = resp._content
         elif type_ == 'get':
             resp = requests.get(baseurl + suffix, data=payload)
-            json_content = resp.content
-        try:
-            content = ut.from_json(json_content)
-        except ValueError:
-            raise Exception(
-                'Expected JSON string but got json_content=%r' % (json_content,)
-            )
-        else:
-            # print('content = %r' % (content,))
-            if content['status']['code'] != 200:
-                print(content['status']['message'])
-                raise Exception(content['status']['message'])
-        request_response = content['response']
-        return request_response
+            content = resp.content
+        if json:
+            try:
+                content = ut.from_json(content)
+            except ValueError:
+                raise Exception('Expected JSON string but got content=%r' % (content,))
+            else:
+                # print('content = %r' % (content,))
+                if content['status']['code'] != 200:
+                    print(content['status']['message'])
+                    raise Exception(content['status']['message'])
+            content = content['response']
+        return content
 
     def wait_for_results(jobid, timeout=None, delays=[1, 3, 10]):
         """
