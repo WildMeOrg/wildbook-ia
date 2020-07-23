@@ -97,7 +97,7 @@ def draw_annot_scoresep(testres, f=None):
 def draw_feat_scoresep(testres, f=None, disttype=None):
     r"""
     SeeAlso:
-        wbia.algo.hots.scorenorm.train_featscore_normalizer
+        wbia.unstable.scorenorm.train_featscore_normalizer
 
     CommandLine:
         python -m wbia --tf TestResult.draw_feat_scoresep --show
@@ -366,7 +366,7 @@ def compare_featscores():
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> result = compare_featscores()
         >>> print(result)
         >>> ut.quit_if_noshow()
@@ -450,7 +450,7 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia
         >>> qreq_ = wbia.testdata_qreq_(
         >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
@@ -482,13 +482,13 @@ def load_featscore_normalizer(normer_cfgstr):
         normer_cfgstr (?):
 
     CommandLine:
-        python -m wbia.algo.hots.scorenorm --exec-load_featscore_normalizer --show
-        python -m wbia.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=featscore
-        python -m wbia.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=lovb
+        python -m wbia.unstable.scorenorm --exec-load_featscore_normalizer --show
+        python -m wbia.unstable.scorenorm --exec-load_featscore_normalizer --show --cfgstr=featscore
+        python -m wbia.unstable.scorenorm --exec-load_featscore_normalizer --show --cfgstr=lovb
 
     Example:
         >>> # SCRIPT
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> normer_cfgstr = ut.get_argval('--cfgstr', default='featscore')
         >>> encoder = load_featscore_normalizer(normer_cfgstr)
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
@@ -532,7 +532,7 @@ def train_featscore_normalizer():
 
     Example:
         >>> # SCRIPT
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> encoder = train_featscore_normalizer()
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
         >>> ut.show_if_requested()
@@ -587,7 +587,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia
         >>> learnkw = {}
         >>> datakw = NormFeatScoreConfig.from_argv_dict()
@@ -711,11 +711,11 @@ def get_training_featscores(
         tuple: (tp_scores, tn_scores, scorecfg)
 
     CommandLine:
-        python -m wbia.algo.hots.scorenorm --exec-get_training_featscores
+        python -m wbia.unstable.scorenorm --exec-get_training_featscores
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia
         >>> cm_list, qreq_ = wbia.testdata_cmlist(defaultdb='PZ_MTEST', a=['default:qsize=10'])
         >>> disttype = None
@@ -808,11 +808,11 @@ def get_topannot_training_idxs(cm, num=2):
         num (int): number of top annots per TP/TN (default = 2)
 
     CommandLine:
-        python -m wbia.algo.hots.scorenorm --exec-get_topannot_training_idxs --show
+        python -m wbia.unstable.scorenorm --exec-get_topannot_training_idxs --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia
         >>> cm, qreq_ = wbia.testdata_cm(defaultdb='PZ_MTEST')
         >>> num = 2
@@ -869,7 +869,7 @@ def get_topname_training_idxs(cm, num=5):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia
         >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
         >>> num = 1
@@ -914,11 +914,11 @@ def get_topname_training_idxs(cm, num=5):
 def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
     """
     CommandLine:
-        python -m wbia.algo.hots.scorenorm --exec-get_training_fsv --show
+        python -m wbia.unstable.scorenorm --exec-get_training_fsv --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia
         >>> num = None
         >>> cm, qreq_ = wbia.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
@@ -979,12 +979,12 @@ def get_training_desc_dist(
         python -m wbia --tf compare_featscores --show --disttype=L2_sift,normdist -a timectrl -t default:K=1 --db GZ_ALL
 
     CommandLine:
-        python -m wbia.algo.hots.scorenorm --exec-get_training_desc_dist
-        python -m wbia.algo.hots.scorenorm --exec-get_training_desc_dist:1
+        python -m wbia.unstable.scorenorm --exec-get_training_desc_dist
+        python -m wbia.unstable.scorenorm --exec-get_training_desc_dist:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia
         >>> cm, qreq_ = wbia.testdata_cm(defaultdb='PZ_MTEST')
         >>> fsv_col_lbls = ['ratio', 'lnbnn', 'L2_sift']
@@ -996,7 +996,7 @@ def get_training_desc_dist(
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.algo.hots.scorenorm import *  # NOQA
+        >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia
         >>> cm, qreq_ = wbia.testdata_cm(defaultdb='PZ_MTEST')
         >>> fsv_col_lbls = cm.fsv_col_lbls
@@ -1160,9 +1160,9 @@ def get_training_desc_dist(
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m wbia.algo.hots.scorenorm
-        python -m wbia.algo.hots.scorenorm --allexamples
-        python -m wbia.algo.hots.scorenorm --allexamples --noface --nosrc
+        python -m wbia.unstable.scorenorm
+        python -m wbia.unstable.scorenorm --allexamples
+        python -m wbia.unstable.scorenorm --allexamples --noface --nosrc
     """
     import multiprocessing
 
