@@ -505,16 +505,14 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.nn_weights import *  # NOQA
-        >>> from wbia.algo.hots import nn_weights
+        >>> from wbia.unstable.old_scorers import cos_match_weighter
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=5, Knorm=5))
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST', p=['default:cos_on=True,K=5,Knorm=5'])
         >>> nns_list, nnvalid0_list = args
         >>> assert qreq_.qparams.cos_on, 'bug setting custom params cos_weight'
-        >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
+        >>> cos_weight_list = cos_match_weighter(nns_list, nnvalid0_list, qreq_)
     """
-    from wbia.algo.hots import scoring
-
     Knorm = qreq_.qparams.Knorm
     cos_weight_list = []
     qconfig2_ = qreq_.get_internal_query_config2()
@@ -528,7 +526,7 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
         dvecs = qreq_.indexer.get_nn_vecs(nns.neighb_idxs.T[:-Knorm])
         # Component-wise dot product + selectivity function
         alpha = 3.0
-        neighb_cosweight = scoring.sift_selectivity_score(qvecs, dvecs, alpha)
+        neighb_cosweight = sift_selectivity_score(qvecs, dvecs, alpha)
         cos_weight_list.append(neighb_cosweight)
     return cos_weight_list
 
