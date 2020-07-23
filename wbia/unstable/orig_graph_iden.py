@@ -50,7 +50,7 @@ class OrigAnnotInference(object):
         >>> from wbia.unstable.orig_graph_iden import *  # NOQA
         >>> import wbia
         >>> a='default:dsize=20,excluderef=True,qnum_names=2,min_pername=3,qsample_per_name=1,dsample_per_name=2',
-        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a=a, p='default:proot=vsone', use_cache=False, verbose=0)
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a=a, p='default:proot=vsmany', use_cache=False, verbose=0)
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
         >>> self1 = OrigAnnotInference(qreq_, cm_list)
@@ -71,7 +71,7 @@ class OrigAnnotInference(object):
         >>> from wbia.unstable.orig_graph_iden import *  # NOQA
         >>> import wbia
         >>> a='default:dsize=20,excluderef=True,qnum_names=2,min_pername=3,qsample_per_name=1,dsample_per_name=2',
-        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a=a, p='default:pipeline_root=BC_DTW', use_cache=False, verbose=0)
+        >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', a=a, p='default:pipeline_root=vsmany', use_cache=False, verbose=0)
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
         >>> self1 = OrigAnnotInference(qreq_, cm_list)
