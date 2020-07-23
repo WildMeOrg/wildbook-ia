@@ -46,6 +46,8 @@ from wbia.init import sysres
 from wbia.dbio import ingest_hsdb
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
+from wbia.dtool.dump import dump
+
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__)
@@ -591,7 +593,6 @@ class IBEISController(BASE_CLASS):
         ibs._init_sqldbcore(request_dbversion=request_dbversion)
         ibs._init_sqldbstaging(request_stagingversion=request_stagingversion)
         # ibs.db.dump_schema()
-        # ibs.db.dump()
         ibs._init_rowid_constants()
 
     def _needs_backup(ibs):
@@ -1177,7 +1178,8 @@ class IBEISController(BASE_CLASS):
     def dump_database_csv(ibs):
         dump_dir = join(ibs.get_dbdir(), 'CSV_DUMP')
         ibs.db.dump_tables_to_csv(dump_dir=dump_dir)
-        ibs.db.dump_to_fpath(dump_fpath=join(dump_dir, '_ibsdb.dump'))
+        with open(join(dump_dir, '_ibsdb.dump'), 'w') as fp:
+            dump(ibs.db.connection, fp)
 
     def get_database_icon(ibs, max_dsize=(None, 192), aid=None):
         r"""
