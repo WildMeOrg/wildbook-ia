@@ -10,7 +10,6 @@ import collections
 import os
 import parse
 import re
-import sys
 import threading
 from functools import partial
 from io import StringIO
@@ -20,6 +19,8 @@ import six
 import utool as ut
 
 from wbia.dtool import sqlite3 as lite
+from wbia.dtool.dump import dumps
+
 
 print, rrr, profile = ut.inject2(__name__)
 
@@ -33,7 +34,6 @@ NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 VERBOSE = ut.VERBOSE
 VERYVERBOSE = ut.VERYVERBOSE
 COPY_TO_MEMORY = ut.get_argflag(('--copy-db-to-memory'))
-# AUTODUMP       = ut.get_argflag('--auto-dump')
 
 TIMEOUT = 600  # Wait for up to 600 seconds for the database to return from a locked state
 
@@ -1497,53 +1497,8 @@ class SQLDatabaseController(object):
     # def commit(db):
     #    db.connection.commit()
 
-    def dump(self, file_=None, **kwargs):
-        if file_ is None or isinstance(file_, six.string_types):
-            self.dump_to_fpath(file_, **kwargs)
-        else:
-            self.dump_to_file(file_, **kwargs)
-
-    def dump_to_fpath(self, dump_fpath, **kwargs):
-        if dump_fpath is None:
-            # Default filepath
-            version_str = 'v' + self.get_db_version()
-            if kwargs.get('schema_only', False):
-                version_str += '.schema_only'
-            dump_fname = self.fname + '.' + version_str + '.dump.txt'
-            dump_fpath = join(self.dir_, dump_fname)
-        with open(dump_fpath, 'w') as file_:
-            self.dump_to_file(file_, **kwargs)
-
-    def dump_to_string(self, **kwargs):
-        string_file = StringIO()
-        self.dump_to_file(string_file, **kwargs)
-        retstr = string_file.getvalue()
-        return retstr
-
-    def dump_to_file(
-        self, file_, auto_commit=True, schema_only=False, include_metadata=True
-    ):
-        VERBOSE_SQL = True
-        if VERBOSE_SQL:
-            print('[sql.dump_to_file] file_=%r' % (file_,))
-        if auto_commit:
-            self.connection.commit()
-            # db.commit(verbose=False)
-        for line in self.connection.iterdump():
-            if schema_only and line.startswith('INSERT'):
-                if not include_metadata or 'metadata' not in line:
-                    continue
-            to_write = '%s\n' % line
-            # Ensure python2 writes in bytes
-            file_.write(to_write)
-
-    def dump_to_stdout(self, **kwargs):
-        file_ = sys.stdout
-        kwargs['schema_only'] = kwargs.get('schema_only', True)
-        self.dump(file_, **kwargs)
-
     def print_dbg_schema(self):
-        print('\n\nCREATE'.join(self.dump_to_string(schema_only=True).split('CREATE')))
+        print('\n\nCREATE'.join(dumps(self.connection, schema_only=True).split('CREATE')))
 
     # =========
     # SQLDB METADATA

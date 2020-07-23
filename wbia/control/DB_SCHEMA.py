@@ -17,6 +17,7 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 from wbia import constants as const
 from wbia.control import _sql_helpers
+from wbia.dtool.dump import dumps
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -2167,7 +2168,7 @@ def dump_schema_sql():
 
     db = dt.SQLDatabaseController(fpath=':memory:')
     DB_SCHEMA_CURRENT.update_current(db)
-    dump_str = db.dump_to_string()
+    dump_str = dumps(db.connection)
     print(dump_str)
 
     for tablename in db.get_table_names():
