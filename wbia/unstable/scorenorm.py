@@ -257,11 +257,12 @@ def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.IBEISControl import *  # NOQA
+        >>> from wbia.unstable.scorenorm import get_global_species_scorenorm_cachedir
         >>> import wbia  # NOQA
         >>> ibs = wbia.opendb('testdb1')
         >>> species_text = wbia.const.TEST_SPECIES.ZEB_GREVY
         >>> ensure = True
-        >>> species_cachedir = ibs.get_global_species_scorenorm_cachedir(species_text, ensure)
+        >>> species_cachedir = get_global_species_scorenorm_cachedir(ibs, species_text, ensure)
         >>> resourcedir = ibs.get_wbia_resource_dir()
         >>> result = ut.relpath_unix(species_cachedir, resourcedir)
         >>> print(result)
