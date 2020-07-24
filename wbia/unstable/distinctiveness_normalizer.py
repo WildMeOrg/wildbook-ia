@@ -686,18 +686,3 @@ def dev_train_distinctiveness(species=None):
         dstcnvs_normer.publish()
     # vsone_
     # inct
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.distinctiveness_normalizer
-        python -m wbia.algo.hots.distinctiveness_normalizer --allexamples
-        python -m wbia.algo.hots.distinctiveness_normalizer --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

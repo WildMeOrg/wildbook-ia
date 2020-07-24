@@ -535,17 +535,3 @@ class Priority(object):
             while True:
                 edge, priority = infr.pop()
                 yield edge
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.mixin_priority
-        python -m wbia.algo.graph.mixin_priority --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

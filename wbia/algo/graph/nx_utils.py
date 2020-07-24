@@ -453,17 +453,3 @@ def edge_df(graph, edges, ignore=None):
         except Exception:
             pass
     return df
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.nx_utils
-        python -m wbia.algo.graph.nx_utils --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

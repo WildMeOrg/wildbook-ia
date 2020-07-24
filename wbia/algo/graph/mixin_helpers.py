@@ -768,17 +768,3 @@ class AssertInvariants(object):
         #         #     map(pos_graph.node_label, incon_cc))
         #         infr.print('infr.recovery_cc = %r' % (infr.recovery_cc,))
         #         infr.print('incon_cc = %r' % (incon_cc,))
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.mixin_helpers
-        python -m wbia.algo.graph.mixin_helpers --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

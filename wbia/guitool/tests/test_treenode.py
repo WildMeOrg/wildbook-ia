@@ -83,18 +83,3 @@ def _test_build_internal_structure(_module, lang):
     #    print(api_tree_node.tree_node_string(root_node2, indent=' *  '))
     print('================')
     print('finished %s test' % lang)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.guitool.tests.test_treenode
-        python -m wbia.guitool.tests.test_treenode --allexamples
-        python -m wbia.guitool.tests.test_treenode --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

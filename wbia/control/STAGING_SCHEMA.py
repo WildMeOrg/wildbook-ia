@@ -188,16 +188,3 @@ def autogen_staging_schema():
     schema_spec = STAGING_SCHEMA
     db = _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
     return db
-
-
-if __name__ == '__main__':
-    """
-    python -m wbia.algo.preproc.preproc_chip
-    python -m wbia.control.STAGING_SCHEMA --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    import utool as ut
-
-    ut.doctest_funcs()

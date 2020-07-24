@@ -172,10 +172,3 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                         unfixable_gid_list.append(gid)
     print('Un-fixable gid_list = %r' % (unfixable_gid_list,))
     return unfixable_gid_list
-
-
-if __name__ == '__main__':
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

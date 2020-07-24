@@ -627,17 +627,3 @@ def find_consistent_labeling_old(
             assignment[idx] = '%s%d' % (extra_prefix, num_extra,)
             num_extra += 1
     return assignment
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.scripts.name_recitifer
-        python -m wbia.scripts.name_recitifer --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

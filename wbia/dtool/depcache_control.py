@@ -1674,17 +1674,3 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         # cfgstr = stacked_config.get_cfgstr()
         # cfgstr = '_'.join(cfgstr_list)
         # return cfgstr
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m dtool.depcache_control
-        python -m dtool.depcache_control --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

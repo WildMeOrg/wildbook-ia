@@ -579,18 +579,3 @@ class APIItemWidget(WIDGET_BASE):
             # widget.change_headers(widget.api.make_headers())
         if VERBOSE_ITEM_WIDGET:
             print('context request')
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.guitool.api_item_widget
-        python -m wbia.guitool.api_item_widget --allexamples
-        python -m wbia.guitool.api_item_widget --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -1254,14 +1254,3 @@ def MERGE_NNP_MASTER_SCRIPT():
     #print(ibs2.get_image_time_statstr())
     #print(ibs3.get_image_time_statstr())
 """
-
-
-if __name__ == '__main__':
-    """
-    python -m wbia.dbio.export_subset
-    python -m wbia.dbio.export_subset --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    ut.doctest_funcs()

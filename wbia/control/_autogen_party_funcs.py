@@ -171,17 +171,3 @@ def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
         nInput=nInput,
     )
     return party_tag_list
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control._autogen_party_funcs
-        python -m wbia.control._autogen_party_funcs --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    import utool as ut
-
-    ut.doctest_funcs()

@@ -263,16 +263,3 @@ def show_sv_simple(
         scale_factor2=sf2,
         **fmatch_kw
     )
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.draw_sv
-        python -m wbia.plottool.draw_sv --allexamples
-        python -m wbia.plottool.draw_sv --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

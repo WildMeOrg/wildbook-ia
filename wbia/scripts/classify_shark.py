@@ -1421,17 +1421,3 @@ def inspect_results(ds, result_list):
         ibs, config, df_chunks, nCols=len(view_targets)
     )
     inter.start()
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.scripts.classify_shark
-        python -m wbia.scripts.classify_shark --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

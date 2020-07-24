@@ -1129,19 +1129,3 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     # fpath = ('name_model_' + suff + '.png')
     # pt.plt.savefig(fpath)
     # return fpath
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.hots.bayes
-        python -m wbia.algo.hots.bayes --allexamples
-    """
-    if ut.VERBOSE:
-        print('[hs] bayes')
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

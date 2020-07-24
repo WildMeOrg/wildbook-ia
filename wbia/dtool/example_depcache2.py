@@ -225,17 +225,3 @@ def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
 
     depc.initialize()
     return depc
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m dtool.example_depcache2
-        python -m dtool.example_depcache2 --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

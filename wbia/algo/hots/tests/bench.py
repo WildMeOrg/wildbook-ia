@@ -34,18 +34,3 @@ def benchmark_knn():
     nns_list1 = nearest_neighbors(  # NOQA
         qreq_, Kpad_list, impossible_daids_list, verbose=verbose
     )
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/hots/tests
-        python ~/code/wbia/wbia/algo/hots/tests/bench.py
-        python ~/code/wbia/wbia/algo/hots/tests/bench.py --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

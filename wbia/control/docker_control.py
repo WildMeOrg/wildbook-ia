@@ -355,16 +355,3 @@ def docker_get_config(ibs, container_name):
 # @register_ibs_method
 # def docker_embed(ibs):
 #     ut.embed()
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.docker_control --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

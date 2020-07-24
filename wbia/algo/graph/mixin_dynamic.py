@@ -1529,17 +1529,3 @@ class NonDynamicUpdate(object):
             'inconsistent_external': incon_external,
         }
         return ne_categories
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.mixin_dynamic
-        python -m wbia.algo.graph.mixin_dynamic --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

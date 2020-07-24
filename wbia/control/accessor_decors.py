@@ -535,17 +535,3 @@ def ider(func):
     """ This function takes returns ids subject to conditions """
     ider_func = ut.preserve_sig(func, func)
     return ider_func
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.accessor_decors
-        python -m wbia.control.accessor_decors --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -3032,18 +3032,3 @@ class ComboRadioHybrid(GuitoolWidget):
         for count, rb in enumerate(self.radio_buttons.values()):
             if rb.isChecked():
                 return self.radio_options[count][1]
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.guitool.guitool_components
-        python -m wbia.guitool.guitool_components --allexamples
-        python -m wbia.guitool.guitool_components --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

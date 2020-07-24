@@ -386,18 +386,3 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
         file_.write('Successfully converted hsdir=%r' % (hsdir,))
     print('finished ingest')
     return ibs
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.dbio.ingest_hsdb
-        python -m wbia.dbio.ingest_hsdb --allexamples
-        python -m wbia.dbio.ingest_hsdb --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

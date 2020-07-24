@@ -317,18 +317,3 @@ def render_sift_on_patch(patch, sift):
         draw_sift_on_patch(patch, sift)
     rendered = render.image
     return rendered
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.mpl_sift
-        python -m wbia.plottool.mpl_sift --allexamples
-        python -m wbia.plottool.mpl_sift --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

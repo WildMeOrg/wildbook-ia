@@ -167,18 +167,3 @@ class InteractQres(BASE_CLASS):
                     print('[viz] result clicked')
                     self.show_matches_to_aid(aid2)
         self.draw()
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.interact.interact_qres
-        python -m wbia.viz.interact.interact_qres --allexamples
-        python -m wbia.viz.interact.interact_qres --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

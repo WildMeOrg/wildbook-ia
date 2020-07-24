@@ -1290,17 +1290,3 @@ class VIEW(object):
     # make distance symmetric
     for (f1, f2), d in list(DIST.items()):
         DIST[(f2, f1)] = d
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.constants
-        python -m wbia.constants --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

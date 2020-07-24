@@ -3258,17 +3258,3 @@ class SQLTable(ut.NiceRepr):
 
     def __nice__(table):
         return table.name + ', n=' + str(table.number_of_rows())
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m dtool.sql_control
-        python -m dtool.sql_control --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

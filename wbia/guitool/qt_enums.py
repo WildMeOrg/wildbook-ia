@@ -121,17 +121,3 @@ def parse_window_type_and_flags(self):
     print('has = %s' % (ut.repr4(has),))
     print('missing = %s' % (ut.repr4(missing),))
     pass
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.guitool.qt_enums
-        python -m wbia.guitool.qt_enums --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

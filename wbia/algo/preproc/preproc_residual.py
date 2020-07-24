@@ -14,11 +14,3 @@ def add_residual_params_gen(ibs, fid_list, qreq_=None):
 def on_delete(ibs, featweight_rowid_list):
     print('Warning: Not Implemented')
     print('Probably nothing to do here')
-
-
-if __name__ == '__main__':
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    testable_list = []
-    ut.doctest_funcs(testable_list)

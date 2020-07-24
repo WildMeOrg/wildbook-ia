@@ -1259,16 +1259,3 @@ def visualize_bounding_boxes(
         filepath_dict[gid] = write_filepath
 
     return filepath_dict
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.other.detectcore
-        python -m wbia.other.detectcore --allexamples
-        python -m wbia.other.detectcore --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

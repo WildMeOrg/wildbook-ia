@@ -154,17 +154,3 @@ if pyflann is not None:
 
 else:
     PickleFLANN = None
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.smk.pickle_flann
-        python -m wbia.algo.smk.pickle_flann --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

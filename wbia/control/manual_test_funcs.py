@@ -135,18 +135,3 @@ def delete_test(ibs, test_rowid_list):
 def get_test_uuid(ibs, test_rowid_list):
     test_uuid_list = ibs.staging.get(const.TEST_TABLE, (TEST_UUID,), test_rowid_list)
     return test_uuid_list
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.manual_test_funcs
-        python -m wbia.control.manual_test_funcs --allexamples
-        python -m wbia.control.manual_test_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

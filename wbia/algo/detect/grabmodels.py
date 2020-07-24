@@ -130,21 +130,3 @@ def _download_model(algo, algo_modeldir):
     ut.unzip_file(zip_fpath)
     # Cleanup
     ut.delete(zip_fpath)
-
-
-if __name__ == '__main__':
-    """
-
-    modeldir = ibs.get_detect_modeldir()
-
-    CommandLine:
-        python -m wbia.algo.detect.grabmodels
-        python -m wbia.algo.detect.grabmodels --allexamples
-        python -m wbia.algo.detect.grabmodels --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

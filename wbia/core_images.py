@@ -2532,17 +2532,3 @@ def compute_cameratrap_exif_worker(
         raw = None
 
     return raw
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.core_images
-        python -m wbia.core_images --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

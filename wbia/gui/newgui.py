@@ -1989,18 +1989,3 @@ def testfunc():
     ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
     view = ibswgt.views[gh.IMAGE_TABLE]
     testdata_main_loop(globals(), locals())
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.gui.newgui
-        python -m wbia.gui.newgui --allexamples
-        python -m wbia.gui.newgui --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -258,18 +258,3 @@ def draw_demo():
         ax.grid(False)
         ax.set_xticks([])
         ax.set_yticks([])
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.interact_impaint
-        python -m wbia.plottool.interact_impaint --allexamples
-        python -m wbia.plottool.interact_impaint --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

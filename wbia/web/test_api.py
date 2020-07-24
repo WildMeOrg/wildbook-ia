@@ -116,18 +116,3 @@ def run_test_api():
     status_code, text, json = response
     web_instance.terminate()
     return response
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.web.test_api
-        python -m wbia.web.test_api --allexamples
-        python -m wbia.web.test_api --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -252,18 +252,3 @@ def dump_hots_flat_table(ibs):
 
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.dbio.export_hsdb
-        python -m wbia.dbio.export_hsdb --allexamples
-        python -m wbia.dbio.export_hsdb --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

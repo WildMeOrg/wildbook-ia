@@ -510,18 +510,3 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
 
     # Result Interaction
     return fig
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_qres
-        python -m wbia.viz.viz_qres --allexamples
-        python -m wbia.viz.viz_qres --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

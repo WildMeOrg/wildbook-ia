@@ -886,13 +886,3 @@ def get_global_distinctiveness_modeldir(ensure=True):
     if ensure:
         ut.ensuredir(global_distinctdir)
     return global_distinctdir
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        xdoctest -m wbia.init.sysres
-    """
-    import xdoctest
-
-    xdoctest.doctest_module(__file__)

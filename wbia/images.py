@@ -277,17 +277,3 @@ class ImageSets(IMAGESET_BASE):
     @property
     def annots(self):
         return [self._ibs.annots(aids) for aids in self.aids]
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.images
-        python -m wbia.images --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

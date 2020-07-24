@@ -208,18 +208,3 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
     ih.connect_callback(fig, 'button_press_event', _on_keypoints_click)
     if not nodraw:
         ph.draw()
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.interact_keypoints
-        python -m wbia.plottool.interact_keypoints --allexamples
-        python -m wbia.plottool.interact_keypoints --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

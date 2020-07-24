@@ -523,17 +523,3 @@ class PairwiseFeatureExtractor(object):
             matches, feats = data
             feats = extr._postprocess_feats(feats)
         return feats
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.verif.pairfeat
-        python -m wbia.algo.verif.pairfeat --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

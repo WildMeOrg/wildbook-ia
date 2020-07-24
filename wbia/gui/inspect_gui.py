@@ -1199,18 +1199,3 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
             )
         )
     return pair_tag_options
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.gui.inspect_gui
-        python -m wbia.gui.inspect_gui --allexamples
-        python -m wbia.gui.inspect_gui --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

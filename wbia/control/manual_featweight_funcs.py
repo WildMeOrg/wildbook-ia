@@ -57,17 +57,3 @@ def get_annot_fgweight_rowids(ibs, aid_list, config2_=None, ensure=True):
     """
     fgw_rowid_list = ibs.depc_annot.get_rowids('featweight', aid_list, config=config2_)
     return fgw_rowid_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_featweight_funcs
-        python -m wbia.control.manual_featweight_funcs --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    import utool as ut
-
-    ut.doctest_funcs()

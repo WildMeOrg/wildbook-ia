@@ -137,21 +137,3 @@ def _test_pos_neg():
     infr.add_feedback((1, 11), NEGTV)
     print('Final state:')
     print(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/graph/tests
-        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_pos_neg
-        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_unrev_inference
-        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py test_incomp_inference
-        python ~/code/wbia/wbia/algo/graph/tests/test_graph_iden.py --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()
-    # import ubelt as ub

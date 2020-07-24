@@ -2278,16 +2278,3 @@ config_list = [
     # {'label': 'COMBINED 1.0', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 1.0},
     # {'label': 'COMBINED MUL', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
 ]
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.other.detectgrave
-        python -m wbia.other.detectgrave --allexamples
-        python -m wbia.other.detectgrave --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

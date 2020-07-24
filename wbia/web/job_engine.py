@@ -1957,18 +1957,3 @@ def _init_signals():
     import signal
 
     signal.signal(signal.SIGINT, _on_ctrl_c)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.web.job_engine
-        python -m wbia.web.job_engine --allexamples
-        python -m wbia.web.job_engine --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -751,17 +751,3 @@ def dummy_example_depcacahe():
     )
 
     return depc
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m dtool.example_depcache
-        python -m dtool.example_depcache --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

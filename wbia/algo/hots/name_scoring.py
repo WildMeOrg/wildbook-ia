@@ -401,18 +401,3 @@ def align_name_scores_with_annots(
         # nid_list (which should be == cm.unique_nids)
         score_list[best_idx_list] = name_score_list
         return score_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.name_scoring
-        python -m wbia.algo.hots.name_scoring --allexamples
-        python -m wbia.algo.hots.name_scoring --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

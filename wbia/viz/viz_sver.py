@@ -88,12 +88,3 @@ def show_sver(
     draw_sv.show_sv(
         chip1, chip2, kpts1, kpts2, fm, homog_tup=homog_tup, aff_tup=aff_tup, **kwargs
     )
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_sver --allexamples
-        python -m wbia.viz.viz_sver --allexamples --show
-    """
-    ut.doctest_funcs()

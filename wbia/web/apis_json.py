@@ -2199,18 +2199,3 @@ def delete_name_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
     ibs.delete_names(nid_list)
     return True
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.web.app
-        python -m wbia.web.app --allexamples
-        python -m wbia.web.app --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

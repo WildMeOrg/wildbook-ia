@@ -4969,16 +4969,3 @@ def test_save():
     fpath = join(dpath, 'test.png')
     fig.savefig(fpath)
     return fpath
-
-
-if __name__ == '__main__':
-    """
-    commandline:
-        python -m wbia.plottool.draw_func2
-        python -m wbia.plottool.draw_func2 --allexamples
-        python -m wbia.plottool.draw_func2 --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

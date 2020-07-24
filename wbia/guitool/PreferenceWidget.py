@@ -399,17 +399,3 @@ def test_preference_gui():
     # epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)
     epw.show()
     return old, epw
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.guitool.PreferenceWidget
-        python -m wbia.guitool.PreferenceWidget --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

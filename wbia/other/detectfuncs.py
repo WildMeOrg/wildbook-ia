@@ -4946,16 +4946,3 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
 #     ibs.localizer_precision_recall_algo_display()
 #     ibs.labeler_precision_recall_algo_display()
 #     ibs.detector_precision_recall_algo_display()
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.other.detectfuncs
-        python -m wbia.other.detectfuncs --allexamples
-        python -m wbia.other.detectfuncs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

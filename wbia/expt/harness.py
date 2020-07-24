@@ -290,17 +290,3 @@ def make_single_testres(
             if ut.SUPER_STRICT:
                 raise
     return testres
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.expt.harness
-        python -m wbia.expt.harness --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -981,18 +981,3 @@ def set_review_metadata(ibs, review_rowid_list, metadata_dict_list):
         metadata_str_list.append(metadata_str)
     val_list = ((metadata_str,) for metadata_str in metadata_str_list)
     ibs.staging.set(const.REVIEW_TABLE, ('review_metadata_json',), val_list, id_iter)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.manual_review_funcs
-        python -m wbia.control.manual_review_funcs --allexamples
-        python -m wbia.control.manual_review_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

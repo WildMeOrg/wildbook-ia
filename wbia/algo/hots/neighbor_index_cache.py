@@ -889,17 +889,3 @@ def background_flann_func(
     if len(visual_uuid_list) > min_reindex_thresh:
         UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
     print('[BG] Finished Background FLANN')
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.hots.neighbor_index_cache
-        python -m wbia.algo.hots.neighbor_index_cache --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -1138,17 +1138,3 @@ class MatchResult(AlgoResult, ut.NiceRepr):
 
     def __nice__(cm):
         return ' qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m dtool.base
-        python -m dtool.base --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

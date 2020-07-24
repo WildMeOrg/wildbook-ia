@@ -2301,18 +2301,3 @@ def verb_context(filtertype, aidcfg, verbose):
                 )
 
     return VerbosityContext
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.init.filter_annots
-        python -m wbia.init.filter_annots --allexamples
-        python -m wbia.init.filter_annots --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

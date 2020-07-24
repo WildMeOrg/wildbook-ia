@@ -602,12 +602,5 @@ if __name__ == '__main__':
     r"""
     CommandLine:
         python -m wbia.algo.preproc.occurrence_blackbox
-        python -m wbia.algo.preproc.occurrence_blackbox --allexamples
     """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    if not ut.doctest_funcs():
-        main()
+    main()

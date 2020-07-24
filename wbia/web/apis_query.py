@@ -1997,18 +1997,3 @@ def query_graph_v2_on_request_review(future):
             graph_client.update(None)
             callback_type = 'finished'
         query_graph_v2_callback(graph_client, callback_type)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.web.app
-        python -m wbia.web.app --allexamples
-        python -m wbia.web.app --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

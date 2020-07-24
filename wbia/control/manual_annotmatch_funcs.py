@@ -727,13 +727,3 @@ def set_annotmatch_count(
         id_iter,
         duplicate_behavior=duplicate_behavior,
     )
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        xdoctest -m wbia.control.manual_annotmatch_funcs
-    """
-    import xdoctest
-
-    xdoctest.doctest_module(__file__)

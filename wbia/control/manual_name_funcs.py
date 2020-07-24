@@ -1629,19 +1629,3 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
         ut.compress(aids, isvalids) for aids, isvalids in zip(aids_list, isvalids_list)
     ]
     return nid_list, gps_track_list, aid_track_list
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.manual_name_funcs
-        python -m wbia.control.manual_name_funcs --allexamples
-
-        python -m wbia.control.manual_name_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

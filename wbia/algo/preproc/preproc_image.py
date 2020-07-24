@@ -223,14 +223,3 @@ def parse_imageinfo(gpath):
 
 def on_delete(ibs, featweight_rowid_list, qreq_=None):
     print('Warning: Not Implemented')
-
-
-if __name__ == '__main__':
-    """
-    python -m wbia.algo.preproc.preproc_image
-    python -m wbia.algo.preproc.preproc_image --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    ut.doctest_funcs()

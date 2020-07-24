@@ -810,18 +810,3 @@ def markovmodel_test():
     pgm_viz.show_junction_tree(markovmodel)
     # model = markovmodel.to_bayesian_model()
     # customize_model(model)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.hots.pgm_ext
-        python -m wbia.algo.hots.pgm_ext --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    if HAS_PGMPY:
-        ut.doctest_funcs()

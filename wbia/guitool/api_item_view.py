@@ -434,17 +434,3 @@ def copy_selection_to_clipboard(view):
     clipboard.setText(copy_qstr)
     if VERBOSE:
         print('[guitool] finished copy')
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.guitool.api_item_view
-        python -m wbia.guitool.api_item_view --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

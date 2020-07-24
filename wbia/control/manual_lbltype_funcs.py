@@ -77,18 +77,3 @@ def get_lbltype_text(ibs, lbltype_rowid_list):
         const.LBLTYPE_TABLE, ('lbltype_text',), lbltype_rowid_list
     )
     return lbltype_text_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_lbltype_funcs
-        python -m wbia.control.manual_lbltype_funcs --allexamples
-        python -m wbia.control.manual_lbltype_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

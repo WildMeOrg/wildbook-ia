@@ -541,18 +541,3 @@ def gen_dbranks_tables():
     # sh ExptPrint.sh -t candidacy_baseline --allgt --species=primary --db
     # GZ_ALL --rank-lt-list=1,5,10,100
     pass
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.scripts.gen_cand_expts
-        python -m wbia.scripts.gen_cand_expts --allexamples
-        python -m wbia.scripts.gen_cand_expts --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

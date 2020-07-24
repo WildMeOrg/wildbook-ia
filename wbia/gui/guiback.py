@@ -4191,13 +4191,3 @@ def testdata_guiback(defaultdb='testdb2', **kwargs):
         main_locals = wbia.main(defaultdb=defaultdb, **kwargs)
         back = main_locals['back']
     return back
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        xdoctest -m wbia.gui.guiback
-    """
-    import xdoctest
-
-    xdoctest.doctest_module(__file__)
