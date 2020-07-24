@@ -9,6 +9,11 @@ import utool as ut
 import ubelt as ub
 import sys
 
+from wbia.dev import devmain
+from wbia.main_module import main, main_loop
+from wbia.scripts.rsync_wbiadb import rsync_ibsdb_main
+
+
 (print, rrr, profile) = ut.inject2(__name__)
 
 CMD = ub.argflag('--cmd')
@@ -35,13 +40,13 @@ def dependencies_for_myprogram():
     importlib.import_module('mpl_toolkits').__path__
 
 
-def main():  # nocover
-    import wbia
+# def main():  # nocover
+#     import wbia
 
-    print('Looks like the imports worked')
-    print('wbia = {!r}'.format(wbia))
-    print('wbia.__file__ = {!r}'.format(wbia.__file__))
-    print('wbia.__version__ = {!r}'.format(wbia.__version__))
+#     print('Looks like the imports worked')
+#     print('wbia = {!r}'.format(wbia))
+#     print('wbia.__file__ = {!r}'.format(wbia.__file__))
+#     print('wbia.__version__ = {!r}'.format(wbia.__version__))
 
 
 def run_wbia():
@@ -59,9 +64,7 @@ def run_wbia():
     # ut.set_process_title('wbia_main')
     cmdline_varags = ut.get_cmdline_varargs()
     if len(cmdline_varags) > 0 and cmdline_varags[0] == 'rsync':
-        from wbia.scripts import rsync_wbiadb
-
-        rsync_wbiadb.rsync_ibsdb_main()
+        rsync_ibsdb_main()
         sys.exit(0)
 
     if ub.argflag('--devcmd'):
@@ -74,16 +77,13 @@ def run_wbia():
         wbia -e print -a default -t default
         """
         # Run dev script if -e given
-        import wbia.dev  # NOQA
 
-        wbia.dev.devmain()
+        devmain()
         print('... exiting')
         sys.exit(0)
 
-    import wbia
-
-    main_locals = wbia.main()
-    execstr = wbia.main_loop(main_locals)
+    main_locals = main()
+    execstr = main_loop(main_locals)
     # <DEBUG CODE>
     if 'back' in main_locals and CMD:
         back = main_locals['back']
