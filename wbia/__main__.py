@@ -80,13 +80,6 @@ def run_wbia():
         print('... exiting')
         sys.exit(0)
 
-    # if ub.argflag('-e'):
-    #    import wbia
-    #    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(wbia.run_experiment),
-    #    prefix_list=['--', '-'])
-    #    wbia.run_experiment(**expt_kw)
-    #    sys.exit(0)
-
     import wbia
 
     main_locals = wbia.main()
