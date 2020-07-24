@@ -608,16 +608,3 @@ def get_cnn_labeler_training_images_pytorch(
     print(ut.repr3(ut.dict_hist(category_list_)))
 
     return name_path
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.other.detectexport
-        python -m wbia.other.detectexport --allexamples
-        python -m wbia.other.detectexport --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

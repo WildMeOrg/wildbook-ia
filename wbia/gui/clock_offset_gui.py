@@ -323,18 +323,3 @@ def clock_offset_test():
     co = ClockOffsetWidget(ibs, gid_list, hack=True)
     co.show()
     wbia.main_loop(main_locals)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.gui.clock_offset_gui
-        python -m wbia.gui.clock_offset_gui --allexamples
-        python -m wbia.gui.clock_offset_gui --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

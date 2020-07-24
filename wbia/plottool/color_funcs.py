@@ -747,18 +747,3 @@ def show_all_colormaps():
         else:
             pylab.title(m, rotation=90, fontsize=10)
     # pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.color_funcs
-        python -m wbia.plottool.color_funcs --allexamples
-        python -m wbia.plottool.color_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

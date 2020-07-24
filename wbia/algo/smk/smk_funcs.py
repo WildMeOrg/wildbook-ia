@@ -1046,17 +1046,3 @@ def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
     }
 
     return data
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.smk.smk_funcs
-        python -m wbia.algo.smk.smk_funcs --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -2176,16 +2176,3 @@ def dump_schema_sql():
         coldef_list = autogen_dict['coldef_list']
         str_ = db._make_add_table_sqlstr(tablename, coldef_list=coldef_list, sep='\n    ')
         print(str_)
-
-
-if __name__ == '__main__':
-    """
-    python -m wbia.algo.preproc.preproc_chip
-    python -m wbia.control.DB_SCHEMA --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    import utool as ut
-
-    ut.doctest_funcs()

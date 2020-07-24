@@ -760,18 +760,3 @@ def flukebook_sync(ibs, **kwargs):
         'species_update': update_dict,
     }
     return result_dict
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_wildbook_funcs
-        python -m wbia.control.manual_wildbook_funcs --allexamples
-        python -m wbia.control.manual_wildbook_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

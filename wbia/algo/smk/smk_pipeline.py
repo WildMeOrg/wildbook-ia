@@ -586,18 +586,3 @@ def testdata_smk(*args, **kwargs):
     # qreq_ = ibs.new_query_request(qaids, daids, cfgdict={'pipeline_root': 'smk', 'proot': 'smk'})
     # qreq_ = ibs.new_query_request(qaids, daids, cfgdict={})
     return ibs, smk, qreq_
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/smk
-        python ~/code/wbia/wbia/algo/smk/smk_pipeline.py
-        python ~/code/wbia/wbia/algo/smk/smk_pipeline.py --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

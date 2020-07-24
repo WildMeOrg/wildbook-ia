@@ -2987,17 +2987,3 @@ class DependencyCacheTable(
 
         table.db.cur.execute('SELECT * FROM {tablename} WHERE rowid=?')
         pass
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m dtool.depcache_table
-        python -m dtool.depcache_table --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

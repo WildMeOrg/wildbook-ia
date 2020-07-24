@@ -1496,18 +1496,3 @@ def testdata_ibs():
     ibs = wbia.opendb('testdb1')
     qreq_ = None
     return ibs, qreq_
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.manual_part_funcs
-        python -m wbia.control.manual_part_funcs --allexamples
-        python -m wbia.control.manual_part_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

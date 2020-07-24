@@ -610,17 +610,3 @@ class AnnotMatches(BASE):
     def evidence_decision_code(self):
         INT_TO_CODE = self._ibs.const.EVIDENCE_DECISION.INT_TO_CODE
         return [INT_TO_CODE[c] for c in self.evidence_decision]
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.annot
-        python -m wbia.annot --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

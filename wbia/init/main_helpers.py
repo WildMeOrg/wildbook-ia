@@ -621,18 +621,3 @@ def unmonkeypatch_encounters(ibs):
     ut.inject_func_as_method(
         ibs, ibsfuncs.get_annot_occurrence_text, 'get_annot_occurrence_text', force=True
     )
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.init.main_helpers
-        python -m wbia.init.main_helpers --allexamples
-        python -m wbia.init.main_helpers --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

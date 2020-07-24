@@ -926,17 +926,3 @@ def on_pick(event, infr=None):
         else:
             print('???: ' + ut.repr2(plotdat))
     print(ut.get_timestamp())
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.mixin_viz
-        python -m wbia.algo.graph.mixin_viz --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

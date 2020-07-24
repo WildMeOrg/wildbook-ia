@@ -190,18 +190,3 @@ def testdata_tree_view():
     wgt.menuFile.newAction(triggered=wgt.wgt_embed)
 
     return wgt
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.guitool.api_tree_view
-        python -m wbia.guitool.api_tree_view --allexamples
-        python -m wbia.guitool.api_tree_view --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

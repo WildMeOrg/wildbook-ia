@@ -935,18 +935,3 @@ def tryout_with_qt():
     insp.show()
 
     app.exec_()
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_graph
-        python -m wbia.viz.viz_graph --allexamples
-        python -m wbia.viz.viz_graph --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

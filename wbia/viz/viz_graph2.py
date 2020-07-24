@@ -2629,20 +2629,3 @@ def make_qt_graph_interface(
         win.expand_image_and_names()
 
     return win
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.viz.viz_graph2
-        python -m wbia.viz.viz_graph2 --allexamples
-        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph
-
-        python -m wbia.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

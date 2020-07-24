@@ -776,17 +776,3 @@ if False:
             return item
 
         next = __next__
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.mixin_loops
-        python -m wbia.algo.graph.mixin_loops --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

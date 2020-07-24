@@ -3128,17 +3128,3 @@ class VerifierExpt(DBInputs):
         dpath = join(str(self.dpath), subdir)
         fpath = join(str(dpath), fname + '_custom.jpg')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.scripts.postdoc
-        python -m wbia.scripts.postdoc --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

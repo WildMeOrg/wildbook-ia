@@ -792,17 +792,3 @@ def ave_str(mean, std, precision=2):
     fmtstr = ''.join([ffmt, '±', ffmt])
     str_ = fmtstr.format(mean, std)
     return str_
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.scripts._thesis_helpers
-        python -m wbia.scripts._thesis_helpers --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

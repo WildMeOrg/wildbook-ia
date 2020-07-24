@@ -633,17 +633,3 @@ def set_figtitle(
     window_figtitle = ('fig(%d) ' % fig.number) + figtitle
     window_figtitle = window_figtitle.replace('\n', ' ')
     fig.canvas.set_window_title(window_figtitle)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.plottool.custom_figure
-        python -m wbia.plottool.custom_figure --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

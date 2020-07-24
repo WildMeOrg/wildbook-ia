@@ -1855,13 +1855,3 @@ def injest_main():
     # main_locals = wbia.main(dbdir=img_dir, gui=False)
     # ibs = main_locals['ibs']
     # ingest_rawdata(ibs, img_dir)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        xdoctest -m wbia.dbio.ingest_database
-    """
-    import xdoctest
-
-    xdoctest.doctest_module(__file__)

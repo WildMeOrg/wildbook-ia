@@ -163,18 +163,3 @@ def run_clf_server():
             )
         )
     tornado.ioloop.IOLoop.instance().start()
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/scripts/clfweb
-        python ~/code/wbia/wbia/scripts/clfweb/clfserve.py
-        python ~/code/wbia/wbia/scripts/clfweb/clfserve.py --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

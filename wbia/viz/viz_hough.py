@@ -78,17 +78,3 @@ def show_probability_chip(
         img = vt.blend_images_multiply(chip, vt.resize_mask(img, chip))
     fig, ax = viz_image2.show_image(img, title=title, fnum=fnum, **kwargs)
     return fig, ax
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.viz.viz_hough
-        python -m wbia.viz.viz_hough --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

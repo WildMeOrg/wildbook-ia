@@ -402,18 +402,3 @@ def show_name(
     # gs2.tight_layout(fig)
     # gs2.update(top=df2.TOP_SUBPLOT_ADJUST)
     # df2.set_figtitle(title, subtitle)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_name
-        python -m wbia.viz.viz_name --allexamples
-        python -m wbia.viz.viz_name --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

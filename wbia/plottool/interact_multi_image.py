@@ -358,18 +358,3 @@ class MultiImageInteraction(BASE_CLASS):
     #    self.prev_but = Button(self.prev_ax, 'prev')
     #    self.prev_but.on_clicked(self.display_prev_page)
     #    # Connect the callback whenever the figure is clicked
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.interact_multi_image
-        python -m wbia.plottool.interact_multi_image --allexamples
-        python -m wbia.plottool.interact_multi_image --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

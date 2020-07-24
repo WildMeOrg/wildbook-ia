@@ -395,14 +395,3 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
                 print('[mc4] not saving vsmany chunk')
         qaid2_cm.update({cm.qaid: cm for cm in sub_cm_list})
     return qaid2_cm
-
-
-if __name__ == '__main__':
-    """
-    python -m wbia.algo.hots.match_chips4
-    python -m wbia.algo.hots.match_chips4 --allexamples --testslow
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    ut.doctest_funcs()

@@ -139,18 +139,3 @@ def show_annot_image(ibs, aid, *args, **kwargs):
 
     gid = ibs.get_annot_gids(aid)
     return viz_image.show_image(ibs, gid, *args, **kwargs)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_wbiacontrol_funcs
-        python -m wbia.control.manual_wbiacontrol_funcs --allexamples
-        python -m wbia.control.manual_wbiacontrol_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

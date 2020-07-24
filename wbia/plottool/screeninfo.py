@@ -381,17 +381,3 @@ def get_valid_fig_positions(
 
     valid_positions = [get_position_ix(ix) for ix in range(num_wins)]
     return valid_positions
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.plottool.screeninfo
-        python -m wbia.plottool.screeninfo --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -632,18 +632,3 @@ def set_species_enabled(ibs, species_rowid_list, enabled_list):
     id_iter = ((species_rowid,) for species_rowid in species_rowid_list)
     val_list = ((enabled,) for enabled in enabled_list)
     ibs.db.set(const.SPECIES_TABLE, (SPECIES_ENABLED,), val_list, id_iter)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.manual_species_funcs
-        python -m wbia.control.manual_species_funcs --allexamples
-        python -m wbia.control.manual_species_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

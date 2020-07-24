@@ -140,21 +140,3 @@ def postget_annot_verts(vertstr_list):
     globals_ = {}
     vert_list = [eval(vertstr, globals_, locals_) for vertstr in vertstr_list]
     return vert_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.template_generator --tbls annotations --Tflags getters native
-
-        python -m wbia.algo.preproc.preproc_annot
-        python -m wbia.algo.preproc.preproc_annot --allexamples
-        python -m wbia.algo.preproc.preproc_annot --allexamples --noface --nosrc
-
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

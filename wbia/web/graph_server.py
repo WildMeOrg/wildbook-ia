@@ -573,17 +573,3 @@ class GraphClient(object):
         priority, data_dict = client.review_dict[edge]
         print('SAMPLED edge = {!r}'.format(edge))
         return edge, priority, data_dict
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.web.graph_server
-        python -m wbia.web.graph_server --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

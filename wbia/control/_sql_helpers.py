@@ -535,18 +535,3 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     db = SQLDatabaseController(cachedir, db_fname)
     ensure_correct_version(None, db, version_expected, schema_spec, dobackup=False)
     return db
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control._sql_helpers
-        python -m wbia.control._sql_helpers --allexamples
-        python -m wbia.control._sql_helpers --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

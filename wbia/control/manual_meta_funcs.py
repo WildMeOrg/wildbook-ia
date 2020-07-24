@@ -1119,18 +1119,3 @@ def update_query_cfg(ibs, **kwargs):
     """
     Config.update_query_config(ibs.cfg, **kwargs)
     ibs.reset_table_cache()
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.manual_meta_funcs
-        python -m wbia.control.manual_meta_funcs --allexamples
-        python -m wbia.control.manual_meta_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

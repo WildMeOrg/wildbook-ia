@@ -1142,18 +1142,3 @@ def simple_thumbnail_widget():
     wgt.change_headers(headers)
     # guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.guitool.api_item_model
-        python -m wbia.guitool.api_item_model --allexamples
-        python -m wbia.guitool.api_item_model --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

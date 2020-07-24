@@ -727,17 +727,3 @@ def show_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None, **kwarg
     # Draw probability hist
     if top_assignments is not None:
         draw_map_histogram(top_assignments, fnum=fnum, pnum=pnum2)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.hots.pgm_viz
-        python -m wbia.algo.hots.pgm_viz --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -115,18 +115,3 @@ def part_src(part_rowid, **kwargs):
     image = ibs.get_part_chips(part_rowid, config2_=kwargs)
     image_src = appf.embed_image_html(image, target_height=300)
     return image_src
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.web.app
-        python -m wbia.web.app --allexamples
-        python -m wbia.web.app --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

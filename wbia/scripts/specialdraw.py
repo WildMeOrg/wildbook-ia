@@ -2252,17 +2252,3 @@ def system_diagram():
     pt.gca().set_aspect('equal')
 
     ut.show_if_requested()
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.scripts.specialdraw
-        python -m wbia.scripts.specialdraw --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

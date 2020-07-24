@@ -1159,18 +1159,3 @@ def get_training_desc_dist(
         fsv_list.append(fsv)
     tp_fsv, tn_fsv = fsv_list
     return tp_fsv, tn_fsv
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.unstable.scorenorm
-        python -m wbia.unstable.scorenorm --allexamples
-        python -m wbia.unstable.scorenorm --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

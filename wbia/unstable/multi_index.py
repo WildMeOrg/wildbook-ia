@@ -698,18 +698,3 @@ class MultiNeighborIndex(object):
             qfx2_rankx_,
             qfx2_treex_,
         )
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.multi_index
-        python -m wbia.algo.hots.multi_index --allexamples
-        python -m wbia.algo.hots.multi_index --allexamples --noface --nosrc
-
-        utprof.sh wbia/algo/hots/multi_index.py --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

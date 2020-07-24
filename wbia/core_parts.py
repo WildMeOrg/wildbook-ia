@@ -82,18 +82,3 @@ def compute_part_chip(depc, part_rowid_list, config=None):
     for result in result_list:
         yield result
     print('Done Preprocessing Part Chips')
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.core_parts
-        python -m wbia.core_parts --allexamples
-        utprof.py -m wbia.core_parts --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

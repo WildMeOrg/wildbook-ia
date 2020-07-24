@@ -744,18 +744,3 @@ def get_match_text(ibs, aid1, aid2):
     truth = ibs.get_match_truth(aid1, aid2)
     text = ibs.const.EVIDENCE_DECISION.INT_TO_NICE.get(truth, None)
     return text
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.annotmatch_funcs
-        python -m wbia.annotmatch_funcs --allexamples
-        python -m wbia.annotmatch_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

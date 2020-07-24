@@ -237,18 +237,3 @@ def draw_feat_row(
         dist_str = '\n'.join(dist_str_list)
         custom_figure.set_xlabel(dist_str)
     return px + nCols
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.viz_featrow
-        python -m wbia.plottool.viz_featrow --allexamples
-        python -m wbia.plottool.viz_featrow --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

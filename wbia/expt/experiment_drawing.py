@@ -1676,18 +1676,3 @@ def draw_match_cases(
         cpq.flush_copy_tasks()
 
     return analysis_fpath_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.expt.experiment_drawing
-        python -m wbia.expt.experiment_drawing --allexamples
-        python -m wbia.expt.experiment_drawing --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

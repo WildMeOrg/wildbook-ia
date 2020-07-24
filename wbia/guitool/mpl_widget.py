@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import utool as ut
 import wbia.guitool as gt
 import matplotlib as mpl
 from wbia.guitool.__PYQT__.QtCore import Qt
@@ -81,17 +80,3 @@ class MatplotlibWidget(gt.GuitoolWidget):
 
         if ih.clicked_inside_axis(event):
             self.click_inside_signal.emit(event, event.inaxes)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.guitool.mpl_widget
-        python -m wbia.guitool.mpl_widget --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

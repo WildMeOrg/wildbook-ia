@@ -1501,17 +1501,3 @@ def learn_phi():
     #         rank = cm.get_name_ranks([cm.qnid])[0]
     #         # rank = min(cm.get_annot_ranks(cm.get_groundtruth_daids()))
     #         accumulator[rank] += 1
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.scripts.iccv
-        python -m wbia.scripts.iccv --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

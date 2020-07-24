@@ -1516,18 +1516,3 @@ def microsoft_get_test_data(ibs, dataset):
         response[key] = [_annotation(ibs, aid) for aid in aid_list]
 
     return response
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.web.app
-        python -m wbia.web.app --allexamples
-        python -m wbia.web.app --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

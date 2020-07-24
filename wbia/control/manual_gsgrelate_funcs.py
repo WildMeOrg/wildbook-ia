@@ -209,18 +209,3 @@ def add_image_relationship(ibs, gid_list, imgsetid_list):
         superkey_paramx,
     )
     return gsgrid_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_gsgrelate_funcs
-        python -m wbia.control.manual_gsgrelate_funcs --allexamples
-        python -m wbia.control.manual_gsgrelate_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

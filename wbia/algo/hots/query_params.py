@@ -149,18 +149,3 @@ class QueryParams(collections.Mapping):
 
     def __setstate__(qparams, state_dict):
         qparams.__dict__.update(state_dict)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.query_params
-        python -m wbia.algo.hots.query_params --allexamples
-        python -m wbia.algo.hots.query_params --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -383,13 +383,3 @@ def convert_tests_from_wbia_to_nose(module_list):
 
     moddir = ut.get_module_dir(tests)
     ut.writeto(join(moddir, 'test_autogen_nose_tests.py'), autogen_test_src)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        xdoctest -m wbia.tests.run_tests
-    """
-    import xdoctest
-
-    xdoctest.doctest_module(__file__)

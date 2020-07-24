@@ -1058,17 +1058,3 @@ class CandidateSearch(_RedundancyAugmentation):
         # take the inf-norm
         normscores = edge_scores / vt.safe_max(edge_scores, nans=False)
         return normscores
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.mixin_matching
-        python -m wbia.algo.graph.mixin_matching --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

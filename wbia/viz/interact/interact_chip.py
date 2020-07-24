@@ -602,17 +602,3 @@ def ishow_chip(
 
     if not ischild:
         ih.connect_callback(fig, 'button_press_event', _on_chip_click)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.interact.interact_chip
-        python -m wbia.viz.interact.interact_chip --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

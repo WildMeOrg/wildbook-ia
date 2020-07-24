@@ -887,20 +887,3 @@ class DummyVerif(object):
     def predict_edges(verif, edges):
         pos_scores = verif.predict_proba_df(edges)[POSTV]
         return pos_scores
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph
-        python -m wbia.algo.graph.demo demo2
-        python -m wbia.algo.graph.demo
-        python -m wbia.algo.graph.demo --allexamples
-        python -m wbia.algo.graph.demo --allexamples --show
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -301,18 +301,3 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None, valid_keys=N
     )
     cfg_list = ut.flatten(cfg_combos_list)
     return cfg_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.expt.cfghelpers
-        python -m wbia.expt.cfghelpers --allexamples
-        python -m wbia.expt.cfghelpers --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -426,20 +426,3 @@ def build_scope_hack_list(root_node, scope_hack_list=[]):
 
 
 CYTHONIZED = False
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.guitool.api_tree_node
-        python -m wbia.guitool.api_tree_node --allexamples
-        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc
-        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc --db GZ_ALL
-        python -m wbia.guitool.api_tree_node --allexamples --noface --nosrc --db PZ_Master0
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

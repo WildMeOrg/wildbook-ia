@@ -1058,18 +1058,3 @@ def get_annot_all_tags(ibs, aid_list=None):
         )
     )
     return both_tags_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.tag_funcs
-        python -m wbia.tag_funcs --allexamples
-        python -m wbia.tag_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()
