@@ -302,18 +302,3 @@ def start_web_annot_groupreview(ibs, aid_list):
     aid_strs = ','.join(list(map(str, aid_list)))
     url_suffix = '/group_review/?aid_list=%s' % (aid_strs)
     wbia.web.app.start_from_wbia(ibs, url_suffix=url_suffix, browser=True)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.web.app
-        python -m wbia.web.app --allexamples
-        python -m wbia.web.app --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

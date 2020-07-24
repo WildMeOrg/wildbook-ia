@@ -246,18 +246,3 @@ def show_image(
     ph.set_plotdat(ax, 'viztype', 'image')
     ph.set_plotdat(ax, 'gid', gid)
     return fig, ax
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_image
-        python -m wbia.viz.viz_image --allexamples
-        python -m wbia.viz.viz_image --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

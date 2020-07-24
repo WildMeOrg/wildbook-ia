@@ -1097,17 +1097,3 @@ class EditConfigWidget(QtWidgets.QWidget):
     def refresh_layout(self):
         self.config_model.layoutAboutToBeChanged.emit()
         self.config_model.layoutChanged.emit()
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.guitool.PrefWidget2
-        python -m wbia.guitool.PrefWidget2 --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

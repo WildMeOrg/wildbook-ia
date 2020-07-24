@@ -693,17 +693,3 @@ def case_all_types():
     # check(infr2, 2, 4, 'maybe_error', True, 'negative edge should flag second')
     # check(infr2, 1, 4, 'maybe_error', False, 'negative edge should flag second')
     check.after(errors)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.tests.dyn_cases
-        python -m wbia.algo.graph.tests.dyn_cases --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

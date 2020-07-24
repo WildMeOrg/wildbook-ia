@@ -386,18 +386,3 @@ def show_keypoint_gradient_orientations(
         rchip, kp, sift=vec, mode='vec', fnum=fnum, pnum=pnum
     )
     # pt.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.interact_matches
-        python -m wbia.plottool.interact_matches --allexamples
-        python -m wbia.plottool.interact_matches --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

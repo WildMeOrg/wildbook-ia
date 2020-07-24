@@ -793,18 +793,3 @@ def simple_thumbnail_widget():
     wgt.resize(600, 400)
     # guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.guitool.api_thumb_delegate
-        python -m wbia.guitool.api_thumb_delegate --allexamples
-        python -m wbia.guitool.api_thumb_delegate --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

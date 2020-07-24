@@ -372,17 +372,3 @@ def set_annotgroup_uuid(
         id_iter,
         duplicate_behavior=duplicate_behavior,
     )
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_annotgroup_funcs
-        python -m wbia.control.manual_annotgroup_funcs --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    import utool as ut
-
-    ut.doctest_funcs()

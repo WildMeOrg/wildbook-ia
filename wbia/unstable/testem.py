@@ -679,19 +679,6 @@ def try_em2(prob_names, prob_annots=None):
     return gam
 
 
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.hots.testem
-        python -m wbia.algo.hots.testem --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()
-
 r"""
 
 I've gone over both the pdf and the code and I would like to clarify a few things.

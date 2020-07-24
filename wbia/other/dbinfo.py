@@ -1211,18 +1211,3 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
         fnum = 0
 
     return fnum + 1
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.other.dbinfo
-        python -m wbia.other.dbinfo --allexamples
-        python -m wbia.other.dbinfo --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

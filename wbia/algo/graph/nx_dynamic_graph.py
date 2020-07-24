@@ -386,18 +386,3 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
             for u, v in H.edges():
                 H._union(u, v)
         return H
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph all
-        python -m wbia.algo.graph.nx_dynamic_graph all
-        python -m wbia.algo.graph.nx_dynamic_graph --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

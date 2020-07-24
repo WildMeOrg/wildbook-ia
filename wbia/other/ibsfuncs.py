@@ -9518,16 +9518,3 @@ def export_ggr_folders(ibs, output_path=None):
     census_filepath = join(output_path_census, 'manifest.csv')
     with open(census_filepath, 'w') as census_file:
         census_file.write(census_line_str)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.other.ibsfuncs
-        python -m wbia.other.ibsfuncs --allexamples
-        python -m wbia.other.ibsfuncs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

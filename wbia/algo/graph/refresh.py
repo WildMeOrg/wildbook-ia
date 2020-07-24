@@ -666,17 +666,3 @@ def _dev_iters_until_threshold():
     for target, dat in target_binom_plots.items():
         slope = np.median(np.diff(dat[1]))
         aval = int(np.ceil(sval * slope))
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.refresh
-        python -m wbia.algo.graph.refresh --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

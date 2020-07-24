@@ -1935,17 +1935,3 @@ def draw_network2(
 #                                  xytext=xytext[::-1], textcoords=textcoords[::-1],
 #                                  ha='center', va=va, arrowprops=arrowprops)
 #     return xarrow, yarrow
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.plottool.nx_helpers
-        python -m wbia.plottool.nx_helpers --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

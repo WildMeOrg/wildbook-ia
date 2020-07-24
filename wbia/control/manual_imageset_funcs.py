@@ -1642,18 +1642,3 @@ def testdata_ibs():
     ibs = wbia.opendb('testdb1')
     config2_ = None
     return ibs, config2_
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.manual_imageset_funcs
-        python -m wbia.control.manual_imageset_funcs --allexamples
-        python -m wbia.control.manual_imageset_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

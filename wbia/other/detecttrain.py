@@ -930,16 +930,3 @@ def aoi2_train(ibs, species_list=None, train_gid_list=None, purge=True, cache=Fa
     model_state['species_list'] = species_list
     save_model(model_state, model_path)
     return model_path
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.other.detecttrain
-        python -m wbia.other.detecttrain --allexamples
-        python -m wbia.other.detecttrain --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

@@ -250,18 +250,3 @@ def get_image_glrids(ibs, gid_list):
         unpack_scalars=False,
     )
     return glrids_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_lblimage_funcs
-        python -m wbia.control.manual_lblimage_funcs --allexamples
-        python -m wbia.control.manual_lblimage_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

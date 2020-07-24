@@ -3014,18 +3014,3 @@ def get_chipmatch_fname(
         fname_fmt, fmt_dict, ['cfgstr'], max_len=MAX_FNAME_LEN, hack27=True
     )
     return fname
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.chip_match
-        python -m wbia.algo.hots.chip_match --allexamples
-        python -m wbia.algo.hots.chip_match --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -63,17 +63,3 @@ def image_montage(ibs, gids, config=None):
     dsize = (int(height * ut.PHI), height)
     dst = vt.montage(img_list, dsize)
     pt.imshow(dst)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.viz.viz_other
-        python -m wbia.viz.viz_other --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

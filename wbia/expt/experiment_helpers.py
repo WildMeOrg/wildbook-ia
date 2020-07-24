@@ -506,18 +506,3 @@ def get_annotcfg_list(
         sys.exit(0)
 
     return acfg_list, expanded_aids_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.expt.experiment_helpers
-        python -m wbia.expt.experiment_helpers --allexamples
-        python -m wbia.expt.experiment_helpers --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

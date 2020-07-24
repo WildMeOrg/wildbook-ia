@@ -764,17 +764,3 @@ def testdata_inva():
     inva = cls.from_depc(depc, aids, vocab_aids, config)
     inva.wx_to_aids = inva.compute_inverted_list()
     return qreq_, inva
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.smk.inverted_index
-        python -m wbia.algo.smk.inverted_index --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

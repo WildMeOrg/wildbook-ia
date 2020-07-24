@@ -188,18 +188,3 @@ class ANNOTATION_Interaction2(object):
                 next_callback=nextcb,
                 prev_callback=prevcb,
             )
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.interact.interact_annotations2
-        python -m wbia.viz.interact.interact_annotations2 --allexamples
-        python -m wbia.viz.interact.interact_annotations2 --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

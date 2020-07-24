@@ -383,14 +383,3 @@ Regen Command:
     makeinit.py -x web viz tests gui
     makeinit.py -x constants params main_module other control dbio tests
 """
-
-if __name__ == '__main__':
-    """
-    Runs the unittests for the wbia codebase
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    from wbia.tests.run_tests import run_tests
-
-    run_tests()

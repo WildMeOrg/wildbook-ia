@@ -925,24 +925,3 @@ def pyflann_remove_and_save():
         flann4.load_index('test3.flann', clean_vecs)
 
     # assert np.all(idx1 == _idx1), 'rebuild is not determenistic!'
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots._neighbor_experiment
-        python -m wbia.algo.hots._neighbor_experiment --allexamples
-        python -m wbia.algo.hots._neighbor_experiment --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    if ut.get_argflag('--test-augment_nnindexer_experiment'):
-        # See if exec has something to do with memory leaks
-        augment_nnindexer_experiment()
-        ut.show_if_requested()
-        pass
-    else:
-        ut.doctest_funcs()

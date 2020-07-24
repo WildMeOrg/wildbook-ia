@@ -500,18 +500,3 @@ def get_annot_lblannot_rowids_oftype(ibs, aid_list, _lbltype=None):
     alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
     lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
     return lblannot_rowids_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_lblannot_funcs
-        python -m wbia.control.manual_lblannot_funcs --allexamples
-        python -m wbia.control.manual_lblannot_funcs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

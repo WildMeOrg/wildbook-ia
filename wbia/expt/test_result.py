@@ -2694,18 +2694,3 @@ class TestResult(ut.NiceRepr):
         print(', '.join(funcname_list))
         ut.cprint('Available Commandline:', 'blue')
         print('\n'.join(cmdstr_list))
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.expt.test_result
-        python -m wbia.expt.test_result --allexamples
-        python -m wbia.expt.test_result --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

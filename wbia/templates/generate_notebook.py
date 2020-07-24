@@ -293,18 +293,3 @@ def make_wbia_cell_list(ibs):
     _format = partial(ut.format_cells, locals_=locals_)
     cell_list = ut.flatten(map(_format, cell_template_list))
     return cell_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.templates.generate_notebook
-        python -m wbia.templates.generate_notebook --allexamples
-        python -m wbia.templates.generate_notebook --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

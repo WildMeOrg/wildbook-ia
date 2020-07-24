@@ -1316,23 +1316,3 @@ class IBEISController(BASE_CLASS):
                 continue
 
         return None
-
-
-if __name__ == '__main__':
-    """
-    Issue when running on windows:
-    python wbia/control/IBEISControl.py
-    python -m wbia.control.IBEISControl --verbose --very-verbose --veryverbose --nodyn --quietclass
-
-    CommandLine:
-        python -m wbia.control.IBEISControl
-        python -m wbia.control.IBEISControl --allexamples
-        python -m wbia.control.IBEISControl --allexamples --noface --nosrc
-    """
-    # from wbia.control import IBEISControl
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

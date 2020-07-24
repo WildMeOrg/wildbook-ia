@@ -211,17 +211,3 @@ class IntraVerifier(BaseVerifier):
 
         probs = pd.concat([have_probs, eclf_probs])
         return probs
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.verif.verifier
-        python -m wbia.algo.verif.verifier --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

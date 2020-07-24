@@ -2263,18 +2263,3 @@ def compute_orients_annotations(depc, aid_list, config=None):
     # yield detections
     for result in result_gen:
         yield result
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.core_annots
-        python -m wbia.core_annots --allexamples
-        utprof.py -m wbia.core_annots --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

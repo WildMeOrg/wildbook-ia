@@ -715,14 +715,3 @@ def main_close(main_locals=None):
 
 # if __name__ == '__main__':
 #    multiprocessing.freeze_support()
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.main_module
-        python -m wbia.main_module --allexamples
-        python -m wbia.main_module --allexamples --noface --nosrc
-    """
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

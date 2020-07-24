@@ -769,18 +769,3 @@ def _getQtImageNameFilter():
     imgNamePat = ' '.join(['*' + ext for ext in util_path.IMG_EXTENSIONS])
     imgNameFilter = 'Images (%s)' % (imgNamePat)
     return imgNameFilter
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.guitool.guitool_dialogs
-        python -m wbia.guitool.guitool_dialogs --allexamples
-        python -m wbia.guitool.guitool_dialogs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

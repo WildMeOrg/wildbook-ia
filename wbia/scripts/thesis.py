@@ -4378,17 +4378,3 @@ def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
     pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9)
     fig.set_size_inches([W, H])
     return fig
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.scripts.thesis
-        python -m wbia.scripts.thesis --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

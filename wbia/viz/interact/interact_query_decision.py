@@ -448,18 +448,3 @@ class QueryVerificationInteraction(AbstractInteraction):
                     # self.show_page()
                     # ibs.print_annotation_table()
                 print(ut.repr2(event.__dict__))
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.interact.interact_query_decision
-        python -m wbia.viz.interact.interact_query_decision --allexamples
-        python -m wbia.viz.interact.interact_query_decision --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

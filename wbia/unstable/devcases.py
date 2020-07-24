@@ -557,18 +557,3 @@ def load_gztest(ibs):
     qaid_list = [testtup.qaid_t for testtup in testtup_list]
     visual_uuids = ibs.get_annot_visual_uuids(qaid_list)
     visual_uuids
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.devcases
-        python -m wbia.algo.hots.devcases --allexamples
-        python -m wbia.algo.hots.devcases --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

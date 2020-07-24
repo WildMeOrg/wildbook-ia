@@ -1956,17 +1956,3 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
             print('\nINFO(samples.X_dict[%s])' % (data_key,))
             featinfo = vt.AnnotPairFeatInfo(samples.X_dict[data_key])
             print(ut.indent(featinfo.get_infostr()))
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.verif.vsone
-        python -m wbia.algo.verif.vsone --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

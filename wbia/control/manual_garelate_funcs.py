@@ -248,17 +248,3 @@ def get_gar_rowid_from_superkey(
         nInput=nInput,
     )
     return gar_rowid_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.control.manual_garelate_funcs
-        python -m wbia.control.manual_garelate_funcs --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    import utool as ut
-
-    ut.doctest_funcs()

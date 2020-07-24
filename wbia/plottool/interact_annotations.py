@@ -1441,20 +1441,3 @@ def test_interact_annots():
         fnum=0,
     )  # NOQA
     return self
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.interact_annotations --exec-test_interact_annots --show
-    CommandLine:
-        python -m wbia.plottool.interact_annotations
-        python -m wbia.plottool.interact_annotations --allexamples
-        python -m wbia.plottool.interact_annotations --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

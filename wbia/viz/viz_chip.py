@@ -279,18 +279,3 @@ def show_chip(
             cb = pt.colorbar(weights, kwargs['color'])
             cb.set_label(weight_label)
     return fig, ax
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_chip
-        python -m wbia.viz.viz_chip --allexamples
-        python -m wbia.viz.viz_chip --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

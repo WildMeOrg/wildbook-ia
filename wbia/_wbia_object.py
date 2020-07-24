@@ -608,17 +608,3 @@ class ObjectView1D(ut.NiceRepr):
             childview = self.__class__([rowids], obj1d=self._obj1d, cache=self._cache)
             childview = ObjectScalar0D(childview)
         return childview
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia._wbia_object
-        python -m wbia._wbia_object --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -612,19 +612,3 @@ def setup_zebra_menu(mainwin, back):
         text='Process ImageSet as Camera Trap Images',
         triggered=back.filter_imageset_as_camera_trap,
     )
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.gui.guimenus --test-setup_dummy_menus
-        python -m wbia.gui.guimenus
-        python -m wbia.gui.guimenus --allexamples
-        python -m wbia.gui.guimenus --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

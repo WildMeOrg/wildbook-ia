@@ -1139,17 +1139,3 @@ def _default_named_config(cfg, cfgname):
     else:
         if ut.VERBOSE:
             print('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.Config
-        python -m wbia.algo.Config --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

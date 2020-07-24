@@ -1613,17 +1613,3 @@ class IrisProblem(ClfProblem):
 
         pblm.samples = samples
         pblm.xval_kw['type'] = 'StratifiedKFold'
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.verif.samples
-        python -m wbia.algo.verif.samples --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

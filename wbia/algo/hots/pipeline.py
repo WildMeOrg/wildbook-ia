@@ -1618,23 +1618,3 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     # [kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]
     dlen_sqrd_list = [vt.get_kpts_dlen_sqrd(kpts2_m) for kpts2_m in kpts2_m_list]
     return dlen_sqrd_list
-
-
-if __name__ == '__main__':
-    """
-    python -m wbia.algo.hots.pipeline --verb-test
-    python -m wbia.algo.hots.pipeline --test-build_chipmatches
-    python -m wbia.algo.hots.pipeline --test-spatial-verification
-    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0 --show
-    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --show
-    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --show --db NAUT_test
-    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --db NAUT_test --noindent
-    python -m wbia.algo.hots.pipeline --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    ut.doctest_funcs()
-    # if ut.get_argflag('--show'):
-    #     import wbia.plottool as pt
-    #     exec(pt.present())

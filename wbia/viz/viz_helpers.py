@@ -425,18 +425,3 @@ def kp_info(kp):
 
 
 # ----
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_helpers
-        python -m wbia.viz.viz_helpers --allexamples
-        python -m wbia.viz.viz_helpers --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -212,13 +212,3 @@ class LabeledPairDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.img1_fpaths)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.verif.torch.train_main
-    """
-    import xdoctest
-
-    xdoctest.doctest_module(__file__)

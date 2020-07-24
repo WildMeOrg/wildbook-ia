@@ -480,17 +480,3 @@ class Deployer(object):
             ut.rsync(meta_fpath, remote_uri + '/' + meta_fname)
             ut.rsync(deploy_fpath, remote_uri + '/' + deploy_fname)
         return deploy_info
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.verif.deploy
-        python -m wbia.algo.verif.deploy --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

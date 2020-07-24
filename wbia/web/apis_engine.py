@@ -886,17 +886,3 @@ def start_flukebook_sync(ibs, **kwargs):
     """
     jobid = ibs.job_manager.jobiface.queue_job('flukebook_sync')
     return jobid
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.web.apis_engine
-        python -m wbia.web.apis_engine --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

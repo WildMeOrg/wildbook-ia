@@ -359,18 +359,3 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
         print('[viz] Error in show nearest descriptors')
         print(ex)
         raise
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_nearest_descriptors
-        python -m wbia.viz.viz_nearest_descriptors --allexamples
-        python -m wbia.viz.viz_nearest_descriptors --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

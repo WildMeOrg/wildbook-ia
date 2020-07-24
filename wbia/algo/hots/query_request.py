@@ -1343,17 +1343,3 @@ def cfg_deepcopy_test():
     cfg2.update_query_cfg(sv_on=False)
     assert cfg1.get_cfgstr() != cfg2.get_cfgstr()
     assert cfg2.get_cfgstr() == cfg3.get_cfgstr()
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        utprof.sh -m wbia.algo.hots.query_request --test-QueryParams
-        python -m wbia.algo.hots.query_request
-        python -m wbia.algo.hots.query_request --allexamples
-        python -m wbia.algo.hots.query_request --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

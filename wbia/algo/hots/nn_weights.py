@@ -666,16 +666,3 @@ def all_normalized_weights_test():
         if normweight_key not in nn_weights.__dict__:
             continue
         tst_weight_fn(nn_weight, nns_list, qreq_, qaid)
-
-
-if __name__ == '__main__':
-    r"""
-    python -m wbia.algo.hots.nn_weights --allexamples
-    python -m wbia.algo.hots.nn_weights
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

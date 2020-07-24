@@ -924,18 +924,3 @@ include_vars = list(locals().keys())  # this line is after tests
 
 # List of all valid tests
 TEST_NAMES = set(include_vars) - set(exclude_vars)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.expt.annotation_configs
-        python -m wbia.expt.annotation_configs --allexamples
-        python -m wbia.expt.annotation_configs --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

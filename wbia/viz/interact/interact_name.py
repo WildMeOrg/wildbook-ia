@@ -770,21 +770,3 @@ class MatchVerificationInteraction(AbstractInteraction):
                 # print(ut.repr2(event.__dict__))
             elif viztype == 'matches':
                 self.cm.ishow_single_annotmatch(self.qreq_, self.aid2, fnum=None, mode=0)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.interact.interact_name --test-ishow_name --show
-        python -m wbia.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
-
-        python -m wbia.viz.interact.interact_name
-        python -m wbia.viz.interact.interact_name --allexamples
-        python -m wbia.viz.interact.interact_name --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

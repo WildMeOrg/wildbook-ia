@@ -399,18 +399,3 @@ def orientation_actors(kpts, H=None):
         raise
 
     return ori_actors
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.plottool.mpl_keypoint
-        python -m wbia.plottool.mpl_keypoint --allexamples
-        python -m wbia.plottool.mpl_keypoint --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

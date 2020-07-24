@@ -806,17 +806,3 @@ def get_wildbook_tomcat_path(ibs, tomcat_dpath=None, wb_target=None):
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
     wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
     return wildbook_tomcat_path
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.control.wildbook_manager
-        python -m wbia.control.wildbook_manager --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

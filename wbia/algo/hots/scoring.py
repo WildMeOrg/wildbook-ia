@@ -172,18 +172,3 @@ def make_chipmatch_shortlists(
         cm_subset = cm.shortlist_subset(top_aids)
         cm_shortlist.append(cm_subset)
     return cm_shortlist
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.scoring
-        python -m wbia.algo.hots.scoring --allexamples
-        python -m wbia.algo.hots.scoring --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

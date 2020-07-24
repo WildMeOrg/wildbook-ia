@@ -204,18 +204,3 @@ def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None,
     print('Interplated Precision')
     print(ut.repr2(list(zip(recall_range_, p_interp_curve))))
     # fig.show()
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.precision_recall
-        python -m wbia.algo.hots.precision_recall --allexamples
-        python -m wbia.algo.hots.precision_recall --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

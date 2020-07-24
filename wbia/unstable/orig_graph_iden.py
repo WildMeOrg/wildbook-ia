@@ -579,17 +579,3 @@ class OrigAnnotInference(object):
             ]
         )
         return inference_dict
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.unstable.orig_graph_iden
-        python -m wbia.unstable.orig_graph_iden --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

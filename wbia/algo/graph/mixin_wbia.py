@@ -1275,17 +1275,3 @@ def needs_conversion(infr):
     num_names = len(set(infr.get_node_attrs('name_label').values()))
     num_pccs = infr.pos_graph.number_of_components()
     return num_pccs == 0 and num_names > 0
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.algo.graph.mixin_wbia
-        python -m wbia.algo.graph.mixin_wbia --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

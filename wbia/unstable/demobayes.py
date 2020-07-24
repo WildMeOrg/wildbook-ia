@@ -1036,19 +1036,3 @@ def demo_model_idependencies():
 # xs = [x for x in xs if not x.startswith('( _')]
 # xs = [x for x in xs if not x.endswith('| )')]
 # print('\n'.join(sorted(list(set(xs)))))
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.unstable.demobayes
-        python -m wbia.unstable.demobayes --allexamples
-    """
-    if ut.VERBOSE:
-        print('[hs] demobayes')
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

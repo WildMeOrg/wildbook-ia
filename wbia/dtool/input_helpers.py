@@ -867,17 +867,3 @@ def get_rootmost_inputs(exi_graph, table):
     inputs = TableInput(rmi_list, exi_graph, table, reorder=True)
     # x = inmputs.parent_level()[0].parent_level()[0]  # NOQA
     return inputs
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m dtool.input_helpers
-        python -m dtool.input_helpers --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

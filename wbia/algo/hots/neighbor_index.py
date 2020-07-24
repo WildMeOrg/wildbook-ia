@@ -1095,16 +1095,3 @@ def testdata_nnindexer(*args, **kwargs):
     from wbia.algo.hots.neighbor_index_cache import testdata_nnindexer
 
     return testdata_nnindexer(*args, **kwargs)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.neighbor_index
-        python -m wbia.algo.hots.neighbor_index --allexamples
-        utprof.sh wbia/algo/hots/neighbor_index.py --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()

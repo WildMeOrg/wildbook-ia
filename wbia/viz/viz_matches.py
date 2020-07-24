@@ -826,20 +826,3 @@ def show_multichip_match(
             pt.colorbar(flat_fs, flat_colors)
     bbox_list = [(x, y, w, h) for (x, y), (w, h) in zip(offset_list, wh_list)]
     return offset_list, sf_list, bbox_list
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.viz.viz_matches --test-show_matches --show
-
-        python -m wbia.viz.viz_matches
-        python -m wbia.viz.viz_matches --allexamples
-        python -m wbia.viz.viz_matches --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

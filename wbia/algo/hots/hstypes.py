@@ -134,18 +134,3 @@ WEIGHT_FILTERS = [FiltKeys.FG, FiltKeys.DISTINCTIVENESS, FiltKeys.HOMOGERR]
 
 # Replace old cmtup_old with ducktype
 # Keep this turned off for now until we actually start using it
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m wbia.algo.hots.hstypes
-        python -m wbia.algo.hots.hstypes --allexamples
-        python -m wbia.algo.hots.hstypes --allexamples --noface --nosrc
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -321,18 +321,3 @@ def testdata_vocab(defaultdb='testdb1', **kwargs):
     vocab.config_history = table.get_config_history([vocab.rowid])[0]
     vocab.config = table.get_row_configs([vocab.rowid])[0]
     return vocab
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/wbia/wbia/algo/smk
-        python ~/code/wbia/wbia/algo/smk/vocab_indexer.py
-        python ~/code/wbia/wbia/algo/smk/vocab_indexer.py --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

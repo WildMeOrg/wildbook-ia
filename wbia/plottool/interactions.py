@@ -318,17 +318,3 @@ class PanEvents(object):
 
         ax.figure.canvas.draw()
         ax.figure.canvas.flush_events()
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.plottool.interactions
-        python -m wbia.plottool.interactions --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

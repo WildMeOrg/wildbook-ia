@@ -593,15 +593,3 @@ def plot_gps_html(gps_list):
     # fig.zoom_fac = pt.zoom_factory()
     # fig.pan_fac = pt.pan_factory()
     # fig.show()
-
-
-if __name__ == '__main__':
-    """
-    python -m wbia.algo.preproc.preproc_occurrence
-    python -m wbia.algo.preproc.preproc_occurrence --allexamples
-    """
-    import utool as ut
-    import multiprocessing
-
-    multiprocessing.freeze_support()
-    ut.doctest_funcs()

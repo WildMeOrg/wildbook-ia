@@ -9,7 +9,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # import os
 # import random
 import time
-import utool as ut
 from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__ import QtGui as QtWidgets
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -96,17 +95,3 @@ class QtAbstractMplInteraction(BASE):
     @QtCore.pyqtSlot()
     def stop_blocking(self):
         self._running = False
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.guitool.mpl_embed
-        python -m wbia.guitool.mpl_embed --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()

@@ -1505,21 +1505,3 @@ def testdata_infr(defaultdb='PZ_MTEST'):
     aids = [1, 2, 3, 4, 5, 6]
     infr = AnnotInference(ibs, aids, autoinit=True)
     return infr
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m wbia.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
-        python -m wbia.algo.graph.core
-
-        python -m wbia.algo.graph all
-
-        python -m wbia.algo.graph.core --allexamples
-    """
-    import multiprocessing
-
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-
-    ut.doctest_funcs()
