@@ -55,3 +55,11 @@ def set_up_db():
     default_db_dir = workdir / 'testdb1'
     # FIXME (16-Jul-12020) Set this only for the test session
     set_default_dbdir(default_db_dir.resolve())
+
+
+@pytest.fixture(scope='session')
+def xdoctest_namespace(set_up_db):
+    """
+    Inject names into the xdoctest namespace.
+    """
+    return dict()
