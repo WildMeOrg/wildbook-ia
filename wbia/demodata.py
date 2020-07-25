@@ -6,17 +6,10 @@ from os.path import join, realpath
 from itertools import cycle
 from six.moves import range
 
+from wbia.tests.helpers import get_testdata_dir
+
+
 print, rrr, profile = utool.inject2(__name__)
-
-
-def get_testdata_dir(ensure=True, key='testdb1'):
-    """
-    Gets test img directory and downloads it if it doesn't exist
-    """
-    testdata_map = {'testdb1': 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'}
-    zipped_testdata_url = testdata_map[key]
-    testdata_dir = utool.grab_zipped_url(zipped_testdata_url, ensure=ensure)
-    return testdata_dir
 
 
 def get_test_gpaths(ndata=None, names=None, **kwargs):
