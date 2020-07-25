@@ -890,6 +890,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         rowid_kw = dict(config=config)
 
     Doctest:
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
         >>> from wbia.core_annots import *  # NOQA
         >>> import wbia.plottool as pt
         >>> ibs, depc, aid_list = testdata_core()
@@ -1292,6 +1293,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         python -m wbia.core_annots compute_fgweights
 
     Doctest:
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
         >>> from wbia.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> full_config = {}
@@ -1345,6 +1347,7 @@ def gen_featweight_worker(kpts, probchip, chipsize):
         python -m wbia.core_annots --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
 
     Doctest:
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
         >>> from wbia.core_annots import *  # NOQA
         >>> #test_featweight_worker()
         >>> ibs, depc, aid_list = testdata_core()
