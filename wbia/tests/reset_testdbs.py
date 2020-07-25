@@ -5,13 +5,16 @@ downloads standard test datasets. can delete them as well
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function, unicode_literals
-from wbia.init import sysres
-from wbia.dbio import ingest_database
-from os.path import join
-import wbia
-import six
 from itertools import cycle
+from os.path import join
+
+import six
 import utool as ut
+
+import wbia
+from wbia.dbio import ingest_database
+from wbia.init import sysres
+
 
 (print, rrr, profile) = ut.inject2(__name__)
 
