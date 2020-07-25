@@ -18,42 +18,6 @@ import utool as ut
 __test__ = False  # This is not a test
 
 
-def testdb2_stuff():
-    """
-    tar -zcvf testdb2.tar.gz testdb2/
-    """
-    import wbia
-
-    ibs = wbia.opendb('testdb2')
-
-    # ibs.ensure_contributor_rowids()
-
-    gid_list = ibs.get_valid_gids()
-
-    # Group gids by species
-    image_species_list = ut.get_list_column(
-        ibs.unflat_map(ibs.get_annot_species_rowids, ibs.get_image_aids(gid_list)), 0
-    )
-
-    new_contributor_rowid1 = ibs.add_new_temp_contributor(
-        offset=len(ibs.get_valid_contributor_rowids())
-    )
-    new_contributor_rowid2 = ibs.add_new_temp_contributor(
-        offset=len(ibs.get_valid_contributor_rowids())
-    )
-
-    gids1, gids2 = list(ut.group_items(gid_list, image_species_list).values())
-
-    party_rowids = ibs.add_party(['TestCar1', 'TestCar2'])
-    partyid1, partyid2 = party_rowids
-    ibs.set_image_contributor_rowid(gids1, [new_contributor_rowid1] * len(gids1))
-    ibs.set_image_contributor_rowid(gids2, [new_contributor_rowid2] * len(gids2))
-    ibs.set_image_party_rowids(gids1, [partyid1] * len(gids1))
-    ibs.set_image_party_rowids(gids2, [partyid2] * len(gids2))
-
-    # image_contributor_rowid_list = ibs.get_image_contributor_rowid(gid_list)
-
-
 def get_testdata_dir(ensure=True, key='testdb1'):
     """
     Gets test img directory and downloads it if it doesn't exist
