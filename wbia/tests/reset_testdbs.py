@@ -14,23 +14,12 @@ import utool as ut
 import wbia
 from wbia.dbio import ingest_database
 from wbia.init import sysres
+from wbia.tests.helpers import get_testdata_dir
 
 
 (print, rrr, profile) = ut.inject2(__name__)
 
 __test__ = False  # This is not a test
-
-
-def get_testdata_dir(ensure=True, key='testdb1'):
-    """
-    Gets test img directory and downloads it if it doesn't exist
-    """
-    testdata_map = {
-        'testdb1': 'https://wildbookiarepository.azureedge.net/data/testdata.zip',
-    }
-    zipped_testdata_url = testdata_map[key]
-    testdata_dir = ut.grab_zipped_url(zipped_testdata_url, ensure=ensure)
-    return testdata_dir
 
 
 # Convert stanadardized names to true names
