@@ -2,6 +2,9 @@ name: Nightly
 on:
   schedule:
     - cron: '0 0 * * *' # Every day at midnight
+  push:
+    paths:
+      - '.github/workflows/nightly.yml'
   pull_request:
     paths:
       - '.github/workflows/nightly.yml'
