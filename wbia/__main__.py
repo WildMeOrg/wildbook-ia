@@ -40,13 +40,15 @@ def dependencies_for_myprogram():
     importlib.import_module('mpl_toolkits').__path__
 
 
-# def main():  # nocover
-#     import wbia
+# FIXME (27-Jul-12020) This is currently used by CI to verify installation.
+#       Either make this the main function or move to location that makes sense.
+def smoke_test():  # nocover
+    import wbia
 
-#     print('Looks like the imports worked')
-#     print('wbia = {!r}'.format(wbia))
-#     print('wbia.__file__ = {!r}'.format(wbia.__file__))
-#     print('wbia.__version__ = {!r}'.format(wbia.__version__))
+    print('Looks like the imports worked')
+    print('wbia = {!r}'.format(wbia))
+    print('wbia.__file__ = {!r}'.format(wbia.__file__))
+    print('wbia.__version__ = {!r}'.format(wbia.__version__))
 
 
 def run_wbia():
