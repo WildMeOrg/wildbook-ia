@@ -10,9 +10,9 @@ ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
 
 # Clone IBEIS VSTS repositories
-RUN git clone --branch master https://github.com/WildbookOrg/wbia-tpl-brambox           /wbia/brambox \
- && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-pyflann         /wbia/flann \
- && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-pyhesaff        /wbia/hesaff \
+RUN git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-brambox          /wbia/brambox \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyflann          /wbia/flann \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyhesaff         /wbia/hesaff \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-flukematch     /wbia/wbia-plugin-flukematch \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-curvrank       /wbia/wbia-plugin-curvrank \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-deepsense      /wbia/wbia-plugin-deepsense \
@@ -20,12 +20,12 @@ RUN git clone --branch master https://github.com/WildbookOrg/wbia-tpl-brambox   
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-kaggle7        /wbia/wbia-plugin-kaggle7 \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-2d-orientation /wbia/wbia-plugin-2d-orientation \
  && git clone --branch develop https://github.com/WildbookOrg/wildbook-ia               /wbia/wildbook-ia \
- && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-cnn            /wbia/wbia-plugin-cnn \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-cnn           /wbia/wbia-plugin-cnn \
  && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-lightnet          /wbia/lightnet \
- && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-pydarknet         /wbia/pydarknet \
- && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-pyrf              /wbia/pyrf \
- && git clone --branch master https://github.com/WildbookOrg/wbia-utool                 /wbia/utool \
- && git clone --branch master https://github.com/WildbookOrg/wbia-vtool               /wbia/vtool
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pydarknet        /wbia/pydarknet \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyrf             /wbia/pyrf \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-utool                /wbia/utool \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-vtool                /wbia/vtool
 
 RUN cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
  && git init \
