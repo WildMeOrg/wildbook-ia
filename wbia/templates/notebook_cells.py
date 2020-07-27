@@ -164,7 +164,7 @@ fluke_select = (
         r"""
     # STARTBLOCK
     # Tag annotations which have been given manual notch points
-    from ibeis_flukematch.plugin import *  # NOQA
+    from wbia_flukematch.plugin import *  # NOQA
     ibs = wbia.opendb(defaultdb='humpbacks')
     all_aids = ibs.get_valid_aids()
     isvalid = ibs.depc_annot.get_property('Has_Notch', all_aids, 'flag')
