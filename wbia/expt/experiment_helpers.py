@@ -73,7 +73,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> import ibeis_flukematch.plugin
+        >>> import wbia_flukematch.plugin
         >>> from wbia.expt.experiment_helpers import *  # NOQA
         >>> import wbia
         >>> ibs = wbia.opendb(defaultdb='humpbacks')
