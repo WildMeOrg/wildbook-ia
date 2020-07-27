@@ -13,7 +13,7 @@ from wbia.init.sysres import (
     get_workdir,
     set_default_dbdir,
 )
-from .reset_testdbs import (
+from wbia.tests.reset_testdbs import (
     TEST_DBNAMES_MAP,
     delete_dbdir,
     ensure_smaller_testingdbs,
