@@ -245,7 +245,7 @@ KWARGS = OrderedDict(
     },
     packages=find_packages(),
     package_dir={'wbia': 'wbia'},
-    python_requires='>=3.5, <4',
+    python_requires='>=3.6, <4',
     include_package_data=False,
     # List of classifiers available at:
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
