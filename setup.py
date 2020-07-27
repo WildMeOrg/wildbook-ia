@@ -5,7 +5,7 @@ import sys
 from os.path import exists
 from collections import OrderedDict
 
-# from setuptools import find_packages
+from setuptools import find_packages
 from skbuild import setup
 
 
@@ -243,8 +243,7 @@ KWARGS = OrderedDict(
         'tag_regex': '^(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$',
         'local_scheme': 'dirty-tag',
     },
-    # packages=find_packages(),
-    packages=['wbia'],
+    packages=find_packages(),
     package_dir={'wbia': 'wbia'},
     python_requires='>=3.5, <4',
     include_package_data=False,
