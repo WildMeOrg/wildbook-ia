@@ -31,3 +31,15 @@ jobs:
       - name: Push to Docker Hub
         if: github.event_name == 'schedule'
         run: bash devops/publish.sh -t nightly
+
+      # Notify status in Slack
+      - name: Slack Notification
+        if: failure()
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_CHANNEL: ia-development
+          SLACK_COLOR: '#FF0000'
+          SLACK_ICON: https://avatars.slack-edge.com/2020-03-02/965719891842_db87aa21ccb61076f236_44.png
+          SLACK_MESSAGE: 'nightly build failed :sob:'
+          SLACK_USERNAME: "Nightly"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
