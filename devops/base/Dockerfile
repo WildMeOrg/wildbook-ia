@@ -44,11 +44,11 @@ RUN apt-get update \
         libtesseract-dev=4.00~git2288-10f4998a-2 \
         vim=2:8.0.1453-1ubuntu1.3 \
         libv4l-dev=1.14.2-1 \
-        libavcodec-dev=7:3.4.6-0ubuntu0.18.04.1 \
-        libavformat-dev=7:3.4.6-0ubuntu0.18.04.1 \
-        libswscale-dev=7:3.4.6-0ubuntu0.18.04.1 \
-        libavresample-dev=7:3.4.6-0ubuntu0.18.04.1 \
-        ffmpeg=7:3.4.6-0ubuntu0.18.04.1 \
+        libavcodec-dev=7:3.4.8-0ubuntu0.2 \
+        libavformat-dev=7:3.4.8-0ubuntu0.2 \
+        libswscale-dev=7:3.4.8-0ubuntu0.2 \
+        libavresample-dev=7:3.4.8-0ubuntu0.2 \
+        ffmpeg=7:3.4.8-0ubuntu0.2 \
         libpng-dev=1.6.34-1ubuntu0.18.04.2 \
         libjpeg-dev=8c-2ubuntu8 \
         libopenjp2-7-dev=2.3.0-2build0.18.04.1 \
