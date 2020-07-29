@@ -152,7 +152,8 @@ def reset_mtest():
         python -m wbia --tf reset_mtest
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # FIXME failing-test (22-Jul-2020) sqlite3.OperationalError: attempt to write a readonly database
+        >>> # xdoctest: +SKIP
         >>> from wbia.tests.reset_testdbs import *  # NOQA
         >>> result = reset_mtest()
     """
