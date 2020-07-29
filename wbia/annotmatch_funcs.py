@@ -622,6 +622,7 @@ def set_annot_pair_as_negative_match(
         >>> dryrun = True
         >>> result = set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
         >>> print(result)
+        >>> ibs.delete_names(ibs.get_valid_nids()[-1])  # clean up
     """
 
     def _set_annot_name_rowids(aid_list, nid_list):
