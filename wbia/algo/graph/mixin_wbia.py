@@ -860,16 +860,15 @@ class IBEISIO(object):
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
             edge_delta_df =
-                       am_rowid old_evidence_decision  ... new_meta_decision is_new
+                       am_rowid old_evidence_decision  ... new_meta_decision  is_new
             aid1 aid2                                  ...
-            101  102     1001.0                 match  ...              null  False
-            103  104     1002.0                 match  ...              null  False
-            101  104     1004.0               nomatch  ...              null  False
-            100  103        NaN                   NaN  ...              null   True
-            102  103        NaN                   NaN  ...              null   True
-            107  109        NaN                   NaN  ...              same   True
+            101  102  1001.0...                 match  ...              null   False
+            103  104  1002.0...                 match  ...              null   False
+            101  104  1004.0...               nomatch  ...              null   False
+            100  103        nan                   NaN  ...              null    True
+            102  103        nan                   NaN  ...              null    True
+            107  109        nan                   NaN  ...              same    True
             ...
-            [6 rows x 8 columns]
         """
         import wbia
         import pandas as pd
