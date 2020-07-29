@@ -1246,7 +1246,7 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
         >>> result = check_cache_purge(ibs)
         >>> print(result)
     """
-    import ibeis
+    import wbia
 
     now = datetime.datetime.now(tz=PST)
     expires = now - datetime.timedelta(days=ttl_days)
@@ -1366,15 +1366,15 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
                 squeeze_tables.append(table)
 
     tables_list = [
-        (ibs.depc_image.tables, ibeis.constants.IMAGE_TABLE, set(ibs._get_all_gids()),),
+        (ibs.depc_image.tables, wbia.constants.IMAGE_TABLE, set(ibs._get_all_gids()),),
         (
             ibs.depc_annot.tables,
-            ibeis.constants.ANNOTATION_TABLE,
+            wbia.constants.ANNOTATION_TABLE,
             set(ibs._get_all_aids()),
         ),
         (
             ibs.depc_part.tables,
-            ibeis.constants.PART_TABLE,
+            wbia.constants.PART_TABLE,
             set(ibs._get_all_part_rowids()),
         ),
     ]
