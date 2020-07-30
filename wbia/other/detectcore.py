@@ -337,6 +337,7 @@ def export_to_coco(
     require_image_reviewed=False,
     require_named=False,
     output_images=True,
+    use_global_train_set=False,
     **kwargs,
 ):
     """Create training COCO dataset for training models."""
@@ -518,18 +519,21 @@ def export_to_coco(
     logger.info('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
 
-        if gid in test_gid_set:
-            dataset = 'test'
-        elif gid in train_gid_set:
-            state = random.uniform(0.0, 1.0)
-            if state <= 0.75:
-                dataset = 'train'
-            else:
-                dataset = 'val'
+        if use_global_train_set:
+            dataset = 'train'
         else:
-            # raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
-            logger.info('GID = %r was not in the TRAIN_SET or TEST_SET' % (gid,))
-            dataset = 'test'
+            if gid in test_gid_set:
+                dataset = 'test'
+            elif gid in train_gid_set:
+                state = random.uniform(0.0, 1.0)
+                if state <= 0.75:
+                    dataset = 'train'
+                else:
+                    dataset = 'val'
+            else:
+                # raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
+                logger.info('GID = %r was not in the TRAIN_SET or TEST_SET' % (gid,))
+                dataset = 'test'
 
         width, height = ibs.get_image_sizes(gid)
         if target_size is None:
