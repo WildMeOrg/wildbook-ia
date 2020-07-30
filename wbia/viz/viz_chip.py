@@ -153,6 +153,7 @@ def show_chip(
         python -m wbia.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --ecc --draw_lbls=False --notitle --save=~/slides/lnbnn_query.jpg --dpi=300
 
     Example:
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
         >>> # VIZ_TEST
         >>> from wbia.viz.viz_chip import *  # NOQA
         >>> import numpy as np
