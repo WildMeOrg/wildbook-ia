@@ -447,6 +447,7 @@ class InfrLearning(object):
             python -m wbia.algo.graph.mixin_matching learn_evaluation_verifiers
 
         Doctest:
+            >>> # xdoctest: +REQUIRES(module:wbia_cnn)
             >>> import wbia
             >>> infr = wbia.AnnotInference(
             >>>     'PZ_MTEST', aids='all', autoinit='annotmatch',

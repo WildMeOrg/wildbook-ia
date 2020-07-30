@@ -451,6 +451,7 @@ class Deployer(object):
                 * PUBLISH TO /media/hdd/PUBLIC/models/pairclf
 
         Example:
+            >>> # xdoctest: +REQUIRES(module:wbia_cnn)
             >>> from wbia.algo.verif.vsone import *  # NOQA
             >>> params = dict(sample_method='random')
             >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)

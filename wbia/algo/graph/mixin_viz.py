@@ -695,6 +695,7 @@ class GraphVisualization(object):
             python -m wbia.algo.graph.mixin_viz GraphVisualization.show_graph --show
 
         Example:
+            >>> # xdoctest: +REQUIRES(module:pygraphviz)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.graph.mixin_viz import *  # NOQA
             >>> from wbia.algo.graph import demo
