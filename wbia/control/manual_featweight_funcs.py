@@ -24,6 +24,7 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
         python -m wbia.control.manual_featweight_funcs get_annot_fgweights
 
     Example:
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_featweight_funcs import *  # NOQA
         >>> import wbia
