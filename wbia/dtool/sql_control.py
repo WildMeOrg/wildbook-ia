@@ -25,7 +25,9 @@ from wbia.dtool.dump import dumps
 print, rrr, profile = ut.inject2(__name__)
 
 
-METADATA_TABLE = 'metadata'
+# FIXME (31-Jul-12020) Duplicate definition of wbia.constants.METADATA_TABLE
+#       Use this definition as the authority because it's within the context of its use.
+METADATA_TABLE_NAME = 'metadata'
 
 READ_ONLY = ut.get_argflag(('--readonly-mode', '--read-only', '--readonly'))
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
@@ -536,13 +538,13 @@ class SQLDatabaseController(object):
         correctly.
         """
         try:
-            orig_table_kw = self.get_table_autogen_dict(METADATA_TABLE)
+            orig_table_kw = self.get_table_autogen_dict(METADATA_TABLE_NAME)
         except (lite.OperationalError, NameError):
             orig_table_kw = None
 
         meta_table_kw = ut.odict(
             [
-                ('tablename', METADATA_TABLE),
+                ('tablename', METADATA_TABLE_NAME),
                 (
                     'coldef_list',
                     [
@@ -564,7 +566,7 @@ class SQLDatabaseController(object):
         if meta_table_kw != orig_table_kw:
             # Don't execute a write operation if we don't have to
             self.add_table(**meta_table_kw)
-        # METADATA_TABLE,
+        # METADATA_TABLE_NAME,
         #    superkeys=[('metadata_key',)],
         # IMPORTANT: Yes, we want this line to be tabbed over for the
         # schema auto-generation
@@ -586,7 +588,7 @@ class SQLDatabaseController(object):
                 return [None] * len(x)
 
             self.add_cleanly(
-                METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey
+                METADATA_TABLE_NAME, colnames, params_iter, get_rowid_from_superkey
             )
         return version
 
@@ -630,7 +632,7 @@ class SQLDatabaseController(object):
                 return [None] * len(x)
 
             self.add_cleanly(
-                METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey
+                METADATA_TABLE_NAME, colnames, params_iter, get_rowid_from_superkey
             )
         db_init_uuid = uuid.UUID(db_init_uuid_str)
         return db_init_uuid
@@ -1516,9 +1518,9 @@ class SQLDatabaseController(object):
             >>> result = ('metadata_items = %s' % (ut.repr2(sorted(metadata_items)),))
             >>> print(result)
         """
-        metadata_rowids = self.get_all_rowids(METADATA_TABLE)
+        metadata_rowids = self.get_all_rowids(METADATA_TABLE_NAME)
         metadata_items = self.get(
-            METADATA_TABLE, ('metadata_key', 'metadata_value'), metadata_rowids
+            METADATA_TABLE_NAME, ('metadata_key', 'metadata_value'), metadata_rowids
         )
         return metadata_items
 
@@ -1526,7 +1528,10 @@ class SQLDatabaseController(object):
         """
         key must be given as a repr-ed string
         """
-        fmtkw = {'tablename': METADATA_TABLE, 'columns': 'metadata_key, metadata_value'}
+        fmtkw = {
+            'tablename': METADATA_TABLE_NAME,
+            'columns': 'metadata_key, metadata_value',
+        }
         op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
         operation = op_fmtstr.format(**fmtkw)
         params = [key, val]
@@ -1540,7 +1545,7 @@ class SQLDatabaseController(object):
         where_clause = 'metadata_key=?'
         colnames = ('metadata_value',)
         params_iter = [(key,)]
-        vals = self.get_where(METADATA_TABLE, colnames, params_iter, where_clause)
+        vals = self.get_where(METADATA_TABLE_NAME, colnames, params_iter, where_clause)
         assert len(vals) == 1, 'duplicate keys in metadata table'
         val = vals[0]
         if val is None:
@@ -1969,7 +1974,9 @@ class SQLDatabaseController(object):
         val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
         # print('Setting metadata_key from %s to %s' % (ut.repr2(id_iter), ut.repr2(val_iter)))
-        self.set(METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
+        self.set(
+            METADATA_TABLE_NAME, colnames, val_iter, id_iter, id_colname='metadata_key'
+        )
 
     def drop_table(self, tablename):
         if VERBOSE_SQL:
@@ -1986,7 +1993,7 @@ class SQLDatabaseController(object):
 
         # Delete table's metadata
         key_list = [tablename + '_' + suffix for suffix in self.table_metadata_keys]
-        self.delete(METADATA_TABLE, key_list, id_colname='metadata_key')
+        self.delete(METADATA_TABLE_NAME, key_list, id_colname='metadata_key')
 
     def drop_all_tables(self):
         """
@@ -2358,7 +2365,7 @@ class SQLDatabaseController(object):
         # where_clause = 'metadata_key=?'
         # colnames = ('metadata_value',)
         # data = [(tablename + '_docstr',)]
-        # docstr = self.get_where(const.METADATA_TABLE, colnames, data, where_clause)[0]
+        # docstr = self.get_where(const.METADATA_TABLE_NAME, colnames, data, where_clause)[0]
         return docstr
 
     def get_columns(self, tablename):
@@ -3179,7 +3186,7 @@ class SQLDatabaseController(object):
         where_clause = 'metadata_key=?'
         # list of relationships for each image
         metadata_rowid_list = self.get_where(
-            METADATA_TABLE,
+            METADATA_TABLE_NAME,
             ('metadata_rowid',),
             params_iter,
             where_clause,
@@ -3190,7 +3197,7 @@ class SQLDatabaseController(object):
         ), 'duplicate database_version keys in database'
         id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
         val_list = ((_,) for _ in [version])
-        self.set(METADATA_TABLE, ('metadata_value',), val_list, id_iter)
+        self.set(METADATA_TABLE_NAME, ('metadata_value',), val_list, id_iter)
 
     def get_sql_version(self):
         """ Conveinience """
