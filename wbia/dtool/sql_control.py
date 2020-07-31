@@ -455,12 +455,6 @@ class SQLDatabaseController(object):
             self.squeeze()
             self._copy_to_memory()
 
-        self.USE_FOREIGN_HACK = False
-        if self.USE_FOREIGN_HACK:
-            self.cur.execute('PRAGMA foreign_keys = ON')
-            # self.cur.execute("PRAGMA foreign_keys;")
-            # print(self.cur.fetchall())
-
         # Optimize the database (if anything is set)
         if is_new:
             self.optimize()
@@ -1672,34 +1666,8 @@ class SQLDatabaseController(object):
         foreign_body = []
         # False
         for (name, type_) in coldef_list:
-            if self.USE_FOREIGN_HACK and name.endswith('_rowid'):
-                # HACK THAT ONLY WORKS WITH IBEIS STRUCTURE
-                foreign_table = name[: -len('_rowid')]
-                if foreign_table != tablename and foreign_table + 's' != tablename:
-                    if False:
-                        foreign_body.append(
-                            'FOREIGN KEY (%s) REFERENCES %s (%s)'
-                            % (name, foreign_table, name)
-                        )
-                        coldef_line = '%s %s' % (name, type_)
-                    else:
-                        # alternative way to do this in SQLITE 3
-                        coldef_line = '%s %s REFERENCES %s' % (
-                            name,
-                            type_,
-                            foreign_table,
-                        )
-                    body_list.append(coldef_line)
-                else:
-                    coldef_line = '%s %s' % (name, type_)
-                    body_list.append(coldef_line)
-            else:
-                # else:
-                coldef_line = '%s %s' % (name, type_)
-                body_list.append(coldef_line)
-
-        if self.USE_FOREIGN_HACK:
-            body_list += foreign_body
+            coldef_line = '%s %s' % (name, type_)
+            body_list.append(coldef_line)
 
         sep_ = ',' + sep
         table_body = sep_.join(body_list + constraint_list)
