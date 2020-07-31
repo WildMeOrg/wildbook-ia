@@ -25,10 +25,6 @@ from wbia.dtool.dump import dumps
 print, rrr, profile = ut.inject2(__name__)
 
 
-# FIXME (31-Jul-12020) Duplicate definition of wbia.constants.METADATA_TABLE
-#       Use this definition as the authority because it's within the context of its use.
-METADATA_TABLE_NAME = 'metadata'
-
 READ_ONLY = ut.get_argflag(('--readonly-mode', '--read-only', '--readonly'))
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
@@ -41,6 +37,22 @@ TIMEOUT = 600  # Wait for up to 600 seconds for the database to return from a lo
 
 SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk')
+)
+
+
+# FIXME (31-Jul-12020) Duplicate definition of wbia.constants.METADATA_TABLE
+#       Use this definition as the authority because it's within the context of its use.
+METADATA_TABLE_NAME = 'metadata'
+# Defines the columns used within the metadata table.
+METADATA_TABLE_COLUMN_NAMES = (
+    'dependson',
+    'docstr',
+    'relates',
+    'shortname',
+    'superkeys',
+    'extern_tables',
+    'dependsmap',
+    'primary_superkey',
 )
 
 
@@ -415,17 +427,7 @@ class SQLDatabaseController(object):
         self.timeout = timeout
         self._tablenames = None
         self.readonly = readonly
-        self.table_metadata_keys = [
-            # 'constraint',
-            'dependson',
-            'docstr',
-            'relates',
-            'shortname',
-            'superkeys',
-            'extern_tables',
-            'dependsmap',
-            'primary_superkey',
-        ]
+
         # Get SQL file path
         if fpath is None:
             self.dir_ = sqldb_dpath
@@ -1616,7 +1618,7 @@ class SQLDatabaseController(object):
         """
         if len(coldef_list) == 0 or coldef_list is None:
             raise AssertionError('table %s is not given any columns' % (tablename,))
-        bad_kwargs = set(metadata_keyval.keys()) - set(self.table_metadata_keys)
+        bad_kwargs = set(metadata_keyval.keys()) - set(METADATA_TABLE_COLUMN_NAMES)
         assert (
             len(bad_kwargs) == 0
         ), 'keyword args specified that are not metadata keys=%r' % (bad_kwargs,)
@@ -1729,7 +1731,7 @@ class SQLDatabaseController(object):
         self.executeone(operation, [], verbose=False)
 
         # Handle table metdata
-        for suffix in self.table_metadata_keys:
+        for suffix in METADATA_TABLE_COLUMN_NAMES:
             if suffix in metadata_keyval and metadata_keyval[suffix] is not None:
                 val = metadata_keyval[suffix]
                 if suffix in ['docstr']:
@@ -1901,7 +1903,7 @@ class SQLDatabaseController(object):
         tablename_orig = tablename
         tablename_temp = tablename_orig + '_temp' + ut.random_nonce(length=8)
         metadata_keyval2 = metadata_keyval.copy()
-        for suffix in self.table_metadata_keys:
+        for suffix in METADATA_TABLE_COLUMN_NAMES:
             if suffix not in metadata_keyval2 or metadata_keyval2[suffix] is None:
                 val = self.get_metadata_val(tablename_orig + '_' + suffix, eval_=True)
                 metadata_keyval2[suffix] = val
@@ -1965,10 +1967,10 @@ class SQLDatabaseController(object):
 
         # Rename table's metadata
         key_old_list = [
-            tablename_old + '_' + suffix for suffix in self.table_metadata_keys
+            tablename_old + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES
         ]
         key_new_list = [
-            tablename_new + '_' + suffix for suffix in self.table_metadata_keys
+            tablename_new + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES
         ]
         id_iter = [(key,) for key in key_old_list]
         val_iter = [(key,) for key in key_new_list]
@@ -1992,7 +1994,7 @@ class SQLDatabaseController(object):
         self.executeone(operation, [], verbose=False)
 
         # Delete table's metadata
-        key_list = [tablename + '_' + suffix for suffix in self.table_metadata_keys]
+        key_list = [tablename + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES]
         self.delete(METADATA_TABLE_NAME, key_list, id_colname='metadata_key')
 
     def drop_all_tables(self):
@@ -2212,7 +2214,7 @@ class SQLDatabaseController(object):
         line_list.append(tab2 + 'docstr=%s,' % quote_docstr(docstr))
         line_list.append(tab2 + 'superkeys=%s,' % (ut.repr2(superkeys),))
         # Hack out docstr and superkeys for now
-        for suffix in self.table_metadata_keys:
+        for suffix in METADATA_TABLE_COLUMN_NAMES:
             if suffix in specially_handled_table_metakeys:
                 continue
             key = tablename + '_' + suffix
