@@ -444,7 +444,7 @@ class SQLDatabaseController(object):
 
         # Create connection
         connection, uri = self._create_connection()
-        self.connection = connection
+        self._connection = connection
         self.uri = uri
 
         # Get a cursor which will preform sql commands / queries / executions
@@ -470,6 +470,62 @@ class SQLDatabaseController(object):
             if is_new or always_check_metadata:
                 # TODO: make this happen lazilly
                 self._ensure_metadata_table()
+
+    @classmethod
+    def from_uri(cls, uri, timeout=TIMEOUT):
+        """Creates a controller instance from a connection URI
+
+        Args:
+            uri (str): connection string or uri
+            timeout (int): connection timeout in seconds
+        """
+        self = cls.__new__(cls)
+        self.uri = uri
+        self.timeout = timeout
+
+        self._tablenames = None
+        # FIXME (31-Jul-12020) rename to private attribute
+        self.thread_connections = {}
+        self._connection = None
+        # FIXME (31-Jul-12020) rename to private attribute, no direct access to the connection
+        self.cur = None
+
+        # FIXME (31-Jul-12020) check based on the existance of the metadata table
+        # is_new = True
+
+        # # Optimize the database (if anything is set)
+        # if is_new:
+        #     self.optimize()
+
+        # if not is_new:
+        #     # Check for old database versions
+        #     try:
+        #         self.get_db_version(ensure=False)
+        #     except lite.OperationalError:
+        #         always_check_metadata = True
+
+        # if not self.readonly:
+        #     if is_new or always_check_metadata:
+        #         # TODO: make this happen lazilly
+        #         self._ensure_metadata_table()
+        return self
+
+    def connect(self):
+        """Create a connection for the instance or use the existing connection"""
+        self._connection = lite.connect(
+            self.uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
+        )
+        return self._connection
+
+    @property
+    def connection(self):
+        """Create a connection or reuse the existing connection"""
+        # TODO (31-Jul-12020) Grab the correct connection for the thread.
+        if self._connection is not None:
+            conn = self._connection
+        else:
+            conn = self.connect()
+        return conn
 
     def _create_connection(self):
         if self.fname == ':memory:':
