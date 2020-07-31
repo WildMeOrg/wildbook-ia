@@ -99,7 +99,7 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
         python -m wbia.algo.hots.nn_weights --exec-fg_match_weighter
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
         >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
