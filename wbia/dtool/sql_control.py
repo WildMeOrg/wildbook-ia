@@ -488,26 +488,17 @@ class SQLDatabaseController(object):
         self.thread_connections = {}
         self._connection = None
         # FIXME (31-Jul-12020) rename to private attribute, no direct access to the connection
-        self.cur = None
+        # Initialize a cursor
+        self.cur = self.connection.cursor()
 
-        # FIXME (31-Jul-12020) check based on the existance of the metadata table
-        # is_new = True
+        # Ensure the metadata table is initialized.
+        self._ensure_metadata_table()
 
-        # # Optimize the database (if anything is set)
-        # if is_new:
-        #     self.optimize()
+        # TODO (31-Jul-12020) Move to Operations code.
+        #      Optimization is going to depends on the operational deployment of this codebase.
+        # Optimize the database
+        self.optimize()
 
-        # if not is_new:
-        #     # Check for old database versions
-        #     try:
-        #         self.get_db_version(ensure=False)
-        #     except lite.OperationalError:
-        #         always_check_metadata = True
-
-        # if not self.readonly:
-        #     if is_new or always_check_metadata:
-        #         # TODO: make this happen lazilly
-        #         self._ensure_metadata_table()
         return self
 
     def connect(self):
