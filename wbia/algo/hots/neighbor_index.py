@@ -34,7 +34,7 @@ def get_support_data(qreq_, daid_list):
         python -m wbia.algo.hots.neighbor_index get_support_data --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
         >>> from wbia.algo.hots.neighbor_index import *  # NOQA
         >>> import wbia
         >>> qreq_ = wbia.testdata_qreq_(defaultdb='PZ_MTEST', p=':fgw_thresh=.9,maxscale_thresh=10', a=':size=2')
