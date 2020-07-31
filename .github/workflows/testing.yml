@@ -45,7 +45,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest] # Disable "macos-latest" for now
         # For speed, we choose one version and that should be the lowest common denominator
         python-version: [3.6]
 
