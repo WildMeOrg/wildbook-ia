@@ -798,15 +798,16 @@ class IBEISIO(object):
             >>> edge_delta_df = infr.match_state_delta()
             >>> subset = edge_delta_df[['old_evidence_decision', 'new_evidence_decision']]
             >>> result = str(subset)
-            >>> # if this doctest fails maybe PZ_MTEST has a non-determenistic reset?
+            >>> # sort result by aid1
+            >>> result = '\n'.join(result.splitlines()[:2] + sorted(result.splitlines()[2:]))
             >>> print(result)
                       old_evidence_decision new_evidence_decision
             aid1 aid2
             1    2                    match               nomatch
+            4    5                      NaN                 match
+            5    8               unreviewed               nomatch
             6    7               unreviewed               nomatch
             7    8                    match                 match
-            5    8               unreviewed               nomatch
-            4    5                      NaN                 match
         """
         old_feedback = infr._feedback_df(old)
         new_feedback = infr._feedback_df(new)
@@ -858,16 +859,17 @@ class IBEISIO(object):
             >>> edge_delta_df = AnnotInference._make_state_delta(old_feedback,
             >>>                                                  new_feedback)
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
-            >>> print(result)
+            >>> # Change all the "nan" to "NaN"
+            >>> print(result.replace('nan', 'NaN'))
             edge_delta_df =
                        am_rowid old_evidence_decision  ... new_meta_decision  is_new
             aid1 aid2                                  ...
             101  102  1001.0...                 match  ...              null   False
             103  104  1002.0...                 match  ...              null   False
             101  104  1004.0...               nomatch  ...              null   False
-            100  103        nan                   NaN  ...              null    True
-            102  103        nan                   NaN  ...              null    True
-            107  109        nan                   NaN  ...              same    True
+            100  103        NaN                   NaN  ...              null    True
+            102  103        NaN                   NaN  ...              null    True
+            107  109        NaN                   NaN  ...              same    True
             ...
         """
         import wbia
