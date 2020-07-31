@@ -1384,14 +1384,17 @@ class MainWindowBackend(GUIBACK_BASE):
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
+            >>> from wbia.gui.guiback import *  # NOQA
+            >>> import wbia
             >>> print('''
             >>>           get_valid_gids
             >>>           ''')
-            >>> valid_gids = ibs.get_valid_gids()
+            >>> back = testdata_guiback()
+            >>> valid_gids = back.ibs.get_valid_gids()
             >>> print('''
             >>>           get_valid_aids
             >>>           ''')
-            >>> valid_aids = ibs.get_valid_aids()
+            >>> valid_aids = back.ibs.get_valid_aids()
             >>> #
             >>> print('''
             >>> * len(valid_aids) = %r
@@ -1400,7 +1403,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> assert len(valid_gids) > 0, 'database images cannot be empty for test'
             >>> #
             >>> gid = valid_gids[0]
-            >>> aid_list = ibs.get_image_aids(gid)
+            >>> aid_list = back.ibs.get_image_aids(gid)
             >>> aid = aid_list[-1]
             >>> back.select_gid(gid, aids=[aid])
         """
@@ -1503,7 +1506,11 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> aid_list = back.add_annotation_from_image([gid])
             >>> # delte annotations
             >>> aids1 = back.ibs.get_image_aids(gid)
+            >>> # Mock confirm deletion
+            >>> orig_are_you_sure = back.are_you_sure
+            >>> back.are_you_sure = lambda *args, **kwargs: True
             >>> back.delete_annot(aid_list)
+            >>> back.are_you_sure = orig_are_you_sure
             >>> aids2 = back.ibs.get_image_aids(gid)
             >>> #assert len(aids2) == len(aids1) - 1
             >>> ut.quit_if_noshow()
@@ -1824,7 +1831,11 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> main_locals = wbia.main(defaultdb='testdb1')
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ut.exec_funckw(back.do_group_occurrence_step, globals())
+            >>> # Mock choosing "Create new occurrences"
+            >>> orig_user_option = back.user_option
+            >>> back.user_option = lambda *args, **kwargs: ('Create new occurrences', None)
             >>> back.do_group_occurrence_step()
+            >>> back.user_option = orig_user_option
             >>> ut.quit_if_noshow()
         """
         print('[back] do_group_occurrence_step')
