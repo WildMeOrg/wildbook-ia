@@ -4196,7 +4196,7 @@ def testdata_guiback(defaultdb='testdb2', **kwargs):
 
     print('testdata guiback')
     if defaultdb is None:
-        back = wbia.main_module._init_gui()
+        back = wbia.entry_points_init_gui()
         # back = MainWindowBackend()
     else:
         main_locals = wbia.main(defaultdb=defaultdb, **kwargs)

@@ -10,7 +10,7 @@ import ubelt as ub
 import sys
 
 from wbia.dev import devmain
-from wbia.main_module import main, main_loop
+from wbia.entry_points import main, main_loop
 from wbia.scripts.rsync_wbiadb import rsync_ibsdb_main
 
 
