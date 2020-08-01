@@ -1144,7 +1144,7 @@ class IBEISController(BASE_CLASS):
             python -m wbia.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88
 
         Example:
-            >>> # xdoctest: +REQUIRES(--web)
+            >>> # xdoctest: +REQUIRES(--web-tests)
             >>> from wbia.control.IBEISControl import *  # NOQA
             >>> import wbia
             >>> import wbia.web

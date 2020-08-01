@@ -86,7 +86,7 @@ def run_test_api():
         python -m wbia.web.test_api --test-run_test_api
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.test_api import *  # NOQA
         >>> response = run_test_api()
         >>> print('Server response: %r' % (response, ))
