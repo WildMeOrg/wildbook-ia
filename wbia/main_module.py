@@ -12,14 +12,12 @@ import utool as ut
 from wbia import params
 
 
-profile = ut.profile
-
 QUIET = '--quiet' in sys.argv
 NOT_QUIET = not QUIET
 USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 
 
-(print, rrr, profile) = ut.inject2(__name__)
+(print, _, __) = ut.inject2(__name__)
 
 
 def _on_ctrl_c(signal, frame):
