@@ -496,18 +496,17 @@ def translate_wbia_webcall(func, *args, **kwargs):
         >>> import wbia
         >>> import time
         >>> import wbia.web
-        >>> web_ibs = wbia.opendb_bg_web('testdb1', wait=1, start_job_queue=False)
-        >>> aids = web_ibs.send_wbia_request('/api/annot/', 'get')
-        >>> uuid_list = web_ibs.send_wbia_request('/api/annot/uuids/', aid_list=aids)
-        >>> failrsp = web_ibs.send_wbia_request('/api/annot/uuids/')
-        >>> failrsp2 = web_ibs.send_wbia_request('/api/query/chips/simple_dict//', 'get', qaid_list=[0], daid_list=[0])
-        >>> log_text = web_ibs.send_wbia_request('/api/query/chips/simple_dict/', 'get', qaid_list=[0], daid_list=[0])
+        >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
+        ...     aids = web_ibs.send_wbia_request('/api/annot/', 'get')
+        ...     uuid_list = web_ibs.send_wbia_request('/api/annot/uuids/', aid_list=aids, json=False)
+        ...     failrsp = web_ibs.send_wbia_request('/api/annot/uuids/', json=False)
+        ...     failrsp2 = web_ibs.send_wbia_request('/api/query/chips/simple_dict//', 'get', qaid_list=[0], daid_list=[0], json=False)
+        ...     log_text = web_ibs.send_wbia_request('/api/query/chips/simple_dict/', 'get', qaid_list=[0], daid_list=[0], json=False)
         >>> time.sleep(.1)
         >>> print('\n---\nuuid_list = %r' % (uuid_list,))
         >>> print('\n---\nfailrsp =\n%s' % (failrsp,))
         >>> print('\n---\nfailrsp2 =\n%s' % (failrsp2,))
         >>> print('Finished test')
-        >>> web_ibs.terminate2()
 
     Ignore:
         app = get_flask_app()
