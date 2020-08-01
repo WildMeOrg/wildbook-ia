@@ -123,7 +123,7 @@ STRICT_VERSION_API = (
 
 
 def get_flask_app(templates_auto_reload=True):
-    # TODO this should be initialized explicity in main_module.py only if needed
+    # TODO this should be initialized explicity in entry_points.py only if needed
     global GLOBAL_APP
     global GLOBAL_CORS
     global GLOBAL_CAS

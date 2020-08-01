@@ -39,7 +39,7 @@ if ut.is_developer():
 # If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
 # something is not guitool, wbia.viz
-# has to be before control, can be after constants, params, and main_module
+# has to be before control, can be after constants, params, and entry_points
 # import wbia.plottool
 
 
@@ -50,11 +50,11 @@ try:
     from wbia import constants
     from wbia import constants as const
     from wbia import params
-    from wbia import main_module
+    from wbia import entry_points
     from wbia import other
     from wbia.init import sysres
 
-    # main_module._preload()
+    # entry_points._preload()
 
     from wbia import control
     from wbia import dbio
@@ -62,7 +62,7 @@ try:
     # from wbia import web
 
     from wbia.init import sysres
-    from wbia.main_module import (
+    from wbia.entry_points import (
         main,
         _preload,
         _init_numpy,
@@ -355,7 +355,7 @@ def reload_subs(verbose=True):
     import_subs()
     rrr(verbose=verbose)
     getattr(constants, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(main_module, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(entry_points, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(other, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(dbio, 'reload_subs', lambda verbose: None)(verbose=verbose)
@@ -381,5 +381,5 @@ Regen Command:
 
     cd /home/joncrall/code/wbia/wbia/other
     makeinit.py -x web viz tests gui
-    makeinit.py -x constants params main_module other control dbio tests
+    makeinit.py -x constants params entry_points other control dbio tests
 """
