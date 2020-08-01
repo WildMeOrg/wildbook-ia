@@ -19,27 +19,6 @@ from wbia.scripts.rsync_wbiadb import rsync_ibsdb_main
 CMD = ub.argflag('--cmd')
 
 
-def dependencies_for_myprogram():
-    """ Let pyintaller find these modules
-
-    References:
-        http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe
-    """
-    from wbia.guitool.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
-
-    # from PyQt4 import QtCore, QtGui  # NOQA
-    # from PyQt4 import QtCore, QtGui  # NOQA
-    from scipy.sparse.csgraph import _validation  # NOQA
-    from scipy.special import _ufuncs_cxx  # NOQA
-    from mpl_toolkits.axes_grid1 import make_axes_locatable  # NOQA
-
-    # import lru  # NOQA
-    # Workaround for mpl_toolkits
-    import importlib
-
-    importlib.import_module('mpl_toolkits').__path__
-
-
 # FIXME (27-Jul-12020) This is currently used by CI to verify installation.
 #       Either make this the main function or move to location that makes sense.
 def smoke_test():  # nocover
