@@ -174,7 +174,7 @@ def initialize_job_manager(ibs):
         >>> print('Closing success.')
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
         >>> import requests
@@ -263,7 +263,7 @@ def get_job_id_list(ibs):
         python -m wbia.web.job_engine --exec-get_job_status:0 --fg
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
@@ -305,7 +305,7 @@ def get_job_status(ibs, jobid=None):
         python -m wbia.web.job_engine --exec-get_job_status:0 --fg
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
