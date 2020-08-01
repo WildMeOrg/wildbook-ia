@@ -65,7 +65,7 @@ def static_doctest_modnames():
         'wbia',
         'wbia.annots',
         'wbia.core_annots',
-        'wbia.main_module',
+        'wbia.entry_points',
         'wbia.new_annots',
         'wbia.tag_funcs',
         'wbia.core_images',

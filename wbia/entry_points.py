@@ -22,7 +22,7 @@ USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 
 def _on_ctrl_c(signal, frame):
     proc_name = multiprocessing.current_process().name
-    print('[wbia.main_module] Caught ctrl+c in %s' % (proc_name,))
+    print('[wbia.entry_points] Caught ctrl+c in %s' % (proc_name,))
     sys.exit(0)
 
 
@@ -183,11 +183,11 @@ def set_newfile_permissions():
     sets this processes default permission bits when creating new files
 
     CommandLine:
-        python -m wbia.main_module --test-set_newfile_permissions
+        python -m wbia.entry_points --test-set_newfile_permissions
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.main_module import *  # NOQA
+        >>> from wbia.entry_points import *  # NOQA
         >>> import os
         >>> import utool as ut
         >>> # write before umask
@@ -260,7 +260,7 @@ def main(
     ibs = None
     back = None
     if NOT_QUIET:
-        print('[main] wbia.main_module.main()')
+        print('[main] wbia.entry_points.main()')
     DIAGNOSTICS = NOT_QUIET
     if DIAGNOSTICS:
         import os
@@ -347,11 +347,11 @@ def opendb_bg_web(*args, managed=False, **kwargs):
         web_ibs - this is a KillableProcess object with special functions
 
     CommandLine:
-        python -m wbia.main_module opendb_bg_web
+        python -m wbia.entry_points opendb_bg_web
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from wbia.main_module import *  # NOQA
+        >>> from wbia.entry_points import *  # NOQA
         >>> args = tuple()
         >>> kwargs = {}
         >>> print('Opening a web_ibs')
@@ -495,7 +495,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
 def opendb_fg_web(*args, **kwargs):
     """
     Ignore:
-        >>> from wbia.main_module import *  # NOQA
+        >>> from wbia.entry_points import *  # NOQA
         >>> kwargs = {'db': 'testdb1'}
         >>> args = tuple()
 
@@ -549,7 +549,7 @@ def opendb(
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.main_module import *  # NOQA
+        >>> from wbia.entry_points import *  # NOQA
         >>> db = None
         >>> dbdir = None
         >>> defaultdb = 'cache'
@@ -649,7 +649,7 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     Returns:
         str: execstr
     """
-    print('[main] wbia.main_module.main_loop()')
+    print('[main] wbia.entry_points.main_loop()')
     params.parse_args()
     import utool as ut
 
