@@ -5,22 +5,16 @@ wbia.opendb and wbia.main are the main entry points
 """
 from __future__ import absolute_import, division, print_function
 
-# from six.moves import builtins
 from contextlib import contextmanager
 import sys
 import multiprocessing
 
-# try:
 import utool as ut
 
 from wbia import params
 
 
 profile = ut.profile
-# profile = getattr(builtins, 'profile')
-# except AttributeError:
-# def profile(func):
-#    return func
 
 QUIET = '--quiet' in sys.argv
 NOT_QUIET = not QUIET
@@ -34,13 +28,6 @@ def _on_ctrl_c(signal, frame):
     proc_name = multiprocessing.current_process().name
     print('[wbia.main_module] Caught ctrl+c in %s' % (proc_name,))
     sys.exit(0)
-    # try:
-    #     _close_parallel()
-    # except Exception as ex:
-    #     print('Something very bad happened' + repr(ex))
-    # finally:
-    #     print('[wbia.main_module] sys.exit(0)')
-    #     sys.exit(0)
 
 
 # -----------------------
@@ -71,14 +58,9 @@ def _init_gui(activate=True):
     if NOT_QUIET:
         print('[main] _init_gui()')
     guitool.ensure_qtapp()
-    # USE_OLD_BACKEND = '--old-backend' in sys.argv
-    # if USE_OLD_BACKEND:
     from wbia.gui import guiback
 
     back = guiback.MainWindowBackend()
-    # else:
-    #    from wbia.gui import newgui
-    #    back = newgui.IBEISGuiWidget()
     if activate:
         guitool.activate_qwindow(back.mainwin)
     return back
@@ -148,18 +130,6 @@ def _init_parallel():
     util_parallel.set_num_procs(params.args.num_procs)
     # if PREINIT_MULTIPROCESSING_POOLS:
     #    util_parallel.init_pool(params.args.num_procs)
-
-
-# def _close_parallel():
-#     #if ut.VERBOSE:
-#     #    print('_close_parallel')
-#     try:
-#         from utool import util_parallel
-#         util_parallel.close_pool(terminate=True)
-#     except Exception as ex:
-#         import utool as ut
-#         ut.printex(ex, 'error closing parallel')
-#         raise
 
 
 def _init_numpy():
@@ -705,12 +675,4 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
 
 
 def main_close(main_locals=None):
-    # import utool as ut
-    # if ut.VERBOSE:
-    #    print('main_close')
-    # _close_parallel()
     _reset_signals()
-
-
-# if __name__ == '__main__':
-#    multiprocessing.freeze_support()
