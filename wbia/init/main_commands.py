@@ -196,51 +196,6 @@ def postload_commands(ibs, back):
     if ut.get_argflag('--graph'):
         back.make_qt_graph_interface()
 
-    screengrab_fpath = ut.get_argval('--screengrab')
-    if screengrab_fpath:
-        from wbia.guitool.__PYQT__.QtGui import QPixmap
-        from PyQt4.QtTest import QTest
-        from PyQt4.QtCore import Qt
-
-        fpath = ut.truepath(screengrab_fpath)
-        from wbia import guitool
-
-        # ut.embed()
-        timer2 = guitool.__PYQT__.QtCore.QTimer()
-        done = [1000]
-
-        def delayed_screenshot_func():
-            if done[0] == 500:
-                # back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)
-                print('Mouseclick')
-                QTest.mouseClick(back.mainwin.menuFile, Qt.LeftButton)
-                # This works
-                # QTest.mouseClick(back.front.import_button, Qt.LeftButton)
-            if done[0] == 1:
-                timer2.stop()
-                print('screengrab to %r' % (fpath,))
-                screenimg = QPixmap.grabWindow(back.mainwin.winId())
-                screenimg.save(fpath, 'jpg')
-                ut.startfile(fpath)
-                print('lub dub2')
-            done[0] -= 1
-            return None
-
-        CLICK_FILE_MENU = True
-        if CLICK_FILE_MENU:
-            # ut.embed()
-            # QTest::keyClick(menu, Qt::Key_Down)
-            pass
-        timer2.delayed_screenshot_func = delayed_screenshot_func
-        timer2.timeout.connect(timer2.delayed_screenshot_func)
-        timer2.start(1)
-        back.mainwin.timer2 = timer2
-        guitool.activate_qwindow(back.mainwin)
-        # QPixmap.grabWindow(back.mainwin.winId()).save(fpath, 'jpg')
-        # ut.startfile(fpath)
-        # ut.embed()
-        pass
-
     if params.args.postload_exit:
         print('[main_cmd] postload exit')
         sys.exit(0)
