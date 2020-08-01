@@ -3,11 +3,9 @@
 This module defines the entry point into the IBEIS system
 wbia.opendb and wbia.main are the main entry points
 """
-from __future__ import absolute_import, division, print_function
-
-from contextlib import contextmanager
 import sys
 import multiprocessing
+from contextlib import contextmanager
 
 import utool as ut
 
