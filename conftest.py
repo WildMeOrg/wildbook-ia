@@ -6,5 +6,5 @@ def pytest_addoption(parser):
     parser.addoption('--gui', action='store_true')
     parser.addoption('--show', action='store_true')
     parser.addoption('--tomcat', action='store_true')
-    parser.addoption('--web', action='store_true')
+    parser.addoption('--web-tests', action='store_true')
     parser.addoption('--weird', action='store_true')

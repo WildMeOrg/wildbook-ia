@@ -353,7 +353,7 @@ def add_images_json(
         ,"bucket":"flukebook-prod-asset-store","key":""
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.control.IBEISControl import *  # NOQA
         >>> import wbia
         >>> import uuid

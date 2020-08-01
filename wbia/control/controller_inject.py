@@ -491,7 +491,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
         python -m wbia.control.controller_inject --exec-translate_wbia_webcall --domain http://52.33.105.88
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.control.controller_inject import *  # NOQA
         >>> import wbia
         >>> import time

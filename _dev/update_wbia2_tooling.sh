@@ -41,4 +41,4 @@ sedr_python "from vtool._pyflann_backend" "from vtool_ibeis._pyflann_backend" $L
 
 
 sedr_python "# GUI_DOCTEST" "# xdoctest: +REQUIRES(--gui)" True
-sedr_python "# WEB_DOCTEST" "# xdoctest: +REQUIRES(--web)" True
+sedr_python "# WEB_DOCTEST" "# xdoctest: +REQUIRES(--web-tests)" True

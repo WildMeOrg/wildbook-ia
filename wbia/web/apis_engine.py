@@ -259,7 +259,7 @@ def start_identify_annots(
         >>> cm_list = qreq_.execute()
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.apis_engine import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')

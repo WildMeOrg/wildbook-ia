@@ -69,7 +69,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         python -m wbia.web.apis_query --test-query_chips_simple_dict:0 --humpbacks
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.control.IBEISControl import *  # NOQA
         >>> import wbia
         >>> ibs = wbia.opendb(defaultdb='testdb1')
@@ -91,7 +91,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>> print(result)
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.control.IBEISControl import *  # NOQA
         >>> import time
         >>> import wbia
@@ -333,7 +333,7 @@ def review_graph_match_html(
         python -m wbia.web.apis_query review_graph_match_html --show --domain=localhost
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.apis_query import *  # NOQA
         >>> import wbia
         >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
@@ -1413,7 +1413,7 @@ def query_chips_graph_v2(
         python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/graph/
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.apis_query import *
         >>> import wbia
         >>> # Open local instance

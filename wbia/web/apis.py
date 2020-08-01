@@ -66,7 +66,7 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
     Returns the image file of image <gid>
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
@@ -217,7 +217,7 @@ def image_src_api_json(uuid=None, **kwargs):
     Returns the image file of image <gid>
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
@@ -427,7 +427,7 @@ def hello_world(*args, **kwargs):
         python -m wbia.web.apis --exec-hello_world:1
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> web_ibs = wbia.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
@@ -436,7 +436,7 @@ def hello_world(*args, **kwargs):
         >>> web_ibs.terminate2()
 
     Example1:
-        >>> # xdoctest: +REQUIRES(--web)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> import requests

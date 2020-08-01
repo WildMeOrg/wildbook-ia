@@ -238,11 +238,11 @@ Our code uses Google-style documentation tests (doctests) that uses pytest and x
 
     pytest
 
-To run doctests with `+REQUIRES(--web)` do:
+To run doctests with `+REQUIRES(--web-tests)` do:
 
 .. code:: bash
 
-    pytest --web
+    pytest --web-tests
 
 .. |Build| image:: https://img.shields.io/github/workflow/status/WildbookOrg/wildbook-ia/Build%20and%20upload%20to%20PyPI/master
     :target: https://github.com/WildbookOrg/wildbook-ia/actions?query=branch%3Amaster+workflow%3A%22Build+and+upload+to+PyPI%22
