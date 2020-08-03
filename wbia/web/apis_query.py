@@ -93,22 +93,11 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.control.IBEISControl import *  # NOQA
-        >>> import time
         >>> import wbia
-        >>> import requests
         >>> # Start up the web instance
-        >>> web_instance = wbia.opendb_in_background(db='testdb1', web=True, browser=False)
-        >>> time.sleep(10)
-        >>> web_port = ibs.get_web_port_via_scan()
-        >>> if web_port is None:
-        >>>     raise ValueError('IA web server is not running on any expected port')
-        >>> baseurl = 'http://127.0.1.1:%s' % (web_port, )
-        >>> data = dict(qaid_list=[1])
-        >>> resp = requests.get(baseurl + '/api/query/chip/simple/dict/', data=data)
-        >>> print(resp)
-        >>> web_instance.terminate()
-        >>> json_dict = resp.json()
-        >>> cmdict_list = json_dict['response']
+        >>> with wbia.opendb_bg_web(db='testdb1', managed=True) as web_ibs:
+        ...     cmdict_list = web_ibs.send_wbia_request('/api/query/chip/dict/simple/', type_='get', qaid_list=[1], daid_list=[1, 2, 3])
+        >>> print(cmdict_list)
         >>> assert 'score_list' in cmdict_list[0]
 
     """
