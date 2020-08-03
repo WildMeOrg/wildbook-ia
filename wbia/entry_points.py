@@ -441,7 +441,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
             status_response = web_ibs.send_wbia_request(
                 '/api/engine/job/status/', jobid=jobid
             )
-            if status_response['jobstatus'] == 'completed':
+            if status_response['jobstatus'] in ('completed', 'exception'):
                 break
         return status_response
 
