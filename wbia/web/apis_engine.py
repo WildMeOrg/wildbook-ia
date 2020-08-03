@@ -283,6 +283,11 @@ def start_identify_annots(
         ...     cm_dict = result_response['json_result'][0]
         ...     print('Finished test')
         ...     bgserver.terminate2()
+        Waiting for server to be up. count=0
+        ...
+        status_response = {'status': 'ok', 'jobid': '...', 'jobstatus': 'completed'}
+        result_response = ...
+        Finished test
 
     Ignore:
         qaids = daids = ibs.get_valid_aids()

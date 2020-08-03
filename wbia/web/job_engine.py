@@ -1465,16 +1465,24 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
         action_func = getattr(ibs, action)
         if VERBOSE_JOBS:
             print('resolving action=%r to wbia function=%r' % (action, action_func))
-    try:
-        key = '__jobid__'
-        assert key not in kwargs
-        kwargs[key] = jobid
-        result = action_func(*args, **kwargs)
-        exec_status = 'completed'
-    except Exception as ex:
-        result = ut.formatex(ex, keys=['jobid'], tb=True)
-        result = ut.strip_ansi(result)
-        exec_status = 'exception'
+
+    key = '__jobid__'
+    kwargs[key] = jobid
+    exec_status = None
+    while exec_status is None:
+        try:
+            result = action_func(*args, **kwargs)
+            exec_status = 'completed'
+        except Exception as ex:
+            # Remove __jobid__ from kwargs if it's not accepted by the action_func
+            if isinstance(ex, TypeError) and "unexpected keyword argument '{}'".format(
+                key
+            ):
+                kwargs.pop(key)
+                continue
+            result = ut.formatex(ex, keys=['jobid'], tb=True)
+            result = ut.strip_ansi(result)
+            exec_status = 'exception'
     json_result = ut.to_json(result)
     result = None  # Clear any used memory
     engine_result = dict(exec_status=exec_status, json_result=json_result, jobid=jobid,)
