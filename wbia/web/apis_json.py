@@ -370,21 +370,6 @@ def add_images_json(
         >>>             'key'             : '3/a/3a76b0e8-1c64-403d-ace1-679cf2f081c0/f2.jpg',
         >>>         },
         >>>     ],
-        >>>     'image_uuid_list': [
-        >>>         uuid.uuid4(),
-        >>>         uuid.uuid4(),
-        >>>         uuid.uuid4(),
-        >>>     ],
-        >>>     'image_width_list': [
-        >>>         1992,
-        >>>         1194,
-        >>>         500,
-        >>>     ],
-        >>>     'image_height_list': [
-        >>>         1328,
-        >>>         401,
-        >>>         500,
-        >>>     ],
         >>> }
         >>> gid_list = wbia.web.apis_json.add_images_json(web_instance, **_payload)
         >>> print(gid_list)
