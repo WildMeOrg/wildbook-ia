@@ -27,7 +27,7 @@ nnkj/enerate this module automagically from
 from __future__ import absolute_import, division, print_function
 from utool import util_arg
 import utool as ut
-import os
+
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -231,12 +231,3 @@ def parse_args():
     args.gui = not args.nogui
     if args.serial:
         args.num_procs = 1
-
-
-# Dont parse args if environment variable is off
-# We use this to turn off arg parsing when Sphinx is running
-if (
-    os.environ.get('IBIES_PARSE_ARGS', 'ON') == 'ON'
-    and os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF'
-):
-    parse_args()
