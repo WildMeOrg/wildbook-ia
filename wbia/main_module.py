@@ -13,6 +13,9 @@ import multiprocessing
 # try:
 import utool as ut
 
+from wbia import params
+
+
 profile = ut.profile
 # profile = getattr(builtins, 'profile')
 # except AttributeError:
@@ -56,12 +59,6 @@ def _reset_signals():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
-def _parse_args():
-    from wbia import params
-
-    params.parse_args()
-
-
 def _init_matplotlib():
     from wbia.plottool import __MPL_INIT__
 
@@ -92,7 +89,8 @@ def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     Private function that calls code to create an wbia controller
     """
     import utool as ut
-    from wbia import params
+
+    params.parse_args()
     from wbia.control import IBEISControl
 
     if verbose is None:
@@ -133,7 +131,8 @@ def _init_parallel():
     if ut.VERBOSE:
         print('_init_parallel')
     from utool import util_parallel
-    from wbia import params
+
+    params.parse_args()
 
     # Import any modules which parallel process will use here
     # so they are accessable when the program forks
@@ -634,13 +633,13 @@ def _preload(mpl=True, par=True, logging=True):
     import utool as ut
 
     # from wbia.init import main_helpers
-    # from wbia import params
+    # params.parse_args()
     # from wbia.init import sysres
     if multiprocessing.current_process().name != 'MainProcess':
         return
     if ut.VERBOSE:
         print('[wbia] _preload')
-    _parse_args()
+    params.parse_args()
     # mpl backends
     # if logging and not params.args.nologging:
     #     if params.args.logdir is not None:
@@ -685,7 +684,7 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
         str: execstr
     """
     print('[main] wbia.main_module.main_loop()')
-    from wbia import params
+    params.parse_args()
     import utool as ut
 
     # print('current process = %r' % (multiprocessing.current_process().name,))

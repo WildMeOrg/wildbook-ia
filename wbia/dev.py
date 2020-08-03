@@ -305,6 +305,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     """
     This function runs tests passed in with the -t flag
     """
+    params.parse_args()
     print('\n')
     # print('[dev] run_devcmds')
     print('==========================')
@@ -710,8 +711,6 @@ def devmain():
         --cmd  # ipython shell to play with variables
         -t     # run list of tests
     """
-    from wbia import params
-
     params.parse_args()
 
     print('DEVMAIN INIT - PRELOGGING')

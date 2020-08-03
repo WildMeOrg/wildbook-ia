@@ -262,6 +262,8 @@ def ensure_correct_version(
     from wbia import constants as const
     from wbia import params
 
+    params.parse_args()
+
     # print('[SQL_] ensure_correct_version')
     force_incremental = params.args.force_incremental_db_update
     want_base_version = version_expected == const.BASE_DATABASE_VERSION
