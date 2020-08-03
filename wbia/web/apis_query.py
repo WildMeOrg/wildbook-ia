@@ -1292,8 +1292,8 @@ def query_chips(
     # The qaid and daid objects are allowed to be None if qreq_ is
     # specified
     if qreq_ is None:
-        assert qaid_list is not None, 'do not specify qaids and qreq'
-        assert daid_list is not None, 'do not specify daids and qreq'
+        assert qaid_list is not None, 'Need to specify qaids'
+        assert daid_list is not None, 'Need to specify daids'
         qaid_list, was_scalar = ut.wrap_iterable(qaid_list)
         if daid_list is None:
             daid_list = ibs.get_valid_aids()
