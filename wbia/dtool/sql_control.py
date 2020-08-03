@@ -1629,15 +1629,13 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         self.executeone(operation, [], verbose=False)
 
-    def _make_add_table_sqlstr(
-        self, tablename=None, coldef_list=None, sep=' ', **metadata_keyval
-    ):
+    def _make_add_table_sqlstr(self, tablename, coldef_list, sep=' ', **metadata_keyval):
         r"""
         TODO: Foreign keys and indexed columns
 
         Args:
-            tablename (None): (default = None)
-            coldef_list (list): (default = None)
+            tablename (str): table name
+            coldef_list (list): list of tuples (name, type definition)
 
         Returns:
             str: operation
@@ -1656,14 +1654,12 @@ class SQLDatabaseController(object):
             >>> coldef_list = autogen_dict['coldef_list']
             >>> operation = db._make_add_table_sqlstr(tablename, coldef_list)
             >>> print(operation)
+
         """
-        if len(coldef_list) == 0 or coldef_list is None:
-            raise AssertionError('table %s is not given any columns' % (tablename,))
         bad_kwargs = set(metadata_keyval.keys()) - set(METADATA_TABLE_COLUMN_NAMES)
         assert (
             len(bad_kwargs) == 0
         ), 'keyword args specified that are not metadata keys=%r' % (bad_kwargs,)
-        assert tablename is not None, 'tablename must be given'
         if ut.DEBUG2:
             print('[sql] schema ensuring tablename=%r' % tablename)
         if ut.VERBOSE:
