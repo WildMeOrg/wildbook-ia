@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import sys
+
 import pytest
 
 from wbia import sysres
@@ -52,14 +54,14 @@ class TestGetArgsDbdir:
 
     def test_cli_db(self, monkeypatch):
         target = 'foo'
-        monkeypatch.setattr(sysres.params.args, 'db', target)
+        monkeypatch.setattr(sys, 'argv', ['--db', target])
         # ... then command line arguments are used.
         d = get_args_dbdir(None, False, None, None)
         assert d == self.get_db_to_dbdir_marked(target)
 
     def test_cli_dbdir(self, monkeypatch):
         target = 'foo'
-        monkeypatch.setattr(sysres.params.args, 'dbdir', target)
+        monkeypatch.setattr(sys, 'argv', ['--dbdir', target])
         # ... then command line arguments are used.
         d = get_args_dbdir(None, False, None, None)
         assert d == self.get_realpath_marked(target)
