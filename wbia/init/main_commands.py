@@ -42,6 +42,7 @@ def vwd():
 def preload_commands(dbdir, **kwargs):
     """ Preload commands work with command line arguments and global caches """
     # print('[main_cmd] preload_commands')
+    params.parse_args()
     if params.args.dump_argv:
         print(ut.repr2(vars(params.args), sorted_=False))
     if params.args.dump_global_cache:
@@ -82,6 +83,7 @@ def postload_commands(ibs, back):
     wbia --db PZ_MTEST --occur "*All Images" --query-intra
 
     """
+    params.parse_args()
     if ut.NOT_QUIET:
         print('\n[main_cmd] postload_commands')
     if params.args.view_database_directory:
