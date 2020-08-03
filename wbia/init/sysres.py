@@ -11,7 +11,7 @@ import utool as ut
 import ubelt as ub
 from six.moves import input, zip, map
 from wbia import constants as const
-from wbia import params
+
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -327,11 +327,8 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
         return dbdir
 
     # Check command line arguments
-    dbdir_arg = params.args.dbdir
-    db_arg = params.args.db
-    # TODO: use these instead of params
-    # ut.get_argval('--dbdir', return_was_specified=True))
-    # ut.get_argval('--db', return_was_specified=True)
+    dbdir_arg = ut.get_argval('--dbdir', default=None)
+    db_arg = ut.get_argval('--db', default=None)
     # Check command line passed args
     dbdir = prioritize(dbdir_arg, db_arg)
     if dbdir is not None:
