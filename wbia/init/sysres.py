@@ -307,7 +307,7 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
         print('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
         print('[sysres] db=%r, dbdir=%r' % (db, dbdir))
 
-    def _db_arg_priorty(dbdir_, db_):
+    def prioritize(dbdir_, db_):
         invalid = ['', ' ', '.', 'None']
         # Invalidate bad db's
         if dbdir_ in invalid:
@@ -322,9 +322,9 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
         return None
 
     # Check function arguments
-    dbdir1 = _db_arg_priorty(dbdir, db)
-    if dbdir1 is not None:
-        return dbdir1
+    dbdir = prioritize(dbdir, db)
+    if dbdir is not None:
+        return dbdir
 
     # Check command line arguments
     dbdir_arg = params.args.dbdir
@@ -333,9 +333,9 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
     # ut.get_argval('--dbdir', return_was_specified=True))
     # ut.get_argval('--db', return_was_specified=True)
     # Check command line passed args
-    dbdir2 = _db_arg_priorty(dbdir_arg, db_arg)
-    if dbdir2 is not None:
-        return dbdir2
+    dbdir = prioritize(dbdir_arg, db_arg)
+    if dbdir is not None:
+        return dbdir
 
     # Return cached database directory
     if defaultdb is None:
