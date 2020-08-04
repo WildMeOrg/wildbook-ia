@@ -1629,9 +1629,33 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         self.executeone(operation, [], verbose=False)
 
-    def _make_add_table_sqlstr(self, tablename, coldef_list, sep=' ', **metadata_keyval):
-        r"""
-        TODO: Foreign keys and indexed columns
+    def __make_superkey_constraints(self, superkeys: list) -> list:
+        """Creates SQL for the 'superkey' constraint.
+        A 'superkey' is one or more columns that make up a unique constraint on the table.
+
+        """
+        has_superkeys = superkeys is not None and len(superkeys) > 0
+        constraints = []
+        if has_superkeys:
+            # Create a superkey statement for each superkey item
+            # superkeys = [(col), (col1, col2, ...), ...],
+            for columns in superkeys:
+                columns = ','.join(columns)
+                constraints.append(f'CONSTRAINT superkey UNIQUE ({columns})')
+        return constraints
+
+    def __make_column_definition(self, name: str, definition: str) -> str:
+        """Creates SQL for the given column `name` and type, default & constraint (i.e. `definition`)."""
+        if not name:
+            raise ValueError(f'name cannot be an empty string paired with {definition}')
+        if not definition:
+            raise ValueError(f'definition cannot be an empty string paired with {name}')
+        return f'{name} {definition}'
+
+    def _make_add_table_sqlstr(
+        self, tablename: str, coldef_list: list, sep=' ', **metadata_keyval
+    ):
+        r"""Creates the SQL for a CREATE TABLE statement
 
         Args:
             tablename (str): table name
@@ -1656,10 +1680,14 @@ class SQLDatabaseController(object):
             >>> print(operation)
 
         """
+        if not coldef_list:
+            raise ValueError(f'empty coldef_list specified for {tablename}')
+
+        # Check for invalid keyword arguments
         bad_kwargs = set(metadata_keyval.keys()) - set(METADATA_TABLE_COLUMN_NAMES)
-        assert (
-            len(bad_kwargs) == 0
-        ), 'keyword args specified that are not metadata keys=%r' % (bad_kwargs,)
+        if len(bad_kwargs) > 0:
+            raise TypeError(f'got unexpected keyword arguments: {bad_kwargs}')
+
         if ut.DEBUG2:
             print('[sql] schema ensuring tablename=%r' % tablename)
         if ut.VERBOSE:
@@ -1667,64 +1695,20 @@ class SQLDatabaseController(object):
             _args = [tablename, coldef_list]
             print(ut.func_str(self.add_table, _args, metadata_keyval))
             print('')
-        # Technically insecure call, but all entries are statically inputted by
-        # the database's owner, who could delete or alter the entire database
-        # anyway.
-        constraint_list = []
-        superkeys = metadata_keyval.get('superkeys', None)
-        try:
-            has_superkeys = superkeys is not None and len(superkeys) > 0
-            if has_superkeys:
-                # Add in superkeys to constraints
-                constraint_fmtstr = 'CONSTRAINT superkey UNIQUE ({colnames_str})'
-                assert isinstance(
-                    superkeys, list
-                ), 'must be list got %r, superkeys=%r' % (type(superkeys), superkeys)
-                for superkey_colnames in superkeys:
-                    assert isinstance(
-                        superkey_colnames, tuple
-                    ), 'must be list of tuples got list of %r' % (
-                        type(superkey_colnames,)
-                    )
-                    colnames_str = ','.join(superkey_colnames)
-                    unique_constraint = constraint_fmtstr.format(
-                        colnames_str=colnames_str
-                    )
-                    constraint_list.append(unique_constraint)
-                constraint_list = ut.unique_ordered(constraint_list)
-        except Exception as ex:
-            ut.printex(ex, keys=locals().keys())
-            raise
 
-        # ASSERT VALID TYPES
-        for name, type_ in coldef_list:
-            assert (
-                isinstance(name, six.string_types) and len(name) > 0
-            ), 'cannot have empty name. name=%r, type_=%r' % (name, type_)
-            assert (
-                isinstance(type_, six.string_types) and len(type_) > 0
-            ), 'cannot have empty type. name=%r, type_=%r' % (name, type_)
+        # Create the main body of the CREATE TABLE statement with column definitions
+        # coldef_list = [(<column-name>, <definition>,), ...]
+        body_list = [self.__make_column_definition(c, d) for c, d in coldef_list]
 
-        body_list = []
-        foreign_body = []
-        # False
-        for (name, type_) in coldef_list:
-            coldef_line = '%s %s' % (name, type_)
-            body_list.append(coldef_line)
+        # Make a list of constraints to place on the table
+        constraint_list = self.__make_superkey_constraints(
+            metadata_keyval.get('superkeys', [])
+        )
+        constraint_list = ut.unique_ordered(constraint_list)
 
-        sep_ = ',' + sep
-        table_body = sep_.join(body_list + constraint_list)
-        fmtkw = {
-            'table_body': table_body,
-            'tablename': tablename,
-            'sep': sep,
-        }
-        if sep == ' ':
-            op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
-        else:
-            op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})'
-        operation = op_fmtstr.format(**fmtkw)
-        return operation
+        comma = ',' + sep
+        table_body = comma.join(body_list + constraint_list)
+        return f'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})'
 
     def add_table(self, tablename=None, coldef_list=None, **metadata_keyval):
         """
