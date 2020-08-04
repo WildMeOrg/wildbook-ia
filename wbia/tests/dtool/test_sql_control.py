@@ -168,10 +168,89 @@ class TestMetadataProperty:
     # ###
 
     def test_getitem(self):
-        # Check getting of a value by key
+        # Check getting a value through the mapping interface
         assert self.ctrlr.metadata['foo'].table_name == 'foo'
 
     def test_getitem_for_unknown_table(self):
         # Check getting the metdata for an unknown table
         with pytest.raises(KeyError):
             assert self.ctrlr.metadata['bar']
+
+    # ###
+    # Test item access methods on TableMetada proxy to attribute access methods
+    # ###
+
+    def test_getitem_for_table_metadata(self):
+        # Check getting a value through the mapping interface
+        assert self.ctrlr.metadata['foo']['docstr'] == self.data['foo_docstr']
+        assert list([k for k in self.ctrlr.metadata['foo']]) == list(
+            METADATA_TABLE_COLUMNS.keys()
+        )
+        assert len([k for k in self.ctrlr.metadata['foo']]) == len(METADATA_TABLE_COLUMNS)
+
+        # ... and for the database
+        assert self.ctrlr.metadata['database']['version'] == '0.0.0'
+        assert list(self.ctrlr.metadata['database'].keys()) == ['version', 'init_uuid']
+        assert len(self.ctrlr.metadata['database']) == 2
+
+    def test_setitem(self):
+        # Check setting of a value by key
+        key = 'shortname'
+        value = 'fu'
+        self.ctrlr.metadata.foo[key] = value
+
+        new_value = getattr(self.ctrlr.metadata.foo, key)
+        assert new_value == value
+
+        # Check setting of a value by key, of list type
+        key = 'superkeys'
+        value = [('a',), ('b', 'c',)]
+        self.ctrlr.metadata.foo[key] = value
+
+        new_value = getattr(self.ctrlr.metadata.foo, key)
+        assert new_value == value
+
+        # ... docstr is an exception where other values have eval() used on them
+        key = 'docstr'
+        value = 'rarara'
+        self.ctrlr.metadata.foo[key] = value
+
+        new_value = getattr(self.ctrlr.metadata.foo, key)
+        assert new_value == value
+
+        # ... database version
+        key = 'version'
+        value = '1.1.1'
+        self.ctrlr.metadata.database[key] = value
+
+        new_value = getattr(self.ctrlr.metadata.database, key)
+        assert new_value == value
+
+    def test_delitem_for_table(self):
+        key = 'docstr'
+        # Check we have the initial value set
+        self.ctrlr.metadata.foo[key] = 'not tobe'
+
+        # You can't really delete the attribute, but it does null the value.
+        del self.ctrlr.metadata.foo[key]
+        assert self.ctrlr.metadata.foo.docstr is None
+
+        # Also check the table does not have the record
+        assert not self.ctrlr.executeone(
+            f"SELECT * FROM metadata WHERE metadata_key = 'foo_{key}'"
+        )
+
+    def test_delitem_for_database(self):
+        # You cannot delete database version metadata
+        with pytest.raises(RuntimeError):
+            del self.ctrlr.metadata.database['version']
+        with pytest.raises(ValueError):
+            self.ctrlr.metadata.database['version'] = None
+        assert self.ctrlr.metadata.database.version == '0.0.0'
+
+        # You cannot delete database init_uuid metadata
+        with pytest.raises(RuntimeError):
+            del self.ctrlr.metadata.database['init_uuid']
+        with pytest.raises(ValueError):
+            self.ctrlr.metadata.database['init_uuid'] = None
+        assert uuid.UUID(self.ctrlr.metadata.database.init_uuid)
