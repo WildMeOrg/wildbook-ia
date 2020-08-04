@@ -424,6 +424,14 @@ class SQLDatabaseController(object):
                 """Because keys are `<table-name>_<name>`"""
                 return '_'.join([self.table_name, name])
 
+            def update(self, **kwargs):
+                """Update or insert the value into the metadata table with the given keyword arguments of metadata field names"""
+                for keyword, value in kwargs.items():
+                    if keyword not in METADATA_TABLE_COLUMN_NAMES:
+                        # ignore unknown keywords
+                        continue
+                    setattr(self, keyword, value)
+
             def __getattr__(self, name):
                 # Query the database for the value represented as name
                 key = '_'.join([self.table_name, name])
