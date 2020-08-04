@@ -10,7 +10,7 @@ import os
 import parse
 import re
 import threading
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from functools import partial
 from io import StringIO
 from os.path import join, exists, dirname, basename
@@ -396,24 +396,73 @@ class SQLDatabaseController(object):
 
         """
 
-        class DatabaseMetadata:
+        class DatabaseMetadata(MutableMapping):
             """Special metadata for database information"""
 
-            version = None
-            init_uuid = None
+            __fields = (
+                'version',
+                'init_uuid',
+            )
 
             def __init__(self, ctrlr):
-                # Query for the database metadata.
-                self.version = ctrlr.executeone(
+                self.ctrlr = ctrlr
+
+            @property
+            def version(self):
+                return self.ctrlr.executeone(
                     f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?',
                     ('database_version',),
                 )[0]
-                self.init_uuid = ctrlr.executeone(
+
+            @version.setter
+            def version(self, value):
+                if not value:
+                    raise ValueError(value)
+                return self.ctrlr.executeone(
+                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
+                    ('database_version', value,),
+                )[0]
+
+            @property
+            def init_uuid(self):
+                return self.ctrlr.executeone(
                     f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?',
                     ('database_init_uuid',),
                 )[0]
 
-        class TableMetadata:
+            @init_uuid.setter
+            def init_uuid(self, value):
+                if not value:
+                    raise ValueError(value)
+                return self.ctrlr.executeone(
+                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
+                    ('database_init_uuid', value,),
+                )[0]
+
+            # collections.abc.MutableMapping abstract methods
+
+            def __getitem__(self, key):
+                try:
+                    return getattr(self, key)
+                except AttributeError as exc:
+                    raise KeyError(*exc.args)
+
+            def __setitem__(self, key, value):
+                if key not in self.__fields:
+                    raise AttributeError(key)
+                setattr(self, key, value)
+
+            def __delitem__(self, key):
+                raise RuntimeError(f"'{key}' cannot be deleted")
+
+            def __iter__(self):
+                for name in self.__fields:
+                    yield name
+
+            def __len__(self):
+                return len(self.__fields)
+
+        class TableMetadata(MutableMapping):
             """Metadata on a particular SQL table"""
 
             def __init__(self, ctrlr, table_name):
@@ -492,6 +541,33 @@ class SQLDatabaseController(object):
 
             def __dir__(self):
                 return METADATA_TABLE_COLUMN_NAMES
+
+            # collections.abc.MutableMapping abstract methods
+
+            def __getitem__(self, key):
+                try:
+                    return self.__getattr__(key)
+                except AttributeError as exc:
+                    raise KeyError(*exc.args)
+
+            def __setitem__(self, key, value):
+                try:
+                    setattr(self, key, value)
+                except AttributeError as exc:
+                    raise KeyError(*exc.args)
+
+            def __delitem__(self, key):
+                try:
+                    setattr(self, key, None)
+                except AttributeError as exc:
+                    raise KeyError(*exc.args)
+
+            def __iter__(self):
+                for name in METADATA_TABLE_COLUMN_NAMES:
+                    yield name
+
+            def __len__(self):
+                return len(METADATA_TABLE_COLUMN_NAMES)
 
         def __init__(self, ctrlr):
             super().__setattr__('ctrlr', ctrlr)
