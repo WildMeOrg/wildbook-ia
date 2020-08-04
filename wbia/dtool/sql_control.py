@@ -1891,14 +1891,7 @@ class SQLDatabaseController(object):
         operation = self._make_add_table_sqlstr(tablename, coldef_list, **metadata_keyval)
         self.executeone(operation, [], verbose=False)
 
-        # Handle table metdata
-        for suffix in METADATA_TABLE_COLUMN_NAMES:
-            if suffix in metadata_keyval and metadata_keyval[suffix] is not None:
-                val = metadata_keyval[suffix]
-                if suffix in ['docstr']:
-                    self.set_metadata_val(tablename + '_' + suffix, val)
-                else:
-                    self.set_metadata_val(tablename + '_' + suffix, repr(val))
+        self.metadata[tablename].update(**metadata_keyval)
         if self._tablenames is not None:
             self._tablenames.add(tablename)
 
