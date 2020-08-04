@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+
+  db:
+    image: postgres:10
+    volumes:
+      - ./var/db:/var/lib/postgresql/data
+      - ./.dockerfiles/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    env_file: ./.dockerfiles/docker-compose.env
+
+  app:
+    # image: wildme/wbia-provision:latest
+    build: .
+    command: ["sleep", "infinity"]
+    env_file: ./.dockerfiles/docker-compose.env
