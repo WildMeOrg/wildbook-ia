@@ -65,6 +65,10 @@ class TestMetadataProperty:
     def monkey_get_table_names(self, *args, **kwargs):
         return ['foo', 'metadata']
 
+    # ###
+    # Test attribute access methods
+    # ###
+
     def test_getter(self):
         # Check getting of a value by key
         assert self.data['foo_relates'] == self.ctrlr.metadata.foo.relates
@@ -141,3 +145,20 @@ class TestMetadataProperty:
         assert self.ctrlr.metadata.database.version == '0.0.0'
         # Check the database init_uuid, verified via evaluating it
         assert uuid.UUID(self.ctrlr.metadata.database.init_uuid)
+
+    # ###
+    # Test batch manipulation methods
+    # ###
+
+    def test_update(self):
+        targets = {
+            'superkeys': [('k',), ('x', 'y',)],
+            'dependson': ['baz'],
+            'docstr': 'hahaha',
+        }
+        # Updating from dict
+        self.ctrlr.metadata.foo.update(**targets)
+
+        # Check for updates
+        for k in targets:
+            assert getattr(self.ctrlr.metadata.foo, k) == targets[k]
