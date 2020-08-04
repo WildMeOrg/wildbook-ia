@@ -10,6 +10,7 @@ import os
 import parse
 import re
 import threading
+from collections.abc import Mapping
 from functools import partial
 from io import StringIO
 from os.path import join, exists, dirname, basename
@@ -378,7 +379,7 @@ class SQLDatabaseController(object):
     Interface to an SQL database
     """
 
-    class Metadata:
+    class Metadata(Mapping):
         """Metadata is an attribute of the ``SQLDatabaseController`` that
         facilitates easy usages by internal and exteral users.
         Each metadata attributes represents a table (i.e. an instance of ``TableMetadata``).
@@ -501,7 +502,7 @@ class SQLDatabaseController(object):
                 value = self.DatabaseMetadata(self.ctrlr)
             else:
                 if name not in self.ctrlr.get_table_names():
-                    raise ValueError(f'not a valid tablename: {name}')
+                    raise AttributeError(f'not a valid tablename: {name}')
                 value = self.TableMetadata(self.ctrlr, name)
             return value
 
@@ -519,7 +520,23 @@ class SQLDatabaseController(object):
 
         def __dir__(self):
             # List all available tables, plus 'database'
-            pass
+            raise NotImplementedError
+
+        # collections.abc.Mapping abstract methods
+
+        def __getitem__(self, key):
+            try:
+                return self.__getattr__(key)
+            except AttributeError as exc:
+                raise KeyError(*exc.args)
+
+        def __iter__(self):
+            for name in self.ctrlr.get_table_names():
+                yield name
+            yield 'database'
+
+        def __len__(self):
+            return len(self.ctrlr.get_table_names()) + 1  # for 'database'
 
     @profile
     def __init__(
