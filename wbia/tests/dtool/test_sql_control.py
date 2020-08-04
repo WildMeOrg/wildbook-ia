@@ -162,3 +162,16 @@ class TestMetadataProperty:
         # Check for updates
         for k in targets:
             assert getattr(self.ctrlr.metadata.foo, k) == targets[k]
+
+    # ###
+    # Test item access methods proxy to attribute access methods
+    # ###
+
+    def test_getitem(self):
+        # Check getting of a value by key
+        assert self.ctrlr.metadata['foo'].table_name == 'foo'
+
+    def test_getitem_for_unknown_table(self):
+        # Check getting the metdata for an unknown table
+        with pytest.raises(KeyError):
+            assert self.ctrlr.metadata['bar']
