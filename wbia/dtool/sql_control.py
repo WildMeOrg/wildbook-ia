@@ -43,16 +43,20 @@ SQLColumnRichInfo = collections.namedtuple(
 #       Use this definition as the authority because it's within the context of its use.
 METADATA_TABLE_NAME = 'metadata'
 # Defines the columns used within the metadata table.
-METADATA_TABLE_COLUMN_NAMES = (
-    'dependson',
-    'docstr',
-    'relates',
-    'shortname',
-    'superkeys',
-    'extern_tables',
-    'dependsmap',
-    'primary_superkey',
-)
+METADATA_TABLE_COLUMNS = {
+    # Dictionary of metadata column names pair with:
+    #  - is_coded_data: bool showing if the value is a data type (True) or string (False)
+    # <column-name>: <info-dict>
+    'dependson': dict(is_coded_data=True),
+    'docstr': dict(is_coded_data=False),
+    'relates': dict(is_coded_data=True),
+    'shortname': dict(is_coded_data=True),
+    'superkeys': dict(is_coded_data=True),
+    'extern_tables': dict(is_coded_data=True),
+    'dependsmap': dict(is_coded_data=True),
+    'primary_superkey': dict(is_coded_data=True),
+}
+METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
 
 def _unpacker(results_):
@@ -374,6 +378,141 @@ class SQLDatabaseController(object):
     Interface to an SQL database
     """
 
+    class Metadata:
+        """Metadata is an attribute of the ``SQLDatabaseController`` that
+        facilitates easy usages by internal and exteral users.
+        Each metadata attributes represents a table (i.e. an instance of ``TableMetadata``).
+        Each ``TableMetadata`` instance has metadata names as attributes.
+        The ``TableMetadata`` can also be adapated to a dictionary for compatability.
+
+        The the ``database`` attribute is a special case that results
+        in a ``DatabaseMetadata`` instance rather than ``TableMetadata``.
+        This primarily give access to the version and initial UUID,
+        respectively as ``database.version`` and ``database.init_uuid``.
+
+        Args:
+            ctrlr (SQLDatabaseController): parent controller object
+
+        """
+
+        class DatabaseMetadata:
+            """Special metadata for database information"""
+
+            version = None
+            init_uuid = None
+
+            def __init__(self, ctrlr):
+                # Query for the database metadata.
+                self.version = ctrlr.executeone(
+                    f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?',
+                    ('database_version',),
+                )[0]
+                self.init_uuid = ctrlr.executeone(
+                    f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?',
+                    ('database_init_uuid',),
+                )[0]
+
+        class TableMetadata:
+            """Metadata on a particular SQL table"""
+
+            def __init__(self, ctrlr, table_name):
+                super().__setattr__('ctrlr', ctrlr)
+                super().__setattr__('table_name', table_name)
+
+            def _get_key_name(self, name):
+                """Because keys are `<table-name>_<name>`"""
+                return '_'.join([self.table_name, name])
+
+            def __getattr__(self, name):
+                # Query the database for the value represented as name
+                key = '_'.join([self.table_name, name])
+                statement = (
+                    'SELECT metadata_value '
+                    f'FROM {METADATA_TABLE_NAME} '
+                    'WHERE metadata_key = ?'
+                )
+                try:
+                    value = self.ctrlr.executeone(statement, (key,))[0]
+                except IndexError:
+                    # No value for the requested metadata_key
+                    return None
+                if METADATA_TABLE_COLUMNS[name]['is_coded_data']:
+                    value = eval(value)
+                return value
+
+            def __getattribute__(self, name):
+                return super().__getattribute__(name)
+
+            def __setattr__(self, name, value):
+                try:
+                    info = METADATA_TABLE_COLUMNS[name]
+                except KeyError:
+                    # This prevents setting of any attributes outside of the known names
+                    raise AttributeError
+
+                # Delete the record if given None
+                if value is None:
+                    return self.__delattr__(name)
+
+                if info['is_coded_data']:
+                    # Treat the data as code.
+                    value = repr(value)
+                key = self._get_key_name(name)
+
+                # Insert or update the record
+                # FIXME postgresql (4-Aug-12020) 'insert or replace' is not valid for postgresql
+                statement = (
+                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} '
+                    f'(metadata_key, metadata_value) VALUES (?, ?)'
+                )
+                params = (
+                    key,
+                    value,
+                )
+                self.ctrlr.executeone(statement, params)
+
+            def __delattr__(self, name):
+                if name not in METADATA_TABLE_COLUMN_NAMES:
+                    # This prevents deleting of any attributes outside of the known names
+                    raise AttributeError
+
+                # Insert or update the record
+                statement = f'DELETE FROM {METADATA_TABLE_NAME} where metadata_key = ?'
+                params = (self._get_key_name(name),)
+                self.ctrlr.executeone(statement, params)
+
+            def __dir__(self):
+                return METADATA_TABLE_COLUMN_NAMES
+
+        def __init__(self, ctrlr):
+            super().__setattr__('ctrlr', ctrlr)
+
+        def __getattr__(self, name):
+            # If the table exists pass back a ``TableMetadata`` instance
+            if name == 'database':
+                value = self.DatabaseMetadata(self.ctrlr)
+            else:
+                if name not in self.ctrlr.get_table_names():
+                    raise ValueError(f'not a valid tablename: {name}')
+                value = self.TableMetadata(self.ctrlr, name)
+            return value
+
+        def __getattribute__(self, name):
+            return super().__getattribute__(name)
+
+        def __setattr__(self, name, value):
+            # This is inaccessible since any changes
+            # to a TableMetadata instance would make on-demand mutations.
+            raise NotImplementedError
+
+        def __delattr__(self, name):
+            # no-op
+            pass
+
+        def __dir__(self):
+            # List all available tables, plus 'database'
+            pass
+
     @profile
     def __init__(
         self,
@@ -426,6 +565,7 @@ class SQLDatabaseController(object):
         self.timeout = timeout
         self._tablenames = None
         self.readonly = readonly
+        self.metadata = self.Metadata(self)
 
         # Get SQL file path
         if fpath is None:
@@ -481,6 +621,7 @@ class SQLDatabaseController(object):
         self = cls.__new__(cls)
         self.uri = uri
         self.timeout = timeout
+        self.metadata = self.Metadata(self)
 
         self._tablenames = None
         # FIXME (31-Jul-12020) rename to private attribute
