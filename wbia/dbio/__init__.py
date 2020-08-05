@@ -4,7 +4,6 @@
 this module handles importing and exporting. the
 best word i can think of is io. maybe marshall?
 """
-from __future__ import absolute_import, division, print_function
 
 import utool as ut
 

@@ -6,7 +6,6 @@ TODO:
 
     python -m utool.util_inspect check_module_usage --pat="query_request.py"
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join
 from wbia import dtool
 import itertools as it

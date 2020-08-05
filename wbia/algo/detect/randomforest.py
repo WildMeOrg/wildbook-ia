@@ -2,7 +2,6 @@
 """
 Interface to pyrf random forest object detection.
 """
-from __future__ import absolute_import, division, print_function
 from os.path import exists, join
 from wbia.algo.detect import grabmodels
 import utool as ut

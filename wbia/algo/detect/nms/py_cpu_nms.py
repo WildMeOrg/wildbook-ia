@@ -5,7 +5,6 @@
 # Licensed under The MIT License [see LICENSE for details]
 # Written by Ross Girshick
 # --------------------------------------------------------
-from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
 

@@ -30,7 +30,6 @@ Example:
     >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
     >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
-from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 import wbia
 import os

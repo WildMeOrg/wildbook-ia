@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 ### __init__.py ###
 # flake8: noqa
-from __future__ import absolute_import, division, print_function
 from wbia.expt import experiment_configs
 from wbia.expt import experiment_drawing
 from wbia.expt import test_result

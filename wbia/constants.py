@@ -4,7 +4,6 @@ It is better to use constant variables instead of hoping you spell the same
 string correctly every time you use it. (Also it makes it much easier if a
 string name changes)
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import numpy as np
 import math

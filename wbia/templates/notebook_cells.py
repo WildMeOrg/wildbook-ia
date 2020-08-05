@@ -4,7 +4,6 @@ ComamndLine:
     python -m wbia --tf autogen_ipynb --ipynb --db PZ_MTEST --ipynb
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 
 COMMENT_SPACE = ut.codeblock(

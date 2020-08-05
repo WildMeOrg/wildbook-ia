@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
 import utool
 from . import draw_func2 as df2

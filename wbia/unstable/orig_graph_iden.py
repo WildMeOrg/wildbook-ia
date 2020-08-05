@@ -2,7 +2,6 @@
 """
 TODO: use graph_iden.py instead.  Need to encapsulate some of this functionality.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
 import vtool as vt  # NOQA

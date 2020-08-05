@@ -25,7 +25,6 @@ CommandLine:
     sh experiment_inspect_acfg.sh
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 from os.path import expanduser
 import utool as ut

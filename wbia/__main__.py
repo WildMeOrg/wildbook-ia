@@ -3,7 +3,6 @@
 """
 Runs IBIES gui
 """
-from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool as ut
 import ubelt as ub

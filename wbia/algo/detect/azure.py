@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Interface to Azure object proposals."""
-from __future__ import absolute_import, division, print_function
 import requests
 import utool as ut
 import numpy as np

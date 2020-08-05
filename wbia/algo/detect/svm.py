@@ -2,7 +2,6 @@
 """
 Interface to Darknet object proposals.
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 from os import listdir
 from os.path import join, isfile, isdir

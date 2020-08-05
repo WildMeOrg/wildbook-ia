@@ -3,7 +3,6 @@
 This provides concrete classes which inherit from abstract
 api_item_models/api_table_models/api_tree_models in guitool.
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 from wbia.guitool import (
     APIItemModel,

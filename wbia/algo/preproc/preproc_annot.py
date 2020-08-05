@@ -2,7 +2,6 @@
 """
 helpers for controller manual_annot_funcs
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, filter, map  # NOQA
 import six
 import utool as ut

@@ -8,7 +8,6 @@ TODO:
 
     Excplitict Negative Matches between chips
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia.algo.hots import hstypes
 from uuid import UUID
 import utool as ut

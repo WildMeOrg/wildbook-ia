@@ -40,7 +40,6 @@ CommandLine;
     # Change annotations names back to normal
     python -m wbia wildbook_signal_annot_name_changes:2
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 import requests
 from wbia.control import controller_inject

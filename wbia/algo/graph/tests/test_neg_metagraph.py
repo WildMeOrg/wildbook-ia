@@ -6,7 +6,6 @@ Ensure they are run via run_tests even though they are not doctests.
 Consider moving to pytest and using xdoctest (because regular doctest does not
 accept the syntax of IBEIS doctests)
 """
-from __future__ import absolute_import, division, print_function
 
 import networkx as nx
 import utool as ut

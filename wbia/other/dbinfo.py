@@ -4,7 +4,6 @@ get_dbinfo is probably the only usefull funciton in here
 # This is not the cleanest module
 """
 # TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia import constants as const
 import collections
 import functools

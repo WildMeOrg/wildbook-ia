@@ -6,7 +6,6 @@ and lists specify the union of parameters
 
 Rename to pipe_cfgdef
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)

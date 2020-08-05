@@ -2,7 +2,6 @@
 """
 old code ported from utool
 """
-from __future__ import absolute_import, division, print_function
 import sys
 import six
 import traceback

@@ -2,7 +2,6 @@
 """
 Runs many queries and keeps track of some results
 """
-from __future__ import absolute_import, division, print_function
 import sys
 import textwrap
 import numpy as np  # NOQA

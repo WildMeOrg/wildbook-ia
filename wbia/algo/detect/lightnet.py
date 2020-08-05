@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
-from __future__ import absolute_import, division, print_function
 import utool as ut
 from six.moves import zip
 import numpy as np

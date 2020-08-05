@@ -5,7 +5,6 @@ sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --mod
 sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modfname manual_name_funcs --funcname-filter=sex  # NOQA
 
 """
-from __future__ import absolute_import, division, print_function
 
 # TODO: Fix this name it is too special case
 import uuid

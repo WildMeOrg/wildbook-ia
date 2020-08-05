@@ -9,7 +9,6 @@ References:
     http://stackoverflow.com/questions/22410663/block-qmainwindow-while-child-widget-is-alive-pyqt
     http://stackoverflow.com/questions/20289939/pause-execution-until-button-press
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import matplotlib.pyplot as plt
 import numpy as np

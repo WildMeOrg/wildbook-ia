@@ -6,7 +6,6 @@ multi_index.py as well
 
 https://github.com/spotify/annoy
 """
-from __future__ import absolute_import, division, print_function
 import six
 import numpy as np
 import utool as ut

@@ -5,7 +5,6 @@ sh Tgen.sh --key test --invert --Tcfg with_getters=True with_setters=False --mod
 
 # TODO: Fix this name it is too special case
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 from six.moves import zip
 import ubelt as ub  # NOQA

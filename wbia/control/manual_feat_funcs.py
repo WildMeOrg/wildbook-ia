@@ -4,7 +4,6 @@ python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templat
 sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_feat_funcs
 sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_funcs
 """
-from __future__ import absolute_import, division, print_function
 import six  # NOQA
 from wbia.control.accessor_decors import getter_1to1, getter_1toM, deleter
 import utool as ut

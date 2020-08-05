@@ -24,7 +24,6 @@ nnkj/enerate this module automagically from
 
     print(parse_codeblock)
 """
-from __future__ import absolute_import, division, print_function
 from utool import util_arg
 import utool as ut
 

@@ -9,7 +9,6 @@ It turns out a lot of the commandlines made possible here can be generatd by
 using bash brace expansion.
 http://www.linuxjournal.com/content/bash-brace-expansion
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)

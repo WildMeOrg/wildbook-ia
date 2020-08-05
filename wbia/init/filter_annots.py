@@ -4,7 +4,6 @@ TODO:
     * cross validation
     * encounter vs database (time filtering)
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import copy
 import utool as ut

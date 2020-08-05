@@ -6,7 +6,6 @@ TODO:
 
 
 """
-from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtCore, QtGui, QVariantHack
 from wbia.guitool.__PYQT__.QtCore import Qt
 from wbia.guitool import qtype

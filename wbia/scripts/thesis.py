@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from wbia.algo.verif import vsone
 from wbia.scripts._thesis_helpers import DBInputs
 from wbia.scripts._thesis_helpers import Tabular, upper_one, ave_str

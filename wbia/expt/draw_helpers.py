@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join, dirname, split, basename, splitext
 import re
 import utool as ut

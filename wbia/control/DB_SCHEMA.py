@@ -14,7 +14,6 @@ TODO:
 CommandLine:
     python -m wbia.control.DB_SCHEMA --test-autogen_db_schema
 """
-from __future__ import absolute_import, division, print_function
 from wbia import constants as const
 from wbia.control import _sql_helpers
 from wbia.dtool.dump import dumps

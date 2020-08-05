@@ -5,7 +5,6 @@ sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --
 
 # TODO: Fix this name it is too special case
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import uuid
 import functools
 import six  # NOQA

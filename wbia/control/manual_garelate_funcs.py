@@ -10,7 +10,6 @@ ToRegenerate:
     python -m wbia.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --diff
     python -m wbia.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
-from __future__ import absolute_import, division, print_function
 from six.moves import zip
 from wbia import constants as const
 import utool as ut

@@ -5,7 +5,6 @@ DEPRICATE
 module which uses multiple flann indexes as a way of working around adding
 points to a single flann structure which seems to cause crashes.
 """
-from __future__ import absolute_import, division, print_function
 import six
 from six.moves import zip, map, range
 import numpy as np

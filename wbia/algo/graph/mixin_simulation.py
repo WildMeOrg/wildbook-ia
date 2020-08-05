@@ -4,7 +4,6 @@ Mixin functionality for experiments, tests, and simulations.
 This includes recordings measures used to generate plots in JC's thesis.
 """
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import utool as ut
 import ubelt as ub
