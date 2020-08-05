@@ -4,7 +4,6 @@ displays results from harness
 
 TODO: save a testres variable so reloading and regenration becomes easier.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import six
 import utool as ut

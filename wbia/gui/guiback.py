@@ -19,7 +19,6 @@ Notes:
         Stretch
            - relative size ratio vector (1 component for each widget)
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import sys
 import functools

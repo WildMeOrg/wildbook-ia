@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Integrates numpy types into sqlite3"""
-from __future__ import absolute_import, division, print_function
 import io
 import uuid
 from sqlite3 import register_adapter, register_converter

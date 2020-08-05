@@ -10,7 +10,6 @@ When running from non-pyinstaller source use
     python wbia/__main__.py
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia.__main__ import run_wbia
 
 

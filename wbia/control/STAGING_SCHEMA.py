@@ -9,7 +9,6 @@ with the last version number that they existed in
 CommandLine:
     python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema
 """
-from __future__ import absolute_import, division, print_function
 from wbia import constants as const
 import utool as ut
 

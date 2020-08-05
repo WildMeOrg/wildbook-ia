@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from wbia.plottool import viz_image2
 from wbia.plottool import draw_func2 as df2
 from wbia.plottool import plot_helpers as ph

@@ -15,7 +15,6 @@ Zebra Experiment:
            :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia import dtool
 import six
 import utool as ut

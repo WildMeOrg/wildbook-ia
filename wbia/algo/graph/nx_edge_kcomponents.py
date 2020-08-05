@@ -17,7 +17,6 @@ A k-edge-connected subgraph (k-edge-subgraph) is a maximal set of nodes in G,
 such that the subgraph of G defined by the nodes has an edge-connectivity at
 least k.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import networkx as nx
 from networkx.utils import arbitrary_element
 from networkx.utils import not_implemented_for

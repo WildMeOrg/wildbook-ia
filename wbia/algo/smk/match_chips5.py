@@ -3,7 +3,6 @@
 TODO: semantic_uuids should be replaced with PCC-like hashes pertaining to
 annotation clusters if any form of name scoring is used.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import exists, join
 from wbia.algo.hots import chip_match
 import utool as ut

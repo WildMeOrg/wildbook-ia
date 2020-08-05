@@ -4,7 +4,6 @@ CommandLine:
     rm -rf /media/raid/work/PZ_MTEST/_ibsdb/_wbia_cache/match_thumbs/
     python -m wbia.gui.inspect_gui --test-test_review_widget --show --verbose-thumb
 """
-from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtGui, QtCore
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
 import six

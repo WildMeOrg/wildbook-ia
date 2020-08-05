@@ -58,7 +58,6 @@ References:
     Orientation covariant aggregation of local descriptors with embeddings
     https://arxiv.org/pdf/1407.2170.pdf
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 import utool as ut
 import vtool as vt

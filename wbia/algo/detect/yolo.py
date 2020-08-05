@@ -2,7 +2,6 @@
 """
 Interface to pydarknet yolo object detection.
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 import vtool as vt
 from six.moves import zip

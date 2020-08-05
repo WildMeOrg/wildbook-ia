@@ -3,7 +3,6 @@
 Helper module that helps expand parameters for grid search
 TODO: move into custom pipe_cfg and annot_cfg modules
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import sys
 import six

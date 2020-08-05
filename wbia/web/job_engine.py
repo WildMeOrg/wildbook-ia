@@ -50,7 +50,6 @@ Notes:
     And then running the forground process
         python -m wbia.web.job_engine job_engine_tester --fg
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # if False:
 #    import os

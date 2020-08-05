@@ -41,7 +41,6 @@ TODO:
     * Don't preload the nn-indexer in case the nearest neighbors have already
     been computed?
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map
 import numpy as np
 import vtool as vt

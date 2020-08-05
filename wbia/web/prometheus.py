@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from prometheus_client import Info, Gauge, Counter, Enum, Histogram  # NOQA
 from wbia.control import controller_inject
 import wbia.constants as const

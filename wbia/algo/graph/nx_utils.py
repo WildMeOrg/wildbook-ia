@@ -2,7 +2,6 @@
 """
 TODO: the k-components will soon be implemented in networkx 2.0 use those instead
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
 import networkx as nx

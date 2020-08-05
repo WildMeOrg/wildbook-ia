@@ -10,7 +10,6 @@ Different columns can be hidden / shown by modifying this file
 TODO: need to cache the total number of annotations or something about
 imagesets on disk to help startuptime.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 from six.moves import zip, map, range
 from wbia import constants as const

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 from vtool._pyflann_backend import pyflann as pyflann
 import utool as ut
 import uuid

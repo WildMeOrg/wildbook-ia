@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtGui, QtCore  # NOQA
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
 from wbia.guitool import guitool_components

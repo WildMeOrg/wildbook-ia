@@ -2,7 +2,6 @@
 """
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join
 import numpy as np
 import utool as ut

@@ -4,7 +4,6 @@
 Converts a hotspostter database to IBEIS
 """
 # TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 from wbia import constants as const
 from wbia.init import sysres

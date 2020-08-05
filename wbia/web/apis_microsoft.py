@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Dependencies: flask, tornado."""
-from __future__ import absolute_import, division, print_function
 from wbia.control import controller_inject
 from flask_swagger import swagger
 import wbia.constants as const

@@ -4,7 +4,6 @@
 
 # ### __init__.py ###
 # # flake8: noqa
-# from __future__ import absolute_import, division, print_function
 # from wbia.init import main_commands
 # from wbia.init import main_helpers
 # from wbia.init import sysres

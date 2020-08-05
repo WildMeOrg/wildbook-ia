@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import wbia.plottool as pt
 import wbia.plottool.plot_helpers as ph

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # developer convenience functions for ibs
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from six.moves import zip
 from wbia import constants as const

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # The following is meant to be used in place of `import sqlite3`
 # because importing it from here will ensure our type integrations are loaded.

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 import six
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject

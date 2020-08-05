@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import wbia.guitool as gt
 import matplotlib as mpl
 from wbia.guitool.__PYQT__.QtCore import Qt

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # DEPRICATE?
-from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtCore, QtGui
 from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.__PYQT__.QtCore import Qt

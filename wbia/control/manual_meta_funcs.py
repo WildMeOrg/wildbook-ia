@@ -2,7 +2,6 @@
 """
 controller functions for contributors, versions, configs, and other metadata
 """
-from __future__ import absolute_import, division, print_function
 import functools
 import utool as ut
 from six.moves import range, input, zip

@@ -35,7 +35,6 @@ CommandLine:
     python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=cairo
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import os
 import utool as ut

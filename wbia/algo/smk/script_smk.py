@@ -164,7 +164,6 @@ In the SMK paper they report 0.781 as shown in the table, but they also report a
 the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 from wbia.algo.smk import inverted_index

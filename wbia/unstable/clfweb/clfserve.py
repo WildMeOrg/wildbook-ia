@@ -2,7 +2,6 @@
 """
 A example for creating a Table that is sortable by its header
 """
-from __future__ import print_function, division, absolute_import, unicode_literals
 import flask_table
 import six
 

@@ -2,7 +2,6 @@
 """
 provides common methods for api_tree_view and api_table_view
 """
-from __future__ import absolute_import, division, print_function
 from wbia.guitool.__PYQT__ import QtGui  # NOQA
 from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__ import QtWidgets

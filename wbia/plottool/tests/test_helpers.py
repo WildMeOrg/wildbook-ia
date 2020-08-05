@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 
 
 def dummy_bbox(img, shiftxy=(0.0, 0.0), scale=0.25):

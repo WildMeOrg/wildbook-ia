@@ -10,7 +10,6 @@ Main development file
 CommandLine:
     python -m wbia.viz.interact.interact_matches --test-show_coverage --show
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 import wbia.plottool as pt

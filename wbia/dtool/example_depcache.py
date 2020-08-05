@@ -4,7 +4,6 @@ CommandLine:
     python -m dtool.example_depcache --exec-dummy_example_depcacahe --show
     python -m dtool.depcache_control --exec-make_graph --show
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 import uuid

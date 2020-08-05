@@ -28,7 +28,6 @@ References:
 CommandLine:
     python -m wbia.plottool.interact_annotations --test-test_interact_annots --show
 """
-from __future__ import absolute_import, division, print_function
 import six
 import re
 import numpy as np

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
 import utool as ut
 import numpy as np
 from wbia.algo.hots.nn_weights import (

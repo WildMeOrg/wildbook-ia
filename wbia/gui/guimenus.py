@@ -3,7 +3,6 @@
 This module defines all of the menu items in the main GUI
 as well as their callbacks in guiback
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 import functools
 from wbia import constants as const

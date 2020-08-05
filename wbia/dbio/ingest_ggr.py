@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python  # NOQA
 """Converts a GGR-style raw data to IBEIS database."""
-from __future__ import absolute_import, division, print_function
 from wbia.detecttools.directory import Directory
 from os.path import join, exists
 import utool as ut

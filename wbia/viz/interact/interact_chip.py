@@ -6,7 +6,6 @@ Also defines annotation context menu.
 CommandLine:
     python -m wbia.viz.interact.interact_chip --test-ishow_chip --show --aid 2
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool as vt
 import wbia.plottool as pt  # NOQA

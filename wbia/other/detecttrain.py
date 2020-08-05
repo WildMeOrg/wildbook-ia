@@ -9,7 +9,6 @@ TODO: need to split up into sub modules:
     then there are also convineience functions that need to be ordered at least
     within this file
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia.control import controller_inject
 from os.path import join, exists
 import utool as ut

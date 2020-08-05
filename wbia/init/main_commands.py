@@ -4,7 +4,6 @@ TODO: Rename to wbia/init/commands.py
 
 TODO; remove params module
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 import sys
 from wbia import constants as const

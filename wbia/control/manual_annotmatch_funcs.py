@@ -10,7 +10,6 @@ ToRegenerate:
     python -m wbia.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --diff
     python -m wbia.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import functools  # NOQA
 import six  # NOQA
 from six.moves import map, range, zip  # NOQA
