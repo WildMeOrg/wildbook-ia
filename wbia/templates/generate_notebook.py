@@ -36,7 +36,6 @@ CommandLine:
 
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from wbia.templates import notebook_cells
 from functools import partial

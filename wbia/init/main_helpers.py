@@ -6,7 +6,6 @@ select subsets of annotations, pipeline configurations, and other filters.
 
 TODO: standardize function signatures
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 

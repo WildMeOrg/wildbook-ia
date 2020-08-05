@@ -3,7 +3,6 @@
 """
 Extracts parts chips from image and applies optional image normalizations.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 from wbia.control.controller_inject import register_preprocs, register_subprops

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia.control import controller_inject
 import utool as ut
 import concurrent

@@ -2,7 +2,6 @@
 """
 TODO: separate out the tests and make this file just generate the demo data
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
 import numpy as np
 import utool as ut

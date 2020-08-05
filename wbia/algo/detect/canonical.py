@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
-from __future__ import absolute_import, division, print_function
 from os.path import expanduser, join
 import utool as ut
 import numpy as np

@@ -5,7 +5,6 @@ Dependencies: flask, tornado
 SeeAlso:
     routes.turk_identification
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia.control import controller_inject
 from wbia.algo.hots import pipeline
 from flask import url_for, request, current_app  # NOQA

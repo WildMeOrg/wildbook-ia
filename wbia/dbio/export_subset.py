@@ -3,7 +3,6 @@
 """
 Exports subset of an IBEIS database to a new IBEIS database
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 from wbia.other import ibsfuncs
 from wbia import constants as const

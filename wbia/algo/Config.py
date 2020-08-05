@@ -2,7 +2,6 @@
 """
 DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 import copy

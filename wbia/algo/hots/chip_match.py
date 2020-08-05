@@ -2,7 +2,6 @@
 """
 python -m utool.util_inspect check_module_usage --pat="chip_match.py"
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import copy
 import numpy as np
 import utool as ut

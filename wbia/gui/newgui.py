@@ -16,7 +16,6 @@ BUGS:
 CommandLine:
     wbia --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --name-tab
 """
-from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, filter
 from os.path import isdir
 import sys

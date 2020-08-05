@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from wbia.plottool import interact_annotations
 import wbia.plottool as pt  # NOQA
 import utool as ut

@@ -2,7 +2,6 @@
 """
 Unfinished non-wbia dependent version of interact matches
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import numpy as np

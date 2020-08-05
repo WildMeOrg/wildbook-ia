@@ -11,7 +11,6 @@ CommandLine:
 TODO:
     Refresh name table on inspect gui close
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
 from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__ import QtWidgets

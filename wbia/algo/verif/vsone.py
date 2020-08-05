@@ -10,12 +10,6 @@ CommandLine:
     python -m wbia.algo.verif.vsone deploy --db GZ_Master1
 
 """
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)  # NOQA
 import utool as ut
 import ubelt as ub
 import itertools as it

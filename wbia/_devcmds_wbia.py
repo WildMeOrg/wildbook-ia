@@ -3,7 +3,6 @@
 """
 DEPRICATE MOST OF THIS FILE IN FAVOR OF DOCTEST SCRIPTS
 """
-from __future__ import absolute_import, division, print_function
 import six  # NOQA
 from wbia._devscript import devcmd, devprecmd
 from six.moves import zip

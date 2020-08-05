@@ -16,7 +16,6 @@ CommandLine:
     image_timedelta_posix
 
 """
-from __future__ import absolute_import, division, print_function
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.control.controller_inject import make_ibs_register_decorator

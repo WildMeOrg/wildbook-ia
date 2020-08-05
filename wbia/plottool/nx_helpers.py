@@ -22,7 +22,6 @@ Ignore:
     python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
 """
-from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import six
 

@@ -6,7 +6,6 @@ TODO: LAZY IMPORTS?
     http://code.activestate.com/recipes/473888-lazy-module-imports/
 """
 # flake8: noqa
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 try:
     from wbia._version import __version__

@@ -3,7 +3,6 @@
 CommandLine:
     python -m wbia.gui.inspect_gui --test-test_review_widget --show
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
 from wbia.viz import viz_helpers as vh
 import wbia.guitool as gt

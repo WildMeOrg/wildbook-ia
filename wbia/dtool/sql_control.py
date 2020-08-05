@@ -5,7 +5,6 @@ Interface into SQL for the IBEIS Controller
 TODO; need to use some sort of sticky bit so
 sql files are created with reasonable permissions.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import collections
 import os
 import parse
@@ -2047,10 +2046,6 @@ class SQLDatabaseController(object):
         line_list.append(ut.indent(autogen_cmd, tab1))
         line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
         line_list.append('# -*- coding: utf-8 -*-')
-        # line_list.append('from __future__ import absolute_import, division, print_function')
-        line_list.append(
-            'from __future__ import absolute_import, division, print_function, unicode_literals'
-        )
         # line_list.append('from wbia import constants as const')
         line_list.append('\n')
         line_list.append('# =======================')

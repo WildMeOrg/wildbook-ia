@@ -2,7 +2,6 @@
 """
 Small GUI for asking the user to enter the clock time shown, and moving along a gid list if the first image isn't a clock
 """
-from __future__ import absolute_import, division, print_function
 from functools import partial
 from six.moves import range
 from time import mktime

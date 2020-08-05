@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """ Implements ThreadActor """
-from __future__ import absolute_import, division, print_function
 from concurrent.futures import _base
 from concurrent.futures import thread
 from wbia.web.futures_utils import _base_actor

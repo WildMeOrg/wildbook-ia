@@ -2,7 +2,6 @@
 """
 Runs functions in pipeline to get query reuslts and does some caching.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import ubelt as ub
 import utool as ut
 from os.path import exists

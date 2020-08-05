@@ -4,7 +4,6 @@
 Example of interfacing with IBEIS getters
 First run ~/code/wbia/reset_dbs.sh to ensure you have the testdata
 """
-from __future__ import absolute_import, division, print_function
 import os
 import sys
 import multiprocessing

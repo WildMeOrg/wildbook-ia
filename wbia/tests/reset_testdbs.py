@@ -4,7 +4,6 @@
 downloads standard test datasets. can delete them as well
 """
 # TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function, unicode_literals
 from itertools import cycle
 from os.path import join
 

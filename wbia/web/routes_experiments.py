@@ -2,7 +2,6 @@
 """
 Dependencies: flask, tornado
 """
-from __future__ import absolute_import, division, print_function
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
 from os.path import abspath, expanduser, join

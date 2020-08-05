@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 from wbia.algo.graph.state import POSTV, NEGTV

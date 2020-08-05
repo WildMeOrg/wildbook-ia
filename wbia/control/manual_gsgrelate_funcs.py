@@ -6,7 +6,6 @@ CommandLine:
     # the write flag makes a file, but dont use that
     python -m wbia.templates.template_generator --key imageset_image_relationship --onlyfn
 """
-from __future__ import absolute_import, division, print_function
 from wbia import constants as const
 from wbia.control import accessor_decors
 from wbia.control.controller_inject import make_ibs_register_decorator

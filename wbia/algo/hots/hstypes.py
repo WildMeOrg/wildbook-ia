@@ -29,7 +29,6 @@ Issues:
 * errors when there is a word without any database vectors.
 currently a weight of zero is hacked in
 """
-from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
 

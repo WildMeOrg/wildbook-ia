@@ -15,7 +15,6 @@ that the graph is k-edge-connected. Typically, the goal is to find the
 augmentation with minimum weight. In general, it is not gaurenteed that a
 k-edge-augmentation exists.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import random
 import math
 import sys

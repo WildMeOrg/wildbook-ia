@@ -2,7 +2,6 @@
 """
 Dependencies: flask, tornado
 """
-from __future__ import absolute_import, division, print_function
 import random
 import math
 import simplejson as json

@@ -6,7 +6,6 @@ MAIN IDEA:
     `MultiTaskSamples` serves as a structure to contain and manipulate a set of
     samples with potentially many different types of labels and features.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
 import ubelt as ub
 import numpy as np

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 from wbia.algo.graph import demo
 import utool as ut
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA

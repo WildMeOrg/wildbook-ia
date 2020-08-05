@@ -2,7 +2,6 @@
 """
 http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # import utool as ut
 # import sys

@@ -4,7 +4,6 @@ sysres.py == system_resources
 Module for dealing with system resoureces in the context of IBEIS
 but without the need for an actual IBEIS Controller
 """
-from __future__ import absolute_import, division, print_function  # , unicode_literals
 import os
 from os.path import exists, join, realpath
 import utool as ut

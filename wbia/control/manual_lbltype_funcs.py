@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from wbia import constants as const
 from wbia.control.accessor_decors import adder, getter_1to1, ider
 import utool as ut

@@ -3,7 +3,6 @@ r"""
 This module contains functions and clases to get data visualized fast (in
 terms of development time)
 """
-from __future__ import absolute_import, division, print_function
 
 from wbia import guitool
 from wbia.guitool.__PYQT__ import QtCore
