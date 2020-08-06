@@ -2068,6 +2068,9 @@ class SQLDatabaseController(object):
         line_list.append('')
         return '\n'.join(line_list)
 
+    # FIXME (6-Aug-12020) 'constraint' is not within METADATA_TABLE_COLUMN_NAMES
+    #       Consider deprecating or adding the functionality.
+    #       SQL introspection should maybe be used instead
     def get_table_constraints(self, tablename):
         """
         TODO: use coldef_list with table_autogen_dict instead
