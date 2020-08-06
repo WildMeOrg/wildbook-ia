@@ -16,6 +16,7 @@ from os.path import join, exists, dirname, basename
 
 import six
 import utool as ut
+from deprecated import deprecated
 
 from wbia.dtool import sqlite3 as lite
 from wbia.dtool.dump import dumps
@@ -424,7 +425,7 @@ class SQLDatabaseController(object):
             # HACK
 
         self.timeout = timeout
-        self._tablenames = None
+        self._table_names = set([])
         self.readonly = readonly
 
         # Get SQL file path
@@ -482,7 +483,8 @@ class SQLDatabaseController(object):
         self.uri = uri
         self.timeout = timeout
 
-        self._tablenames = None
+        self._table_names = set([])
+
         # FIXME (31-Jul-12020) rename to private attribute
         self.thread_connections = {}
         self._connection = None
@@ -1732,8 +1734,9 @@ class SQLDatabaseController(object):
                     self.set_metadata_val(tablename + '_' + suffix, val)
                 else:
                     self.set_metadata_val(tablename + '_' + suffix, repr(val))
-        if self._tablenames is not None:
-            self._tablenames.add(tablename)
+
+        # Invalidate the table_names cache
+        self._is_table_names_stale = True
 
     def modify_table(
         self,
@@ -1974,6 +1977,9 @@ class SQLDatabaseController(object):
             METADATA_TABLE_NAME, colnames, val_iter, id_iter, id_colname='metadata_key'
         )
 
+        # Invalidate the table_names cache
+        self._is_table_names_stale = True
+
     def drop_table(self, tablename):
         if VERBOSE_SQL:
             print('[sql] schema dropping tablename=%r' % tablename)
@@ -1991,15 +1997,20 @@ class SQLDatabaseController(object):
         key_list = [tablename + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES]
         self.delete(METADATA_TABLE_NAME, key_list, id_colname='metadata_key')
 
+        # Invalidate the table_names cache
+        self._is_table_names_stale = True
+
     def drop_all_tables(self):
         """
         DELETES ALL INFO IN TABLE
         """
-        self._tablenames = None
-        for tablename in self.get_table_names():
-            if tablename != 'metadata':
-                self.drop_table(tablename)
-        self._tablenames = None
+        for tablename in self.table_names:
+            if tablename == METADATA_TABLE_NAME:
+                continue
+            self.drop_table(tablename)
+
+        # Invalidate the table_names cache
+        self._is_table_names_stale = True
 
     # ==============
     # CONVINENCE
@@ -2254,22 +2265,35 @@ class SQLDatabaseController(object):
                     file_.write('\t%s%s%s%s%s\n' % col)
         ut.view_directory(app_resource_dir)
 
+    @deprecated('use the table_names property instead')
     def get_table_names(self, lazy=False):
-        """ Conveinience: """
-        if not lazy or self._tablenames is None:
-            self.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            tablename_list = self.cur.fetchall()
-            self._tablenames = {str(tablename[0]) for tablename in tablename_list}
-        return self._tablenames
+        """This method is deprecated in favor the of table_names attribute
+
+        The ``lazy`` argument is ignored, but the internal cache invalidation
+        procedure can be trigger by setting ``_is_table_names_stale`` to ``True``.
+
+        """
+        return self.table_names
 
     @property
+    @deprecated('use table_names instead')
     def tablenames(self):
-        return self.get_table_names()
+        return self.table_names
 
+    @deprecated("use `'table' in controller.table_names`")
     def has_table(self, tablename, colnames=None, lazy=True):
         """ checks if a table exists """
-        # if not lazy or self._tablenames is None:
-        return tablename in self.get_table_names(lazy=lazy)
+        return tablename in self.table_names
+
+    @property
+    def table_names(self):
+        # Check for the cached value and/or cache invalidation
+        if not self._table_names or getattr(self, '_is_table_names_stale', True):
+            self.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            table_name_results = self.cur.fetchall()
+            self._table_names = {row[0] for row in table_name_results}
+            self._is_table_names_stale = False
+        return self._table_names
 
     @profile
     def get_table_superkey_colnames(self, tablename):
