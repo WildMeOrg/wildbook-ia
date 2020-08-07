@@ -26,7 +26,7 @@ else
 fi
 
 # Tag built images from `build.sh`, which tags as `latest`
-for IMG in wbia-base wbia-dependencies wbia-provision wbia; do
+for IMG in wbia-base wbia-dependencies wbia-provision wbia wildbook-ia; do
     echo "Tagging wildme/${IMG}:latest --> ${IMG_PREFIX}${IMG}:${TAG}"
     docker tag wildme/${IMG}:latest ${IMG_PREFIX}${IMG}:${TAG}
     echo "Pushing ${IMG_PREFIX}${IMG}:${TAG}"
