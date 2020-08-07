@@ -8,3 +8,11 @@ def pytest_addoption(parser):
     parser.addoption('--tomcat', action='store_true')
     parser.addoption('--web-tests', action='store_true')
     parser.addoption('--weird', action='store_true')
+    parser.addoption(
+        '--disable-refresh-db',
+        action='store_true',
+        help=(
+            "disables the set_up_db fixture from rebuilding the db, "
+            "instead it will reuse the previous test run's db"
+        ),
+    )
