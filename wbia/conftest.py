@@ -32,12 +32,17 @@ def enable_wildbook_signal():
 
 @pytest.fixture(scope='session', autouse=True)
 @pytest.mark.usefixtures('enable_wildbook_signal')
-def set_up_db():
+def set_up_db(request):
     """
     Sets up the testing databases.
     This fixture is set to run automatically any any test run of wbia.
 
     """
+    # If selected, disable running the main logic of this fixture
+    if request.config.getoption("--disable-refresh-db", False):
+        # Assume the user knows what they are requesting
+        return  # bale out
+
     # Delete DBs, if they exist
     # FIXME (16-Jul-12020) this fixture does not cleanup after itself to preserve exiting usage behavior
     for dbname in TEST_DBNAMES_MAP.values():
