@@ -7,6 +7,8 @@ dateutils>=0.6.6
 delorean
 docker
 flask>=0.10.1
+flask-cas
+flask-cors
 
 futures_actors
 ipython>=5.0.0
