@@ -16,4 +16,4 @@ docker build -t wildme/wbia:latest .
 
 cd ../
 # Build the runtime container
-docker build -t wildbook/wildbook-ia:latest .
+docker build -t wildme/wildbook-ia:latest .
