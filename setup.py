@@ -275,6 +275,10 @@ KWARGS = OrderedDict(
         'Say Thanks!': 'https://community.wildbook.org',
         'Source': URL,
     },
+    entry_points="""\
+    [console_scripts]
+    wbia-init-testdbs = wbia.cli.testdbs:main
+    """,
 )
 
 if __name__ == '__main__':
