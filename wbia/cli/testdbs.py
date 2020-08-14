@@ -7,7 +7,6 @@ import click
 
 from wbia.dbio import ingest_database
 from wbia.init.sysres import get_workdir
-from wbia.tests.reset_testdbs import make_testdb0
 
 
 @click.command()
@@ -18,7 +17,6 @@ def main(force_replace):
 
     dbs = {
         # <name>: <factory>
-        'testdb0': make_testdb0,
         'testdb1': lambda: ingest_database.ingest_standard_database('testdb1'),
     }
 
