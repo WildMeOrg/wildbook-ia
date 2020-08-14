@@ -17,8 +17,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        if: github.event_name == 'schedule'
         with:
           ref: develop
+      - uses: actions/checkout@v2
+        if: github.event_name != 'schedule'
 
       # Build containers
       - name: Build containers
