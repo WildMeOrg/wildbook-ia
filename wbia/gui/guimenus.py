@@ -509,7 +509,6 @@ def setup_developer_menu(mainwin, back):
         shortcut='Ctrl+K',
         triggered=back.take_screenshot,
     )
-    setup_depricated_menu(mainwin, back)
 
 
 def setup_refresh_menu(mainwin, back):
@@ -564,43 +563,6 @@ def setup_refresh_menu(mainwin, back):
         text='Delete Thumbnails',
         triggered=back.delete_thumbnails,
     )
-
-
-def setup_depricated_menu(mainwin, back):
-    # mainwin.menuDepr = mainwin.menubar.newMenu('Depricated')
-    mainwin.menuDepr = mainwin.menuDev.newMenu('Depricated')
-    menu = mainwin.menuDepr
-    menu.addSeparator()  # ---------
-    # menu.newAction(
-    #    name='actionCompute_Queries',
-    #    text='Query: Old Style',
-    #    tooltip='''This might take anywhere from a coffee break to an
-    #                overnight procedure depending on how many ANNOTATIONs you\'ve
-    #                made. It queries each chip and saves the result which
-    #                allows multiple queries to be rapidly inspected later.''',
-    #    #shortcut='Ctrl+4',
-    #    triggered=back.compute_queries)
-    menu.addSeparator()  # ---------
-    # menu.newAction(
-    #     text='Query: Incremental',
-    #     triggered=back.incremental_query
-    # )
-    menu.newAction(
-        text='Import Cropped Images As Annotations (select file(s))',
-        triggered=back.import_images_as_annots_from_file,
-    )
-    menu.addSeparator()
-    menu.newAction(
-        text='Developer Reload', shortcut='Ctrl+Shift+R', triggered=back.dev_reload
-    )
-
-    # TESTS
-    mainwin.menuTests = menu.newMenu('Tests')
-    mainwin.menuTests.newAction(text='Run IBEIS Tests', triggered=back.run_tests)
-    mainwin.menuTests.newAction(text='Run Utool Tests', triggered=back.run_utool_tests)
-    mainwin.menuTests.newAction(text='Run Vtool Tests', triggered=back.run_vtool_tests)
-    mainwin.menuTests.newAction(text='Assert Modules', triggered=back.assert_modules)
-    menu.newAction(text='Update Source Install', triggered=back.update_source_install)
 
 
 def setup_zebra_menu(mainwin, back):
