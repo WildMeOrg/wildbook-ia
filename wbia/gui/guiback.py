@@ -4021,12 +4021,6 @@ class MainWindowBackend(GUIBACK_BASE):
         )
 
     @slot_()
-    def run_tests(back):
-        from wbia.tests import run_tests
-
-        run_tests.run_tests()
-
-    @slot_()
     def run_utool_tests(back):
         import utool.tests.run_tests
 
