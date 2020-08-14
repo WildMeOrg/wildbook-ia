@@ -3355,12 +3355,12 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> # xdoctest: +REQUIRES(--gui)
             >>> from wbia.gui.guiback import *  # NOQA
             >>> back = testdata_guiback(defaultdb='testdb1')
-            >>> testdb0 = sysres.db_to_dbdir('testdb0')
+            >>> #testdb0 = sysres.db_to_dbdir('testdb0')
             >>> testdb1 = sysres.db_to_dbdir('testdb1')
             >>> print('[TEST] TEST_OPEN_DATABASE testdb1=%r' % testdb1)
             >>> back.open_database(testdb1)
-            >>> print('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
-            >>> back.open_database(testdb0)
+            >>> #print('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
+            >>> #back.open_database(testdb0)
             >>> import wbia
             >>> #dbdir = join(wbia.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
             >>> dbdir = None

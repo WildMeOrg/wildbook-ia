@@ -346,7 +346,6 @@ def dev_test_new_schema_version(
         devdb_list = [
             'PZ_MTEST',
             'testdb1',
-            'testdb0',
             'testdb2',
             'testdb_dst2',
             'emptydatabase',
