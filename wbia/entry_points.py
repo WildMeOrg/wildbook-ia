@@ -275,11 +275,6 @@ def main(
         print('[main]  * sys.argv = %r' % (sys.argv,))
     # Parse directory to be loaded from command line args
     # and explicit kwargs
-    if defaultdb in ['testdb1', 'testdb0']:
-        from wbia.tests.reset_testdbs import ensure_smaller_testingdbs
-
-        ensure_smaller_testingdbs()
-        #
     dbdir = sysres.get_args_dbdir(
         defaultdb=defaultdb, allow_newdir=allow_newdir, db=db, dbdir=dbdir
     )
