@@ -205,6 +205,10 @@ def get_dbalias_dict():
     return dbalias_dict
 
 
+def delete_dbdir(dbname):
+    ut.delete(join(get_workdir(), dbname), ignore_errors=False)
+
+
 def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
     """
     Implicitly gets dbdir. Searches for db inside of workdir
@@ -400,7 +404,7 @@ def ensure_pz_mtest():
         python -m wbia --tf ensure_pz_mtest
 
     Ignore:
-        from wbia.tests.reset_testdbs import delete_dbdir
+        from wbia.sysres import delete_dbdir
         delete_dbdir('PZ_MTEST')
 
     Example:

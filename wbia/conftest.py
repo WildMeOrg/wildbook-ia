@@ -5,7 +5,9 @@ from pathlib import Path
 
 import pytest
 
+from wbia.dbio import ingest_database
 from wbia.init.sysres import (
+    delete_dbdir,
     ensure_nauts,
     ensure_pz_mtest,
     ensure_testdb2,
@@ -13,10 +15,15 @@ from wbia.init.sysres import (
     get_workdir,
     set_default_dbdir,
 )
-from wbia.tests.reset_testdbs import (
-    TEST_DBNAMES_MAP,
-    delete_dbdir,
-    ensure_smaller_testingdbs,
+
+
+TEST_DBNAMES = (
+    'NAUT_test',
+    'PZ_MTEST',
+    'testdb1',
+    'testdb2',
+    'testdb_guiall',
+    'wd_peter2',
 )
 
 
@@ -39,17 +46,17 @@ def set_up_db(request):
 
     """
     # If selected, disable running the main logic of this fixture
-    if request.config.getoption("--disable-refresh-db", False):
+    if request.config.getoption('--disable-refresh-db', False):
         # Assume the user knows what they are requesting
         return  # bale out
 
     # Delete DBs, if they exist
     # FIXME (16-Jul-12020) this fixture does not cleanup after itself to preserve exiting usage behavior
-    for dbname in TEST_DBNAMES_MAP.values():
+    for dbname in TEST_DBNAMES:
         delete_dbdir(dbname)
 
     # Set up DBs
-    ensure_smaller_testingdbs()
+    ingest_database.ingest_standard_database('testdb1')
     ensure_pz_mtest()
     ensure_nauts()
     ensure_wilddogs()
