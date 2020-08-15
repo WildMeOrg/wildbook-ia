@@ -43,6 +43,7 @@ torchvision
 tornado>=4.2.1
 tqdm
 ubelt >= 0.8.7
+wbia-cnn>=3.0.2
 wbia-pydarknet >= 3.0.1
 wbia-pyflann >= 3.1.0
 wbia-pyhesaff >= 3.0.2
