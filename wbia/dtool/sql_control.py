@@ -13,7 +13,6 @@ import re
 import threading
 from collections.abc import Mapping, MutableMapping
 from functools import partial
-from io import StringIO
 from os.path import join, exists, dirname, basename
 
 import six
@@ -33,7 +32,6 @@ NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 VERBOSE = ut.VERBOSE
 VERYVERBOSE = ut.VERYVERBOSE
-COPY_TO_MEMORY = ut.get_argflag(('--copy-db-to-memory'))
 
 TIMEOUT = 600  # Wait for up to 600 seconds for the database to return from a locked state
 
@@ -622,7 +620,6 @@ class SQLDatabaseController(object):
         self,
         sqldb_dpath='.',
         sqldb_fname='database.sqlite3',
-        inmemory=None,
         fpath=None,
         readonly=None,
         always_check_metadata=True,
@@ -694,9 +691,6 @@ class SQLDatabaseController(object):
         self.cur = self.connection.cursor()
         # self.connection.isolation_level = None  # turns sqlite3 autocommit off
         # self.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
-        if inmemory is True or (inmemory is None and COPY_TO_MEMORY):
-            self.squeeze()
-            self._copy_to_memory()
 
         # Optimize the database (if anything is set)
         if is_new:
@@ -763,29 +757,23 @@ class SQLDatabaseController(object):
         return conn
 
     def _create_connection(self):
-        if self.fname == ':memory:':
-            uri = None
-            connection = lite.connect(
-                ':memory:', detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
-            )
-        else:
-            assert exists(self.dir_), '[sql] self.dir_=%r does not exist!' % self.dir_
-            if not exists(self.fpath):
-                logger.info('[sql] Initializing new database: %r' % (self.fname,))
-                if self.readonly:
-                    raise AssertionError('Cannot open a new database in readonly mode')
-            # Open the SQL database connection with support for custom types
-            # lite.enable_callback_tracebacks(True)
-            # self.fpath = ':memory:'
-
-            # References:
-            # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
-            uri = 'file:' + self.fpath
+        assert exists(self.dir_), '[sql] self.dir_=%r does not exist!' % self.dir_
+        if not exists(self.fpath):
+            logger.info('[sql] Initializing new database: %r' % (self.fname,))
             if self.readonly:
-                uri += '?mode=ro'
-            connection = lite.connect(
-                uri, uri=True, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
-            )
+                raise AssertionError('Cannot open a new database in readonly mode')
+        # Open the SQL database connection with support for custom types
+        # lite.enable_callback_tracebacks(True)
+        # self.fpath = ':memory:'
+
+        # References:
+        # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
+        uri = 'file:' + self.fpath
+        if self.readonly:
+            uri += '?mode=ro'
+        connection = lite.connect(
+            uri, uri=True, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
+        )
 
         # Keep track of what thead this was started in
         threadid = threading.current_thread()
@@ -923,26 +911,6 @@ class SQLDatabaseController(object):
             )
         db_init_uuid = uuid.UUID(db_init_uuid_str)
         return db_init_uuid
-
-    def _copy_to_memory(self):
-        """
-        References:
-            http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
-        """
-        if NOT_QUIET:
-            logger.info('[sql] Copying database into RAM')
-        tempfile = StringIO()
-        for line in self.connection.iterdump():
-            tempfile.write('%s\n' % line)
-        self.connection.close()
-        tempfile.seek(0)
-        # Create a database in memory and import from tempfile
-        self.connection = lite.connect(
-            ':memory:', detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
-        )
-        self.connection.cursor().executescript(tempfile.read())
-        self.connection.commit()
-        self.connection.row_factory = lite.Row
 
     def reboot(self):
         logger.info('[sql] reboot')
