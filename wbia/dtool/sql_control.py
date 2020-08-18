@@ -13,7 +13,7 @@ import re
 import threading
 from collections.abc import Mapping, MutableMapping
 from functools import partial
-from os.path import join, exists, dirname, basename
+from os.path import join, exists
 
 import six
 import utool as ut
@@ -615,39 +615,25 @@ class SQLDatabaseController(object):
         def __len__(self):
             return len(self.ctrlr.get_table_names()) + 1  # for 'database'
 
-    @profile
-    def __init__(
-        self,
-        sqldb_dpath='.',
-        sqldb_fname='database.sqlite3',
-        fpath=None,
-        readonly=None,
-        always_check_metadata=True,
-        timeout=TIMEOUT,
-    ):
-        """ Creates db and opens connection
+    @classmethod
+    def from_uri(cls, uri, readonly=READ_ONLY, timeout=TIMEOUT):
+        """Creates a controller instance from a connection URI
 
         Args:
-            sqldb_dpath (unicode):  directory path string(default = '.')
-            sqldb_fname (unicode): (default = 'database.sqlite3')
-            inmemory (None): (default = None)
-            fpath (str):  file path string(default = None)
-            readonly (bool): (default = False)
-
-        CommandLine:
-            python -m dtool.sql_control --exec-__init__
+            uri (str): connection string or uri
+            timeout (int): connection timeout in seconds
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> ut.exec_funckw(SQLDatabaseController.__init__, locals())
             >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
-            >>> readonly = False
-            >>> db = SQLDatabaseController(sqldb_dpath, sqldb_fname)
+            >>> path = os.path.join(sqldb_dpath, sqldb_fname)
+            >>> db_uri = 'file://{}'.format(os.path.realpath(path))
+            >>> db = SQLDatabaseController.from_uri(db_uri)
             >>> db.print_schema()
             >>> print(db)
-            >>> db2 = SQLDatabaseController(sqldb_dpath, sqldb_fname, readonly=True)
+            >>> db2 = SQLDatabaseController.from_uri(db_uri, readonly=True)
             >>> db.add_table('temptable', (
             >>>     ('rowid',               'INTEGER PRIMARY KEY'),
             >>>     ('key',                 'TEXT'),
@@ -656,70 +642,11 @@ class SQLDatabaseController(object):
             >>>     superkeys=[('key',)])
             >>> db2.print_schema()
         """
-        # standard metadata table keys for each docstr
-        # TODO: generalize the places that use this so to add a new cannonical
-        # metadata field it is only necessary to append to this list.
-        if readonly is None:
-            readonly = READ_ONLY
-            # HACK
-
-        self.timeout = timeout
-        self._tablenames = None
-        self.readonly = readonly
-        self.metadata = self.Metadata(self)
-
-        # Get SQL file path
-        if fpath is None:
-            self.dir_ = sqldb_dpath
-            self.fname = sqldb_fname
-            self.fpath = join(self.dir_, self.fname)
-        else:
-            self.fpath = fpath
-            self.dir_ = dirname(self.fpath)
-            self.fname = basename(self.fpath)
-
-        is_new = not exists(self.fpath)
-
-        self.thread_connections = {}
-
-        # Create connection
-        connection, uri = self._create_connection()
-        self._connection = connection
-        self.uri = uri
-
-        # Get a cursor which will preform sql commands / queries / executions
-        self.cur = self.connection.cursor()
-        # self.connection.isolation_level = None  # turns sqlite3 autocommit off
-        # self.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
-
-        # Optimize the database (if anything is set)
-        if is_new:
-            self.optimize()
-
-        if not is_new:
-            # Check for old database versions
-            try:
-                self.get_db_version(ensure=False)
-            except lite.OperationalError:
-                always_check_metadata = True
-
-        if not self.readonly:
-            if is_new or always_check_metadata:
-                # TODO: make this happen lazilly
-                self._ensure_metadata_table()
-
-    @classmethod
-    def from_uri(cls, uri, timeout=TIMEOUT):
-        """Creates a controller instance from a connection URI
-
-        Args:
-            uri (str): connection string or uri
-            timeout (int): connection timeout in seconds
-        """
         self = cls.__new__(cls)
         self.uri = uri
         self.timeout = timeout
         self.metadata = self.Metadata(self)
+        self.readonly = readonly
 
         self._tablenames = None
         # FIXME (31-Jul-12020) rename to private attribute
@@ -729,8 +656,9 @@ class SQLDatabaseController(object):
         # Initialize a cursor
         self.cur = self.connection.cursor()
 
-        # Ensure the metadata table is initialized.
-        self._ensure_metadata_table()
+        if not self.readonly:
+            # Ensure the metadata table is initialized.
+            self._ensure_metadata_table()
 
         # TODO (31-Jul-12020) Move to Operations code.
         #      Optimization is going to depends on the operational deployment of this codebase.
@@ -742,7 +670,7 @@ class SQLDatabaseController(object):
     def connect(self):
         """Create a connection for the instance or use the existing connection"""
         self._connection = lite.connect(
-            self.uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
+            self.uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout, uri=True
         )
         return self._connection
 
@@ -757,9 +685,9 @@ class SQLDatabaseController(object):
         return conn
 
     def _create_connection(self):
-        assert exists(self.dir_), '[sql] self.dir_=%r does not exist!' % self.dir_
-        if not exists(self.fpath):
-            logger.info('[sql] Initializing new database: %r' % (self.fname,))
+        path = self.uri.replace('file://', '')
+        if not exists(path):
+            logger.info('[sql] Initializing new database: %r' % (self.uri,))
             if self.readonly:
                 raise AssertionError('Cannot open a new database in readonly mode')
         # Open the SQL database connection with support for custom types
@@ -768,7 +696,7 @@ class SQLDatabaseController(object):
 
         # References:
         # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
-        uri = 'file:' + self.fpath
+        uri = self.uri
         if self.readonly:
             uri += '?mode=ro'
         connection = lite.connect(
@@ -780,9 +708,6 @@ class SQLDatabaseController(object):
         self.thread_connections[threadid] = connection
 
         return connection, uri
-
-    def get_fpath(self):
-        return self.fpath
 
     def close(self):
         self.cur = None
@@ -877,19 +802,21 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> import uuid
+            >>> import os
             >>> from wbia.dtool.sql_control import *  # NOQA
             >>> # Check random database gets new UUID on init
-            >>> db = SQLDatabaseController(sqldb_fname=':memory:')
+            >>> db = SQLDatabaseController.from_uri(':memory:')
             >>> uuid_ = db.get_db_init_uuid()
             >>> print('New Database: %r is valid' % (uuid_, ))
             >>> assert isinstance(uuid_, uuid.UUID)
             >>> # Check existing database keeps UUID
             >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
-            >>> readonly = False
-            >>> db1 = SQLDatabaseController(sqldb_dpath, sqldb_fname)
+            >>> path = os.path.join(sqldb_dpath, sqldb_fname)
+            >>> db_uri = 'file://{}'.format(os.path.realpath(path))
+            >>> db1 = SQLDatabaseController.from_uri(db_uri)
             >>> uuid_1 = db1.get_db_init_uuid()
-            >>> db2 = SQLDatabaseController(sqldb_dpath, sqldb_fname)
+            >>> db2 = SQLDatabaseController.from_uri(db_uri)
             >>> uuid_2 = db2.get_db_init_uuid()
             >>> print('Existing Database: %r == %r' % (uuid_1, uuid_2, ))
             >>> assert uuid_1 == uuid_2
@@ -919,7 +846,7 @@ class SQLDatabaseController(object):
         self.connection.close()
         del self.connection
         self.connection = lite.connect(
-            self.fpath, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
+            self.uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout, uri=True
         )
         self.cur = self.connection.cursor()
 
@@ -933,8 +860,9 @@ class SQLDatabaseController(object):
         connection.isolation_level = 'EXCLUSIVE'
         connection.execute('BEGIN EXCLUSIVE')
         # Assert the database file exists, and copy to backup path
-        if exists(self.fpath):
-            ut.copy(self.fpath, backup_filepath)
+        path = self.uri.replace('file://', '')
+        if exists(path):
+            ut.copy(path, backup_filepath)
         else:
             raise IOError(
                 'Could not backup the database as the URI does not exist: %r' % (uri,)
@@ -1091,7 +1019,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController(sqldb_fname=':memory:')
+            >>> db = SQLDatabaseController.from_uri(':memory:')
             >>> db.add_table('dummy_table', (
             >>>     ('rowid',               'INTEGER PRIMARY KEY'),
             >>>     ('key',                 'TEXT'),
@@ -2325,7 +2253,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController(sqldb_fname=':memory:')
+            >>> db = SQLDatabaseController.from_uri(':memory:')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2362,7 +2290,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController(sqldb_fname=':memory:')
+            >>> db = SQLDatabaseController.from_uri(':memory:')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -3376,8 +3304,7 @@ class SQLDatabaseController(object):
     def view_db_in_external_reader(self):
         known_readers = ['sqlitebrowser', 'sqliteman']
         sqlite3_reader = known_readers[0]
-        sqlite3_db_fpath = self.get_fpath()
-        os.system(sqlite3_reader + ' ' + sqlite3_db_fpath)
+        os.system(sqlite3_reader + ' ' + self.uri)
         # ut.cmd(sqlite3_reader, sqlite3_db_fpath)
         pass
 
