@@ -2167,7 +2167,7 @@ def dump_schema_sql():
     from wbia import dtool as dt
     from wbia.control import DB_SCHEMA_CURRENT
 
-    db = dt.SQLDatabaseController(fpath=':memory:')
+    db = dt.SQLDatabaseController.from_uri(':memory:')
     DB_SCHEMA_CURRENT.update_current(db)
     dump_str = dumps(db.connection)
     logger.info(dump_str)

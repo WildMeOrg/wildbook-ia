@@ -41,7 +41,7 @@ import weakref
 import utool as ut
 import ubelt as ub
 from six.moves import zip
-from os.path import join, split
+from os.path import join, split, realpath
 from wbia.init import sysres
 from wbia.dbio import ingest_hsdb
 from wbia import constants as const
@@ -679,12 +679,8 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        ibs.db = dtool.SQLDatabaseController(
-            fpath=sqldb_fpath,
-            inmemory=False,
-            readonly=readonly,
-            always_check_metadata=False,
-        )
+        db_uri = 'file://{}'.format(realpath(sqldb_fpath))
+        ibs.db = dtool.SQLDatabaseController.from_uri(db_uri, readonly=readonly,)
         ibs.readonly = ibs.db.readonly
 
         if backup_idx is None:
@@ -768,12 +764,8 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        ibs.staging = dtool.SQLDatabaseController(
-            fpath=sqlstaging_fpath,
-            inmemory=False,
-            readonly=readonly,
-            always_check_metadata=False,
-        )
+        db_uri = 'file://{}'.format(realpath(sqlstaging_fpath))
+        ibs.staging = dtool.SQLDatabaseController.from_uri(db_uri, readonly=readonly,)
         ibs.readonly = ibs.staging.readonly
 
         if backup_idx is None:
@@ -1009,13 +1001,13 @@ class IBEISController(BASE_CLASS):
         return ibs.dbdir
 
     def get_db_core_path(ibs):
-        return ibs.db.fpath
+        return ibs.db.uri
 
     def get_db_staging_path(ibs):
-        return ibs.staging.fpath
+        return ibs.staging.uri
 
     def get_db_cache_path(ibs):
-        return ibs.dbcache.fpath
+        return ibs.dbcache.uri
 
     def get_shelves_path(ibs):
         engine_slot = const.ENGINE_SLOT

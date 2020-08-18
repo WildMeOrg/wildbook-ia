@@ -3,6 +3,8 @@
 implicit version of dependency cache from wbia/templates/template_generator
 """
 import logging
+import os.path
+
 import utool as ut
 import numpy as np
 import six
@@ -233,9 +235,8 @@ class _CoreDependencyCache(object):
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
             # if ut.get_argflag('--clear-all-depcache'):
             #     ut.delete(fpath)
-            db = sql_control.SQLDatabaseController(
-                fpath=fpath, always_check_metadata=False
-            )
+            db_uri = 'file://{}'.format(os.path.realpath(fpath))
+            db = sql_control.SQLDatabaseController.from_uri(db_uri)
             depcache_table.ensure_config_table(db)
             depc.fname_to_db[fname] = db
         if ut.VERBOSE:
