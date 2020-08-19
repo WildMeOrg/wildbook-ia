@@ -36,6 +36,7 @@ ARCHIVE_URL_DICT = {
     'megan_kenya_v2'            : 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.kenya.densenet.v2.zip',
 
     'laterals_v0'               : 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.laterals.densenet.v0.zip',
+    'belly_v0'                  : 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.right_whale_belly.densenet.v0.zip',
 
     'zebra_v1'                  : 'https://wildbookiarepository.azureedge.net/models/labeler.zebra_grevys-zebra_plains.v1.zip',
     'zebra_mountain_v0'         : 'https://wildbookiarepository.azureedge.net/models/labeler.zebra_mountain.v0.zip',
