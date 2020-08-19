@@ -71,6 +71,7 @@ CONFIG_URL_DICT = {
     'cheetah_v1'                 : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.cheetah.v1.py',
 
     'kitsci_v0'                  : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.kitsci.v0.py',
+    'monk_seal_v0'               : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.mediterranean_monk_seal.v0.py',
 
     'candidacy'                  : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'ggr2'                       : 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.ggr2.py',

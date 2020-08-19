@@ -74,6 +74,8 @@ ARCHIVE_URL_DICT = {
     'spotted_dolphin_v1'        : 'https://wildbookiarepository.azureedge.net/models/labeler.dolphin_spotted.v1.zip',
     'spotted_skunk_v1'          : 'https://wildbookiarepository.azureedge.net/models/labeler.skunk_spotted.v1.zip',
 
+    'monk_seal_v0'              : '/data/public/models/labeler.mediterranean_monk_seal.v0.zip',
+
     'iot_v0'                    : 'https://wildbookiarepository.azureedge.net/models/labeler.iot.v0.zip',
 
     'right_whale_v0'            : 'https://wildbookiarepository.azureedge.net/models/labeler.rightwhale.v0.zip',
