@@ -2,7 +2,7 @@
 # cnmem build stage
 #
 
-FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04 AS cnmem-build
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 AS cnmem-build
 # Install system dependencies
 RUN set -x \
     && apt-get update \
@@ -29,7 +29,7 @@ RUN git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
 # runtime build stage
 #
 
-FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04 AS runtime
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 AS runtime
 
 MAINTAINER Wild Me <dev@wildme.org>
 
