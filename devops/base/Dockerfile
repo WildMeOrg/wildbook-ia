@@ -1,4 +1,4 @@
-FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
