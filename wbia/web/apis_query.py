@@ -5,6 +5,7 @@ Dependencies: flask, tornado
 SeeAlso:
     routes.turk_identification
 """
+import logging
 from wbia.control import controller_inject
 from wbia.algo.hots import pipeline
 from flask import url_for, request, current_app  # NOQA
@@ -20,6 +21,7 @@ import six
 from datetime import datetime
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -245,7 +247,7 @@ def ensure_review_image(
     )
     match_thumb_filepath = join(match_thumb_path, match_thumb_filename)
     if verbose:
-        print('Checking: %r' % (match_thumb_filepath,))
+        logger.info('Checking: %r' % (match_thumb_filepath,))
 
     if exists(match_thumb_filepath):
         image = cv2.imread(match_thumb_filepath)
@@ -452,7 +454,7 @@ def review_graph_match_html(
     except Exception:
         # ??? HACK
         # FIXME:
-        print('[!!!!] review_pair = %r' % (review_pair,))
+        logger.info('[!!!!] review_pair = %r' % (review_pair,))
         review_pair = review_pair[0]
         annot_uuid_1 = review_pair['annot_uuid_1']
         annot_uuid_2 = review_pair['annot_uuid_2']
@@ -650,7 +652,7 @@ def review_query_chips_best(ibs, aid, **kwargs):
     # except Exception:
     #     #??? HACK
     #     # FIXME:
-    #     print('[!!!!] review_pair = %r' % (review_pair,))
+    #     logger.info('[!!!!] review_pair = %r' % (review_pair,))
     #     review_pair = review_pair[0]
     #     annot_uuid_1 = review_pair['annot_uuid_1']
     #     annot_uuid_2 = review_pair['annot_uuid_2']
@@ -789,16 +791,16 @@ def query_chips_graph(
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    print('query_config_dict = %r' % (query_config_dict,))
+    logger.info('query_config_dict = %r' % (query_config_dict,))
 
     curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', None)
     if curvrank_daily_tag is not None:
         if len(curvrank_daily_tag) > 144:
             curvrank_daily_tag_ = ut.hashstr27(curvrank_daily_tag)
             curvrank_daily_tag_ = 'wbia-shortened-%s' % (curvrank_daily_tag_,)
-            print('[WARNING] curvrank_daily_tag too long (Probably an old job)')
-            print('[WARNING] Original: %r' % (curvrank_daily_tag,))
-            print('[WARNING] Shortened: %r' % (curvrank_daily_tag_,))
+            logger.info('[WARNING] curvrank_daily_tag too long (Probably an old job)')
+            logger.info('[WARNING] Original: %r' % (curvrank_daily_tag,))
+            logger.info('[WARNING] Shortened: %r' % (curvrank_daily_tag_,))
             query_config_dict['curvrank_daily_tag'] = curvrank_daily_tag_
 
     num_qaids = len(qaid_list)
@@ -812,12 +814,12 @@ def query_chips_graph(
     num_daids_ = len(daid_list)
 
     if num_qaids != num_qaids_:
-        print('len(qaid_list)  = %d' % (num_qaids,))
-        print('len(qaid_list_) = %d' % (num_qaids_,))
+        logger.info('len(qaid_list)  = %d' % (num_qaids,))
+        logger.info('len(qaid_list_) = %d' % (num_qaids_,))
 
     if num_daids != num_daids_:
-        print('len(daid_list)  = %d' % (num_daids,))
-        print('len(daid_list_) = %d' % (num_daids_,))
+        logger.info('len(daid_list)  = %d' % (num_daids,))
+        logger.info('len(daid_list_) = %d' % (num_daids_,))
 
     if num_qaids_ == 0:
         raise ValueError('There are 0 valid query aids, %d were provided' % (num_qaids,))
@@ -864,7 +866,7 @@ def query_chips_graph(
             daid_list_ = cm.daid_list
 
             # Get best names
-            print('Visualizing name matches')
+            logger.info('Visualizing name matches')
             DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME = 3
 
             unique_nids = cm.unique_nids
@@ -873,7 +875,7 @@ def query_chips_graph(
             zipped = sorted(zip(name_score_list, unique_nids), reverse=True)
             n_ = min(n, len(zipped))
             zipped = zipped[:n_]
-            print('Top %d names: %r' % (n_, zipped,))
+            logger.info('Top %d names: %r' % (n_, zipped,))
             dnid_set = set(ut.take_column(zipped, 1))
             aids_list = ibs.get_name_aids(dnid_set)
 
@@ -892,7 +894,7 @@ def query_chips_graph(
                     len(aid_list),
                     limit,
                 )
-                print('\tFiltering NID %d from %d -> %d' % args)
+                logger.info('\tFiltering NID %d from %d -> %d' % args)
                 aid_list = aid_list[:limit]
                 daid_set += aid_list
 
@@ -900,7 +902,7 @@ def query_chips_graph(
                 len(daid_set),
                 daid_set,
             )
-            print('Found %d candidate name aids: %r' % args)
+            logger.info('Found %d candidate name aids: %r' % args)
             daid_set = set(daid_set)
             name_daid_set = daid_set & set(daid_list_)  # Filter by supplied query daids
 
@@ -909,33 +911,33 @@ def query_chips_graph(
                 len(dnid_set),
                 name_daid_set,
             )
-            print('Found %d overlapping aids for %d nids: %r' % args)
+            logger.info('Found %d overlapping aids for %d nids: %r' % args)
 
             args = (
                 len(name_daid_set),
                 len(dnid_set),
             )
-            print('Visualizing %d annotations for best %d names' % args)
+            logger.info('Visualizing %d annotations for best %d names' % args)
 
             # Get best annotations
-            print('Visualizing annotation matches')
+            logger.info('Visualizing annotation matches')
             zipped = sorted(zip(score_list, daid_list_), reverse=True)
             n_ = min(n, len(zipped))
             zipped = zipped[:n_]
-            print('Top %d annots: %r' % (n_, zipped,))
+            logger.info('Top %d annots: %r' % (n_, zipped,))
             annot_daid_set = set(ut.take_column(zipped, 1))
 
             # Combine names and annotations
             daid_set = list(name_daid_set) + list(annot_daid_set)
             daid_set = list(set(daid_set))
-            print('Visualizing %d annots: %r' % (len(daid_set), daid_set,))
+            logger.info('Visualizing %d annots: %r' % (len(daid_set), daid_set,))
 
             extern_flag_list = []
             for daid in daid_list_:
                 extern_flag = daid in daid_set
 
                 if extern_flag:
-                    print('Rendering match images to disk for daid=%d' % (daid,))
+                    logger.info('Rendering match images to disk for daid=%d' % (daid,))
                     duuid = ibs.get_annot_uuids(daid)
 
                     args = (duuid,)
@@ -1434,7 +1436,7 @@ def query_chips_graph_v2(
     """
     from wbia.web.graph_server import GraphClient
 
-    print('[apis_query] Creating GraphClient')
+    logger.info('[apis_query] Creating GraphClient')
 
     if annot_uuid_list is None:
         annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
@@ -1478,7 +1480,7 @@ def query_chips_graph_v2(
             'algo.quickstart': False,
         }
         config.update(query_config_dict)
-        print('[apis_query] graph_client.config = {}'.format(ut.repr3(config)))
+        logger.info('[apis_query] graph_client.config = {}'.format(ut.repr3(config)))
         graph_client.config = config
 
         # Ensure no race-conditions
@@ -1546,7 +1548,7 @@ def review_graph_match_config_v2(
         if EDGES_KEY not in session:
             session[EDGES_KEY] = []
         previous_edge_list = session[EDGES_KEY]
-        print(
+        logger.info(
             'Using previous_edge_list\n\tUser: %s\n\tList: %r'
             % (user_id, previous_edge_list,)
         )
@@ -1572,7 +1574,7 @@ def review_graph_match_config_v2(
             cutoff = int(-1.0 * EDGES_MAX)
             previous_edge_list = previous_edge_list[cutoff:]
         session[EDGES_KEY] = previous_edge_list
-        print(
+        logger.info(
             'Updating previous_edge_list\n\tUser: %s\n\tList: %r'
             % (user_id, previous_edge_list,)
         )
@@ -1581,8 +1583,8 @@ def review_graph_match_config_v2(
         edge,
         priority,
     )
-    print('Sampled edge %r with priority %0.02f' % args)
-    print('Data: ' + ut.repr4(data_dict))
+    logger.info('Sampled edge %r with priority %0.02f' % args)
+    logger.info('Data: ' + ut.repr4(data_dict))
 
     feat_extract_config = {
         'match_config': (
@@ -1599,7 +1601,7 @@ def review_graph_match_config_v2(
     # image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,
     #                                        view_orientation=view_orientation)
 
-    print('Using View Version: %r' % (view_version,))
+    logger.info('Using View Version: %r' % (view_version,))
     if view_version == 1:
         image_heatmask = ensure_review_image_v2(
             ibs, match, draw_heatmask=True, view_orientation=view_orientation
@@ -1795,8 +1797,8 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
             'timestamp_c2': user_times['client_time_end'],
             'timestamp': float(now.strftime('%s.%f')),
         }
-    print('POSTING GRAPH CLIENT REVIEW:')
-    print(ut.repr4(payload))
+    logger.info('POSTING GRAPH CLIENT REVIEW:')
+    logger.info(ut.repr4(payload))
     graph_client.post(payload)
 
     # Clean any old continue_reviews
@@ -1969,10 +1971,10 @@ def delete_query_chips_graph_v2(ibs, graph_uuid):
 def query_graph_v2_latest_logs(future):
     if not future.cancelled():
         logs = future.result()
-        print('--- <LOG DUMP> ---')
+        logger.info('--- <LOG DUMP> ---')
         for msg, color in logs:
             ut.cprint('[web.infr] ' + msg, color)
-        print('--- <\\LOG DUMP> ---')
+        logger.info('--- <\\LOG DUMP> ---')
 
 
 def query_graph_v2_on_request_review(future):

@@ -2,6 +2,7 @@
 """
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA
 """
+import logging
 from os.path import join
 import numpy as np
 import utool as ut
@@ -10,6 +11,7 @@ from wbia.expt import draw_helpers
 from six.moves import map, range, reduce
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def scorediff(ibs, testres, f=None, verbose=None):
@@ -80,8 +82,8 @@ def scorediff(ibs, testres, f=None, verbose=None):
         num_fail_bins = int(fail_max / width)
         succ_bins = np.linspace(0, succ_max, num_succ_bins + 1)
         fail_bins = np.linspace(-fail_max, 0, num_fail_bins + 1)
-        print('succ_bins = %r' % (succ_bins,))
-        print('fail_bins = %r' % (fail_bins,))
+        logger.info('succ_bins = %r' % (succ_bins,))
+        logger.info('fail_bins = %r' % (fail_bins,))
         succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=succ_bins)
         fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=fail_bins)
         # bin_max = (score_diffs.max() - score_diffs.min()) / 50
@@ -100,7 +102,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
         # succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=bins)
         # fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=bins)
         # hist, edges = np.histogram(score_diffs)
-        # print('hist = %r' % (hist,))
+        # logger.info('hist = %r' % (hist,))
         # ymax = max(max(succ_hist), max(fail_hist)) * 1.1
 
         species = ibs.get_dominant_species(testres.qaids)
@@ -189,13 +191,13 @@ def scorediff(ibs, testres, f=None, verbose=None):
 
                 # ax = event.inaxes
                 # for l in ax.get_lines():
-                #    print(l.get_label())
+                #    logger.info(l.get_label())
                 pts = np.array([top_scores, score_diffs]).T
                 idx, dist = vt.closest_point(np.array([event.xdata, event.ydata]), pts)
-                print('idx = %r' % (idx,))
-                print('dist = %r' % (dist,))
+                logger.info('idx = %r' % (idx,))
+                logger.info('dist = %r' % (dist,))
                 aid = aid_list[idx]
-                print('aid = %r' % (aid,))
+                logger.info('aid = %r' % (aid,))
                 if event.button == 3:  # right-click
                     cm = cm_list[idx]
                     from wbia.gui import inspect_gui
@@ -215,7 +217,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
                             ibs, qaid, daid, cm, qreq_=qreq_
                         )
                     else:
-                        print(' no matches for this one')
+                        logger.info(' no matches for this one')
                     # update_callback=self.show_page,
                     # backend_callback=None, aid_list=aid_list)
 
@@ -271,11 +273,11 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     from wbia.expt import cfghelpers
 
     if ut.VERBOSE:
-        print('[dev] draw_annot_scoresep')
+        logger.info('[dev] draw_annot_scoresep')
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
-    print('filt_cfg = %r' % (filt_cfg,))
+    logger.info('filt_cfg = %r' % (filt_cfg,))
 
     # assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
     test_qaids = testres.get_test_qaids()
@@ -323,13 +325,13 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         # testres.print_pcfg_info()
         score_group = []
         for cfgx in cfgxs:
-            print('Loading cached chipmatches')
+            logger.info('Loading cached chipmatches')
             tp_scores, tn_scores, part_attrs = load_annot_scores(testres, cfgx, filt_cfg)
             score_group.append((tp_scores, tn_scores, part_attrs))
         grouped_scores.append(score_group)
 
     def attr_callback(qaid):
-        print('callback qaid = %r' % (qaid,))
+        logger.info('callback qaid = %r' % (qaid,))
         testres.interact_individual_result(qaid)
         reconstruct_str = (
             'python -m wbia.dev -e cases '
@@ -338,8 +340,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
             + str(qaid)
             + ' --show'
         )
-        print('Independent reconstruct')
-        print(reconstruct_str)
+        logger.info('Independent reconstruct')
+        logger.info(reconstruct_str)
 
     fpr = ut.get_argval('--fpr', type_=float, default=None)
     tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else 0.85)
@@ -470,7 +472,7 @@ def draw_casetag_hist(
         gf_tags = testres.get_gf_tags()
         truth2_prop, prop2_mat = testres.get_truth2_prop()
         score_thresh = testres.find_score_thresh_cutoff()
-        print('score_thresh = %r' % (score_thresh,))
+        logger.info('score_thresh = %r' % (score_thresh,))
         # TODO: I want the point that the prob true is greater than prob false
         gt_is_problem = truth2_prop['gt']['score'] < score_thresh
         gf_is_problem = truth2_prop['gf']['score'] >= score_thresh
@@ -615,11 +617,13 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         basis_dict[key] = _basis
 
     if verbose:
-        print('basis_dict = ' + ut.repr2(basis_dict, nl=1, hack_liststr=True))
-        print(
+        logger.info('basis_dict = ' + ut.repr2(basis_dict, nl=1, hack_liststr=True))
+        logger.info(
             'e.g. cfgx_lists_dict[1] contains indicies of configs where K = basis_dict["K"][1]'
         )
-        print('cfx_lists_dict = ' + ut.repr2(cfgx_lists_dict, nl=2, hack_liststr=True))
+        logger.info(
+            'cfx_lists_dict = ' + ut.repr2(cfgx_lists_dict, nl=2, hack_liststr=True)
+        )
 
     # const_key = 'K'
 
@@ -664,10 +668,10 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     for const_idx, const_val in enumerate(const_basis):
         pnum = pnum_()
         if verbose:
-            print('---- NEXT PNUM=%r --- ' % (pnum,))
-            print('const_key = %r' % (const_key,))
-            print('const_val = %r' % (const_val,))
-            print('const_idx = %r' % (const_idx,))
+            logger.info('---- NEXT PNUM=%r --- ' % (pnum,))
+            logger.info('const_key = %r' % (const_key,))
+            logger.info('const_val = %r' % (const_val,))
+            logger.info('const_idx = %r' % (const_idx,))
         const_basis_cfgx_list = const_basis_cfgx_lists[const_idx]
         rank_list = ut.take(percent_le1_list, const_basis_cfgx_list)
         # Figure out what the values are for other dimensions
@@ -717,11 +721,11 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
                 + '=%r' % (const_val,)
             )
         if verbose:
-            print('title = %r' % (title,))
-            # print('nd_labels = %r' % (nd_labels,))
-            print('target_label = %r' % (target_label,))
-            print('known_nd_data = %r' % (known_nd_data,))
-            # print('known_target_points = %r' % (known_target_points,))
+            logger.info('title = %r' % (title,))
+            # logger.info('nd_labels = %r' % (nd_labels,))
+            logger.info('target_label = %r' % (target_label,))
+            logger.info('known_nd_data = %r' % (known_nd_data,))
+            # logger.info('known_target_points = %r' % (known_target_points,))
 
         # PLOT3D = not ut.get_argflag('--no3dsurf')
         # PLOT3D = ut.get_argflag('--no2dsurf')
@@ -1074,7 +1078,9 @@ def draw_rank_cmc(
     cfglbl_list = testres.get_varied_labels(shorten=True, join_acfgs=join_acfgs)
     cfglbl_to_score = ut.dzip(cfglbl_list, cfgx2_cumhist_percent.T[0])
     cfglbl_to_score = ut.sort_dict(cfglbl_to_score, part='vals')
-    print('accuracy @rank1: ' + ut.repr4(cfglbl_to_score, strkeys=True, precision=4))
+    logger.info(
+        'accuracy @rank1: ' + ut.repr4(cfglbl_to_score, strkeys=True, precision=4)
+    )
 
     cfglbl_list = testres.get_varied_labels(
         shorten=True, join_acfgs=join_acfgs, sep=kwargs.get('sep', '')
@@ -1092,7 +1098,7 @@ def draw_rank_cmc(
         '--test_cfgx_slice', type_='fuzzy_subset', default=test_cfgx_slice
     )
     if test_cfgx_slice is not None:
-        print('test_cfgx_slice = %r' % (test_cfgx_slice,))
+        logger.info('test_cfgx_slice = %r' % (test_cfgx_slice,))
         cfgx2_cumhist_percent = np.array(ut.take(cfgx2_cumhist_percent, test_cfgx_slice))
         label_list = ut.take(label_list, test_cfgx_slice)
         color_list = ut.take(color_list, test_cfgx_slice)
@@ -1199,7 +1205,7 @@ def draw_rank_cmc(
         pt.zoom_effect01(ax1, ax2, 1, numranks, ec='k', fc='w')
 
     icon = ibs.get_database_icon()
-    # print('draw_icon = %r' % (draw_icon,))
+    # logger.info('draw_icon = %r' % (draw_icon,))
     if draw_icon and icon is not None:
         # ax = pt.gca()
         # ax.get_xlim()
@@ -1493,7 +1499,7 @@ def draw_match_cases(
     if DO_COPY_QUEUE:
         cpq = draw_helpers.IndividualResultsCopyTaskQueue()
     if ut.NOT_QUIET:
-        print('case_figdir = %r' % (case_figdir,))
+        logger.info('case_figdir = %r' % (case_figdir,))
     ##########################
 
     # ### INTERACTIVE SETUP ###
@@ -1505,7 +1511,7 @@ def draw_match_cases(
 
     def toggle_fast_mode():
         show_kwargs['fastmode'] = not show_kwargs['fastmode']
-        print("show_kwargs['fastmode'] = %r" % (show_kwargs['fastmode'],))
+        logger.info("show_kwargs['fastmode'] = %r" % (show_kwargs['fastmode'],))
 
     custom_actions = [
         ('present', ['s'], 'present', pt.present),
@@ -1555,11 +1561,11 @@ def draw_match_cases(
         truth2_prop, prop2_mat = testres.get_truth2_prop()
 
         if 0 or ut.VERBOSE:
-            print('=== QUERY INFO ===')
-            print('=== QUERY INFO ===')
-            print('qaid = %r' % (qaid,))
-            print('qx = %r' % (qx,))
-            print('cfgxs = %r' % (cfgxs,))
+            logger.info('=== QUERY INFO ===')
+            logger.info('=== QUERY INFO ===')
+            logger.info('qaid = %r' % (qaid,))
+            logger.info('qx = %r' % (qx,))
+            logger.info('cfgxs = %r' % (cfgxs,))
             # print testres info about this item
             take_cfgs = ut.partial(ut.take, index_list=cfgxs)
             take_qx = ut.partial(ut.take, index_list=qx)
@@ -1567,8 +1573,8 @@ def draw_match_cases(
             truth_item = ut.hmap_vals(take_cfgs, truth_cfgs, max_depth=1)
             prop_cfgs = ut.hmap_vals(take_qx, prop2_mat)
             prop_item = ut.hmap_vals(take_cfgs, prop_cfgs, max_depth=0)
-            print('truth2_prop[item] = ' + ut.repr3(truth_item, nl=2))
-            print('prop2_mat[item] = ' + ut.repr3(prop_item, nl=1))
+            logger.info('truth2_prop[item] = ' + ut.repr3(truth_item, nl=2))
+            logger.info('prop2_mat[item] = ' + ut.repr3(prop_item, nl=1))
 
         if show_in_notebook:
             # hack to show vertical line in notebook separate configs
@@ -1609,7 +1615,7 @@ def draw_match_cases(
                     qaid,
                     cfgx,
                 )
-                print('bar_label = %r' % (bar_label,))
+                logger.info('bar_label = %r' % (bar_label,))
                 if show_in_notebook:
                     # hack to show vertical line in notebook
                     if len(cfg_colors) > 0:
@@ -1642,14 +1648,14 @@ def draw_match_cases(
                 if cmdaug is not None:
                     # Hack for candidacy
                     analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
-                    print('analysis_fpath = %r' % (analysis_fpath,))
+                    logger.info('analysis_fpath = %r' % (analysis_fpath,))
                 if show_in_notebook:
                     pt.plt.show()
 
                 # elif not show:
                 if False:
                     fig = pt.gcf()
-                    print('analysis_fpath = %r' % (analysis_fpath,))
+                    logger.info('analysis_fpath = %r' % (analysis_fpath,))
                     fig.savefig(analysis_fpath)
                     vt.clipwhite_ondisk(
                         analysis_fpath, analysis_fpath, verbose=ut.VERBOSE

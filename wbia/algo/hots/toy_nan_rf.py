@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
 import numpy as np
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def get_toydata(rng):
@@ -155,7 +157,7 @@ def toydata1(rng):
 def show_nan_decision_function_2d(X, y, X_true, clf):
     import numpy as np
 
-    print('Drawing')
+    logger.info('Drawing')
 
     # Now plot the decision boundary using a fine mesh as input to a
     # filled contour plot
@@ -205,9 +207,9 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
     sm.set_array(np.linspace(0, 1))
 
     color0 = cmap(0)
-    print('color0 = %r' % (color0,))
+    logger.info('color0 = %r' % (color0,))
     color1 = cmap(1.0)
-    print('color1 = %r' % (color1,))
+    logger.info('color1 = %r' % (color1,))
 
     def draw_line_segments(pts1, pts2, ax=None, **kwargs):
         import matplotlib as mpl
@@ -341,13 +343,13 @@ def main():
     from sklearn.ensemble import RandomForestClassifier
 
     rng = np.random.RandomState(42)
-    print('Creating test data')
+    logger.info('Creating test data')
 
     X_true, X, y = get_toydata(rng)
 
     assert len(X) == len(y)
 
-    print('Fitting RF on %d points' % (len(X),))
+    logger.info('Fitting RF on %d points' % (len(X),))
     # Train uncalibrated random forest classifier on train data
     clf = RandomForestClassifier(
         n_estimators=64,

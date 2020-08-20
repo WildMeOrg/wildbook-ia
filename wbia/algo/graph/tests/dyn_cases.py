@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 from wbia.algo.graph import demo
 import utool as ut
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def do_infr_test(ccs, edges, new_edges):
@@ -111,7 +113,7 @@ def do_infr_test(ccs, edges, new_edges):
             if errors:
                 ut.cprint('PRINTING %d FAILURE' % (len(errors)), 'red')
                 for msg in errors:
-                    print(msg)
+                    logger.info(msg)
                 ut.cprint('HAD %d FAILURE' % (len(errors)), 'red')
             if ut.show_was_requested():
                 pt.all_figures_tile(percent_w=0.5)
@@ -255,10 +257,10 @@ def case_redo_incon():
     infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
     maybe_splits = infr2.get_edge_attrs('maybe_error', default=None)
-    print('maybe_splits = %r' % (maybe_splits,))
+    logger.info('maybe_splits = %r' % (maybe_splits,))
     if not any(maybe_splits.values()):
         ut.cprint('FAILURE', 'red')
-        print('At least one edge should be marked as a split')
+        logger.info('At least one edge should be marked as a split')
 
     check.after()
 
@@ -660,15 +662,15 @@ def case_all_types():
         state = d.get('inferred_state', '')
         if u < 20 or v < 20:
             if state is not None and 'inconsistent' not in state:
-                print('u, v, state = %r, %r, %r' % (u, v, state))
+                logger.info('u, v, state = %r, %r, %r' % (u, v, state))
                 err = AssertionError('all of cc0 should be incon')
-                print(err)
+                logger.info(err)
                 errors.append(err)
         else:
             if state is not None and 'inconsistent' in state:
-                print('u, v, state = %r, %r, %r' % (u, v, state))
+                logger.info('u, v, state = %r, %r, %r' % (u, v, state))
                 err = AssertionError('outside of cc0 should not be incon')
-                print(err)
+                logger.info(err)
                 errors.append(err)
     check(
         infr1,

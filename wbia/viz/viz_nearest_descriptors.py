@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 from six.moves import range
 from wbia.plottool import draw_func2 as df2
@@ -8,6 +9,7 @@ import wbia.plottool as pt  # NOQA
 import six  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
@@ -29,7 +31,7 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
     K = qreq_.qparams.K
     Knorm = qreq_.qparams.Knorm
     if ut.VERBOSE:
-        print('Knorm = %r' % (Knorm,))
+        logger.info('Knorm = %r' % (Knorm,))
     qfx2_idx, qfx2_dist = qreq_.indexer.knn(qfx2_vecs, 10)
 
     if special:
@@ -47,8 +49,8 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
         flags_first = flags[:, 0:K]
         flags_last = flags[:, K:]
         num_gt_matches = flags_first.sum(axis=1) - flags_last.sum(axis=1)
-        print('num_gt_matches = %r' % (num_gt_matches,))
-        print(num_gt_matches.max())
+        logger.info('num_gt_matches = %r' % (num_gt_matches,))
+        logger.info(num_gt_matches.max())
         has_good_num = num_gt_matches >= num_gt_matches.max() - 1
         candidate_qfxs = np.where(has_good_num)[0]
 
@@ -59,13 +61,13 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
         cand_dist_gf = cand_dist * ~cand_flags
         cand_score = cand_dist_gt.sum(axis=1) - cand_dist_gf.sum(axis=1)
         top_candxs = cand_score.argsort()
-        print('cand_nids = %r' % (cand_nids,))
-        print('top_candxs = %r' % (top_candxs,))
+        logger.info('cand_nids = %r' % (cand_nids,))
+        logger.info('top_candxs = %r' % (top_candxs,))
 
         cand_idx = top_candxs[1]
         # cand_idx = ut.take_percentile(top_candxs, .1)[-1]
         qfx = candidate_qfxs[cand_idx]
-        print('qfx = %r' % (qfx,))
+        logger.info('qfx = %r' % (qfx,))
         qfx2_dist = qfx2_dist[qfx : (qfx + 1)]
         qfx2_idx = qfx2_idx[qfx : (qfx + 1)]
 
@@ -355,6 +357,6 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
         # df2.adjust_subplots(hspace=.85, wspace=0, top=.95, bottom=.087, left=.05, right=.95)
 
     except Exception as ex:
-        print('[viz] Error in show nearest descriptors')
-        print(ex)
+        logger.info('[viz] Error in show nearest descriptors')
+        logger.info(ex)
         raise

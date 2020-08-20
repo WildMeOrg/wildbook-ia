@@ -5,6 +5,7 @@ sh Tgen.sh --key test --invert --Tcfg with_getters=True with_setters=False --mod
 
 # TODO: Fix this name it is too special case
 """
+import logging
 import six  # NOQA
 from six.moves import zip
 import ubelt as ub  # NOQA
@@ -15,6 +16,7 @@ import uuid
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
@@ -124,7 +126,7 @@ def delete_test(ibs, test_rowid_list):
         URL:    /api/test/
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d tests' % len(test_rowid_list))
+        logger.info('[ibs] deleting %d tests' % len(test_rowid_list))
     ibs.staging.delete_rowids(const.TEST_TABLE, test_rowid_list)
 
 

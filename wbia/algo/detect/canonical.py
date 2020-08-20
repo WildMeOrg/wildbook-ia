@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
+import logging
 from os.path import expanduser, join
 import utool as ut
 import numpy as np
@@ -12,6 +13,7 @@ import copy
 import PIL
 
 (print, rrr, profile) = ut.inject2(__name__, '[canonical]')
+logger = logging.getLogger('wbia')
 
 
 INPUT_SIZE = 224
@@ -34,10 +36,10 @@ if not ut.get_argflag('--no-pytorch'):
         import torch.optim as optim
         import torchvision
 
-        print('PyTorch Version: ', torch.__version__)
-        print('Torchvision Version: ', torchvision.__version__)
+        logger.info('PyTorch Version: ', torch.__version__)
+        logger.info('Torchvision Version: ', torchvision.__version__)
     except ImportError:
-        print('WARNING Failed to import pytorch. ' 'PyTorch is unavailable')
+        logger.info('WARNING Failed to import pytorch. ' 'PyTorch is unavailable')
         if ut.SUPER_STRICT:
             raise
 
@@ -95,7 +97,7 @@ if not ut.get_argflag('--no-pytorch'):
     except ImportError:
         AGUEMTNATION = {}
         TRANSFORMS = {}
-        print(
+        logger.info(
             'WARNING Failed to import imgaug. '
             'install with pip install git+https://github.com/aleju/imgaug'
         )
@@ -196,8 +198,8 @@ def finetune(
         start_batch = time.time()
 
         lr = optimizer.param_groups[0]['lr']
-        print('Epoch {}/{} (lr = {:0.06f})'.format(epoch, num_epochs - 1, lr))
-        print('-' * 10)
+        logger.info('Epoch {}/{} (lr = {:0.06f})'.format(epoch, num_epochs - 1, lr))
+        logger.info('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in phases:
@@ -296,7 +298,7 @@ def finetune(
             x1 *= INPUT_SIZE
             y1 *= INPUT_SIZE
             best_str = '!' if best else ''
-            print(
+            logger.info(
                 '{:<5} Loss: {:.4f}\t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)\t{}'.format(
                     phase, epoch_loss, x0, y0, x1, y1, best_str
                 )
@@ -307,7 +309,7 @@ def finetune(
             y0_ *= INPUT_SIZE
             x1_ *= INPUT_SIZE
             y1_ *= INPUT_SIZE
-            print(
+            logger.info(
                 '{:<5} Under Loss: \t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)'.format(
                     phase, x0_, y0_, x1_, y1_
                 )
@@ -318,7 +320,7 @@ def finetune(
             y0_ *= INPUT_SIZE
             x1_ *= INPUT_SIZE
             y1_ *= INPUT_SIZE
-            print(
+            logger.info(
                 '{:<5}  Over Loss: \t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)'.format(
                     phase, x0_, y0_, x1_, y1_
                 )
@@ -337,24 +339,24 @@ def finetune(
                 scheduler.step(epoch_loss)
 
                 time_elapsed_batch = time.time() - start_batch
-                print(
+                logger.info(
                     'time: {:.0f}m {:.0f}s'.format(
                         time_elapsed_batch // 60, time_elapsed_batch % 60
                     )
                 )
 
                 ratio = last_loss['train'] / last_loss['val']
-                print('ratio: {:.04f}'.format(ratio))
+                logger.info('ratio: {:.04f}'.format(ratio))
 
-        print('\n')
+        logger.info('\n')
 
     time_elapsed = time.time() - start
-    print(
+    logger.info(
         'Training complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60
         )
     )
-    print('Suggested correction offsets: %r' % (best_correction,))
+    logger.info('Suggested correction offsets: %r' % (best_correction,))
 
     # load best model weights
     model.load_state_dict(best_model_state)
@@ -365,7 +367,7 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
     import matplotlib.pyplot as plt
 
     samples = dataset.samples
-    print('Dataset %r has %d samples' % (tag, len(samples),))
+    logger.info('Dataset %r has %d samples' % (tag, len(samples),))
 
     index_list = list(range(len(samples)))
     random.shuffle(index_list)
@@ -402,7 +404,7 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
 
     augment = augmentation()
     for index in range(len(indices) - 1):
-        print(index)
+        logger.info(index)
         images_ = [augment(image.copy()) for image in images]
         canvas = np.hstack(images_)
         canvas_list.append(canvas)
@@ -422,7 +424,7 @@ def train(data_path, output_path, batch_size=32):
 
     phases = ['train', 'val']
 
-    print('Initializing Datasets and Dataloaders...')
+    logger.info('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
     filepaths = {
@@ -445,7 +447,7 @@ def train(data_path, output_path, batch_size=32):
         for phase in phases
     }
 
-    print('Initializing Model...')
+    logger.info('Initializing Model...')
 
     # Initialize the model for this run
     model = torchvision.models.densenet201(pretrained=True)
@@ -455,19 +457,19 @@ def train(data_path, output_path, batch_size=32):
     # Send the model to GPU
     model = model.to(device)
 
-    print('Print Examples of Training Augmentation...')
+    logger.info('Print Examples of Training Augmentation...')
 
     for phase in phases:
         visualize_augmentations(datasets[phase], AGUEMTNATION[phase], phase)
 
-    print('Initializing Optimizer...')
+    logger.info('Initializing Optimizer...')
 
-    # print('Params to learn:')
+    # logger.info('Params to learn:')
     params_to_update = []
     for name, param in model.named_parameters():
         if param.requires_grad:
             params_to_update.append(param)
-            # print('\t', name)
+            # logger.info('\t', name)
 
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(params_to_update, lr=0.0005, momentum=0.9)
@@ -476,7 +478,7 @@ def train(data_path, output_path, batch_size=32):
         optimizer, 'min', factor=0.5, patience=16, min_lr=1e-6
     )
 
-    print('Start Training...')
+    logger.info('Start Training...')
 
     # Train and evaluate
     model = finetune(model, dataloaders, optimizer, scheduler, device)
@@ -497,7 +499,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
 
-    print('Initializing Datasets and Dataloaders...')
+    logger.info('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
     dataset = ImageFilePathList(
@@ -509,7 +511,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
         dataset, batch_size=batch_size, num_workers=0, pin_memory=using_gpu
     )
 
-    print('Initializing Model...')
+    logger.info('Initializing Model...')
     try:
         weights = torch.load(weights_path)
     except RuntimeError:
@@ -542,7 +544,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     outputs = np.vstack(outputs)
 
     time_elapsed = time.time() - start
-    print(
+    logger.info(
         'Testing complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60
         )
@@ -616,7 +618,7 @@ def test(gpath_list, canonical_weight_filepath=None, **kwargs):
         weights_path_list = [weights_path_list[ensemble_index]]
         assert len(weights_path_list) > 0
 
-    print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list),))
+    logger.info('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list),))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
     for result in result_list:
         x0 = max(result['x0'], 0.0)

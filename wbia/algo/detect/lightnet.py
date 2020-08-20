@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
+import logging
 import utool as ut
 from six.moves import zip
 import numpy as np
@@ -8,6 +9,7 @@ from tqdm import tqdm
 import cv2
 
 (print, rrr, profile) = ut.inject2(__name__, '[lightnet]')
+logger = logging.getLogger('wbia')
 
 
 if not ut.get_argflag('--no-lightnet'):
@@ -16,7 +18,7 @@ if not ut.get_argflag('--no-lightnet'):
         from torchvision import transforms as tf
         import lightnet as ln
     except ImportError:
-        print(
+        logger.info(
             'WARNING Failed to import lightnet. '
             'PyDarknet YOLO detection is unavailable'
         )
@@ -130,10 +132,10 @@ def _create_network(
     """Create the lightnet network."""
     device = torch.device('cpu')
     if torch.cuda.is_available():
-        print('[lightnet] CUDA enabled')
+        logger.info('[lightnet] CUDA enabled')
         device = torch.device('cuda')
     else:
-        print('[lightnet] CUDA not available')
+        logger.info('[lightnet] CUDA not available')
 
     params = ln.engine.HyperParameters.from_file(config_filepath)
     params.load(weight_filepath)

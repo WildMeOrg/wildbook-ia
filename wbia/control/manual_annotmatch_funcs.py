@@ -10,6 +10,7 @@ ToRegenerate:
     python -m wbia.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --diff
     python -m wbia.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
+import logging
 import functools  # NOQA
 import six  # NOQA
 from six.moves import map, range, zip  # NOQA
@@ -19,6 +20,7 @@ from wbia.control import controller_inject
 from wbia.control import accessor_decors  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -167,7 +169,7 @@ def delete_annotmatch(ibs, annotmatch_rowid_list):
     # from wbia.algo.preproc import preproc_annotmatch
     # NO EXTERN IMPORT
     if ut.VERBOSE:
-        print('[ibs] deleting %d annotmatch rows' % len(annotmatch_rowid_list))
+        logger.info('[ibs] deleting %d annotmatch rows' % len(annotmatch_rowid_list))
     # Prepare: Delete externally stored data (if any)
     # preproc_annotmatch.on_delete(ibs, annotmatch_rowid_list, config2_=config2_)
     # NO EXTERN DELETE

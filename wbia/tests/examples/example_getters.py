@@ -4,6 +4,7 @@
 Example of interfacing with IBEIS getters
 First run ~/code/wbia/reset_dbs.sh to ensure you have the testdata
 """
+import logging
 import os
 import sys
 import multiprocessing
@@ -13,6 +14,7 @@ import utool  # Useful Utility Tools
 sys.path.append(os.path.expanduser('~/code/wbia'))  # Put IBEIS in PYTHONPATH  # NOQA
 
 (print, rrr, profile) = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def run_example(ibs):

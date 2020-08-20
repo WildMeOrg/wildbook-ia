@@ -2,6 +2,7 @@
 """
 python -m utool.util_inspect check_module_usage --pat="chip_match.py"
 """
+import logging
 import copy
 import numpy as np
 import utool as ut
@@ -16,6 +17,7 @@ from wbia.algo.hots import name_scoring
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class NeedRecomputeError(Exception):
@@ -254,7 +256,7 @@ class _ChipMatchVisualization(object):
             # cm_orig.assert_self(qreq_)
             # other_aids = qreq_.daids
             # Hack to get rid of key error
-            print('CHIP HAS NO GROUND TRUTH MATCHES')
+            logger.info('CHIP HAS NO GROUND TRUTH MATCHES')
             cm.assert_self(verbose=False)
             cm2 = cm.extend_results(qreq_)
             cm2.assert_self(verbose=False)
@@ -520,7 +522,7 @@ class _ChipMatchVisualization(object):
         }
         if aid2 is None:
             aid2 = cm.get_top_aids(ntop=1)[0]
-        print('[cm] ishow_single_annotmatch aids(%s, %s)' % (cm.qaid, aid2,))
+        logger.info('[cm] ishow_single_annotmatch aids(%s, %s)' % (cm.qaid, aid2,))
         kwshow.update(**kwargs)
         try:
             inter = interact_matches.MatchInteraction(
@@ -769,19 +771,19 @@ class _ChipMatchVisualization(object):
             >>> import wbia.guitool
             >>> guitool.qtapp_loop(qwin=qres_wgt)
         """
-        print('[cm] qt_inspect_gui')
+        logger.info('[cm] qt_inspect_gui')
         from wbia.gui import inspect_gui
         from wbia import guitool
 
         guitool.ensure_qapp()
         cm_list = [cm]
-        print('[inspect_matches] make_qres_widget')
+        logger.info('[inspect_matches] make_qres_widget')
         qres_wgt = inspect_gui.QueryResultsWidget(
             ibs, cm_list, ranks_top=ranks_top, name_scoring=name_scoring, qreq_=qreq_
         )
-        print('[inspect_matches] show')
+        logger.info('[inspect_matches] show')
         qres_wgt.show()
-        print('[inspect_matches] raise')
+        logger.info('[inspect_matches] raise')
         qres_wgt.raise_()
         return qres_wgt
 
@@ -994,8 +996,8 @@ class _BaseVisualization(object):
             'show_timedelta': True,
         }
         kwshow.update(kwargs)
-        # print('\n')
-        # print("???? HACK SHOW QRES ANALYSIS")
+        # logger.info('\n')
+        # logger.info("???? HACK SHOW QRES ANALYSIS")
         return viz_qres.show_qres_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
 
     def ishow_analysis(cm, qreq_, **kwargs):
@@ -1016,8 +1018,8 @@ class _BaseVisualization(object):
         HACK FOR ANNOT MATCH
         """
         # HACK FOR ANNOT MATCH (HUMPBACKS)
-        # print('\n')
-        # print("???? HACK SHOW SINGLE NAME MATCH")
+        # logger.info('\n')
+        # logger.info("???? HACK SHOW SINGLE NAME MATCH")
         from wbia.viz import viz_matches
 
         qaid = cm.qaid
@@ -1060,7 +1062,7 @@ class _BaseVisualization(object):
         name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
 
         kwargs = kwargs.copy()
-        # print('kwargs.copy = %r' % (kwargs,))
+        # logger.info('kwargs.copy = %r' % (kwargs,))
         # draw_fmatches = kwargs.get('draw_fmatches', True)
         # MEGAHACK TO DEAL WITH OLD EXPLICIT ELLIPSE FEATURES
         kwargs['draw_fmatches'] = kwargs.get('draw_ell', True)
@@ -1231,7 +1233,7 @@ class _AnnotMatchConvenienceGetter(object):
         y_true = annot_df['truth'].values
         y_score = annot_df['score'].values
         avep = sklearn.metrics.average_precision_score(y_true, y_score)
-        print('avep = %r' % (avep,))
+        logger.info('avep = %r' % (avep,))
         return avep
 
     def get_name_ave_precision(cm):
@@ -1241,7 +1243,7 @@ class _AnnotMatchConvenienceGetter(object):
         y_true = name_df['truth'].values
         y_score = name_df['score'].values
         avep = sklearn.metrics.average_precision_score(y_true, y_score)
-        print('avep = %r' % (avep,))
+        logger.info('avep = %r' % (avep,))
         return avep
 
     def get_top_scores(cm, ntop=None):
@@ -1536,7 +1538,9 @@ class AnnotMatch(
         if ut.VERBOSE:
             other_keys = list(set(class_dict.keys()) - set(key_list))
             if len(other_keys) > 0:
-                print('Not unserializing extra attributes: %s' % (ut.repr2(other_keys)))
+                logger.info(
+                    'Not unserializing extra attributes: %s' % (ut.repr2(other_keys))
+                )
 
         if ibs is not None:
             class_dict = prepare_dict_uuids(class_dict, ibs)
@@ -1708,22 +1712,22 @@ class _ChipMatchDebugger(object):
     # ------------------
 
     def print_inspect_str(cm, qreq_):
-        print(cm.get_inspect_str(qreq_))
+        logger.info(cm.get_inspect_str(qreq_))
 
     def print_rawinfostr(cm):
-        print(cm.get_rawinfostr())
+        logger.info(cm.get_rawinfostr())
 
     def print_csv(cm, *args, **kwargs):
-        print(cm.get_cvs_str(*args, **kwargs))
+        logger.info(cm.get_cvs_str(*args, **kwargs))
 
     def inspect_difference(cm, other, verbose=True):
-        print('Checking difference')
+        logger.info('Checking difference')
         raw_infostr1 = cm.get_rawinfostr(colored=False)
         raw_infostr2 = other.get_rawinfostr(colored=False)
         difftext = ut.get_textdiff(raw_infostr1, raw_infostr2, num_context_lines=4)
         if len(difftext) == 0:
             if verbose:
-                print('no difference')
+                logger.info('no difference')
             return True
         else:
             if verbose:
@@ -1931,7 +1935,7 @@ class _ChipMatchDebugger(object):
         """
         if not sort or cm.score_list is None:
             if sort:
-                print('Warning: cm.score_list is None and sort is True')
+                logger.info('Warning: cm.score_list is None and sort is True')
             sortx = list(range(len(cm.daid_list)))
         else:
             sortx = ut.list_argsort(cm.score_list, reverse=True)
@@ -2248,8 +2252,8 @@ class ChipMatch(
             super(ChipMatch, cm).__init__(*args, **kwargs)
         except TypeError:
             # Hack for ipython reload
-            print('id(cm.__class__) = %r' % (id(cm.__class__),))
-            print('id(ChipMatch) = %r' % (id(ChipMatch),))
+            logger.info('id(cm.__class__) = %r' % (id(cm.__class__),))
+            logger.info('id(ChipMatch) = %r' % (id(ChipMatch),))
             # import utool
             # utool.embed()
             # assert id(cm.__class__) > id(ChipMatch)
@@ -2747,7 +2751,7 @@ class ChipMatch(
 
     def sortself(cm):
         """ reorders the internal data using cm.score_list """
-        print('Warning using sortself')
+        logger.info('Warning using sortself')
         sortx = cm.argsort()
         cm.daid_list = vt.trytake(cm.daid_list, sortx)
         cm.dnid_list = vt.trytake(cm.dnid_list, sortx)
@@ -2799,7 +2803,9 @@ class ChipMatch(
         if ut.VERBOSE:
             other_keys = list(set(class_dict.keys()) - set(key_list))
             if len(other_keys) > 0:
-                print('Not unserializing extra attributes: %s' % (ut.repr2(other_keys)))
+                logger.info(
+                    'Not unserializing extra attributes: %s' % (ut.repr2(other_keys))
+                )
 
         if ibs is not None:
             class_dict = prepare_dict_uuids(class_dict, ibs)
@@ -2873,7 +2879,7 @@ class ChipMatch(
         # can't encode dictionaries with integer keys
         # this means you need to rebuild indexes on reconstruction
         ut.delete_dict_keys(data, ['daid2_idx', 'nid2_nidx'])
-        # print('data = %r' % (list(data.keys()),))
+        # logger.info('data = %r' % (list(data.keys()),))
         json_str = ut.to_json(data)
         return json_str
 
@@ -2926,11 +2932,11 @@ class TestLogger(object):
 
     def log_skipped(testlog, msg):
         if testlog.verbose:
-            print('[cm] skip: ' + msg)
+            logger.info('[cm] skip: ' + msg)
 
     def log_passed(testlog, msg):
         if testlog.verbose:
-            print('[cm] pass: ' + msg)
+            logger.info('[cm] pass: ' + msg)
 
     def skip_test(testlog):
         testlog.log_skipped(testlog.current_test)
@@ -2939,7 +2945,7 @@ class TestLogger(object):
     def log_failed(testlog, msg):
         testlog.test_out[testlog.current_test].append(msg)
         testlog.failed_list.append(msg)
-        print('[cm] FAILED!: ' + msg)
+        logger.info('[cm] FAILED!: ' + msg)
 
     def end_test(testlog):
         if len(testlog.test_out[testlog.current_test]) == 0:
@@ -2998,12 +3004,12 @@ def get_chipmatch_fname(
         qaid=18_cm_cvgrsbnffsgifyom_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl
     """
     if qauuid is None:
-        print('[chipmatch] Warning: qasuuid should be given')
+        logger.info('[chipmatch] Warning: qasuuid should be given')
         qauuid = next(qreq_.get_qreq_pcc_uuids([qaid]))
     if cfgstr is None:
-        print('[chipmatch] Warning: cfgstr should be passed given')
+        logger.info('[chipmatch] Warning: cfgstr should be passed given')
         cfgstr = qreq_.get_cfgstr(with_input=True)
-    # print('cfgstr = %r' % (cfgstr,))
+    # logger.info('cfgstr = %r' % (cfgstr,))
     fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={qauuid}{ext}'
     text_type = six.text_type
     # text_type = str

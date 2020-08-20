@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import wbia.plottool as pt
 import utool as ut
 import numpy as np
@@ -8,6 +9,7 @@ from wbia.viz import viz_chip
 from wbia.viz import viz_matches  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 DEFAULT_NTOP = 3
@@ -86,7 +88,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         >>> ut.show_if_requested()
     """
     if ut.NOT_QUIET:
-        print('[show_qres] cm.show_analysis()')
+        logger.info('[show_qres] cm.show_analysis()')
     # Parse arguments
     N = kwargs.get('N', DEFAULT_NTOP)
     show_gt = kwargs.pop('show_gt', True)
@@ -102,7 +104,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         top_aids = cm.get_top_aids(N)
         if len(top_aids) == 0:
             failed_to_match = True
-            print('WARNING! No matches found for this query')
+            logger.info('WARNING! No matches found for this query')
         if figtitle is None:
             if len(top_aids) == 0:
                 figtitle = 'WARNING: no matches found!' + ibsfuncs.aidstr(cm.qaid)
@@ -110,7 +112,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
                 topscore = cm.get_annot_scores(top_aids)[0]
                 figtitle = 'q%s -- topscore=%r' % (ibsfuncs.aidstr(cm.qaid), topscore)
     else:
-        print('[analysis] showing a given list of aids')
+        logger.info('[analysis] showing a given list of aids')
         top_aids = aid_list
         if figtitle is None:
             figtitle = 'comparing to ' + ibsfuncs.aidstr(top_aids) + figtitle
@@ -258,7 +260,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     fnum = pt.ensure_fnum(kwargs.get('fnum', None))
 
     if ut.VERBOSE and ut.NOT_QUIET:
-        print(
+        logger.info(
             'query_info = '
             + ut.repr2(
                 ibs.get_annot_info(
@@ -272,7 +274,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                 nl=4,
             )
         )
-        print(
+        logger.info(
             'top_aids_info = '
             + ut.repr2(
                 ibs.get_annot_info(
@@ -316,7 +318,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         raise
 
     if ut.DEBUG2:
-        print(cm.get_inspect_str())
+        logger.info(cm.get_inspect_str())
 
     # --------------------------------------------------
     # Get grid / cell information to build subplot grid
@@ -346,23 +348,23 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         allgt_aids = ibs.get_annot_groundtruth(cm.qaid)
         nSelGt = len(gt_aids)
         nAllGt = len(allgt_aids)
-        print('[show_qres]========================')
-        print('[show_qres]----------------')
-        print('[show_qres] * annot_mode=%r' % (annot_mode,))
-        print('[show_qres] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt, nAllGt))
-        print('[show_qres] * -----')
-        print('[show_qres] * nRows=%r' % (nRows,))
-        print('[show_qres] * nGtSubplts=%r' % (nGtSubplts,))
-        print('[show_qres] * nTopNSubplts=%r' % (nTopNSubplts,))
-        print('[show_qres] * nQuerySubplts=%r' % (nQuerySubplts,))
-        print('[show_qres] * -----')
-        print('[show_qres] * nGTCols=%r' % (nGTCols,))
-        print('[show_qres] * -----')
-        print('[show_qres] * fnum=%r' % (fnum,))
-        print('[show_qres] * figtitle=%r' % (figtitle,))
-        print('[show_qres] * max_nCols=%r' % (max_nCols,))
-        print('[show_qres] * show_query=%r' % (show_query,))
-        print('[show_qres] * kwargs=%s' % (ut.repr2(kwargs),))
+        logger.info('[show_qres]========================')
+        logger.info('[show_qres]----------------')
+        logger.info('[show_qres] * annot_mode=%r' % (annot_mode,))
+        logger.info('[show_qres] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt, nAllGt))
+        logger.info('[show_qres] * -----')
+        logger.info('[show_qres] * nRows=%r' % (nRows,))
+        logger.info('[show_qres] * nGtSubplts=%r' % (nGtSubplts,))
+        logger.info('[show_qres] * nTopNSubplts=%r' % (nTopNSubplts,))
+        logger.info('[show_qres] * nQuerySubplts=%r' % (nQuerySubplts,))
+        logger.info('[show_qres] * -----')
+        logger.info('[show_qres] * nGTCols=%r' % (nGTCols,))
+        logger.info('[show_qres] * -----')
+        logger.info('[show_qres] * fnum=%r' % (fnum,))
+        logger.info('[show_qres] * figtitle=%r' % (figtitle,))
+        logger.info('[show_qres] * max_nCols=%r' % (max_nCols,))
+        logger.info('[show_qres] * show_query=%r' % (show_query,))
+        logger.info('[show_qres] * kwargs=%s' % (ut.repr2(kwargs),))
 
     # HACK:
     _color_list = pt.distinct_colors(nTop)
@@ -374,7 +376,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         """ helper for show_qres """
         plotx = plotx_shift + 1
         pnum = (rowcols[0], rowcols[1], plotx)
-        # print('[viz] Plotting Query: pnum=%r' % (pnum,))
+        # logger.info('[viz] Plotting Query: pnum=%r' % (pnum,))
         _kwshow = dict(draw_kpts=annot_mode)
         _kwshow.update(kwargs)
         _kwshow['prefix'] = 'q'
@@ -402,7 +404,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             _kwshow['draw_lines'] = annot_mode in {1, 2}
             _kwshow['heatmask'] = annot_mode in {3}
         else:
-            # print('annot_mode = %r' % (annot_mode,))
+            # logger.info('annot_mode = %r' % (annot_mode,))
             _kwshow['draw_ell'] = annot_mode == 1
             # _kwshow['draw_pts'] = annot_mode >= 1
             # _kwshow['draw_lines'] = False
@@ -444,7 +446,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                 )
 
         if DEBUG_SHOW_QRES:
-            print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
+            logger.info('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
         if aid_list is None:
             return
         # Do lazy load before show
@@ -476,10 +478,10 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                 else:
                     _show_matches_fn(aid, orank, pnum)
                 # if DEBUG_SHOW_QRES:
-                #    print('skipping pnum=%r' % (pnum,))
+                #    logger.info('skipping pnum=%r' % (pnum,))
                 continue
             if DEBUG_SHOW_QRES:
-                print('pnum=%r' % (pnum,))
+                logger.info('pnum=%r' % (pnum,))
             orank = oranks[0] + 1
             _show_matches_fn(aid, orank, pnum)
 

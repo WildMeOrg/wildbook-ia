@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 from wbia import constants as const
 from wbia.control.accessor_decors import adder, getter_1to1, ider
 import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)

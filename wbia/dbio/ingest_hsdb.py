@@ -4,6 +4,7 @@
 Converts a hotspostter database to IBEIS
 """
 # TODO: ADD COPYRIGHT TAG
+import logging
 from os.path import join, exists
 from wbia import constants as const
 from wbia.init import sysres
@@ -13,6 +14,7 @@ import re
 import csv
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
@@ -155,13 +157,13 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
 
     if dbdir is None:
         dbdir = hsdir
-    print('[ingest] Ingesting hsdb: %r -> %r' % (hsdir, dbdir))
+    logger.info('[ingest] Ingesting hsdb: %r -> %r' % (hsdir, dbdir))
 
     assert is_hsdb(
         hsdir
     ), 'not a hotspotter database. cannot even force convert: hsdir=%r' % (hsdir,)
     assert not is_succesful_convert(dbdir), 'hsdir=%r is already converted' % (hsdir,)
-    # print('FORCE DELETE: %r' % (hsdir,))
+    # logger.info('FORCE DELETE: %r' % (hsdir,))
     # ibsfuncs.delete_wbia_database(hsdir)
     imgdir = join(hsdir, 'images')
 
@@ -206,16 +208,16 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
 
     ut.debug_duplicate_items(image_gpath_list)
-    # print(image_gpath_list)
+    # logger.info(image_gpath_list)
     image_exist_flags = list(map(exists, image_gpath_list))
     missing_images = []
     for image_gpath, flag in zip(image_gpath_list, image_exist_flags):
         if not flag:
             missing_images.append(image_gpath)
-            print('Image does not exist: %s' % image_gpath)
+            logger.info('Image does not exist: %s' % image_gpath)
 
     if not all(image_exist_flags):
-        print(
+        logger.info(
             'Only %d / %d image exist' % (sum(image_exist_flags), len(image_exist_flags))
         )
 
@@ -231,7 +233,7 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
         for gpath in missing_images:
             gname = basename(gpath)
             if gname not in basename_to_existing:
-                print('gname = %r' % (gname,))
+                logger.info('gname = %r' % (gname,))
                 pass
             else:
                 existing = basename_to_existing[gname]
@@ -243,7 +245,7 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
                     found = existing[0]
                     can_copy_list.append((found, gpath))
                 else:
-                    print(existing)
+                    logger.info(existing)
 
         src, dst = ut.listT(can_copy_list)
         ut.copy_list(src, dst)
@@ -301,10 +303,10 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
     IGNORE_MISSING_IMAGES = True
     if IGNORE_MISSING_IMAGES:
         # Ignore missing information
-        print('pre')
-        print('chips = %r' % (chips,))
-        print('images = %r' % (images,))
-        print('names = %r' % (names,))
+        logger.info('pre')
+        logger.info('chips = %r' % (chips,))
+        logger.info('images = %r' % (images,))
+        logger.info('names = %r' % (names,))
         missing_gxs = ut.where(ut.not_list(images['exists']))
         missing_gids = ut.take(images['hs_gid'], missing_gxs)
         gid_to_cxs = ut.dzip(*chips.group_indicies('hs_gid'))
@@ -315,15 +317,15 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
         valid_nids = set(chips['hs_nid'] + [0])
         isvalid = [nid in valid_nids for nid in names['hs_nid']]
         names = names.compress(isvalid)
-        print('post')
-        print('chips = %r' % (chips,))
-        print('images = %r' % (images,))
-        print('names = %r' % (names,))
+        logger.info('post')
+        logger.info('chips = %r' % (chips,))
+        logger.info('images = %r' % (images,))
+        logger.info('names = %r' % (names,))
 
     assert all(images['exists']), 'some images dont exist'
 
     # if gid is None:
-    #     print('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
+    #     logger.info('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
     #     # continue
     # # Build mappings to new indexes
     # names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in zip(hs_nid_list, nid_list)}
@@ -339,10 +341,10 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
 
     if True:
         # Remove corrupted images
-        print('pre')
-        print('chips = %r' % (chips,))
-        print('images = %r' % (images,))
-        print('names = %r' % (names,))
+        logger.info('pre')
+        logger.info('chips = %r' % (chips,))
+        logger.info('images = %r' % (images,))
+        logger.info('names = %r' % (names,))
         missing_gxs = ut.where(ut.flag_None_items(images['ibs_gid']))
         missing_gids = ut.take(images['hs_gid'], missing_gxs)
         gid_to_cxs = ut.dzip(*chips.group_indicies('hs_gid'))
@@ -350,10 +352,10 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
         # Remove missing images and dependant chips
         chips = chips.remove(missing_cxs)
         images = images.remove(missing_gxs)
-        print('post')
-        print('chips = %r' % (chips,))
-        print('images = %r' % (images,))
-        print('names = %r' % (names,))
+        logger.info('post')
+        logger.info('chips = %r' % (chips,))
+        logger.info('images = %r' % (images,))
+        logger.info('names = %r' % (names,))
 
     # Index chips using new ibs rowids
     ibs_gid_lookup = ut.dzip(images['hs_gid'], images['ibs_gid'])
@@ -383,5 +385,5 @@ def convert_hsdb_to_wbia(hsdir, dbdir=None, **kwargs):
     # Write file flagging successful conversion
     with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:
         file_.write('Successfully converted hsdir=%r' % (hsdir,))
-    print('finished ingest')
+    logger.info('finished ingest')
     return ibs

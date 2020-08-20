@@ -30,6 +30,7 @@ Example:
     >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
     >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
+import logging
 from six.moves import zip, map, range
 import wbia
 import os
@@ -41,6 +42,7 @@ import vtool as vt
 import parse
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 """
@@ -149,7 +151,7 @@ class Ingestable2(object):
         self.ingest_config = IngestConfig(**updatekw)
 
     def execute(self, ibs=None):
-        print('[ingest_rawdata] Ingestable' + str(self))
+        logger.info('[ingest_rawdata] Ingestable' + str(self))
         assert ibs is not None
 
         unzipped_file_base_dir = join(ibs.get_dbdir(), 'unzipped_files')
@@ -215,14 +217,14 @@ class Ingestable2(object):
         gid_list_ = ibs.add_images(gpath_list)
 
         # <DEBUG>
-        # print('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
+        # logger.info('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
         unique_gids = list(set(gid_list_))
-        print('[ingest] Length gid list: %d' % len(gid_list_))
-        print('[ingest] Length unique gid list: %d' % len(unique_gids))
+        logger.info('[ingest] Length gid list: %d' % len(gid_list_))
+        logger.info('[ingest] Length unique gid list: %d' % len(unique_gids))
         assert len(gid_list_) == len(gpath_list)
         for gid in gid_list_:
             if gid is None:
-                print('[ingest] big fat warning')
+                logger.info('[ingest] big fat warning')
         # </DEBUG>
         gid_list = ut.filter_Nones(gid_list_)
         unique_gids, unique_names, unique_notes = resolve_name_conflicts(
@@ -305,7 +307,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>> result = ('gid_list = %s' % (str(gid_list),))
         >>> print(result)
     """
-    print('[ingest_rawdata] Ingestable' + str(ingestable))
+    logger.info('[ingest_rawdata] Ingestable' + str(ingestable))
 
     if ingestable.zipfile is not None:
         zipfile_fpath = ut.truepath(join(wbia.sysres.get_workdir(), ingestable.zipfile))
@@ -317,7 +319,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     adjust_percent = ingestable.adjust_percent
     species_text = ingestable.species
     postingest_func = ingestable.postingest_func
-    print(
+    logger.info(
         '[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type)
     )
     # Get images in the image directory
@@ -330,7 +332,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
         gpath_list = []
         if len(zipfile_list) > 0:
-            print('Found zipfile_list = %r' % (zipfile_list,))
+            logger.info('Found zipfile_list = %r' % (zipfile_list,))
             ut.ensuredir(unzipped_file_base_dir)
             for zipfile in zipfile_list:
                 unziped_file_relpath = dirname(
@@ -407,22 +409,22 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
 
     if ut.get_argflag('--dry'):
-        print('Found %d names' % (len(set(name_list))))
-        print(set(name_list))
-        print('Dry Run')
+        logger.info('Found %d names' % (len(set(name_list))))
+        logger.info(set(name_list))
+        logger.info('Dry Run')
         return
 
     gid_list_ = ibs.add_images(gpath_list)
 
     # <DEBUG>
-    # print('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
+    # logger.info('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
     unique_gids = list(set(gid_list_))
-    print('[ingest] Length gid list: %d' % len(gid_list_))
-    print('[ingest] Length unique gid list: %d' % len(unique_gids))
+    logger.info('[ingest] Length gid list: %d' % len(gid_list_))
+    logger.info('[ingest] Length unique gid list: %d' % len(unique_gids))
     assert len(gid_list_) == len(gpath_list)
     for gid in gid_list_:
         if gid is None:
-            print('[ingest] big fat warning')
+            logger.info('[ingest] big fat warning')
     # </DEBUG>
     gid_list = ut.filter_Nones(gid_list_)
     unique_gids, unique_names, unique_notes = resolve_name_conflicts(gid_list, name_list)
@@ -630,7 +632,7 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
     anyfailed = False
     for gpath, parsed in zip(gpath_list, parsed_list):
         if parsed is None:
-            print('FAILED TO PARSE: %r' % gpath)
+            logger.info('FAILED TO PARSE: %r' % gpath)
             anyfailed = True
     if anyfailed:
         msg = 'FAILED REGEX: %r' % regex_list
@@ -709,7 +711,7 @@ def ingest_testdb1(dbname):
         import numpy as np
         from wbia import constants as const
 
-        print('postingest_tesdb1_func')
+        logger.info('postingest_tesdb1_func')
         # Adjust data as we see fit
 
         # gid_list = np.array(ibs.images()._rowids)
@@ -733,7 +735,7 @@ def ingest_testdb1(dbname):
         if ut.VERYVERBOSE:
 
             def print2(*args):
-                print('[post_testdb1] ' + ', '.join(args))
+                logger.info('[post_testdb1] ' + ', '.join(args))
 
             print2('aid_list=%r' % aid_list)
             print2('nid_list=%r' % nid_list)
@@ -814,7 +816,7 @@ def ingest_testdb1(dbname):
         for aids in aidgroups:
             pass
 
-        print('finish postingest_tesdb1_func')
+        logger.info('finish postingest_tesdb1_func')
         return None
 
     return Ingestable(
@@ -975,7 +977,7 @@ def ingest_standard_database(dbname, force_delete=False):
     """
     from wbia.control import IBEISControl
 
-    print('[ingest] Ingest Standard Database: dbname=%r' % (dbname,))
+    logger.info('[ingest] Ingest Standard Database: dbname=%r' % (dbname,))
     ingestable = get_standard_ingestable(dbname)
     dbdir = wbia.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True)
     ut.ensuredir(dbdir, verbose=True)
@@ -1018,7 +1020,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         >>>
         #>>> wbia.dbio.convert_db.ingest_oxford_style_db(dbdir)
     """
-    print('Loading Oxford Style Images from: ' + dbdir)
+    logger.info('Loading Oxford Style Images from: ' + dbdir)
 
     def _parse_oxsty_gtfname(gt_fname):
         """ parse gtfname for: (gt_name, quality_lbl, num) """
@@ -1084,13 +1086,13 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         assert ignore not in gname_list
 
     # Read the Oxford Style Groundtruth files
-    print('Loading Oxford Style Names and Annots')
+    logger.info('Loading Oxford Style Names and Annots')
     gt_fname_list = os.listdir(gt_dpath)
     num_gt_files = len(gt_fname_list)
     query_annots = []
     gname2_annots_raw = ut.ddict(list)
     name_set = set([])
-    print(' * num_gt_files = %d ' % num_gt_files)
+    logger.info(' * num_gt_files = %d ' % num_gt_files)
     #
     # Iterate over each groundtruth file
     for gtx, gt_fname in enumerate(ut.ProgIter(gt_fname_list, 'parsed oxsty gtfile: ')):
@@ -1109,7 +1111,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         else:
             for (gname, bbox) in oxsty_annot_info_sublist:
                 gname2_annots_raw[gname].append((name, bbox, quality))
-    print(' * num_query images = %d ' % len(query_annots))
+    logger.info(' * num_query images = %d ' % len(query_annots))
     #
     # Remove duplicates img.jpg : (*1.txt, *2.txt, ...) -> (*.txt)
     gname2_annots = ut.ddict(list)
@@ -1129,10 +1131,12 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
     gname_set = set(gname_list)
     query_gname_set = set(query_gname_list)
     gname_without_groundtruth_list = list(gname_set - gname_with_groundtruth_set)
-    print(' * num_images = %d ' % len(gname_list))
-    print(' * images with groundtruth    = %d ' % len(gname_with_groundtruth_list))
-    print(' * images without groundtruth = %d ' % len(gname_without_groundtruth_list))
-    print(' * images with multi-groundtruth = %d ' % len(multinamed_gname_list))
+    logger.info(' * num_images = %d ' % len(gname_list))
+    logger.info(' * images with groundtruth    = %d ' % len(gname_with_groundtruth_list))
+    logger.info(
+        ' * images without groundtruth = %d ' % len(gname_without_groundtruth_list)
+    )
+    logger.info(' * images with multi-groundtruth = %d ' % len(multinamed_gname_list))
     # make sure all queries have ground truth and there are no duplicate queries
     #
     assert len(query_gname_list) == len(
@@ -1144,7 +1148,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
 
     if not dryrun:
         ibs = wbia.opendb(dbdir, allow_newdir=True)
-        print('adding to table: ')
+        logger.info('adding to table: ')
         # Add images to wbia
         gpath_list = [join(img_dpath, gname).replace('\\', '/') for gname in gname_list]
         gid_list = ibs.add_images(gpath_list, auto_localize=False)
@@ -1183,9 +1187,9 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
             dgid_list, bbox_list=dbbox_list, name_list=dname_list, notes_list=dnote_list
         )
         uaid_list = ibs.add_annots(ugid_list, bbox_list=ubbox_list, notes_list=unote_list)
-        print('Added %d query annototations' % len(qaid_list))
-        print('Added %d database annototations' % len(daid_list))
-        print('Added %d distractor annototations' % len(uaid_list))
+        logger.info('Added %d query annototations' % len(qaid_list))
+        logger.info('Added %d database annototations' % len(daid_list))
+        logger.info('Added %d distractor annototations' % len(uaid_list))
 
     update = False
     if update:
@@ -1272,9 +1276,9 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         new_bboxes = np.array(query_df4['bbox'].values.tolist(), dtype=np.float)
         new_ar = new_bboxes.T[2] / new_bboxes.T[3]
         old_ar = old_bboxes.T[2] / old_bboxes.T[3]
-        print(new_ar == old_ar)
-        print(new_ar)
-        print(old_ar)
+        logger.info(new_ar == old_ar)
+        logger.info(new_ar)
+        logger.info(old_ar)
 
         ibs.set_annot_bboxes(qannots4.aids, new_bboxes)
 
@@ -1308,7 +1312,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
     import simplejson as json
     import datetime
 
-    print('Loading PASCAL VOC Style Images from: ' + dbdir)
+    logger.info('Loading PASCAL VOC Style Images from: ' + dbdir)
 
     annot_path = join(dbdir, 'annotations')
     assert exists(annot_path)
@@ -1325,8 +1329,8 @@ def ingest_coco_style_db(dbdir, dryrun=False):
     lic_dict = {}
     image_dict = {}
     for dataset_name in dataset_name_list:
-        print('Processing Dataset %r' % (dataset_name,))
-        print('\tLoading Instances JSON...')
+        logger.info('Processing Dataset %r' % (dataset_name,))
+        logger.info('\tLoading Instances JSON...')
         inst_filepath = join(annot_path, 'instances_%s.json' % (dataset_name,))
         if exists(inst_filepath):
             with open(inst_filepath) as inst_file:
@@ -1334,7 +1338,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         else:
             inst_dict = {}
 
-        print('\tLoading Captions JSON...')
+        logger.info('\tLoading Captions JSON...')
         capt_filepath = join(annot_path, 'captions_%s.json' % (dataset_name,))
         if exists(capt_filepath):
             with open(capt_filepath) as capt_file:
@@ -1342,7 +1346,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         else:
             capt_dict = {}
 
-        print('\tLoading Info JSON...')
+        logger.info('\tLoading Info JSON...')
         info_filepath = join(annot_path, 'image_info_%s.json' % (dataset_name,))
         if exists(info_filepath):
             with open(info_filepath) as info_file:
@@ -1351,7 +1355,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             info_dict = {}
 
         if dataset_name == 'test2014':
-            print('\tAssociate Test 2014')
+            logger.info('\tAssociate Test 2014')
             image_list = (
                 inst_dict.get('images', [])
                 + capt_dict.get('images', [])
@@ -1365,7 +1369,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             # Skip remaining processing to prevent duplicates
             continue
 
-        print('\tLoading Licenses JSON...')
+        logger.info('\tLoading Licenses JSON...')
         lic_list = (
             inst_dict.get('licenses', [])
             + capt_dict.get('licenses', [])
@@ -1384,7 +1388,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             else:
                 lic_dict[lic_id] = lic_dict_
 
-        print('\tLoading Categories JSON...')
+        logger.info('\tLoading Categories JSON...')
         cat_list = (
             inst_dict.get('categories', [])
             + capt_dict.get('categories', [])
@@ -1403,7 +1407,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             else:
                 cat_dict[cat_id] = cat_dict_
 
-        print('\tLoading Images...')
+        logger.info('\tLoading Images...')
         image_path = join(dbdir, dataset_name)
         assert exists(image_path)
 
@@ -1412,7 +1416,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             if image_filepath not in image_dict:
                 image_dict[image_filepath] = {}
 
-        print('\tAssociate Images')
+        logger.info('\tAssociate Images')
         image_list = (
             inst_dict.get('images', [])
             + capt_dict.get('images', [])
@@ -1455,7 +1459,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
                 else:
                     image_dict[image_filename][key] = image[key]
 
-        print('\tAssociate Captions')
+        logger.info('\tAssociate Captions')
         for caption in capt_dict.get('annotations', []):
             capt_id = caption['id']
             capt_str = caption['caption']
@@ -1469,7 +1473,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
                 {'id': capt_id, 'str': capt_str}
             )
 
-        print('\tAssociate Annotations')
+        logger.info('\tAssociate Annotations')
         for annotation in inst_dict.get('annotations', []):
             annot_id = annotation['id']
             annot_bbox = annotation['bbox']
@@ -1511,7 +1515,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
     image_annot_species_list_list = []
     image_annot_metadata_list_list = []
     for image_filename in image_filename_list:
-        print('Processing: %r' % (image_filename,))
+        logger.info('Processing: %r' % (image_filename,))
         image = image_dict[image_filename]
         image_filepath_list.append(image['filepath'])
         image_original_url_list.append(image['coco_url'])
@@ -1589,7 +1593,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         for gid in gid_list:
             flag_list.append(gid not in seen_set)
             seen_set.add(gid)
-        print('Duplicates: %d' % (flag_list.count(False),))
+        logger.info('Duplicates: %d' % (flag_list.count(False),))
         gid_list = ut.filter_items(gid_list, flag_list)
 
         # Filter
@@ -1608,21 +1612,21 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             image_annot_metadata_list_list, flag_list
         )
 
-        print('Adding Metadata')
+        logger.info('Adding Metadata')
         # Set image metadata
         ibs.set_image_uris_original(gid_list, image_original_url_list, overwrite=True)
         ibs.set_image_unixtime(gid_list, image_unixtime_list)
         ibs.set_image_metadata(gid_list, image_metadata_list)
 
         # Add images to imagesets
-        print('Adding Imagesets')
+        logger.info('Adding Imagesets')
         len_list = map(len, image_imagesets_list)
         gids_list = [[gid] * len_ for gid, len_ in zip(gid_list, len_list)]
         gid_list_ = ut.flatten(gids_list)
         image_imageset_list = ut.flatten(image_imagesets_list)
         ibs.set_image_imagesettext(gid_list_, image_imageset_list)
 
-        print('Adding Annotations')
+        logger.info('Adding Annotations')
         len_list = map(len, image_annot_bbox_list_list)
         gids_list = [[gid] * len_ for gid, len_ in zip(gid_list, len_list)]
         gid_list_ = ut.flatten(gids_list)
@@ -1638,10 +1642,10 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         for aid in aid_list:
             flag_list.append(aid not in seen_set)
             seen_set.add(aid)
-        print('Duplicates: %d' % (flag_list.count(False),))
+        logger.info('Duplicates: %d' % (flag_list.count(False),))
         aid_list = ut.filter_items(aid_list, flag_list)
 
-        print('Adding Metadata')
+        logger.info('Adding Metadata')
         image_annot_metadata_list = ut.flatten(image_annot_metadata_list_list)
         image_annot_metadata_list = ut.filter_items(image_annot_metadata_list, flag_list)
         ibs.set_annot_metadata(aid_list, image_annot_metadata_list)
@@ -1695,13 +1699,13 @@ def ingest_serengeti_mamal_cameratrap(species):
     else:
         serengeti_sepcies = species
 
-    print('species = %r' % (species,))
-    print('serengeti_sepcies = %r' % (serengeti_sepcies,))
+    logger.info('species = %r' % (species,))
+    logger.info('serengeti_sepcies = %r' % (serengeti_sepcies,))
 
     dbname = code + '_Serengeti'
-    print('dbname = %r' % (dbname,))
+    logger.info('dbname = %r' % (dbname,))
     dbdir = ut.ensuredir(join(wbia.sysres.get_workdir(), dbname))
-    print('dbdir = %r' % (dbdir,))
+    logger.info('dbdir = %r' % (dbdir,))
     image_dir = ut.ensuredir(join(dbdir, 'images'))
 
     base_url = 'http://datadryad.org/bitstream/handle/10255'
@@ -1717,17 +1721,17 @@ def ingest_serengeti_mamal_cameratrap(species):
     search_effort_fpath = ut.grab_file_url(search_effort_url, download_dir=dbdir)
     gold_standard_fpath = ut.grab_file_url(gold_standard_url, download_dir=dbdir)
 
-    print('all_images_fpath         = %r' % (all_images_fpath,))
-    print('consensus_metadata_fpath = %r' % (consensus_metadata_fpath,))
-    print('search_effort_fpath      = %r' % (search_effort_fpath,))
-    print('gold_standard_fpath      = %r' % (gold_standard_fpath,))
+    logger.info('all_images_fpath         = %r' % (all_images_fpath,))
+    logger.info('consensus_metadata_fpath = %r' % (consensus_metadata_fpath,))
+    logger.info('search_effort_fpath      = %r' % (search_effort_fpath,))
+    logger.info('gold_standard_fpath      = %r' % (gold_standard_fpath,))
 
     def read_csv(csv_fpath):
         import utool as ut
 
         csv_text = ut.read_from(csv_fpath)
         csv_lines = csv_text.split('\n')
-        print(ut.repr2(csv_lines[0:2]))
+        logger.info(ut.repr2(csv_lines[0:2]))
         csv_data = [
             [field.strip('"').strip('\r') for field in line.split(',')]
             for line in csv_lines
@@ -1739,20 +1743,20 @@ def ingest_serengeti_mamal_cameratrap(species):
 
     def download_image_urls(image_url_info_list):
         # Find ones that we already have
-        print('Requested %d downloaded images' % (len(image_url_info_list)))
+        logger.info('Requested %d downloaded images' % (len(image_url_info_list)))
         full_gpath_list = [
             join(image_dir, basename(gpath)) for gpath in image_url_info_list
         ]
         exists_list = [ut.checkpath(gpath) for gpath in full_gpath_list]
         image_url_info_list_ = ut.compress(image_url_info_list, ut.not_list(exists_list))
-        print(
+        logger.info(
             'Already have %d/%d downloaded images'
             % (
                 len(image_url_info_list) - len(image_url_info_list_),
                 len(image_url_info_list),
             )
         )
-        print('Need to download %d images' % (len(image_url_info_list_)))
+        logger.info('Need to download %d images' % (len(image_url_info_list_)))
         # import sys
         # sys.exit(0)
         # Download the rest
@@ -1776,11 +1780,11 @@ def ingest_serengeti_mamal_cameratrap(species):
 
     # Find the zebra events
     serengeti_sepcies_set = sorted(list(set(species_class_species_list)))
-    print(
+    logger.info(
         'serengeti_sepcies_hist = %s'
         % ut.repr2(ut.dict_hist(species_class_species_list), key_order_metric='val')
     )
-    # print('serengeti_sepcies_set = %s' % (ut.repr2(serengeti_sepcies_set),))
+    # logger.info('serengeti_sepcies_set = %s' % (ut.repr2(serengeti_sepcies_set),))
 
     assert serengeti_sepcies in serengeti_sepcies_set, 'not a known  seregeti species'
     species_class_chosen_idx_list = ut.list_where(
@@ -1790,12 +1794,12 @@ def ingest_serengeti_mamal_cameratrap(species):
         species_class_eventid_list, species_class_chosen_idx_list
     )
 
-    print('Number of chosen species:')
-    print(
+    logger.info('Number of chosen species:')
+    logger.info(
         ' * len(species_class_chosen_idx_list) = %r'
         % (len(species_class_chosen_idx_list),)
     )
-    print(' * len(chosen_eventid_list) = %r' % (len(chosen_eventid_list),))
+    logger.info(' * len(chosen_eventid_list) = %r' % (len(chosen_eventid_list),))
 
     # Read info about which events have which images
     images_csv_data, image_csv_header = read_csv(all_images_fpath)
@@ -1835,8 +1839,8 @@ def injest_main():
         >>> from wbia.dbio.ingest_database import *  # NOQA
         >>> injest_main()
     """
-    print('__main__ = ingest_database.py')
-    print(
+    logger.info('__main__ = ingest_database.py')
+    logger.info(
         ut.unindent(
             """
         usage:
@@ -1849,7 +1853,7 @@ def injest_main():
     dbname = ut.get_argval('--db', str, None)
     force_delete = ut.get_argflag(('--force_delete', '--force-delete'))
     ibs = ingest_standard_database(dbname, force_delete)  # NOQA
-    print('finished db injest')
+    logger.info('finished db injest')
     # img_dir = join(wbia.sysres.get_workdir(), 'polar_bears')
     # main_locals = wbia.main(dbdir=img_dir, gui=False)
     # ibs = main_locals['ibs']

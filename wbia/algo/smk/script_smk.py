@@ -164,6 +164,7 @@ In the SMK paper they report 0.781 as shown in the table, but they also report a
 the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.
 
 """
+import logging
 import utool as ut
 import numpy as np
 from wbia.algo.smk import inverted_index
@@ -172,6 +173,7 @@ from wbia.algo.smk import smk_pipeline
 from six.moves import zip, map
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class SMK(ut.NiceRepr):
@@ -360,7 +362,7 @@ def load_oxford_2007():
             query_uri = text.split(' ')[0].replace('oxc1_', '')
             query_uri_order.append(query_uri)
 
-        print('converting to invV')
+        logger.info('converting to invV')
         all_kpts = vt.convert_kptsZ_to_kpts(kpts_Z)
 
         data = {
@@ -432,10 +434,10 @@ def load_oxford_2013():
     test_geom_invV_fname = test_geom_fname + '.invV.pkl'
     try:
         all_kpts = ut.load_data(test_geom_invV_fname)
-        print('loaded invV keypoints')
+        logger.info('loaded invV keypoints')
     except IOError:
         oxford_kptsZ = load_ext(test_geom_fname, ndims=5, verbose=True)
-        print('converting to invV keypoints')
+        logger.info('converting to invV keypoints')
         all_kpts = vt.convert_kptsZ_to_kpts(oxford_kptsZ)
         ut.save_data(test_geom_invV_fname, all_kpts)
 
@@ -626,7 +628,7 @@ def run_asmk_script():
         all_vecs = feats_cacher.tryload()
         if all_vecs is None:
             if config['dtype'] == 'float32':
-                print('Converting vecs to float32')
+                logger.info('Converting vecs to float32')
                 proc_vecs = proc_vecs.astype(np.float32)
             else:
                 proc_vecs = proc_vecs
@@ -763,11 +765,11 @@ def run_asmk_script():
             flags = kpts_inside_bbox(kpts_, bbox, only_xy=only_xy)
             query_flags_list.append(flags)
 
-        print('Queries are crops of existing database images.')
-        print('Looking at average percents')
+        logger.info('Queries are crops of existing database images.')
+        logger.info('Looking at average percents')
         percent_list = [flags_.sum() / flags_.shape[0] for flags_ in query_flags_list]
         percent_stats = ut.get_stats(percent_list)
-        print('percent_stats = %s' % (ut.repr4(percent_stats),))
+        logger.info('percent_stats = %s' % (ut.repr4(percent_stats),))
 
         import vtool as vt
 
@@ -802,7 +804,7 @@ def run_asmk_script():
         # ======================
         # Add in some groundtruth
 
-        print('Add in some groundtruth')
+        logger.info('Add in some groundtruth')
         for Y, nid in zip(Y_list, ibs.get_annot_nids(daids)):
             Y.nid = nid
 
@@ -828,7 +830,7 @@ def run_asmk_script():
             X.vecs = vecs
 
         # ======================
-        print('Building inverted list')
+        logger.info('Building inverted list')
         daids = [Y.aid for Y in Y_list]
         # wx_list = sorted(ut.list_union(*[Y.wx_list for Y in Y_list]))
         wx_list = sorted(set.union(*[Y.wx_set for Y in Y_list]))
@@ -840,14 +842,14 @@ def run_asmk_script():
         )
 
         # Compute IDF weights
-        print('Compute IDF weights')
+        logger.info('Compute IDF weights')
         ndocs_total = len(daids)
         # Use only the unique number of words
         ndocs_per_word = np.array([len(set(wx_to_aids[wx])) for wx in wx_list])
-        print('ndocs_perword stats: ' + ut.repr4(ut.get_stats(ndocs_per_word)))
+        logger.info('ndocs_perword stats: ' + ut.repr4(ut.get_stats(ndocs_per_word)))
         idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
         wx_to_weight = dict(zip(wx_list, idf_per_word))
-        print('idf stats: ' + ut.repr4(ut.get_stats(wx_to_weight.values())))
+        logger.info('idf stats: ' + ut.repr4(ut.get_stats(wx_to_weight.values())))
 
         # Filter junk
         Y_list_ = [Y for Y in Y_list if Y.qual != 'junk']
@@ -968,7 +970,7 @@ def run_asmk_script():
             avep_list.append(avep)
         avep_list = np.array(avep_list)
         mAP = np.mean(avep_list)
-        print('mAP  = %r' % (mAP,))
+        logger.info('mAP  = %r' % (mAP,))
 
 
 def new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec):
@@ -1206,7 +1208,7 @@ def load_internal_data():
     cm_list = qreq_.execute()
     ave_precisions = [cm.get_annot_ave_precision() for cm in cm_list]
     mAP = np.mean(ave_precisions)
-    print('mAP = %.3f' % (mAP,))
+    logger.info('mAP = %.3f' % (mAP,))
     cm = cm_list[-1]
     return qreq_, cm
 
@@ -1224,8 +1226,8 @@ def compare_data(Y_list_):
     gamma1s = []
     gamma2s = []
 
-    print(len(Y_list_))
-    print(len(qreq_.daids))
+    logger.info(len(Y_list_))
+    logger.info(len(qreq_.daids))
 
     dinva = qreq_.dinva
     bady = []
@@ -1239,8 +1241,8 @@ def compare_data(Y_list_):
             gamma2s.append(gamma2)
         else:
             bady += [Y]
-            print(Y.nid)
-            # print(Y.qual)
+            logger.info(Y.nid)
+            # logger.info(Y.qual)
 
     # ibs = qreq_.ibs
     # z = ibs.annots([a.aid for a in bady])
@@ -1315,7 +1317,7 @@ def hyrule_vocab_test():
     test_sift_fname = join(datadir, 'oxford_sift.uint8')
     # test_nf_fname = join(datadir, 'oxford_nsift.uint32')
     all_vecs = load_ext(test_sift_fname, ndims=128, verbose=True).astype(np.float32)
-    print(ut.print_object_size(all_vecs))
+    logger.info(ut.print_object_size(all_vecs))
     # nfeats_list = load_ext(test_nf_fname, verbose=True)
 
     with ut.embed_on_exception_context:
@@ -1341,7 +1343,7 @@ def hyrule_vocab_test():
         )
         clusterer.fit(all_vecs)
         words = clusterer.cluster_centers_
-        print(words.shape)
+        logger.info(words.shape)
 
 
 if __name__ == '__main__':

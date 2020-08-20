@@ -3,6 +3,7 @@
 """
 Runs IBIES gui
 """
+import logging
 import multiprocessing
 import utool as ut
 import ubelt as ub
@@ -14,6 +15,7 @@ from wbia.scripts.rsync_wbiadb import rsync_ibsdb_main
 
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CMD = ub.argflag('--cmd')
 
@@ -23,10 +25,10 @@ CMD = ub.argflag('--cmd')
 def smoke_test():  # nocover
     import wbia
 
-    print('Looks like the imports worked')
-    print('wbia = {!r}'.format(wbia))
-    print('wbia.__file__ = {!r}'.format(wbia.__file__))
-    print('wbia.__version__ = {!r}'.format(wbia.__version__))
+    logger.info('Looks like the imports worked')
+    logger.info('wbia = {!r}'.format(wbia))
+    logger.info('wbia.__file__ = {!r}'.format(wbia.__file__))
+    logger.info('wbia.__version__ = {!r}'.format(wbia.__version__))
 
 
 def run_wbia():
@@ -59,7 +61,7 @@ def run_wbia():
         # Run dev script if -e given
 
         devmain()
-        print('... exiting')
+        logger.info('... exiting')
         sys.exit(0)
 
     main_locals = main()
@@ -71,9 +73,9 @@ def run_wbia():
         # front = back.front
         # ui = front.ui
     ibs = main_locals['ibs']  # NOQA
-    print('-- EXECSTR --')
-    print(ub.codeblock(execstr))
-    print('-- /EXECSTR --')
+    logger.info('-- EXECSTR --')
+    logger.info(ub.codeblock(execstr))
+    logger.info('-- /EXECSTR --')
     exec(execstr)
     # </DEBUG CODE>
 

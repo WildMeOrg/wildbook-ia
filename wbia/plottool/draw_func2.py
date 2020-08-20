@@ -8,6 +8,7 @@
 # Might # add annotates?  plot_<funcname> should not clear the axes or figure.
 # More useful for graphs draw_<funcname> same as plot for now. More useful for
 # images
+import logging
 from six.moves import range, zip, map
 import six
 import itertools as it
@@ -43,6 +44,7 @@ from wbia.plottool import fig_presenter
 
 DEBUG = False
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def is_texmode():
@@ -60,7 +62,7 @@ DARKEN = ut.get_argval(
     '--darken', type_=float, default=(0.7 if ut.get_argflag('--darken') else None)
 )
 
-# print('DARKEN = %r' % (DARKEN,))
+# logger.info('DARKEN = %r' % (DARKEN,))
 
 all_figures_bring_to_front = fig_presenter.all_figures_bring_to_front
 all_figures_tile = fig_presenter.all_figures_tile
@@ -264,11 +266,11 @@ class OffsetImage2(mpl.offsetbox.OffsetBox):
         w, h = pt1 - pt2
 
         # zoom_factor = max(fw_px, )
-        # print('fw_px = %r' % (fw_px,))
-        # print('pos = %r' % (pos,))
+        # logger.info('fw_px = %r' % (fw_px,))
+        # logger.info('pos = %r' % (pos,))
         # w = h = .2 * fw_px * pos[2]
         # .1 * fig_dpi * fig_size[0] / data.shape[0]
-        # print('zoom = %r' % (zoom,))
+        # logger.info('zoom = %r' % (zoom,))
 
         w, h = w * zoom, h * zoom
         return w, h, 0, 0
@@ -401,13 +403,13 @@ def overlay_icon(
         ax.add_artist(ab)
     else:
         img_size = vt.get_size(icon)
-        print('img_size = %r' % (img_size,))
+        logger.info('img_size = %r' % (img_size,))
         if max_asize is not None:
             dsize, ratio = vt.resized_dims_and_ratio(img_size, max_asize)
             width, height = dsize
         else:
             width, height = img_size
-        print('width, height= %r, %r' % (width, height,))
+        logger.info('width, height= %r, %r' % (width, height,))
         x1 = xy[0] + width * bbox_alignment[0]
         y1 = xy[1] + height * bbox_alignment[1]
         x2 = xy[0] + width * (1 - bbox_alignment[0])
@@ -416,14 +418,14 @@ def overlay_icon(
         ax = plt.gca()
         prev_aspect = ax.get_aspect()
         # FIXME: adjust aspect ratio of extent to match the axes
-        print('icon.shape = %r' % (icon.shape,))
-        print('prev_aspect = %r' % (prev_aspect,))
+        logger.info('icon.shape = %r' % (icon.shape,))
+        logger.info('prev_aspect = %r' % (prev_aspect,))
         extent = [x1, x2, y1, y2]
-        print('extent = %r' % (extent,))
+        logger.info('extent = %r' % (extent,))
         ax.imshow(icon, extent=extent)
-        print('current_aspect = %r' % (ax.get_aspect(),))
+        logger.info('current_aspect = %r' % (ax.get_aspect(),))
         ax.set_aspect(prev_aspect)
-        print('current_aspect = %r' % (ax.get_aspect(),))
+        logger.info('current_aspect = %r' % (ax.get_aspect(),))
         # x - width // 2, x + width // 2,
         # y - height // 2, y + height // 2])
 
@@ -436,10 +438,10 @@ def update_figsize():
         fig = gcf()
         figsize = [eval(term) if isinstance(term, str) else term for term in figsize]
         figw, figh = figsize[0], figsize[1]
-        print('get_size_inches = %r' % (fig.get_size_inches(),))
-        print('fig w,h (inches) = %r, %r' % (figw, figh))
+        logger.info('get_size_inches = %r' % (fig.get_size_inches(),))
+        logger.info('fig w,h (inches) = %r, %r' % (figw, figh))
         fig.set_size_inches(figw, figh)
-        # print('get_size_inches = %r' % (fig.get_size_inches(),))
+        # logger.info('get_size_inches = %r' % (fig.get_size_inches(),))
 
 
 def udpate_adjust_subplots():
@@ -476,7 +478,7 @@ def udpate_adjust_subplots():
                 % (len(adjust_list), adjust_list, keys)
             )
         adjust_kw = dict(zip(keys, vals))
-        print('**adjust_kw = %s' % (ut.repr2(adjust_kw),))
+        logger.info('**adjust_kw = %s' % (ut.repr2(adjust_kw),))
         adjust_subplots(**adjust_kw)
 
 
@@ -524,7 +526,7 @@ class RenderingContext(object):
 
     def __exit__(self, type_, value, trace):
         if trace is not None:
-            # print('[util_time] Error in context manager!: ' + str(value))
+            # logger.info('[util_time] Error in context manager!: ' + str(value))
             return False  # return a falsey value on error
         # Ensure that this figure will not pop up
         import wbia.plottool as pt
@@ -791,7 +793,7 @@ def show_if_requested(N=1):
 
     """
     if ut.NOT_QUIET:
-        print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
+        logger.info('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
 
     # Process figures adjustments from command line before a show or a save
 
@@ -812,7 +814,7 @@ def show_if_requested(N=1):
         from os.path import expanduser
 
         fpath_ = expanduser(fpath_)
-        print('Figure save was requested')
+        logger.info('Figure save was requested')
         arg_dict = ut.get_arg_dict(
             prefix_list=['--', '-'], type_hints={'t': list, 'a': list}
         )
@@ -837,7 +839,7 @@ def show_if_requested(N=1):
         fpath = join(dpath, fpath_)
         if not gotdpath:
             dpath = dirname(fpath_)
-        print('dpath = %r' % (dpath,))
+        logger.info('dpath = %r' % (dpath,))
 
         fig = pt.gcf()
         fig.dpi = dpi
@@ -910,8 +912,8 @@ def show_if_requested(N=1):
                 # thresh = 128
                 # fillval = [255, 255, 255]
                 # cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
-                # print('img.shape = %r' % (img.shape,))
-                # print('cropped_img.shape = %r' % (cropped_img.shape,))
+                # logger.info('img.shape = %r' % (img.shape,))
+                # logger.info('cropped_img.shape = %r' % (cropped_img.shape,))
                 # vt.imwrite(absfpath_, cropped_img)
             # if dpath is not None:
             #    fpath_ = ut.unixjoin(dpath, basename(absfpath_))
@@ -932,7 +934,7 @@ def show_if_requested(N=1):
         label_str = ut.get_argval('--label', type_=str, default=default_label)
         width_str = ut.get_argval('--width', type_=str, default='\\textwidth')
         width_str = ut.get_argval('--width', type_=str, default='\\textwidth')
-        print('width_str = %r' % (width_str,))
+        logger.info('width_str = %r' % (width_str,))
         height_str = ut.get_argval('--height', type_=str, default=None)
         caplbl_str = label_str
 
@@ -990,7 +992,7 @@ def show_if_requested(N=1):
                 height_str=height_str,
             )
             # import sys
-            # print(sys.argv)
+            # logger.info(sys.argv)
             latex_block = figure_str
             latex_block = ut.latex_newcommand(label_str, latex_block)
         # latex_block = ut.codeblock(
@@ -1048,7 +1050,7 @@ def show_if_requested(N=1):
             if log_fpath is not None:
                 ut.copy(log_fpath, splitext(absfpath_)[0] + '.txt')
             else:
-                print('Cannot copy log file because none exists')
+                logger.info('Cannot copy log file because none exists')
     if ut.inIPython():
         import wbia.plottool as pt
 
@@ -1633,7 +1635,7 @@ def plot2(
     """
     if x_data is None:
         warnstr = '[df2] ! Warning:  x_data is None'
-        print(warnstr)
+        logger.info(warnstr)
         x_data = np.arange(len(y_data))
     if fnum is not None or pnum is not None:
         figure(fnum=fnum, pnum=pnum)
@@ -1989,8 +1991,8 @@ def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
 #    TMP_mevent = mevent
 #    # Grab the key from the mpl.KeyPressEvent
 #    key = mevent.key
-#    print('[df2] convert event mpl -> qt4')
-#    print('[df2] key=%r' % key)
+#    logger.info('[df2] convert event mpl -> qt4')
+#    logger.info('[df2] key=%r' % key)
 #    # dicts modified from backend_qt4.py
 #    mpl2qtkey = {'control': Qt.Key_Control, 'shift': Qt.Key_Shift,
 #                 'alt': Qt.Key_Alt, 'super': Qt.Key_Meta,
@@ -2014,21 +2016,21 @@ def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
 #    if key.find(u'ctrl+') >= 0:
 #        modifiers = modifiers | QtCore.Qt.ControlModifier
 #        key = key.replace(u'ctrl+', u'')
-#        print('[df2] has ctrl modifier')
+#        logger.info('[df2] has ctrl modifier')
 #        text += 'Ctrl+'
 #    if key.find(u'alt+') >= 0:
 #        modifiers = modifiers | QtCore.Qt.AltModifier
 #        key = key.replace(u'alt+', u'')
-#        print('[df2] has alt modifier')
+#        logger.info('[df2] has alt modifier')
 #        text += 'Alt+'
 #    if key.find(u'super+') >= 0:
 #        modifiers = modifiers | QtCore.Qt.MetaModifier
 #        key = key.replace(u'super+', u'')
-#        print('[df2] has super modifier')
+#        logger.info('[df2] has super modifier')
 #        text += 'Super+'
 #    if key.isupper():
 #        modifiers = modifiers | QtCore.Qt.ShiftModifier
-#        print('[df2] has shift modifier')
+#        logger.info('[df2] has shift modifier')
 #        text += 'Shift+'
 #    # Try to extract the original key
 #    try:
@@ -2038,21 +2040,21 @@ def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
 #            key_ = ord(key.upper())  # Qt works with uppercase keys
 #            text += key.upper()
 #    except Exception as ex:
-#        print('[df2] ERROR key=%r' % key)
-#        print('[df2] ERROR %r' % ex)
+#        logger.info('[df2] ERROR key=%r' % key)
+#        logger.info('[df2] ERROR %r' % ex)
 #        raise
 #    autorep = False  # default false
 #    count   = 1  # default 1
 #    text = str(text)  # The text is somewhat arbitrary
 #    # Create the QEvent
-#    print('----------------')
-#    print('[df2] Create event')
-#    print('[df2] type_ = %r' % type_)
-#    print('[df2] text = %r' % text)
-#    print('[df2] modifiers = %r' % modifiers)
-#    print('[df2] autorep = %r' % autorep)
-#    print('[df2] count = %r ' % count)
-#    print('----------------')
+#    logger.info('----------------')
+#    logger.info('[df2] Create event')
+#    logger.info('[df2] type_ = %r' % type_)
+#    logger.info('[df2] text = %r' % text)
+#    logger.info('[df2] modifiers = %r' % modifiers)
+#    logger.info('[df2] autorep = %r' % autorep)
+#    logger.info('[df2] count = %r ' % count)
+#    logger.info('----------------')
 #    qevent = QtGui.QKeyEvent(type_, key_, modifiers, text, autorep, count)
 #    return qevent
 
@@ -2096,7 +2098,7 @@ def show_histogram(data, bins=None, **kwargs):
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    print('[df2] show_histogram()')
+    logger.info('[df2] show_histogram()')
     dmin = int(np.floor(data.min()))
     dmax = int(np.ceil(data.max()))
     if bins is None:
@@ -2170,9 +2172,9 @@ def draw_stems(
         x_data = np.arange(len(y_data))
         pass
     if len(x_data) != len(y_data):
-        print('[df2] WARNING plot_stems(): len(x_data)!=len(y_data)')
+        logger.info('[df2] WARNING plot_stems(): len(x_data)!=len(y_data)')
     if len(x_data) == 0:
-        print('[df2] WARNING plot_stems(): len(x_data)=len(y_data)=0')
+        logger.info('[df2] WARNING plot_stems(): len(x_data)=len(y_data)=0')
     x_data_ = np.array(x_data)
     y_data_ = np.array(y_data)
     y_data_sortx = y_data_.argsort()[::-1]
@@ -2463,7 +2465,7 @@ def show_phantom_legend_labels(ax=None, **kwargs):
     if _phantom_legend_list is None:
         _phantom_legend_list = []
         setattr(ax, '_phantom_legend_list', _phantom_legend_list)
-    # print(_phantom_legend_list)
+    # logger.info(_phantom_legend_list)
     legend(handles=_phantom_legend_list, ax=ax, **kwargs)
     # ax.legend(handles=_phantom_legend_list, framealpha=.2)
 
@@ -2991,11 +2993,11 @@ def interpolated_colormap(color_frac_list, resolution=64, space='lch-ab'):
         alpha = (b - f1) / (f2 - f1)
         new_h = h1 * (1 - alpha) + h2 * (alpha)
         new_c = np.clip(to_rgb(new_h), 0, 1)
-        # print('new_c = %r' % (new_c,))
+        # logger.info('new_c = %r' % (new_c,))
         cpool.append(new_c)
 
     cpool = np.array(cpool)
-    # print('cpool = %r' % (cpool,))
+    # logger.info('cpool = %r' % (cpool,))
     cmap = mpl.colors.ListedColormap(cpool, 'indexed')
     return cmap
 
@@ -3008,7 +3010,7 @@ def print_valid_cmaps():
     import utool as ut
 
     maps = [m for m in pylab.cm.datad if not m.endswith('_r')]
-    print(ut.repr2(sorted(maps)))
+    logger.info(ut.repr2(sorted(maps)))
 
 
 def colorbar(
@@ -3454,15 +3456,15 @@ def draw_kpts2(
         kpts = np.array(kpts)
 
     # if ut.DEBUG2:
-    #    print('-------------')
-    #    print('draw_kpts2():')
-    #    #print(' * kwargs.keys()=%r' % (kwargs.keys(),))
-    #    print(' * kpts.shape=%r:' % (kpts.shape,))
-    #    print(' * ell=%r pts=%r' % (ell, pts))
-    #    print(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
-    #    print(' * scale_factor=%r' % (scale_factor,))
-    #    print(' * offset=%r' % (offset,))
-    #    print(' * drawing kpts.shape=%r' % (kpts.shape,))
+    #    logger.info('-------------')
+    #    logger.info('draw_kpts2():')
+    #    #logger.info(' * kwargs.keys()=%r' % (kwargs.keys(),))
+    #    logger.info(' * kpts.shape=%r:' % (kpts.shape,))
+    #    logger.info(' * ell=%r pts=%r' % (ell, pts))
+    #    logger.info(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
+    #    logger.info(' * scale_factor=%r' % (scale_factor,))
+    #    logger.info(' * offset=%r' % (offset,))
+    #    logger.info(' * drawing kpts.shape=%r' % (kpts.shape,))
     try:
         assert len(kpts) > 0, 'len(kpts) < 0'
     except AssertionError as ex:
@@ -3480,7 +3482,7 @@ def draw_kpts2(
     # pts_color = [pts_color for _ in range(len(kpts))]
     if isinstance(ell_color, six.string_types) and ell_color == 'distinct':
         ell_color = distinct_colors(len(kpts))  # , randomize=True)
-        # print(len(kpts))
+        # logger.info(len(kpts))
 
     _kwargs = kwargs.copy()
     _kwargs.update(
@@ -3522,12 +3524,12 @@ def draw_keypoint_gradient_orientations(
     try:
         gradx, grady = vt.patch_gradient(wpatch)
     except Exception as ex:
-        print('!!!!!!!!!!!!')
-        print('[df2!] Exception = ' + str(ex))
-        print('---------')
-        print('type(wpatch) = ' + str(type(wpatch)))
-        print('repr(wpatch) = ' + str(repr(wpatch)))
-        print('wpatch = ' + str(wpatch))
+        logger.info('!!!!!!!!!!!!')
+        logger.info('[df2!] Exception = ' + str(ex))
+        logger.info('---------')
+        logger.info('type(wpatch) = ' + str(type(wpatch)))
+        logger.info('repr(wpatch) = ' + str(repr(wpatch)))
+        logger.info('wpatch = ' + str(wpatch))
         raise
     if mode == 'vec' or mode == 'vecfield':
         fig = draw_vector_field(gradx, grady, **kwargs)
@@ -3577,15 +3579,15 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
     """
     import vtool as vt
 
-    # print('--------------------')
+    # logger.info('--------------------')
     kpts = np.array([kp])
     if warped:
         patches, subkpts = vt.get_warped_patches(rchip, kpts)
     else:
         patches, subkpts = vt.get_unwarped_patches(rchip, kpts)
-    # print('[df2] kpts[0]    = %r' % (kpts[0]))
-    # print('[df2] subkpts[0] = %r' % (subkpts[0]))
-    # print('[df2] patches[0].shape = %r' % (patches[0].shape,))
+    # logger.info('[df2] kpts[0]    = %r' % (kpts[0]))
+    # logger.info('[df2] subkpts[0] = %r' % (subkpts[0]))
+    # logger.info('[df2] patches[0].shape = %r' % (patches[0].shape,))
     patch = patches[0]
     subkpts_ = np.array(subkpts)
     patch_dict_ = {
@@ -3728,8 +3730,8 @@ def imshow(
                 else:
                     imgBGR = np.array(imgBGR, dtype=np.uint8)
             if imgBGR.dtype == np.float32:
-                # print('[imshow] imgBGR.dtype = %r' % (imgBGR.dtype,))
-                # print('[imshow] imgBGR.max() = %r' % (imgBGR.max(),))
+                # logger.info('[imshow] imgBGR.dtype = %r' % (imgBGR.dtype,))
+                # logger.info('[imshow] imgBGR.max() = %r' % (imgBGR.max(),))
                 pass
                 # imgBGR *= 255
                 # if imgBGR.max() <= 1.0001:
@@ -3738,12 +3740,12 @@ def imshow(
                 #    #del plt_imshow_kwargs['vmax']
             if img.shape[2] == 3:
                 imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
-                # print('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
+                # logger.info('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
                 ax.imshow(imgRGB, **plt_imshow_kwargs)
             else:
                 imgBGRA = imgBGR
                 imgRGBA = cv2.cvtColor(imgBGRA, cv2.COLOR_BGRA2RGBA)
-                # print('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
+                # logger.info('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
                 ax.imshow(imgRGBA, **plt_imshow_kwargs)
         elif len(img.shape) == 2 or (len(img.shape) == 3 and img.shape[2] == 1):
             # img is in grayscale
@@ -3768,19 +3770,19 @@ def imshow(
                 % (img.dtype, img.shape)
             )
     except TypeError as te:
-        print('[df2] imshow ERROR %r' % (te,))
+        logger.info('[df2] imshow ERROR %r' % (te,))
         raise
     except Exception as ex:
-        print('!!!!!!!!!!!!!!WARNING!!!!!!!!!!!')
-        print('[df2] type(img) = %r' % type(img))
+        logger.info('!!!!!!!!!!!!!!WARNING!!!!!!!!!!!')
+        logger.info('[df2] type(img) = %r' % type(img))
         if not isinstance(img, np.ndarray):
-            print('!!!!!!!!!!!!!!ERRROR!!!!!!!!!!!')
+            logger.info('!!!!!!!!!!!!!!ERRROR!!!!!!!!!!!')
             pass
-            # print('img = %r' % (img,))
-        print('[df2] img.dtype = %r' % (img.dtype,))
-        print('[df2] type(img) = %r' % (type(img),))
-        print('[df2] img.shape = %r' % (img.shape,))
-        print('[df2] imshow ERROR %r' % ex)
+            # logger.info('img = %r' % (img,))
+        logger.info('[df2] img.dtype = %r' % (img.dtype,))
+        logger.info('[df2] type(img) = %r' % (type(img),))
+        logger.info('[df2] img.shape = %r' % (img.shape,))
+        logger.info('[df2] imshow ERROR %r' % ex)
         raise
     # plt.set_cmap('gray')
     ax.set_xticks([])
@@ -3966,7 +3968,7 @@ def show_chipmatch2(
     import vtool as vt
 
     if ut.VERBOSE:
-        print('[df2] show_chipmatch2() fnum=%r, pnum=%r, ax=%r' % (fnum, pnum, ax))
+        logger.info('[df2] show_chipmatch2() fnum=%r, pnum=%r, ax=%r' % (fnum, pnum, ax))
     wh1 = vt.get_size(rchip1)
     wh2 = vt.get_size(rchip2)
     if True:  # if H1 is None and H2 is not None or H2 is None and H1 is not None:
@@ -4342,7 +4344,7 @@ def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb', p=0.5):
     # Turn a 0 to 1 orienation map into hsv colors
     # gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
     if gori.max() > TAU or gori.min() < 0:
-        print('WARNING: [color_orimag] gori might not be in radians')
+        logger.info('WARNING: [color_orimag] gori might not be in radians')
     flat_rgb = get_orientation_color(gori.flatten())
     # flat_rgb = np.array(cmap_(), dtype=np.float32)
     rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
@@ -4479,10 +4481,10 @@ def make_ori_legend_img():
         text_pt, text_sz = cv2.getTextSize(text, fontFace, fontScale, thickness)
         text_w, text_h = text_pt
         org = (int(col - text_w / 2), int(row + text_h / 2))
-        # print(row)
-        # print(col)
-        # print(color_rgb)
-        # print(text)
+        # logger.info(row)
+        # logger.info(col)
+        # logger.info(color_rgb)
+        # logger.info(text)
         cv2.putText(
             img_BGR,
             text,
@@ -4495,7 +4497,7 @@ def make_ori_legend_img():
         )
         # img_BGR[row, col, :] = ((old_data * old_data_weight[:, None] +
         # new_data) / total_weight[:, None])
-    # print(img_BGR)
+    # logger.info(img_BGR)
     return img_BGR
 
 
@@ -4532,9 +4534,9 @@ def imshow_null(msg=None, ax=None, **kwargs):
     if ax is None:
         ax = gca()
     subkeys = [key for key in ['fontsize'] if key in kwargs]
-    print('kwargs = %r' % (kwargs,))
+    logger.info('kwargs = %r' % (kwargs,))
     kwargs_ = ut.dict_subset(kwargs, subkeys)
-    print('kwargs_ = %r' % (kwargs_,))
+    logger.info('kwargs_ = %r' % (kwargs_,))
     imshow(np.zeros((10, 10), dtype=np.uint8), ax=ax, **kwargs)
     if msg is None:
         draw_boxedX(ax=ax)
@@ -4613,7 +4615,7 @@ def param_plot_iterator(param_list, fnum=None, projection=None):
     fig = figure(fnum=fnum, pnum=pnum)
     for param, pnum in zip(param_list, pnum_gen):
         # get next figure ready
-        # print('fnum=%r, pnum=%r' % (fnum, pnum))
+        # logger.info('fnum=%r, pnum=%r' % (fnum, pnum))
         if projection is not None:
             subplot_kw = {'projection': projection}
         else:
@@ -4685,7 +4687,7 @@ def plot_surface3d(
         ax = plt.gca(projection='3d')
     else:
         fig = plt.gcf()
-        # print('pnum = %r' % (pnum,))
+        # logger.info('pnum = %r' % (pnum,))
         ax = fig.add_subplot(*pnum, projection='3d')
     title = kwargs.pop('title', None)
     if mode is None:
@@ -4809,7 +4811,7 @@ def draw_text_annotations(
         to fixe issue in matplotlib
         """
         if textprops.get('horizontalalignment', None) == 'center':
-            print('Fixing centeralign')
+            logger.info('Fixing centeralign')
             fig = pt.gcf()
             fig.canvas.draw()
 
@@ -4943,7 +4945,7 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
         ]
         ydatas = [func(xdata) for func in funcs_]
     except Exception:
-        print(ut.repr3(funcs))
+        logger.info(ut.repr3(funcs))
         raise
     fnum = pt.ensure_fnum(fnum)
     pt.multi_plot(

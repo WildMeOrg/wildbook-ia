@@ -4,6 +4,7 @@ Mixin functionality for experiments, tests, and simulations.
 This includes recordings measures used to generate plots in JC's thesis.
 """
 # -*- coding: utf-8 -*-
+import logging
 import six
 import utool as ut
 import ubelt as ub
@@ -13,6 +14,7 @@ from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN, NULL
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class SimulationHelpers(object):
@@ -156,8 +158,8 @@ class SimulationHelpers(object):
                         if not ut.allsame(ut.take(infr.node_truth, cc)):
                             num_undetectable_fp += 1
 
-            print('num_undetectable_fn = %r' % (num_undetectable_fn,))
-            print('num_undetectable_fp = %r' % (num_undetectable_fp,))
+            logger.info('num_undetectable_fn = %r' % (num_undetectable_fn,))
+            logger.info('num_undetectable_fp = %r' % (num_undetectable_fp,))
 
         if 0:
             n_error_edges2 = 0
@@ -292,9 +294,9 @@ class SimulationHelpers(object):
         was_correct = prev_decision == true_decision
 
         is_correct = true_decision == decision
-        # print('prev_decision = {!r}'.format(prev_decision))
-        # print('decision = {!r}'.format(decision))
-        # print('true_decision = {!r}'.format(true_decision))
+        # logger.info('prev_decision = {!r}'.format(prev_decision))
+        # logger.info('decision = {!r}'.format(decision))
+        # logger.info('true_decision = {!r}'.format(true_decision))
 
         test_print = ut.partial(infr.print, level=2)
 
@@ -306,14 +308,14 @@ class SimulationHelpers(object):
         if 0:
             num = infr.recover_graph.number_of_components()
             old_data = infr.get_nonvisual_edge_data(edge)
-            # print('old_data = %s' % (ut.repr4(old_data, stritems=True),))
-            print('n_prev_reviews = %r' % (old_data['num_reviews'],))
-            print('prev_decision = %r' % (prev_decision,))
-            print('decision = %r' % (decision,))
-            print('was_gt_pos = %r' % (was_gt_pos,))
-            print('was_within_pred = %r' % (was_within_pred,))
-            print('was_within_gt = %r' % (was_within_gt,))
-            print('num inconsistent = %r' % (num,))
+            # logger.info('old_data = %s' % (ut.repr4(old_data, stritems=True),))
+            logger.info('n_prev_reviews = %r' % (old_data['num_reviews'],))
+            logger.info('prev_decision = %r' % (prev_decision,))
+            logger.info('decision = %r' % (decision,))
+            logger.info('was_gt_pos = %r' % (was_gt_pos,))
+            logger.info('was_within_pred = %r' % (was_within_pred,))
+            logger.info('was_within_gt = %r' % (was_within_gt,))
+            logger.info('num inconsistent = %r' % (num,))
             # is_recovering = infr.is_recovering()
 
         if decision == POSTV:

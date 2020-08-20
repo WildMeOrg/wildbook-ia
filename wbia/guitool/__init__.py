@@ -3,6 +3,7 @@
 
 __version__ = '2.0.1'
 
+import logging
 import utool as ut
 
 ut.noinject(__name__, '[guitool.__init__]')
@@ -40,6 +41,7 @@ from wbia.guitool import qtype
 import utool
 
 print, rrr, profile = utool.inject2(__name__, '[guitool]')
+logger = logging.getLogger('wbia')
 
 
 def reload_subs():

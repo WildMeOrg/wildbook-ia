@@ -6,6 +6,7 @@ TODO:
 
 
 """
+import logging
 from wbia.guitool.__PYQT__ import QtCore, QtGui, QVariantHack
 from wbia.guitool.__PYQT__.QtCore import Qt
 from wbia.guitool import qtype
@@ -24,6 +25,7 @@ import cachetools
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
 # DO NOT INJECT THEM IN GUITOOL
 # print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 ut.noinject(__name__, '[APIItemModel]')
 
 # raise ImportError('refused to import wbia.guitool')
@@ -43,34 +45,34 @@ class ChangeLayoutContext(object):
 
     @ut.accepts_scalar_input
     def __init__(self, model_list, *args):
-        # print('Changing: %r' % (model_list,))
+        # logger.info('Changing: %r' % (model_list,))
         self.model_list = list(model_list) + list(args)
 
     def __enter__(self):
         for model in self.model_list:
             if model._get_context_id() is not None:
-                # print("[ChangeLayoutContext] WARNING: ENTERING CONTEXT TWICE")
+                # logger.info("[ChangeLayoutContext] WARNING: ENTERING CONTEXT TWICE")
                 continue
             model._set_context_id(id(self))
-            # print("[ChangeLayoutContext] ENTERING CONTEXT, context_id: %r" % (model._get_context_id(), ))
+            # logger.info("[ChangeLayoutContext] ENTERING CONTEXT, context_id: %r" % (model._get_context_id(), ))
             model._about_to_change()
             # isabouttochange = model._about_to_change()
-            # print("... isabouttochange = %r" % (isabouttochange,))
+            # logger.info("... isabouttochange = %r" % (isabouttochange,))
             model._set_changeblocked(True)
         return self
 
     def __exit__(self, type_, value, trace):
         if trace is not None:
-            print('[api_model] Error in context manager!: ' + str(value))
+            logger.info('[api_model] Error in context manager!: ' + str(value))
             return False  # return a falsey value on error
         for model in self.model_list:
             if model._get_context_id() == id(self):
-                # print("[ChangeLayoutContext] EXITING CONTEXT, context_id: %r" % (id(self), ))
+                # logger.info("[ChangeLayoutContext] EXITING CONTEXT, context_id: %r" % (id(self), ))
                 model._set_context_id(None)
                 model._set_changeblocked(False)
                 model._change()
                 # didchange = model._change()
-                # print("... didchange = %r" % (didchange,))
+                # logger.info("... didchange = %r" % (didchange,))
 
 
 def default_method_decorator(func):
@@ -137,7 +139,7 @@ class APIItemModel(API_MODEL_BASE):
     # Non-Qt Init Functions
     def __init__(model, headers=None, parent=None):
         if VERBOSE_MODEL:
-            print('[APIItemModel] __init__')
+            logger.info('[APIItemModel] __init__')
         # FIXME: don't let the model point to the view
         model.view = parent
         API_MODEL_BASE.__init__(model, parent=parent)
@@ -213,7 +215,7 @@ class APIItemModel(API_MODEL_BASE):
     @updater
     def _update_headers(model, **headers):
         if VERBOSE_MODEL:
-            print('[APIItemModel] _update_headers')
+            logger.info('[APIItemModel] _update_headers')
         iders = headers.get('iders', None)
         name = headers.get('name', None)
         nice = headers.get('nice', None)
@@ -310,7 +312,7 @@ class APIItemModel(API_MODEL_BASE):
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
         if VERBOSE_MODEL:
-            print(
+            logger.info(
                 '[APIItemModel] _set_sort, index=%r reverse=%r, rebuild=%r'
                 % (col_sort_index, col_sort_reverse, rebuild_structure,)
             )
@@ -334,31 +336,31 @@ class APIItemModel(API_MODEL_BASE):
         if True:
             # flag = model.blockSignals(True)
             if VERBOSE_MODEL:
-                print('[APIItemModel] +-----------')
-                print('[APIItemModel] _update_rows')
+                logger.info('[APIItemModel] +-----------')
+                logger.info('[APIItemModel] _update_rows')
             # this is not slow
-            # print('UPDATE ROWS!')
+            # logger.info('UPDATE ROWS!')
             if len(model.col_level_list) == 0:
                 return
             # old_root = model.root_node  # NOQA
             if rebuild_structure:
-                # print('Rebuilging api_item_model internal structure')
+                # logger.info('Rebuilging api_item_model internal structure')
                 model.beginResetModel()  # I think this is preventing a segfault
                 model.root_node = _atn.build_internal_structure(model)
                 model.endResetModel()
             if VERBOSE_MODEL:
-                print('[APIItemModel] lazy_update_rows')
+                logger.info('[APIItemModel] lazy_update_rows')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
             children = (
                 model.root_node.get_children()
             )  # THIS IS THE LINE THAT TAKES FOREVER
             id_list = [child.get_id() for child in children]
-            # print('ids_ generated')
+            # logger.info('ids_ generated')
             nodes = []
             if len(id_list) != 0:
                 if VERBOSE_MODEL:
-                    print(
+                    logger.info(
                         '[APIItemModel] lazy_update_rows len(id_list) = %r'
                         % (len(id_list))
                     )
@@ -378,7 +380,7 @@ class APIItemModel(API_MODEL_BASE):
                 # <NUMPY MULTIARRAY SORT>
                 if True:
                     if values is None:
-                        print('SORTING VALUES IS NONE. VERY WEIRD')
+                        logger.info('SORTING VALUES IS NONE. VERY WEIRD')
                     if type_ is float:
                         values = np.array(ut.replace_nones(values, np.nan))
                         # Force nan to be the smallest number
@@ -411,8 +413,8 @@ class APIItemModel(API_MODEL_BASE):
             # model.blockSignals(flag)
             model._rows_updated.emit(model.name, model.num_rows_total)
             if VERBOSE_MODEL:
-                print('[APIItemModel] finished _update_rows')
-                print('[APIItemModel] L__________')
+                logger.info('[APIItemModel] finished _update_rows')
+                logger.info('[APIItemModel] L__________')
 
     # ------------------------------------
     # --- Data maintainence functions ---
@@ -422,27 +424,27 @@ class APIItemModel(API_MODEL_BASE):
     def _about_to_change(model, force=False):
         if force or (not model._abouttochange and not model._changeblocked):
             if VERBOSE_MODEL:
-                print('ABOUT TO CHANGE: %r' % (model.name,))
+                logger.info('ABOUT TO CHANGE: %r' % (model.name,))
             model._abouttochange = True
             model.layoutAboutToBeChanged.emit()
             return True
         else:
             if VERBOSE_MODEL:
-                print('NOT ABOUT TO CHANGE')
+                logger.info('NOT ABOUT TO CHANGE')
             return False
 
     @default_method_decorator
     def _change(model, force=False):
         if force or (model._abouttochange and not model._changeblocked):
             if VERBOSE_MODEL:
-                print('LAYOUT CHANGED:  %r' % (model.name,))
+                logger.info('LAYOUT CHANGED:  %r' % (model.name,))
             model._abouttochange = False
             model.clear_cache()
             model.layoutChanged.emit()
             return True
         else:
             if VERBOSE_MODEL:
-                print('NOT LAYOUT CHANGING')
+                logger.info('NOT LAYOUT CHANGING')
             return False
 
     @default_method_decorator
@@ -553,7 +555,7 @@ class APIItemModel(API_MODEL_BASE):
             raise
         # parent_node check
         if node_parent is None:
-            print('[model._get_adjacent_qtindex] node_parent is None!')
+            logger.info('[model._get_adjacent_qtindex] node_parent is None!')
             return None
         # Offset to find the next qtindex
         next_index = node_parent.child_index(node) + offset
@@ -648,7 +650,7 @@ class APIItemModel(API_MODEL_BASE):
         # </HACK: MODEL_CACHE>
         setter = model.col_setter_list[col]
         if VERBOSE_MODEL:
-            print('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
+            logger.info('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
         try:
             return setter(row_id, value)
         except Exception as ex:
@@ -691,7 +693,7 @@ class APIItemModel(API_MODEL_BASE):
                 # <HACK>
                 # A segfault happens in isinstance when updating rows?
                 if not isinstance(node, _atn.TreeNode):
-                    print(
+                    logger.info(
                         'WARNING: tried to access parent of %r type object' % type(node)
                     )
                     return QtCore.QModelIndex()
@@ -738,7 +740,7 @@ class APIItemModel(API_MODEL_BASE):
         # model.lazy_checks()
         if not parent.isValid():
             # This is a top level == 0 index
-            # print('[model.index] ROOT: row=%r, col=%r' % (row, column))
+            # logger.info('[model.index] ROOT: row=%r, col=%r' % (row, column))
             if row >= model.root_node.get_num_children():
                 return QtCore.QModelIndex()
                 # import traceback
@@ -774,12 +776,12 @@ class APIItemModel(API_MODEL_BASE):
                 return 0
             return model.num_rows_loaded
             # nRows = len(model.level_index_list)
-            # # print('* nRows=%r' % nRows)
+            # # logger.info('* nRows=%r' % nRows)
             # return nRows
         else:
             node = parent.internalPointer()
             nRows = node.get_num_children()
-            # print('+ nRows=%r' % nRows)
+            # logger.info('+ nRows=%r' % nRows)
             return nRows
 
     @default_method_decorator
@@ -813,15 +815,15 @@ class APIItemModel(API_MODEL_BASE):
                 return
             # if node.get_level() == len(model.col_level_list):
             #     return
-        # print('model.num_rows_total = %r' % (model.num_rows_total,))
-        # print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
+        # logger.info('model.num_rows_total = %r' % (model.num_rows_total,))
+        # logger.info('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
         if model.num_rows_total is not None:
             if model.num_rows_loaded < model.num_rows_total:
                 if VERBOSE_MODEL:
-                    print('canFetchMore %s? -- Yes' % (model.name,))
+                    logger.info('canFetchMore %s? -- Yes' % (model.name,))
                 return True
         if VERBOSE_MODEL:
-            print('canFetchMore %s? -- No' % (model.name,))
+            logger.info('canFetchMore %s? -- No' % (model.name,))
         return False
         # if not parent.isValid():
         #    return False
@@ -854,17 +856,19 @@ class APIItemModel(API_MODEL_BASE):
         else:
             num_fetching = min(model.batch_size, remainder)
         if VERBOSE_MODEL:
-            print('Fetching %r more %s' % (num_fetching, model.name))
+            logger.info('Fetching %r more %s' % (num_fetching, model.name))
         idx1 = model.num_rows_total
         idx2 = model.num_rows_total + num_fetching - 1
         # model.beginInsertRows(QtCore.QModelIndex(), idx1, idx2)
         model.beginInsertRows(parent, idx1, idx2)
         model.num_rows_loaded += num_fetching
-        # print('model.num_rows_total = %r' % (model.num_rows_total,))
-        # print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
+        # logger.info('model.num_rows_total = %r' % (model.num_rows_total,))
+        # logger.info('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
         model.endInsertRows()
         if VERBOSE_MODEL:
-            print('Fetched %r/%r rows' % (model.num_rows_loaded, model.num_rows_total))
+            logger.info(
+                'Fetched %r/%r rows' % (model.num_rows_loaded, model.num_rows_total)
+            )
         # model.numberPopulated.emit(num_loading)
 
     @default_method_decorator
@@ -937,7 +941,7 @@ class APIItemModel(API_MODEL_BASE):
             # qvariant. This includes PIXMAP, BUTTON, and COMBO
             if type_ in qtype.QT_DELEGATE_TYPES:
                 data = model._get_data(qtindex, **kwargs)
-                # print(data)
+                # logger.info(data)
                 return data
             else:
                 # Display data with default delegate by casting to a qvariant
@@ -1100,7 +1104,7 @@ def simple_thumbnail_widget():
 
     def thumb_getter(id_, thumbsize=128):
         """ Thumb getters must conform to thumbtup structure """
-        # print(id_)
+        # logger.info(id_)
         return ut.grab_test_imgpath(id_)
         # return None
 

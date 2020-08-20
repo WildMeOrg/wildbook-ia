@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import vtool as vt
 import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def fix_annotation_orientation(ibs, min_percentage=0.95):
@@ -56,7 +58,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
     gid_list = ut.filter_items(gid_list, flag_list)
     if len(gid_list) > 0:
         args = (len(gid_list),)
-        print('Found %d images with non-standard orientations' % args)
+        logger.info('Found %d images with non-standard orientations' % args)
         aids_list = ibs.get_image_aids(gid_list, is_staged=None, __check_staged__=False)
         size_list = ibs.get_image_sizes(gid_list)
         invalid_gid_list = []
@@ -77,7 +79,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                 percentage = overlap / area
                 if percentage < min_percentage:
                     args = (gid, orient_str, aid, overlap, area, percentage)
-                    print(
+                    logger.info(
                         '\tInvalid GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)'
                         % args
                     )
@@ -93,7 +95,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                 len(gid_list),
                 invalid_gid_list,
             )
-            print('Found %d / %d images with invalid annotations = %r' % args)
+            logger.info('Found %d / %d images with invalid annotations = %r' % args)
             orient_list = ibs.get_image_orientation(invalid_gid_list)
             aids_list = ibs.get_image_aids(
                 invalid_gid_list, is_staged=None, __check_staged__=False
@@ -107,7 +109,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                     invalid_gid,
                     len(aid_list),
                 )
-                print('Fixing GID %r with %d annotations' % args)
+                logger.info('Fixing GID %r with %d annotations' % args)
                 theta = np.pi / 2.0
                 tx = 0.0
                 ty = 0.0
@@ -130,17 +132,17 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                         [0.0, 0.0, 1.0],
                     ]
                 )
-                # print(H)
+                # logger.info(H)
                 verts_list = ibs.get_annot_rotated_verts(aid_list)
                 for aid, vert_list in zip(aid_list, verts_list):
                     vert_list = np.array(vert_list)
-                    # print(vert_list)
+                    # logger.info(vert_list)
                     vert_list = vert_list.T
                     transformed_vert_list = vt.transform_points_with_homography(
                         H, vert_list
                     )
                     transformed_vert_list = transformed_vert_list.T
-                    # print(transformed_vert_list)
+                    # logger.info(transformed_vert_list)
 
                     ibs.set_annot_verts(
                         [aid], [transformed_vert_list], update_visual_uuids=False
@@ -162,12 +164,12 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                         fixed_area,
                         fixed_percentage,
                     )
-                    print(
+                    logger.info(
                         '\tFixing GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)'
                         % args
                     )
                     if fixed_percentage < min_percentage:
-                        print('\tWARNING: FIXING DID NOT CORRECT AID %r' % (aid,))
+                        logger.info('\tWARNING: FIXING DID NOT CORRECT AID %r' % (aid,))
                         unfixable_gid_list.append(gid)
-    print('Un-fixable gid_list = %r' % (unfixable_gid_list,))
+    logger.info('Un-fixable gid_list = %r' % (unfixable_gid_list,))
     return unfixable_gid_list

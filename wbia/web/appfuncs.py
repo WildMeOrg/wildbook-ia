@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import flask
 import random
 from wbia import constants as const
@@ -16,6 +17,7 @@ import numpy as np
 import six
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
 TARGET_WIDTH = 1200.0
@@ -73,7 +75,7 @@ class NavbarClass(object):
         _link = request.path
         for link, nice in nav.item_list:
             active = _link == url_for(link)
-            # print(_link, link, url_for(link))
+            # logger.info(_link, link, url_for(link))
             yield active, link, nice
 
 
@@ -96,7 +98,7 @@ def resize_via_web_parameters(image):
         _pix,
         _per,
     )
-    print('CHECKING RESIZING WITH %r pix, %r pix, %r %%, %r %% [%r, %r]' % args)
+    logger.info('CHECKING RESIZING WITH %r pix, %r pix, %r %%, %r %% [%r, %r]' % args)
     # Check for nothing
     if not (w_pix or h_pix or w_per or h_per):
         return image
@@ -191,7 +193,7 @@ def template(template_directory=None, template_filename=None, **kwargs):
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
     if 'refer' in flask.request.args.keys():
         refer = flask.request.args['refer']
-        print('[web] REFER: %r' % (refer,))
+        logger.info('[web] REFER: %r' % (refer,))
         global_args['REFER_DST_ENCODED'] = refer
         global_args['REFER_DST_STR'] = decode_refer_url(refer)
     if template_directory is None:
@@ -204,21 +206,23 @@ def template(template_directory=None, template_filename=None, **kwargs):
     # Update global args with the template's args
     _global_args = dict(global_args)
     _global_args.update(kwargs)
-    print('[appfuncs] template()')
+    logger.info('[appfuncs] template()')
     app = controller_inject.get_flask_app()
     # flask hates windows apparently
     template_ = template_.replace('\\', '/')
-    print('[appfuncs.template] * app.template_folder = %r' % (app.template_folder,))
-    print('[appfuncs.template] * template_directory = %r' % (template_directory,))
-    print('[appfuncs.template] * template_filename = %r' % (template_filename,))
-    print('[appfuncs.template] * template_ = %r' % (template_,))
+    logger.info('[appfuncs.template] * app.template_folder = %r' % (app.template_folder,))
+    logger.info('[appfuncs.template] * template_directory = %r' % (template_directory,))
+    logger.info('[appfuncs.template] * template_filename = %r' % (template_filename,))
+    logger.info('[appfuncs.template] * template_ = %r' % (template_,))
     try:
         ret = flask.render_template(template_, **_global_args)
         # ret = flask.render_template(full_template_fpath, **_global_args)
     except jinja2.exceptions.TemplateNotFound as ex:
-        print('Error template not found')
+        logger.info('Error template not found')
         full_template_fpath = join(app.template_folder, template_)
-        print('[appfuncs.template] * full_template_fpath = %r' % (full_template_fpath,))
+        logger.info(
+            '[appfuncs.template] * full_template_fpath = %r' % (full_template_fpath,)
+        )
         ut.checkpath(full_template_fpath, verbose=True)
         ut.printex(ex, 'Template error in appfuncs', tb=True)
         raise
@@ -250,7 +254,7 @@ def get_turk_image_args(is_reviewed_func):
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = _ensureid(imgsetid)
 
-    print('NOT GROUP_REVIEW')
+    logger.info('NOT GROUP_REVIEW')
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
     reviewed_list = is_reviewed_func(ibs, gid_list)
 
@@ -271,7 +275,7 @@ def get_turk_image_args(is_reviewed_func):
 
     previous = request.args.get('previous', None)
 
-    print('gid = %r' % (gid,))
+    logger.info('gid = %r' % (gid,))
     return gid_list, reviewed_list, imgsetid, progress, gid, previous
 
 
@@ -294,7 +298,7 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
 
     group_review_flag = src_ag is not None and dst_ag is not None
     if not group_review_flag:
-        print('NOT GROUP_REVIEW')
+        logger.info('NOT GROUP_REVIEW')
         if speed_hack:
             aid_list = ibs.get_valid_aids()
         else:
@@ -329,10 +333,10 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
 
     previous = request.args.get('previous', None)
 
-    print('aid = %r' % (aid,))
-    # print(ut.repr2(ibs.get_annot_info(aid)))
+    logger.info('aid = %r' % (aid,))
+    # logger.info(ut.repr2(ibs.get_annot_info(aid)))
     # if aid is not None:
-    #     print(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))
+    #     logger.info(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))
     return aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous
 
 
@@ -342,7 +346,7 @@ def movegroup_aid(ibs, aid, src_ag, dst_ag):
     src_index = annotgroup_rowid_list.index(src_ag)
     src_gar_rowid = gar_rowid_list[src_index]
     vals = (aid, src_ag, src_gar_rowid, dst_ag)
-    print('Moving aid: %s from src_ag: %s (%s) to dst_ag: %s' % vals)
+    logger.info('Moving aid: %s from src_ag: %s (%s) to dst_ag: %s' % vals)
     # ibs.delete_gar([src_gar_rowid])
     ibs.add_gar([dst_ag], [aid])
 
@@ -374,7 +378,7 @@ def default_species(ibs):
         default_species = 'zebra_plains'
     else:
         default_species = None
-    print('[web] DEFAULT SPECIES: %r' % (default_species))
+    logger.info('[web] DEFAULT SPECIES: %r' % (default_species))
     return default_species
 
 
@@ -494,17 +498,17 @@ def imageset_part_contour_processed(ibs, part_rowid_list, reviewed_flag_progress
 
 
 def imageset_annot_demographics_processed(ibs, aid_list):
-    print('[demographics] Check %d total annotations' % (len(aid_list),))
+    logger.info('[demographics] Check %d total annotations' % (len(aid_list),))
 
     nid_list = ibs.get_annot_nids(aid_list)
     flag_list = [nid <= 0 for nid in nid_list]
     aid_list_ = ut.filterfalse_items(aid_list, flag_list)
-    print('[demographics] Found %d named annotations' % (len(aid_list_),))
+    logger.info('[demographics] Found %d named annotations' % (len(aid_list_),))
 
     sex_list = ibs.get_annot_sex(aid_list_)
     sex_dict = {aid: sex in [0, 1, 2] for aid, sex in zip(aid_list_, sex_list)}
     value_list = list(sex_dict.values())
-    print('[demographics] Found %d set sex annotations' % (sum(value_list),))
+    logger.info('[demographics] Found %d set sex annotations' % (sum(value_list),))
 
     age_list = ibs.get_annot_age_months_est(aid_list)
     age_dict = {
@@ -512,13 +516,13 @@ def imageset_annot_demographics_processed(ibs, aid_list):
         for aid, age in zip(aid_list, age_list)
     }
     value_list = list(age_dict.values())
-    print('[demographics] Found %d set age annotations' % (sum(value_list),))
+    logger.info('[demographics] Found %d set age annotations' % (sum(value_list),))
 
     annots_reviewed = [
         sex_dict.get(aid, True) and age_dict.get(aid, True) for aid in aid_list
     ]
     value_list = annots_reviewed
-    print('[demographics] Found %d reviewed annotations' % (sum(value_list),))
+    logger.info('[demographics] Found %d reviewed annotations' % (sum(value_list),))
     return annots_reviewed
 
 
@@ -528,7 +532,7 @@ def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
     year = 2000 + int(filename[0:2])
     month = int(filename[2:4])
     day = int(filename[4:6])
-    print(year, month, day)
+    logger.info(year, month, day)
     for line in nmea_str.split('\n'):
         line = line.strip()
         if '@' in line or 'GPRMC' in line or len(line) == 0:
@@ -603,7 +607,7 @@ def _resize(image, t_width=None, t_height=None):
     else:
         import cv2
 
-        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height,))
+        logger.info('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height,))
         height, width = image.shape[:2]
         if t_width is None and t_height is None:
             return image

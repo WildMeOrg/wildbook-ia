@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
+import logging
 import utool as ut
 import numpy as np
 import sklearn
@@ -19,6 +20,7 @@ except ImportError:
 from os.path import join
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def shark_net(dry=False):
@@ -100,9 +102,9 @@ def shark_net(dry=False):
         # y_pred = model.predict(X_test)
         test_outptuts = model._predict(X_test)
         y_pred = test_outptuts['predictions']
-        print(model.name)
+        logger.info(model.name)
         report = sklearn.metrics.classification_report(y_true=y_test, y_pred=y_pred,)
-        print(report)
+        logger.info(report)
 
         state_fpath = '/home/joncrall/Desktop/manually_saved/arch_injur-shark-resnet_o2_d27_c2942_jzuddodd/model_state_arch_jzuddodd.pkl'
         dpath = '/home/joncrall/Desktop/manually_saved/arch_injur-shark-lenet_o2_d11_c688_acioqbst'
@@ -160,7 +162,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         import wbia_cnn.__LASAGNE__ as lasange
         from wbia_cnn import custom_layers
 
-        print('[model] init_arch')
+        logger.info('[model] init_arch')
 
         lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1.0 / 3.0))
         W = lasange.init.Orthogonal('relu')
@@ -198,7 +200,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         import wbia_cnn.__LASAGNE__ as lasange
         from wbia_cnn import custom_layers
 
-        print('[model] init_arch')
+        logger.info('[model] init_arch')
         nonlinearity = lasange.nonlinearities.LeakyRectify(leakiness=(1.0 / 3.0))
         W = lasange.init.HeNormal(gain='relu')
         # W = lasange.init.GlorotUniform()
@@ -237,7 +239,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         import wbia_cnn.__LASAGNE__ as lasange
         from wbia_cnn import custom_layers
 
-        print('[model] init_arch')
+        logger.info('[model] init_arch')
 
         N = 16
 
@@ -422,7 +424,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
         name=name,
     )
 
-    print(dataset.dataset_id)
+    logger.info(dataset.dataset_id)
 
     dataset.setprop('ibs', ibs)
     dataset.setprop('annots', annots)
@@ -523,9 +525,9 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     # if False:
     #    x = ibs.images().compress(isempty)
     num_empty_images = sum(isempty)
-    print('Images without annotations: %r' % (num_empty_images,))
+    logger.info('Images without annotations: %r' % (num_empty_images,))
 
-    print(
+    logger.info(
         'Building labels for %r annotations from %r images'
         % (len(all_annots), len(ut.unique(all_annots.gids)))
     )
@@ -538,12 +540,12 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     from wbia.scripts import getshark
 
     category_tags = getshark.get_injur_categories(all_annots)
-    print('Base Category Tags tags')
-    print(ut.repr3(ut.dict_hist(ut.flatten(category_tags))))
+    logger.info('Base Category Tags tags')
+    logger.info(ut.repr3(ut.dict_hist(ut.flatten(category_tags))))
 
-    print('Base Co-Occurrence Freq')
+    logger.info('Base Co-Occurrence Freq')
     co_occur1 = ut.tag_coocurrence(category_tags)
-    print(ut.repr3(co_occur1))
+    logger.info(ut.repr3(co_occur1))
 
     ntags_list = np.array(ut.lmap(len, category_tags))
     is_no_tag = ntags_list == 0
@@ -578,7 +580,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     tag_vocab = ut.flat_unique(*category_tags)
     alias_map = ut.build_alias_map(regex_map, tag_vocab)
     unmapped = list(set(tag_vocab) - set(alias_map.keys()))
-    print('unmapped = %r' % (unmapped,))
+    logger.info('unmapped = %r' % (unmapped,))
     category_tags2 = ut.alias_tags(category_tags, alias_map)
 
     ntags_list = np.array(ut.lmap(len, category_tags2))
@@ -586,33 +588,33 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     is_single_tag = ntags_list == 1
     is_multi_tag = ntags_list > 1
 
-    print('Cleaned tags')
+    logger.info('Cleaned tags')
     hist = ut.tag_hist(category_tags2)
-    print(ut.repr3(hist))
+    logger.info(ut.repr3(hist))
 
     # Get tag co-occurrence
-    print('Co-Occurrence Freq')
+    logger.info('Co-Occurrence Freq')
     co_occur = ut.tag_coocurrence(category_tags2)
-    print(ut.repr3(co_occur))
+    logger.info(ut.repr3(co_occur))
 
-    print('Co-Occurrence Percent')
+    logger.info('Co-Occurrence Percent')
     co_occur_percent = ut.odict(
         [(keys, [100 * val / hist[k] for k in keys]) for keys, val in co_occur.items()]
     )
-    print(ut.repr3(co_occur_percent, precision=2, nl=1))
+    logger.info(ut.repr3(co_occur_percent, precision=2, nl=1))
 
     multi_annots = all_annots.compress(is_multi_tag)  # NOQA
     # ibs.set_image_imagesettext(multi_annots.gids, ['MultiTaged'] * is_multi_tag.sum())
 
-    print("can't use %r annots due to no labels" % (is_no_tag.sum(),))
-    print("can't use %r annots due to inconsistent labels" % (is_multi_tag.sum(),))
-    print('will use %r annots with consistent labels' % (is_single_tag.sum(),))
+    logger.info("can't use %r annots due to no labels" % (is_no_tag.sum(),))
+    logger.info("can't use %r annots due to inconsistent labels" % (is_multi_tag.sum(),))
+    logger.info('will use %r annots with consistent labels' % (is_single_tag.sum(),))
 
     annot_tags = ut.compress(category_tags2, is_single_tag)
     annots = all_annots.compress(is_single_tag)
     annot_tag_hist = ut.dict_hist(ut.flatten(annot_tags))
-    print('Final Annot Tags')
-    print(ut.repr3(annot_tag_hist))
+    logger.info('Final Annot Tags')
+    logger.info(ut.repr3(annot_tag_hist))
 
     # target_names = ['healthy', 'injured']
     enc = preprocessing.LabelEncoder()
@@ -639,7 +641,7 @@ class ClfProblem(object):
         enc = problem.ds.enc
         target_labels = enc.inverse_transform(problem.ds.target)
         label_hist = ut.dict_hist(target_labels)
-        print('support hist' + ut.repr3(label_hist))
+        logger.info('support hist' + ut.repr3(label_hist))
 
     def fit_new_classifier(problem, train_idx):
         """
@@ -649,7 +651,7 @@ class ClfProblem(object):
             http://scikit-learn.org/stable/modules/svm.html#svm-classification
             http://scikit-learn.org/stable/modules/grid_search.html
         """
-        print('[problem] train classifier on %d data points' % (len(train_idx)))
+        logger.info('[problem] train classifier on %d data points' % (len(train_idx)))
         data = problem.ds.data
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
@@ -672,7 +674,7 @@ class ClfProblem(object):
         return clf
 
     def fit_new_linear_svm(problem, train_idx):
-        print('[problem] train classifier on %d data points' % (len(train_idx)))
+        logger.info('[problem] train classifier on %d data points' % (len(train_idx)))
         data = problem.ds.data
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
@@ -745,12 +747,14 @@ class ClfProblem(object):
             )
             clf.fit(x_train, y_train)
             # (NOTE grid.predict only uses the best estimator)
-            print('clf.best_params_ = %r' % (clf.best_params_,))
-            print('Best parameters set found on development set:')
-            print(clf.best_params_)
-            print('Grid scores on development set:')
+            logger.info('clf.best_params_ = %r' % (clf.best_params_,))
+            logger.info('Best parameters set found on development set:')
+            logger.info(clf.best_params_)
+            logger.info('Grid scores on development set:')
             for params, mean_score, scores in clf.grid_scores_:
-                print('%0.3f (+/-%0.03f) for %r' % (mean_score, scores.std() * 2, params))
+                logger.info(
+                    '%0.3f (+/-%0.03f) for %r' % (mean_score, scores.std() * 2, params)
+                )
             xdata = np.array([t[0]['C'] for t in clf.grid_scores_])
             ydata = np.array([t[1] for t in clf.grid_scores_])
 
@@ -821,7 +825,7 @@ class ClfProblem(object):
             # 0.702 (+/-0.047) for {u'C': 1000}
 
     def classifier_test(problem, clf, test_idx):
-        print('[problem] test classifier on %d data points' % (len(test_idx),))
+        logger.info('[problem] test classifier on %d data points' % (len(test_idx),))
         data = problem.ds.data
         target = problem.ds.target
         X_test = data.take(test_idx, axis=0)
@@ -918,7 +922,7 @@ class ClfSingleResult(object):
         report = sklearn.metrics.classification_report(
             result.y_true, result.y_pred, target_names=result.ds.target_names
         )
-        print(report)
+        logger.info(report)
 
 
 def get_model_state(clf):
@@ -942,7 +946,7 @@ def set_model_state(clf, model_state):
     attr_names_ = attr_namesA + attr_namesB + attr_namesC
     for a in attr_names_:
         val = model_state[a]
-        print('a = %r' % (a,))
+        logger.info('a = %r' % (a,))
         try:
             setattr(clf, a, val)
         except AttributeError:
@@ -1181,7 +1185,9 @@ def shark_svm():
             grid.fit(x_train, y_train)
 
             for params, mean_score, scores in grid.grid_scores_:
-                print('%0.3f (+/-%0.03f) for %r' % (mean_score, scores.std() * 2, params))
+                logger.info(
+                    '%0.3f (+/-%0.03f) for %r' % (mean_score, scores.std() * 2, params)
+                )
 
             c_xdata = np.array([t[0]['C'] for t in grid.grid_scores_])
             c_ydata = np.array([t[1] for t in grid.grid_scores_])
@@ -1191,9 +1197,9 @@ def shark_svm():
             submaxima_x, submaxima_y = vt.argsubmaxima(c_ydata, c_xdata)
             # pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
             C = submaxima_x[0]
-            print('C = %r' % (C,))
+            logger.info('C = %r' % (C,))
         else:
-            print('C = %r' % (C,))
+            logger.info('C = %r' % (C,))
 
         clf_all = sklearn.svm.SVC(
             kernel=str('linear'),
@@ -1211,7 +1217,7 @@ def shark_svm():
         clf.__dict__.update(**ut.load_data(clf_fpath))
 
     def classifier_test(clf, X_test, y_test):
-        print('[problem] test classifier on %d data points' % (len(test_idx),))
+        logger.info('[problem] test classifier on %d data points' % (len(test_idx),))
         y_conf = predict_svc_ovr(X_test)
         y_pred = y_conf.argmax(axis=1)
         result = ClfSingleResult(problem.ds, test_idx, y_test, y_pred, y_conf)
@@ -1239,11 +1245,11 @@ def shark_svm():
     report = sklearn.metrics.classification_report(
         y_true=df['target'], y_pred=df['pred'], target_names=result.ds.target_names
     )
-    print(report)
+    logger.info(report)
 
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
-    print('Confusion Matrix:')
-    print(
+    logger.info('Confusion Matrix:')
+    logger.info(
         pd.DataFrame(
             confusion,
             columns=[m for m in result.ds.target_names],
@@ -1326,11 +1332,11 @@ def inspect_results(ds, result_list):
     report = sklearn.metrics.classification_report(
         y_true=df['target'], y_pred=df['pred'], target_names=result.ds.target_names
     )
-    print(report)
+    logger.info(report)
 
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
-    print('Confusion Matrix:')
-    print(
+    logger.info('Confusion Matrix:')
+    logger.info(
         pd.DataFrame(
             confusion,
             columns=[m for m in result.ds.target_names],
@@ -1346,7 +1352,7 @@ def inspect_results(ds, result_list):
     def grab_subchunk(frac, n, target):
         df_chunk = target_partition(target)
         sl = ut.snapped_slice(len(df_chunk), frac, n)
-        print('sl = %r' % (sl,))
+        logger.info('sl = %r' % (sl,))
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]
         min_frac = sl.start / len(df_chunk)
@@ -1362,7 +1368,7 @@ def inspect_results(ds, result_list):
 
     def grab_subchunk2(df_chunk, frac, n):
         sl = ut.snapped_slice(len(df_chunk), frac, n)
-        print('sl = %r' % (sl,))
+        logger.info('sl = %r' % (sl,))
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]
         min_frac = sl.start / len(df_chunk)

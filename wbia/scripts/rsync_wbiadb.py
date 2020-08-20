@@ -5,9 +5,11 @@ CommandLine:
     python -m wbia.scripts.rsync_wbiadb
     python -m wbia.scripts.rsync_wbiadb --dryrun
 """
+import logging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=False):
@@ -16,10 +18,10 @@ def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=F
     (or the top level image directory because it shouldnt exist unlese
     it is an old hots database)
     """
-    print('[sync_wbiadb] Syncing')
-    print('  * dbname=%r ' % (dbname,))
-    print('  * remote_uri=%r' % (remote_uri,))
-    print('  * mode=%r' % (mode))
+    logger.info('[sync_wbiadb] Syncing')
+    logger.info('  * dbname=%r ' % (dbname,))
+    logger.info('  * remote_uri=%r' % (remote_uri,))
+    logger.info('  * mode=%r' % (mode))
     import wbia
 
     assert dbname is not None, 'must specify a database name'
@@ -65,7 +67,7 @@ def rsync_ibsdb_main():
     valid_modes = ['push', 'pull', 'list']
 
     if len(cmdline_varags) < 1:
-        print(
+        logger.info(
             'Usage: '
             # 'python -m wbia.scripts.rsync_wbiadb'
             'python -m wbia rsync'
@@ -113,13 +115,13 @@ def rsync_ibsdb_main():
     remote_uri = user + '@' + remote + ':' + remote_workdir
 
     if mode == 'list':
-        print('remote = %r' % (remote,))
-        print('need to list')
+        logger.info('remote = %r' % (remote,))
+        logger.info('need to list')
         remote_paths = ut.list_remote(remote_uri)
-        print('REMOTE LS -- TODO need to get only wbia dirs')
-        print('\n'.join(remote_paths))
+        logger.info('REMOTE LS -- TODO need to get only wbia dirs')
+        logger.info('\n'.join(remote_paths))
     elif mode in ['push', 'pull']:
-        print('dbnames = {!r}'.format(dbnames))
+        logger.info('dbnames = {!r}'.format(dbnames))
         for dbname in ut.ProgIter(dbnames, label='sync db'):
             ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
             sync_wbiadb(remote_uri, dbname, mode, workdir, port, dry_run)

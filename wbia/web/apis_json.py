@@ -4,6 +4,7 @@ Dependencies: flask, tornado
 """
 
 # from os.path import splitext, basename
+import logging
 import uuid
 import six
 from wbia.web.routes_ajax import image_src
@@ -12,6 +13,7 @@ import utool as ut
 import wbia.constants as const
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 register_api = controller_inject.get_wbia_flask_api(__name__)
 
@@ -484,7 +486,7 @@ def add_images_json(
         gid_list_ = ut.filter_items(gid_list, flag_list)
         image_unixtime_list_ = ut.filter_items(image_unixtime_list, flag_list)
 
-        print('Setting times: %r -> %r' % (gid_list_, image_unixtime_list_,))
+        logger.info('Setting times: %r -> %r' % (gid_list_, image_unixtime_list_,))
         ibs.set_image_unixtime(gid_list_, image_unixtime_list_)
 
     if image_gps_lat_list is not None and image_gps_lon_list is not None:
@@ -518,7 +520,7 @@ def add_images_json(
         image_gps_lat_list_ = ut.filter_items(image_gps_lat_list, flag_list)
         image_gps_lon_list_ = ut.filter_items(image_gps_lon_list, flag_list)
 
-        print(
+        logger.info(
             'Setting gps: %r -> %r, %r'
             % (gid_list_, image_gps_lat_list_, image_gps_lon_list_,)
         )

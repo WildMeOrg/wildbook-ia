@@ -3,6 +3,7 @@
 CommandLine:
     python -m wbia.gui.inspect_gui --test-test_review_widget --show
 """
+import logging
 from functools import partial
 from wbia.viz import viz_helpers as vh
 import wbia.guitool as gt
@@ -10,6 +11,7 @@ import numpy as np
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[id_review_api]')
+logger = logging.getLogger('wbia')
 
 
 MATCHED_STATUS_TEXT = 'Matched'
@@ -97,8 +99,8 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
     automatch_kw = REVIEW_CFG_DEFAULTS.copy()
     automatch_kw = ut.update_existing(automatch_kw, review_cfg)
-    print('[resorg] get_review_edges(%s)' % (ut.repr2(automatch_kw)))
-    print('[resorg] len(cm_list) = %d' % (len(cm_list)))
+    logger.info('[resorg] get_review_edges(%s)' % (ut.repr2(automatch_kw)))
+    logger.info('[resorg] len(cm_list) = %d' % (len(cm_list)))
     qaids_stack = []
     daids_stack = []
     ranks_stack = []
@@ -258,7 +260,7 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
     """
     # TODO: Add in timedelta to column info
     if ut.VERBOSE:
-        print('[inspect] make_review_api')
+        logger.info('[inspect] make_review_api')
 
     review_edges = get_review_edges(cm_list, ibs=ibs, review_cfg=review_cfg)
     # Get extra info
@@ -525,7 +527,7 @@ def get_match_status_bgrole(ibs, aid_pair):
     """ Background role for status column """
     aid1, aid2 = aid_pair
     truth = ibs.get_match_truth(aid1, aid2)
-    # print('get status bgrole: %r truth=%r' % (aid_pair, truth))
+    # logger.info('get status bgrole: %r truth=%r' % (aid_pair, truth))
     truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
     return truth_color
 
@@ -543,7 +545,7 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
         lighten_amount = 0.35
     truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=lighten_amount)
     # truth = ibs.get_match_truth(aid1, aid2)
-    # print('get status bgrole: %r truth=%r' % (aid_pair, truth))
+    # logger.info('get status bgrole: %r truth=%r' % (aid_pair, truth))
     # truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
     return truth_color
 
@@ -650,7 +652,7 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
         #    'draw_border'      : False,
         # }
         # cm.imwrite_single_annotmatch2(qreq_, daid, fpath, fnum=32, notitle=True, **render_config)
-        # print('fpath = %r' % (fpath,))
+        # logger.info('fpath = %r' % (fpath,))
         match_thumbtup_cache[match_thumb_fpath_] = fpath
     return fpath
 

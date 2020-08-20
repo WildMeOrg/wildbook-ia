@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import collections
 import utool as ut
 from wbia.algo.hots import hstypes
 from wbia.algo import Config
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # This object will behave like a dictionary with ** capability
@@ -94,7 +96,7 @@ class QueryParams(collections.Mapping):
             query_cfg.flann_cfg.asdict(),
         ]
         # Does not include feautres. Instead use
-        # print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
+        # logger.info(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
         return lnbnn_trail
 
     @profile

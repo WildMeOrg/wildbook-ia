@@ -2,6 +2,7 @@
 """
 DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
+import logging
 import utool as ut
 import six
 import copy
@@ -14,6 +15,7 @@ from wbia import constants as const
 from utool._internal.meta_util_six import get_funcname
 
 (print, rrr, profile) = ut.inject2(__name__, '[cfg]')
+logger = logging.getLogger('wbia')
 
 # ConfigBase = ut.DynStruct
 # ConfigBase = object
@@ -42,17 +44,17 @@ def parse_config_items(cfg):
         if isinstance(val, ConfigBase):
             child_cfg = val
             param_list.extend(parse_config_items(child_cfg))
-            # print(key)
+            # logger.info(key)
             pass
         elif key.startswith('_'):
-            # print(key)
+            # logger.info(key)
             pass
         else:
             if key in seen:
-                print('[Config] WARNING: key=%r appears more than once' % (key,))
+                logger.info('[Config] WARNING: key=%r appears more than once' % (key,))
             seen.add(key)
             param_list.append(item)
-            # print(key)
+            # logger.info(key)
     return param_list
 
 
@@ -80,8 +82,8 @@ def make_config_metaclass():
                     ut.ParamInfo('z', 3),
                 ]
         cfg = FooConfig()
-        print(cfg.get_cfgstr(ignore_keys=['x']))
-        print(cfg.get_cfgstr(ignore_keys=[]))
+        logger.info(cfg.get_cfgstr(ignore_keys=['x']))
+        logger.info(cfg.get_cfgstr(ignore_keys=[]))
 
         cfg = GenericConfig()
         cfg.x = 'y'
@@ -121,8 +123,8 @@ def make_config_metaclass():
                         if key not in ignore_keys
                     ]
             except Exception as ex:
-                print(ignore_keys is None)
-                print(ignore_keys)
+                logger.info(ignore_keys is None)
+                logger.info(ignore_keys)
                 ut.printex(ex, keys=['item_list', 'ignore_keys'])
                 raise
         filtered_itemstr_list = list(filter(len, itemstr_list))
@@ -585,7 +587,7 @@ class QueryConfig(ConfigBase):
         # Depends on feature config
         query_cfg.update_query_cfg(**kwargs)
         if ut.VERYVERBOSE:
-            print('[config] NEW QueryConfig')
+            logger.info('[config] NEW QueryConfig')
 
     def get_cfgstr_list(query_cfg, **kwargs):
         # Ensure feasibility of the configuration
@@ -651,7 +653,7 @@ class QueryConfig(ConfigBase):
         try:
             query_cfg.make_feasible()
         except AssertionError as ex:
-            print(ut.repr2(cfgdict, sorted_=True))
+            logger.info(ut.repr2(cfgdict, sorted_=True))
             ut.printex(ex)
             raise
 
@@ -1018,7 +1020,7 @@ def load_named_config(
         cfgname = 'cfg'
     fpath = join(dpath, cfgname) + '.cPkl'
     if verbose:
-        print('[Config] loading named config fpath=%r' % (fpath,))
+        logger.info('[Config] loading named config fpath=%r' % (fpath,))
     # Always a fresh object
     cfg = GenericConfig(cfgname, fpath=fpath)
     try:
@@ -1057,7 +1059,7 @@ def load_named_config(
         #    # TODO: Finishme update the out of data preferences
         #    pass
         if verbose:
-            print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
+            logger.info('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception as ex:
         if ut.VERBOSE:
             ut.printex(ex, iswarning=True)
@@ -1066,7 +1068,7 @@ def load_named_config(
         cfg.save()
     # Hack in cfgname
     if verbose:
-        print('[Config] hack in z_cfgname=%r' % (cfgname,))
+        logger.info('[Config] hack in z_cfgname=%r' % (cfgname,))
     cfg.z_cfgname = cfgname
     return cfg
 
@@ -1075,7 +1077,7 @@ def load_named_config(
 def _default_config(cfg, cfgname=None, new=True):
     """ hack 12-30-2014 """
     if ut.VERBOSE:
-        print('[Config] building default config')
+        logger.info('[Config] building default config')
     if cfgname is None:
         cfgname = cfg.z_cfgname
     if new:
@@ -1137,4 +1139,4 @@ def _default_named_config(cfg, cfgname):
         cfg.query_cfg.nn_cfg.checks = 316
     else:
         if ut.VERBOSE:
-            print('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))
+            logger.info('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))

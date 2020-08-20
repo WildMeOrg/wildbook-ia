@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectexport]')
+logger = logging.getLogger('wbia')
 
 
 def get_cnn_classifier_cameratrap_binary_training_images_pytorch(
@@ -60,10 +62,10 @@ def get_cnn_classifier_cameratrap_binary_training_images_pytorch(
 
     for gid in candidate_gid_set:
         # args = (gid, )
-        # print('Processing GID: %r' % args)
+        # logger.info('Processing GID: %r' % args)
 
         if skip_rate > 0.0 and random.uniform(0.0, 1.0) <= skip_rate:
-            print('\t Skipping - Sampling')
+            logger.info('\t Skipping - Sampling')
             continue
 
         if gid in positive_gid_set:
@@ -71,7 +73,7 @@ def get_cnn_classifier_cameratrap_binary_training_images_pytorch(
         elif gid in negative_gid_set:
             category = 'negative'
         else:
-            print('\t Skipping - No Label')
+            logger.info('\t Skipping - No Label')
             continue
 
         if (
@@ -79,7 +81,7 @@ def get_cnn_classifier_cameratrap_binary_training_images_pytorch(
             and category == 'positive'
             and random.uniform(0.0, 1.0) <= skip_rate_pos
         ):
-            print('\t Skipping Positive')
+            logger.info('\t Skipping Positive')
             continue
 
         if (
@@ -87,7 +89,7 @@ def get_cnn_classifier_cameratrap_binary_training_images_pytorch(
             and category == 'negative'
             and random.uniform(0.0, 1.0) <= skip_rate_neg
         ):
-            print('\t Skipping Negative')
+            logger.info('\t Skipping Negative')
             continue
 
         is_valid = random.uniform(0.0, 1.0) < valid_rate
@@ -168,10 +170,10 @@ def get_cnn_classifier_multiclass_training_images_pytorch(
             continue
 
         args = (gid,)
-        print('Processing GID: %r' % args)
+        logger.info('Processing GID: %r' % args)
 
         if skip_rate > 0.0 and random.uniform(0.0, 1.0) <= skip_rate:
-            print('\t Skipping - Sampling')
+            logger.info('\t Skipping - Sampling')
             continue
 
         is_valid = random.uniform(0.0, 1.0) < valid_rate
@@ -253,10 +255,10 @@ def get_cnn_classifier_canonical_training_images_pytorch(
     chip_list = ibs.depc_annot.get_property('chips', aid_list, 'img', config=config)
     for aid, chip, flag in zip(aid_list, chip_list, flag_list):
         args = (aid,)
-        print('Processing AID: %r' % args)
+        logger.info('Processing AID: %r' % args)
 
         if skip_rate > 0.0 and random.uniform(0.0, 1.0) <= skip_rate:
-            print('\t Skipping - Sampling')
+            logger.info('\t Skipping - Sampling')
             continue
 
         assert flag is not None
@@ -271,7 +273,7 @@ def get_cnn_classifier_canonical_training_images_pytorch(
             and category == 'positive'
             and random.uniform(0.0, 1.0) <= skip_rate_pos
         ):
-            print('\t Skipping Positive')
+            logger.info('\t Skipping Positive')
             continue
 
         if (
@@ -279,7 +281,7 @@ def get_cnn_classifier_canonical_training_images_pytorch(
             and category == 'negative'
             and random.uniform(0.0, 1.0) <= skip_rate_neg
         ):
-            print('\t Skipping Negative')
+            logger.info('\t Skipping Negative')
             continue
 
         is_valid = random.uniform(0.0, 1.0) < valid_rate
@@ -352,10 +354,10 @@ def get_cnn_localizer_canonical_training_images_pytorch(
     chip_list = ibs.depc_annot.get_property('chips', aid_list_, 'img', config=config)
     for aid, chip, bbox in zip(aid_list_, chip_list, bbox_list):
         args = (aid,)
-        print('Processing AID: %r' % args)
+        logger.info('Processing AID: %r' % args)
 
         if skip_rate > 0.0 and random.uniform(0.0, 1.0) <= skip_rate:
-            print('\t Skipping - Sampling')
+            logger.info('\t Skipping - Sampling')
             continue
 
         is_valid = random.uniform(0.0, 1.0) < valid_rate
@@ -432,8 +434,8 @@ def get_cnn_labeler_training_images_pytorch(
     ut.ensuredir(train_path)
     ut.ensuredir(valid_path)
 
-    print('category mapping = %s' % (ut.repr3(category_mapping),))
-    print('viewpoint mapping = %s' % (ut.repr3(viewpoint_mapping),))
+    logger.info('category mapping = %s' % (ut.repr3(category_mapping),))
+    logger.info('viewpoint mapping = %s' % (ut.repr3(viewpoint_mapping),))
 
     # train_gid_set = ibs.get_valid_gids()
     if train_gid_set is None:
@@ -476,7 +478,7 @@ def get_cnn_labeler_training_images_pytorch(
         if species in category_set
     ]
     new_len = len(tup_list)
-    print('Filtered annotations: keep %d / original %d' % (new_len, old_len,))
+    logger.info('Filtered annotations: keep %d / original %d' % (new_len, old_len,))
 
     # Skip any annotations that are of the wanted category and don't have a specified viewpoint
     counter = 0
@@ -523,20 +525,20 @@ def get_cnn_labeler_training_images_pytorch(
                 invalid_yaw_set.add(species)
                 continue
 
-    print('Null yaws: %d' % (counter,))
+    logger.info('Null yaws: %d' % (counter,))
     valid_seen_set = category_set - invalid_seen_set
     valid_yaw_set = valid_seen_set - invalid_yaw_set
-    print('Requested categories:')
+    logger.info('Requested categories:')
     category_set = sorted(category_set)
     ut.print_list(category_set)
-    # print('Invalid yaw categories:')
+    # logger.info('Invalid yaw categories:')
     # ut.print_list(sorted(invalid_yaw_set))
-    # print('Valid seen categories:')
+    # logger.info('Valid seen categories:')
     # ut.print_list(sorted(valid_seen_set))
-    print('Valid yaw categories:')
+    logger.info('Valid yaw categories:')
     valid_yaw_set = sorted(valid_yaw_set)
     ut.print_list(valid_yaw_set)
-    print('Invalid seen categories (could not fulfill request):')
+    logger.info('Invalid seen categories (could not fulfill request):')
     invalid_seen_set = sorted(invalid_seen_set)
     ut.print_list(invalid_seen_set)
 
@@ -559,11 +561,11 @@ def get_cnn_labeler_training_images_pytorch(
             continue
         aid_list_.append(aid)
         category_list_.append(category)
-    print('Skipped Yaw:  skipped %d / total %d' % (skipped_yaw, len(tup_list),))
-    print('Skipped Seen: skipped %d / total %d' % (skipped_seen, len(tup_list),))
+    logger.info('Skipped Yaw:  skipped %d / total %d' % (skipped_yaw, len(tup_list),))
+    logger.info('Skipped Seen: skipped %d / total %d' % (skipped_seen, len(tup_list),))
 
     for category in sorted(set(category_list_)):
-        print('Making folder for %r' % (category,))
+        logger.info('Making folder for %r' % (category,))
         ut.ensuredir(join(train_path, category))
         ut.ensuredir(join(valid_path, category))
 
@@ -579,10 +581,10 @@ def get_cnn_labeler_training_images_pytorch(
     for aid, chip, category in zip(aid_list_, chip_list_, category_list_):
 
         args = (aid,)
-        print('Processing AID: %r' % args)
+        logger.info('Processing AID: %r' % args)
 
         if skip_rate > 0.0 and random.uniform(0.0, 1.0) <= skip_rate:
-            print('\t Skipping')
+            logger.info('\t Skipping')
             continue
 
         is_valid = random.uniform(0.0, 1.0) < valid_rate
@@ -603,7 +605,7 @@ def get_cnn_labeler_training_images_pytorch(
         label = '%s,%s' % (patch_filename, category,)
         label_list.append(label)
 
-    print('Using labels for labeler training:')
-    print(ut.repr3(ut.dict_hist(category_list_)))
+    logger.info('Using labels for labeler training:')
+    logger.info(ut.repr3(ut.dict_hist(category_list_)))
 
     return name_path

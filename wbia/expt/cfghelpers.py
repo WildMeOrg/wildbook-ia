@@ -9,9 +9,11 @@ It turns out a lot of the commandlines made possible here can be generatd by
 using bash brace expansion.
 http://www.linuxjournal.com/content/bash-brace-expansion
 """
+import logging
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
@@ -218,7 +220,7 @@ def parse_cfgstr_list2(
                 if expand_nested:
                     cfg_combos.extend(cfg_combo)
                 else:
-                    # print('Appending: ' + str(ut.depth_profile(cfg_combo)))
+                    # logger.info('Appending: ' + str(ut.depth_profile(cfg_combo)))
                     # if ut.depth_profile(cfg_combo) == [1, 9]:
                     #    ut.embed()
                     cfg_combos_list.append(cfg_combo)
@@ -256,8 +258,8 @@ def parse_cfgstr_list2(
             #    cfg_combo = ut.take(cfg_combo, subx)
             if expand_nested:
                 cfg_combos_list.append(cfg_combos)
-        #    print('Updated to: ' + str(ut.depth_profile(cfg_combos_list)))
-        # print('Returning len(cfg_combos_list) = %r' % (len(cfg_combos_list),))
+        #    logger.info('Updated to: ' + str(ut.depth_profile(cfg_combos_list)))
+        # logger.info('Returning len(cfg_combos_list) = %r' % (len(cfg_combos_list),))
     return cfg_combos_list
 
 

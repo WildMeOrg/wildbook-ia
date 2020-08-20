@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # from wbia.guitool.__PYQT__.QtCore import Qt
+import logging
 import six
 from wbia.guitool.__PYQT__.QtCore import QLocale
 import utool as ut
@@ -20,6 +21,7 @@ __STR__ = unicode if six.PY2 else str  # NOQA
 QString = __STR__
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 SIMPLE_CASTING = True
@@ -82,7 +84,7 @@ def qindexinfo(index):
 #    #    'G':    use E or f format, whichever is the most concise
 #    #}
 #    data = 1000000
-#    print(ut.repr2({
+#    logger.info(ut.repr2({
 #        'out1': __STR__(QString.number(float(data), format='g', precision=8))
 #    }))
 

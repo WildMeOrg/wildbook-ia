@@ -2,12 +2,14 @@
 """
 TODO: use graph_iden.py instead.  Need to encapsulate some of this functionality.
 """
+import logging
 import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
 import six
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -126,7 +128,7 @@ class OrigAnnotInference(object):
             prob_annots[idx][:] = annot_scores
         prob_annots[np.diag_indices(len(prob_annots))] = np.inf
         prob_annots += 1e-9
-        # print(ut.hz_str('prob_names = ', ut.repr2(prob_names,
+        # logger.info(ut.hz_str('prob_names = ', ut.repr2(prob_names,
         # precision=2, max_line_width=140, suppress_small=True)))
         return unique_aids, prob_annots
 
@@ -148,7 +150,7 @@ class OrigAnnotInference(object):
 
         # Normalize to row stochastic matrix
         prob_names /= prob_names.sum(axis=1)[:, None]
-        # print(ut.hz_str('prob_names = ', ut.repr2(prob_names,
+        # logger.info(ut.hz_str('prob_names = ', ut.repr2(prob_names,
         # precision=2, max_line_width=140, suppress_small=True)))
         return unique_nids, prob_names
 
@@ -179,7 +181,7 @@ class OrigAnnotInference(object):
             pt.plot(idx2, curve[idx2], 'ro')
             pt.plot(idx3, curve[idx3], 'go')
         thresh = nscores[idx2]
-        # print('thresh = %r' % (thresh,))
+        # logger.info('thresh = %r' % (thresh,))
         # thresh = .999
         # thresh = .1
         return thresh
@@ -198,8 +200,8 @@ class OrigAnnotInference(object):
         qxs, nxs = np.where(postcut)
         if False:
             kw = dict(precision=2, max_line_width=140, suppress_small=True)
-            print(ut.hz_str('prob_names = ', ut.repr2((prob_names), **kw)))
-            print(ut.hz_str('postcut = ', ut.repr2((postcut).astype(np.int), **kw)))
+            logger.info(ut.hz_str('prob_names = ', ut.repr2((prob_names), **kw)))
+            logger.info(ut.hz_str('postcut = ', ut.repr2((postcut).astype(np.int), **kw)))
         matching_qaids = ut.take(qaid_list, qxs)
         matched_nids = ut.take(unique_nids, nxs)
 
@@ -326,7 +328,7 @@ class OrigAnnotInference(object):
             merge_case = len(nids) > 1
             new_name = len(nids) == 0
 
-            # print('[chip_match > OrigAnnotInference > make_inference] WARNING:
+            # logger.info('[chip_match > OrigAnnotInference > make_inference] WARNING:
             #      EXEMPLAR FLAG SET TO TRUE, NEEDS TO BE IMPLEMENTED')
             error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
             strflags = ['split', 'merge', 'new']
@@ -466,11 +468,11 @@ class OrigAnnotInference(object):
         self.needs_review_list = needs_review_list
         self.cluster_tuples = cluster_tuples
 
-        # print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
-        # print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
+        # logger.info('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
+        # logger.info('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
 
         # prob_annots = None
-        # print(ut.repr2)prob_names precision=2, max_line_width=100,
+        # logger.info(ut.repr2)prob_names precision=2, max_line_width=100,
         #      suppress_small=True))
 
     def make_annot_inference_dict(self, internal=False):

@@ -2,6 +2,7 @@
 """
 Dependencies: flask, tornado
 """
+import logging
 from flask import current_app
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
@@ -9,6 +10,7 @@ import utool as ut
 from wbia.web import routes
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
@@ -439,7 +441,7 @@ def get_annotation_special_monica_laurel_max(desired_species=None, **kwargs):
 
     aid_list = sorted(ibs.get_valid_aids())
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
-    print('Found %d aids' % (len(aid_list),))
+    logger.info('Found %d aids' % (len(aid_list),))
     nid_list = ibs.get_annot_nids(aid_list)
     name_uuid_list = ibs.get_name_uuids(nid_list)
     name_list = ibs.get_name_texts(nid_list)
@@ -579,7 +581,7 @@ def get_annotation_special_monica_laurel_max(desired_species=None, **kwargs):
 
                     cross_database_match = not name.startswith(contrib_str)
         except Exception:
-            print('ERROR WITH ABOVE')
+            logger.info('ERROR WITH ABOVE')
             ut.embed()
 
         line_list_ = (
@@ -662,7 +664,7 @@ def get_annotation_special_megan(**kwargs):
             date2_list.append(date2)
             note_list.append(note)
         except AssertionError:
-            print('ERROR PROCESSING: %r' % (base,))
+            logger.info('ERROR PROCESSING: %r' % (base,))
 
     zipped = zip(gid_list, uri_list, tag_list, date1_list, date2_list, note_list)
     combined_list = [','.join(map(str, value_list)) for value_list in zipped]

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def groundtruth_split_loop(infr):

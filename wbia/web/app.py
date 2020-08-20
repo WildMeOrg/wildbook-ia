@@ -14,6 +14,7 @@ from tornado.log import access_log
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 try:
     try:
@@ -103,18 +104,18 @@ def start_tornado(
         app.server_port = port_
         # URL for the web instance
         app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
-        print('[web] Tornado server starting at %s' % (app.server_url,))
+        logger.info('[web] Tornado server starting at %s' % (app.server_url,))
         # Launch the web browser to view the web interface and API
         if browser:
             url = app.server_url + url_suffix
             import webbrowser
 
-            print('[web] opening browser with url = %r' % (url,))
+            logger.info('[web] opening browser with url = %r' % (url,))
             webbrowser.open(url)
 
         if PROMETHEUS:
             # Add prometheus wsgi middleware to route /metrics requests
-            print('LOADING PROMETHEUS')
+            logger.info('LOADING PROMETHEUS')
             app_ = DispatcherMiddleware(
                 app, {'/metrics': prometheus_client.make_wsgi_app()}
             )
@@ -124,7 +125,7 @@ def start_tornado(
             app_.ibs = app.ibs
             app = app_
         else:
-            print('SKIPPING PROMETHEUS')
+            logger.info('SKIPPING PROMETHEUS')
 
         # Start the tornado web handler
         # WSGI = Web Server Gateway Interface
@@ -145,7 +146,7 @@ def start_tornado(
         except socket.error:
             fallback_port = ut.find_open_port(app.server_port)
             if fallback:
-                print(
+                logger.info(
                     'Port %s is unavailable, using fallback_port = %r'
                     % (port, fallback_port,)
                 )
@@ -196,9 +197,9 @@ def start_tornado(
                 logging.getLogger('tornado.general'),
                 logging.getLogger('websocket'),
             ]
-            for logger in logger_list:
-                logger.setLevel(logging.INFO)
-                logger.addHandler(utool_logfile_handler)
+            for logger_ in logger_list:
+                logger_.setLevel(logging.INFO)
+                logger_.addHandler(utool_logfile_handler)
 
         if start_web_loop:
             tornado.ioloop.IOLoop.instance().start()
@@ -226,7 +227,7 @@ def start_from_wbia(
         python -m wbia --db PZ_MTEST --web
         python -m wbia --db PZ_MTEST --web --browser
     """
-    print('[web] start_from_wbia()')
+    logger.info('[web] start_from_wbia()')
 
     if start_job_queue is None:
         if ut.get_argflag('--noengine'):
@@ -239,16 +240,16 @@ def start_from_wbia(
 
     if precache:
         gid_list = ibs.get_valid_gids()
-        print('[web] Pre-computing all image thumbnails (with annots)...')
+        logger.info('[web] Pre-computing all image thumbnails (with annots)...')
         ibs.get_image_thumbpath(gid_list, draw_annots=True)
-        print('[web] Pre-computing all image thumbnails (without annots)...')
+        logger.info('[web] Pre-computing all image thumbnails (without annots)...')
         ibs.get_image_thumbpath(gid_list, draw_annots=False)
-        print('[web] Pre-computing all annotation chips...')
+        logger.info('[web] Pre-computing all annotation chips...')
         ibs.check_chip_existence()
         ibs.compute_all_chips()
 
     if start_job_queue:
-        print('[web] opening job manager')
+        logger.info('[web] opening job manager')
         ibs.load_plugin_module(job_engine)
         ibs.load_plugin_module(apis_engine)
         # import time
@@ -257,13 +258,13 @@ def start_from_wbia(
         ibs.initialize_job_manager()
         # time.sleep(10)
 
-    print('[web] starting tornado')
+    logger.info('[web] starting tornado')
     try:
         start_tornado(ibs, port, browser, url_suffix, start_web_loop)
     except KeyboardInterrupt:
-        print('Caught ctrl+c in webserver. Gracefully exiting')
+        logger.info('Caught ctrl+c in webserver. Gracefully exiting')
     if start_web_loop:
-        print('[web] closing job manager')
+        logger.info('[web] closing job manager')
         ibs.close_job_manager()
 
 

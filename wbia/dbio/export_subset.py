@@ -3,11 +3,13 @@
 """
 Exports subset of an IBEIS database to a new IBEIS database
 """
+import logging
 import utool as ut
 from wbia.other import ibsfuncs
 from wbia import constants as const
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def check_merge(ibs_src, ibs_dst):
@@ -42,7 +44,7 @@ def check_merge(ibs_src, ibs_dst):
     # aids_depth2 = ut.depth_profile(aids_list2)
     # depth might not be true if ibs_dst is not empty
     # ut.assert_lists_eq(aids_depth1, aids_depth2, 'failed depth')
-    print('Merge seems ok...')
+    logger.info('Merge seems ok...')
 
 
 def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
@@ -90,7 +92,9 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     """
     # TODO: ensure images are localized
     # otherwise this wont work
-    print('BEGIN MERGE OF %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
+    logger.info(
+        'BEGIN MERGE OF %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname())
+    )
     # ibs_src.run_integrity_checks()
     # ibs_dst.run_integrity_checks()
     ibs_dst.update_annot_visual_uuids(ibs_dst.get_valid_aids())
@@ -129,7 +133,9 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     ibs_dst.db.merge_databases_new(
         ibs_src.db, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets
     )
-    print('FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
+    logger.info(
+        'FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname())
+    )
 
 
 def make_new_dbpath(ibs, id_label, id_list):
@@ -176,7 +182,7 @@ def export_names(ibs, nid_list, new_dbpath=None):
         >>> # verify results
         >>> print(result)
     """
-    print('Exporting name nid_list=%r' % (nid_list,))
+    logger.info('Exporting name nid_list=%r' % (nid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'nid', nid_list)
 
@@ -219,7 +225,7 @@ def __export_reviewed_subset(ibs, min_count=500, ensure_annots=False):
     if gid_list is None:
         return None
     new_dbpath = '/' + join('Datasets', 'BACKGROUND', ibs.dbname)
-    print('Exporting to %r with %r images' % (new_dbpath, len(gid_list),))
+    logger.info('Exporting to %r with %r images' % (new_dbpath, len(gid_list),))
     return export_images(ibs, gid_list, new_dbpath=new_dbpath)
 
 
@@ -238,7 +244,7 @@ def export_images(ibs, gid_list, new_dbpath=None):
     Returns:
         str: new_dbpath
     """
-    print('Exporting image gid_list=%r' % (gid_list,))
+    logger.info('Exporting image gid_list=%r' % (gid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'gid', gid_list)
 
@@ -301,7 +307,7 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         >>> result = ('new_dbpath = %s' % (str(new_dbpath),))
         >>> print(result)
     """
-    print('Exporting annotations aid_list=%r' % (aid_list,))
+    logger.info('Exporting annotations aid_list=%r' % (aid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'aid', aid_list)
     gid_list = ut.unique(ibs.get_annot_gids(aid_list))
@@ -349,7 +355,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     ibs_dst = wbia.opendb(dbdir=new_dbpath, allow_newdir=True)
     # Main merge driver
     merge_databases(ibs, ibs_dst, rowid_subsets=rowid_subsets)
-    print('Exported to %r' % (new_dbpath,))
+    logger.info('Exported to %r' % (new_dbpath,))
     return new_dbpath
 
 
@@ -416,7 +422,7 @@ def fix_bidirectional_annotmatch(ibs):
     f_edges = {tuple(p) for p in pairs1}
     b_edges = {tuple(p[::-1]) for p in pairs1}
     isect_edges = {tuple(sorted(p)) for p in b_edges.intersection(f_edges)}
-    print('Found %d bidirectional edges' % len(isect_edges))
+    logger.info('Found %d bidirectional edges' % len(isect_edges))
     isect_edges1 = list(isect_edges)
     isect_edges2 = [p[::-1] for p in isect_edges]
 
@@ -451,13 +457,13 @@ def fix_bidirectional_annotmatch(ibs):
             if truth_real != truth2:
                 fixme_flag = True
         if fixme_flag:
-            print('--')
-            print('t1, t2 = %r, %r' % (t1, t2))
-            print('newtag = %r' % (newtag,))
-            print(
+            logger.info('--')
+            logger.info('t1, t2 = %r, %r' % (t1, t2))
+            logger.info('newtag = %r' % (newtag,))
+            logger.info(
                 'truth_real, truth1, truth2 = %r, %r, %r' % (truth_real, truth1, truth2,)
             )
-            print('aid1, aid2 = %r, %r' % (aid1, aid2))
+            logger.info('aid1, aid2 = %r, %r' % (aid1, aid2))
             fixme_edges.append(tuple(sorted((aid1, aid2))))
         else:
             extra_[(aid1, aid2)] = (truth_real, newtag)
@@ -601,12 +607,12 @@ def fix_annotmatch_pzmaster1():
                 if truth_real != truth2:
                     fixme_flag = True
             if fixme_flag:
-                print('newtag = %r' % (newtag,))
-                print('truth_real = %r' % (truth_real,))
-                print('truth1 = %r' % (truth1,))
-                print('truth2 = %r' % (truth2,))
-                print('aid1 = %r' % (aid1,))
-                print('aid2 = %r' % (aid2,))
+                logger.info('newtag = %r' % (newtag,))
+                logger.info('truth_real = %r' % (truth_real,))
+                logger.info('truth1 = %r' % (truth1,))
+                logger.info('truth2 = %r' % (truth2,))
+                logger.info('aid1 = %r' % (aid1,))
+                logger.info('aid2 = %r' % (aid2,))
                 fixme_edges.append((aid1, aid2))
             else:
                 extra_[(aid1, aid2)] = (truth_real, newtag)
@@ -797,14 +803,14 @@ def remerge_subset():
         if diff_idxs:
             diff_prop1 = ut.take(prop1, diff_idxs)
             diff_prop2 = ut.take(prop2, diff_idxs)
-            print('key = %r' % (key,))
-            print('diff_prop1 = %r' % (diff_prop1,))
-            print('diff_prop2 = %r' % (diff_prop2,))
+            logger.info('key = %r' % (key,))
+            logger.info('diff_prop1 = %r' % (diff_prop1,))
+            logger.info('diff_prop2 = %r' % (diff_prop2,))
             to_change[key] = diff_idxs
     if to_change:
         changed_idxs = ut.unique(ut.flatten(to_change.values()))
-        print('Found %d annots that need updated properties' % len(changed_idxs))
-        print('changing unary attributes: %r' % (to_change,))
+        logger.info('Found %d annots that need updated properties' % len(changed_idxs))
+        logger.info('changing unary attributes: %r' % (to_change,))
         if False and ut.are_you_sure('apply change'):
             for key, idxs in to_change.items():
                 subaids1 = aids1.take(idxs)
@@ -813,7 +819,7 @@ def remerge_subset():
                 # prop2 = getattr(subaids2, key)
                 setattr(subaids2, key, prop1)
     else:
-        print('Annot properties are in sync. Nothing to change')
+        logger.info('Annot properties are in sync. Nothing to change')
 
     # Step 2) Update annotmatch - pairwise relationships
     infr1 = wbia.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3, autoinit=False)
@@ -837,7 +843,7 @@ def remerge_subset():
     #     infr2.draw_aids((u, v))
     #     cc1 = infr2.pos_graph.connected_to(u)
     #     cc2 = infr2.pos_graph.connected_to(v)
-    #     print(nx_utils.edges_cross(infr2.graph, cc1, cc2))
+    #     logger.info(nx_utils.edges_cross(infr2.graph, cc1, cc2))
     #     infr2.neg_redundancy(cc1, cc2)
     #     infr2.pos_redundancy(cc2)
 
@@ -905,7 +911,7 @@ def remerge_subset():
     #     infr1.apply_review_inference()
     #     infr1.start_qt_interface(loop=False)
     # delta = infr2.match_state_delta()
-    # print('delta = %r' % (delta,))
+    # logger.info('delta = %r' % (delta,))
 
     # infr2.ensure_mst()
     # infr2.relabel_using_reviews()
@@ -937,7 +943,7 @@ def remerge_subset():
     #     map(_to_tup, delta['old_tags']),
     #     map(_to_tup, delta['new_tags'])))
     # changetype_hist = ut.dict_hist(changetype_list, ordered=True)
-    # print(ut.align(ut.repr4(changetype_hist), ':'))
+    # logger.info(ut.align(ut.repr4(changetype_hist), ':'))
 
     # import pandas as pd
     # pd.options.display.max_rows = 20
@@ -952,8 +958,8 @@ def remerge_subset():
     # am1 = ibs1.get_annotmatch_rowids_between([to_aids1[a]],
     #                                          [to_aids1[b]])
     # am2 = ibs2.get_annotmatch_rowids_between([a], [b])
-    # print(ibs1.db.get_table_csv('annotmatch', rowids=am1))
-    # print(ibs2.db.get_table_csv('annotmatch', rowids=am2))
+    # logger.info(ibs1.db.get_table_csv('annotmatch', rowids=am1))
+    # logger.info(ibs2.db.get_table_csv('annotmatch', rowids=am2))
 
     # inspect_gui.show_vsone_tuner(ibs2, 8, 242)
     # inspect_gui.show_vsone_tuner(ibs2, 86, 103)
@@ -1038,10 +1044,10 @@ def check_database_overlap(ibs1, ibs2):
         )
         fmt_a = '  * Num {lbl} {part}: {num_isect} / {num} = {percent:.2f}%'
         # fmt_b = '  * Num {lbl} isect: {num}'
-        print('Checking {lbl} intersection'.format(lbl=lbl))
-        print(fmt_a.format(**fmtkw1))
-        print(fmt_a.format(**fmtkw2))
-        # print(fmt_b.format(lbl=lbl, num=len(items_isect)))
+        logger.info('Checking {lbl} intersection'.format(lbl=lbl))
+        logger.info(fmt_a.format(**fmtkw1))
+        logger.info(fmt_a.format(**fmtkw2))
+        # logger.info(fmt_b.format(lbl=lbl, num=len(items_isect)))
         # items = items_isect
         # list_ = items1
         x_list1 = ut.find_list_indexes(items1, items_isect)
@@ -1061,8 +1067,8 @@ def check_database_overlap(ibs1, ibs2):
     SHOW_ISECT_GIDS = False
     if SHOW_ISECT_GIDS:
         if len(gx_list1) > 0:
-            print('gids_isect1 = %r' % (gids_isect1,))
-            print('gids_isect2 = %r' % (gids_isect2,))
+            logger.info('gids_isect1 = %r' % (gids_isect1,))
+            logger.info('gids_isect2 = %r' % (gids_isect2,))
             if False:
                 # Debug code
                 import wbia.viz
@@ -1095,7 +1101,7 @@ def check_database_overlap(ibs1, ibs2):
     )
     changed_image_xs = np.nonzero(image_avuuids_isect1 != image_avuuids_isect2)[0]
     if len(changed_image_xs) > 0:
-        print(
+        logger.info(
             'There are %d images with changes in annotation visual information'
             % (len(changed_image_xs),)
         )
@@ -1104,8 +1110,8 @@ def check_database_overlap(ibs1, ibs2):
 
         SHOW_CHANGED_GIDS = False
         if SHOW_CHANGED_GIDS:
-            print('gids_isect1 = %r' % (changed_gids2,))
-            print('gids_isect2 = %r' % (changed_gids1,))
+            logger.info('gids_isect1 = %r' % (changed_gids2,))
+            logger.info('gids_isect2 = %r' % (changed_gids1,))
             # if False:
             #     # Debug code
             #     import wbia.viz
@@ -1153,7 +1159,9 @@ def check_database_overlap(ibs1, ibs2):
         colxs, rowxs = np.nonzero(is_semantic_diff)
         colx2_rowids = ut.group_items(rowxs, colxs)
         prop2_rowids = ut.map_dict_keys(changed_sinfo1._fields.__getitem__, colx2_rowids)
-        print('changed_value_counts = ' + ut.repr2(ut.map_dict_vals(len, prop2_rowids)))
+        logger.info(
+            'changed_value_counts = ' + ut.repr2(ut.map_dict_vals(len, prop2_rowids))
+        )
         yawx = changed_sinfo1._fields.index('yaw')
 
         # Show change in viewpoints
@@ -1171,13 +1179,13 @@ def check_database_overlap(ibs1, ibs2):
             significant_xs = np.nonzero(is_significant_diff)[0]
             significant_aids1 = changed_aids1.take(significant_xs)
             significant_aids2 = changed_aids2.take(significant_xs)
-            print(
+            logger.info(
                 'There are %d significant viewpoint changes' % (len(significant_aids2),)
             )
             # vt.ori_distance(sinfo1_arr[yawx], sinfo2_arr[yawx])
             # zip(ibs1.get_annot_viewpoint_code(significant_aids1),
             # ibs2.get_annot_viewpoint_code(significant_aids2))
-            # print('yawdiff = %r' % )
+            # logger.info('yawdiff = %r' % )
             # if False:
             # Hack: Apply fixes
             # good_yaws = ibs2.get_annot_yaws(significant_aids2)
@@ -1217,19 +1225,19 @@ def check_database_overlap(ibs1, ibs2):
     #
     images_without_annots1 = sum(nAnnots_per_image1 == 0)
     images_without_annots2 = sum(nAnnots_per_image2 == 0)
-    print('images_without_annots1 = %r' % (images_without_annots1,))
-    print('images_without_annots2 = %r' % (images_without_annots2,))
+    logger.info('images_without_annots1 = %r' % (images_without_annots1,))
+    logger.info('images_without_annots2 = %r' % (images_without_annots2,))
 
     nAnnots_per_image1
 
 
 """
 def MERGE_NNP_MASTER_SCRIPT():
-    print(ut.truncate_str(ibs_dst.db.get_table_csv(wbia.const.ANNOTATION_TABLE,
+    logger.info(ut.truncate_str(ibs_dst.db.get_table_csv(wbia.const.ANNOTATION_TABLE,
         exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
-    print(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE,
+    logger.info(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE,
         exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
-    print(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE), 10000))
+    logger.info(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE), 10000))
 
     from wbia.dbio.export_subset import *  # NOQA
     import wbia
@@ -1249,7 +1257,7 @@ def MERGE_NNP_MASTER_SCRIPT():
     ibs2 = wbia.opendb('GZC')
     ibs3 = ibs_dst
 
-    #print(ibs1.get_image_time_statstr())
-    #print(ibs2.get_image_time_statstr())
-    #print(ibs3.get_image_time_statstr())
+    #logger.info(ibs1.get_image_time_statstr())
+    #logger.info(ibs2.get_image_time_statstr())
+    #logger.info(ibs3.get_image_time_statstr())
 """

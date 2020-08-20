@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import warnings
 from six.moves import zip, range, zip_longest
 from . import draw_func2 as df2
@@ -11,6 +12,7 @@ import utool as ut  # NOQA
 import numpy as np
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def is_default_dark_bg():
@@ -279,7 +281,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
                     barlbl = '%.3f' % (numlbl,)
                     ax.text(xpos, ypos, barlbl, ha=ha, va=va)
 
-        # print('extra_kw = %r' % (extra_kw,))
+        # logger.info('extra_kw = %r' % (extra_kw,))
         if kind == 'plot' and extra_kw.get('fill', False):
             ax.fill_between(
                 _xdata,
@@ -599,7 +601,7 @@ def demo_fonts():
         matplotlib.font_manager.FontProperties(fname=fname).get_name()
         for fname in avail_fonts
     ]
-    print('avail_fonts = %s' % ut.repr4(sorted(set(names))))
+    logger.info('avail_fonts = %s' % ut.repr4(sorted(set(names))))
 
     xdata = [1, 2, 3, 4, 5]
     ydata_list = [
@@ -922,8 +924,8 @@ def draw_hist_subbin_maxima(
         use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
-    print('submaxima_x = %r' % (submaxima_x,))
-    print('submaxima_y = %r' % (submaxima_y,))
+    logger.info('submaxima_x = %r' % (submaxima_x,))
+    logger.info('submaxima_y = %r' % (submaxima_y,))
     # return (submaxima_x, submaxima_y)
 
 
@@ -1339,7 +1341,7 @@ def plot_score_histograms(
 
     def make_bins2(width, start, end):
         num_bins = int((end - start) // width)
-        print('num_bins = %r' % (num_bins,))
+        logger.info('num_bins = %r' % (num_bins,))
         return [start + (width * count) for count in range(num_bins)]
 
     if bin_width is not None:
@@ -1355,7 +1357,7 @@ def plot_score_histograms(
     else:
         # _, agg_bins = np.histogram(agg_scores, 'auto')
         bin_width = min([np.diff(np.histogram(scores)[1])[0] for scores in scores_list])
-        print('bin_width = %r' % (bin_width,))
+        logger.info('bin_width = %r' % (bin_width,))
         # total_min = np.floor(min([min(scores) for scores in scores_list]))
         # total_max = np.ceil(max([max(scores) for scores in scores_list]))
         # start = total_min - bin_width / 2
@@ -1489,12 +1491,12 @@ def plot_score_histograms(
         else:
             symlogkw = logscale
         # ax.set_xscale('log')
-        print(symlogkw)
+        logger.info(symlogkw)
         if symlogkw.get('basex', 10) > 0:
-            print('XSCALE')
+            logger.info('XSCALE')
             ax.set_xscale('symlog', **symlogkw)
         if symlogkw.get('basey', 10) > 0:
-            print('YSCALE')
+            logger.info('YSCALE')
             ax.set_yscale('symlog', **symlogkw)
         # ax.set_xscale('symlog', nonposx='clip')
         # ax.set_yscale('symlog', nonposy='clip')
@@ -1755,7 +1757,7 @@ def plot_sorted_scores(
 
     if thresh is not None:
         indicies = np.arange(len(sorted_labelx))
-        # print('indicies.shape = %r' % (indicies.shape,))
+        # logger.info('indicies.shape = %r' % (indicies.shape,))
         df2.plot(
             indicies,
             [thresh] * len(indicies),
@@ -1802,7 +1804,7 @@ def plot_sorted_scores(
 def set_logyscale_from_data(y_data):
     # DEPRICATE
     if len(y_data) == 1:
-        print('Warning: not enough information to infer yscale')
+        logger.info('Warning: not enough information to infer yscale')
         return
     logscale_kwargs = get_good_logyscale_kwargs(y_data)
     ax = df2.gca()
@@ -1858,7 +1860,7 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
         'linscalex': 1,
         'linscaley': linscaley,
     }
-    # print(logscale_kwargs)
+    # logger.info(logscale_kwargs)
     return logscale_kwargs
 
 
@@ -1913,9 +1915,9 @@ def estimate_pdf(data, bw_factor):
         data_pdf = scipy.stats.gaussian_kde(data, bw_factor)
         data_pdf.covariance_factor = bw_factor
     except Exception as ex:
-        print('[df2] ! Exception while estimating kernel density')
-        print('[df2] data=%r' % (data,))
-        print('[df2] ex=%r' % (ex,))
+        logger.info('[df2] ! Exception while estimating kernel density')
+        logger.info('[df2] data=%r' % (data,))
+        logger.info('[df2] ex=%r' % (ex,))
         raise
     return data_pdf
 
@@ -2102,7 +2104,7 @@ def plot_search_surface(
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
     fnum = pt.ensure_fnum(fnum)
-    print('fnum = %r' % (fnum,))
+    logger.info('fnum = %r' % (fnum,))
     # pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None, projection='3d')
     pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None)
 
@@ -2509,8 +2511,8 @@ def draw_time_distribution(unixtime_list, bw=None):
 
         # num_nan = sum(nanflags)
         # num_nonnan = len(unixtimes)
-        # print('num_nan = %r' % (num_nan,))
-        # print('num_nonnan = %r' % (num_nonnan,))
+        # logger.info('num_nan = %r' % (num_nan,))
+        # logger.info('num_nonnan = %r' % (num_nonnan,))
 
         if bw is None:
             from sklearn.model_selection import GridSearchCV  # NOQA
@@ -2526,13 +2528,13 @@ def draw_time_distribution(unixtime_list, bw=None):
             }
             # searcher = ut.partial(GridSearchCV, n_jobs=7)
             searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
-            print('Searching for best bandwidth')
+            logger.info('Searching for best bandwidth')
             grid = searcher(
                 KernelDensity(kernel='gaussian'), grid_params, cv=2, verbose=0
             )
             grid.fit(unixtimes[:, None])
             bw = grid.best_params_['bandwidth']
-            # print('bw = %r' % (bw,))
+            # logger.info('bw = %r' % (bw,))
         # else:
         #     # scott_bw = len(unixtimes) ** (-1 / 4)
         #     # 3 days bandwidth

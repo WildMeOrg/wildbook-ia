@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 from os.path import join, dirname, basename
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def get_injured_sharks():
@@ -47,10 +49,10 @@ def get_injured_sharks():
 
     key_hist = {key: len(imgs) for key, imgs in keyed_images.items()}
     key_hist = ut.sort_dict(key_hist, 'vals')
-    print(ut.repr3(key_hist))
+    logger.info(ut.repr3(key_hist))
     nice_key_hist = ut.map_dict_keys(lambda k: key_to_nice[k], key_hist)
     nice_key_hist = ut.sort_dict(nice_key_hist, 'vals')
-    print(ut.repr3(nice_key_hist))
+    logger.info(ut.repr3(nice_key_hist))
 
     key_to_urls = {key: ut.take_column(vals, 'url') for key, vals in keyed_images.items()}
     overlaps = {}
@@ -63,12 +65,12 @@ def get_injured_sharks():
         overlaps[(k1, k2)] = num_overlap
         overlaps[(k1, k1)] = len(key_to_urls[k1])
         if num_overlap > 0:
-            # print('[%s][%s], overlap=%r' % (k1, k2, num_overlap))
+            # logger.info('[%s][%s], overlap=%r' % (k1, k2, num_overlap))
             overlap_img_list.extend(overlap_imgs)
 
     all_img_urls = list(set(ut.flatten(key_to_urls.values())))
     num_all = len(all_img_urls)  # NOQA
-    print('num_all = %r' % (num_all,))
+    logger.info('num_all = %r' % (num_all,))
 
     # Determine super-categories
     categories = ['nicks', 'scar', 'trunc']
@@ -102,8 +104,8 @@ def get_injured_sharks():
         cat_urls[cat] = list(set(cat_urls[cat]))
         cat_hist[cat] = len(cat_urls[cat])
 
-    print(ut.repr3(cat_to_keys))
-    print(ut.repr3(cat_hist))
+    logger.info(ut.repr3(cat_to_keys))
+    logger.info(ut.repr3(cat_hist))
 
     key_to_cat = dict([(val, key) for key, vals in cat_to_keys.items() for val in vals])
 
@@ -136,8 +138,8 @@ def get_injured_sharks():
     # # http://springbreak.wildbook.org/rest/org.ecocean.Encounter/1111
     # get_enc_url = 'http://www.whaleshark.org/rest/org.ecocean.Encounter/%s' % (encid,)
     # resp = requests.get(get_enc_url)
-    # print(ut.repr3(encdict))
-    # print(ut.repr3(encounters))
+    # logger.info(ut.repr3(encdict))
+    # logger.info(ut.repr3(encounters))
 
     # Download the files to the local disk
     # fpath_list =
@@ -222,7 +224,7 @@ def get_injured_sharks():
     #    if len(x) > 1:
     #        info = info.copy()
     #        del info['keys']
-    #        print(ut.repr3(info))
+    #        logger.info(ut.repr3(info))
 
     flags = ut.lmap(ut.fpath_has_imgext, clist['gpath'])
     clist = clist.compress(flags)
@@ -235,7 +237,7 @@ def get_injured_sharks():
     clist['gid'] = gid_list
 
     failed_flags = ut.flag_None_items(clist['gid'])
-    print('# failed %s' % (sum(failed_flags)),)
+    logger.info('# failed %s' % (sum(failed_flags)),)
     passed_flags = ut.not_list(failed_flags)
     clist = clist.compress(passed_flags)
     ut.assert_all_not_None(clist['gid'])
@@ -271,16 +273,16 @@ def get_injured_sharks():
         fig.show()
         fig.canvas.draw()
 
-    # print(len(groupxs))
+    # logger.info(len(groupxs))
 
     # if False:
     # groupxs = ut.find_duplicate_items(ut.lmap(basename, suffix_list)).values()
-    # print(ut.repr3(ut.apply_grouping(all_urls, groupxs)))
+    # logger.info(ut.repr3(ut.apply_grouping(all_urls, groupxs)))
     #    # FIX
     #    for fpath, fname in zip(fpath_list, fname_list):
     #        if ut.checkpath(fpath):
     #            ut.move(fpath, join(dirname(fpath), fname))
-    #            print('fpath = %r' % (fpath,))
+    #            logger.info('fpath = %r' % (fpath,))
 
     # import wbia
     # from wbia.dbio import ingest_dataset
@@ -538,7 +540,7 @@ def purge_ensure_one_annot_per_images(ibs):
     # Fix any empty images
     images = ibs.images()
     empty_images = ut.where(np.array(images.num_annotations) == 0)
-    print('empty_images = %r' % (empty_images,))
+    logger.info('empty_images = %r' % (empty_images,))
     # list(map(basename, map(dirname, images.uris_original)))
 
     def VecPipe(func):
@@ -586,8 +588,8 @@ def shark_misc():
     #            ('s1 - s2', len(set1.difference(set2))),
     #            ('s2 - s1', len(set2.difference(set1))),
     #        ])
-    #    print('encounter overlap: ' + ut.repr3(set_overlap(encounter_to_parsed1, encounter_to_parsed2)))
-    #    print('url overlap: ' + ut.repr3(set_overlap(url_to_parsed1, url_to_parsed2)))
+    #    logger.info('encounter overlap: ' + ut.repr3(set_overlap(encounter_to_parsed1, encounter_to_parsed2)))
+    #    logger.info('url overlap: ' + ut.repr3(set_overlap(url_to_parsed1, url_to_parsed2)))
 
     #    url1 = list(url_to_parsed1.keys())
     #    url2 = list(url_to_parsed2.keys())
@@ -599,7 +601,7 @@ def shark_misc():
     #    #suffix2 = sorted([u[len(cp2):].lower() for u in url2])
     #    suffix1 = sorted([u[len(cp1):] for u in url1])
     #    suffix2 = sorted([u[len(cp2):] for u in url2])
-    #    print('suffix overlap: ' + ut.repr3(set_overlap(suffix1, suffix2)))
+    #    logger.info('suffix overlap: ' + ut.repr3(set_overlap(suffix1, suffix2)))
     #    set1 = set(suffix1)
     #    set2 = set(suffix2)
     #    only1 = list(set1 - set1.intersection(set2))
@@ -611,10 +613,10 @@ def shark_misc():
     #        idx = ut.argsort(dist)[0:3]
     #        if dist[idx][0] < 3:
     #            close = ut.take(only1, idx)
-    #            print('---')
-    #            print('suf = %r' % (join(cp2, suf),))
-    #            print('close = %s' % (ut.repr3([join(cp1, c) for c in close]),))
-    #            print('---')
+    #            logger.info('---')
+    #            logger.info('suf = %r' % (join(cp2, suf),))
+    #            logger.info('close = %s' % (ut.repr3([join(cp1, c) for c in close]),))
+    #            logger.info('---')
     #            break
 
     #    # Associate keywords with original images
@@ -641,17 +643,17 @@ def shark_misc():
     # both_uuids = new_uuids.intersection(cur_uuids)
     # only_cur = cur_uuids - both_uuids
     # only_new = new_uuids - both_uuids
-    # print('len(cur_uuids) = %r' % (len(cur_uuids)))
-    # print('len(new_uuids) = %r' % (len(new_uuids)))
-    # print('len(both_uuids) = %r' % (len(both_uuids)))
-    # print('len(only_cur) = %r' % (len(only_cur)))
-    # print('len(only_new) = %r' % (len(only_new)))
+    # logger.info('len(cur_uuids) = %r' % (len(cur_uuids)))
+    # logger.info('len(new_uuids) = %r' % (len(new_uuids)))
+    # logger.info('len(both_uuids) = %r' % (len(both_uuids)))
+    # logger.info('len(only_cur) = %r' % (len(only_cur)))
+    # logger.info('len(only_new) = %r' % (len(only_new)))
 
     # Ensure that data in both sets are syncronized
     # images_both = []
 
     # if False:
-    #    print('Removing small images')
+    #    logger.info('Removing small images')
     #    import numpy as np
     #    import vtool as vt
     #    imgsize_list = np.array([vt.open_image_size(gpath) for gpath in parsed['new_fpath']])

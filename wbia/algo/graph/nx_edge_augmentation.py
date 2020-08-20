@@ -15,6 +15,7 @@ that the graph is k-edge-connected. Typically, the goal is to find the
 augmentation with minimum weight. In general, it is not gaurenteed that a
 k-edge-augmentation exists.
 """
+import logging
 import random
 import math
 import sys
@@ -28,6 +29,7 @@ from wbia.algo.graph import nx_edge_kcomponents as nx_ec  # NOQA
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # __all__ = [
 #     'k_edge_augmentation',

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from wbia import dtool
 import utool as ut
 import vtool as vt
@@ -9,6 +10,7 @@ import warnings
 from wbia.control.controller_inject import register_preprocs
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 derived_attribute = register_preprocs['annot']
@@ -68,7 +70,7 @@ class VisualVocab(ut.NiceRepr):
         try:
             vocab.wordflann.loads(wordindex_bytes, vocab.wx_to_word)
         except Exception:
-            print('Fixing vocab problem')
+            logger.info('Fixing vocab problem')
             vocab.build()
 
     def build(vocab, verbose=True):
@@ -77,11 +79,11 @@ class VisualVocab(ut.NiceRepr):
             flannclass = pickle_flann.PickleFLANN
             vocab.wordflann = flannclass()
         if verbose:
-            print(' ...build kdtree with %d points (may take a sec).' % num_vecs)
+            logger.info(' ...build kdtree with %d points (may take a sec).' % num_vecs)
             tt = ut.tic(msg='Building vocab index')
         if num_vecs == 0:
-            print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS.')
-            print('THIS MAY BE A SIGN OF A DEEPER ISSUE')
+            logger.info('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS.')
+            logger.info('THIS MAY BE A SIGN OF A DEEPER ISSUE')
         else:
             vocab.wordflann.build_index(vocab.wx_to_word, **vocab.flann_params)
         if verbose:
@@ -234,11 +236,11 @@ def compute_vocab(depc, fid_list, config):
         >>> #config = ibs.depc_annot['vocab'].configclass()
 
     """
-    print('[IBEIS] COMPUTE_VOCAB:')
+    logger.info('[IBEIS] COMPUTE_VOCAB:')
     vecs_list = depc.get_native('feat', fid_list, 'vecs')
     train_vecs = np.vstack(vecs_list).astype(np.float32)
     num_words = config['num_words']
-    print(
+    logger.info(
         '[smk_index] Train Vocab(nWords=%d) using %d annots and %d descriptors'
         % (num_words, len(fid_list), len(train_vecs))
     )
@@ -247,7 +249,7 @@ def compute_vocab(depc, fid_list, config):
         kwds = dict(max_iters=20, flann_params=flann_params)
         words = vt.akmeans(train_vecs, num_words, **kwds)
     elif config['algorithm'] == 'minibatch':
-        print('Using minibatch kmeans')
+        logger.info('Using minibatch kmeans')
         import sklearn.cluster
 
         rng = np.random.RandomState(config['random_seed'])
@@ -268,7 +270,7 @@ def compute_vocab(depc, fid_list, config):
                 max_no_improvement=10,
                 reassignment_ratio=0.01,
             )
-            print('minibatch_params = %s' % (ut.repr4(minibatch_params),))
+            logger.info('minibatch_params = %s' % (ut.repr4(minibatch_params),))
             clusterer = sklearn.cluster.MiniBatchKMeans(
                 compute_labels=False, random_state=rng, verbose=2, **minibatch_params
             )
@@ -281,7 +283,7 @@ def compute_vocab(depc, fid_list, config):
                 else:
                     raise
         words = clusterer.cluster_centers_
-        print('Finished clustering')
+        logger.info('Finished clustering')
     # if False:
     #     flann_params['checks'] = 64
     #     flann_params['trees'] = 4
@@ -291,11 +293,11 @@ def compute_vocab(depc, fid_list, config):
     #         train_vecs, centroids, max_iters=1000, monitor=True,
     #         flann_params=flann_params)
 
-    print('Constructing vocab')
+    logger.info('Constructing vocab')
     vocab = VisualVocab(words)
-    print('Building vocab index')
+    logger.info('Building vocab index')
     vocab.build()
-    print('Returning vocab')
+    logger.info('Returning vocab')
     return (vocab,)
 
 

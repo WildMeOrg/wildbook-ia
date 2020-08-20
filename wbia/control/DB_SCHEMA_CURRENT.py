@@ -10,6 +10,9 @@ AutogenCommandLine:
 
 # import utool as ut
 # (print, rrr, profile) = ut.inject2(__name__)
+import logging
+
+logger = logging.getLogger('wbia')
 
 # =======================
 # Schema Version Current

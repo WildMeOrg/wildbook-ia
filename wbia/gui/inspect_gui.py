@@ -11,6 +11,7 @@ CommandLine:
 TODO:
     Refresh name table on inspect gui close
 """
+import logging
 from functools import partial
 from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__ import QtWidgets
@@ -24,6 +25,7 @@ from wbia.gui import id_review_api
 from wbia.gui import guiexcept
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 USE_FILTER_PROXY = False
@@ -54,7 +56,7 @@ class CustomFilterModel(gt.FilterProxyModel):
         model.original_ider = None
         model.sourcemodel = gt.APIItemModel(parent=parent)
         model.setSourceModel(model.sourcemodel)
-        print('[ibs_model] just set the sourcemodel')
+        logger.info('[ibs_model] just set the sourcemodel')
 
     def _update_headers(model, **headers):
         def _null_ider(**kwargs):
@@ -132,7 +134,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         review_cfg={},
     ):
         if ut.VERBOSE:
-            print('[qres_wgt] Init QueryResultsWidget')
+            logger.info('[qres_wgt] Init QueryResultsWidget')
 
         assert not isinstance(cm_list, dict)
         assert qreq_ is not None, 'must specify qreq_'
@@ -238,8 +240,8 @@ class QueryResultsWidget(gt.APIItemWidget):
 
         # ut.vd(review_log_dir)
         # create logger with 'spam_application'
-        logger = logging.getLogger('query_review')
-        logger.setLevel(logging.DEBUG)
+        logger_ = logging.getLogger('query_review')
+        logger_.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
@@ -247,21 +249,21 @@ class QueryResultsWidget(gt.APIItemWidget):
         fh = logging.FileHandler(log_fpath)
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
-        logger.addHandler(fh)
+        logger_.addHandler(fh)
 
         # create console handler with a higher log level
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
         ch.setFormatter(formatter)
-        logger.addHandler(ch)
+        logger_.addHandler(ch)
 
         qres_wgt.logger = logger
-        logger.info('START QUERY_RESULT_REVIEW')
-        logger.info('NUM CHIP_MATCH OBJECTS (len(cm_list)=%d)' % (len(cm_list),))
-        logger.info(
+        logger_.info('START QUERY_RESULT_REVIEW')
+        logger_.info('NUM CHIP_MATCH OBJECTS (len(cm_list)=%d)' % (len(cm_list),))
+        logger_.info(
             'NUM PAIRS TO EVIDENCE_DECISION (nRows=%d)' % (qres_wgt.review_api.nRows,)
         )
-        logger.info(
+        logger_.info(
             'PARENT QUERY REQUEST (cfgstr=%s)'
             % (qres_wgt.qreq_.get_cfgstr(with_input=True),)
         )
@@ -280,18 +282,18 @@ class QueryResultsWidget(gt.APIItemWidget):
         dlg.resize(700, 500)
         self = dlg.widget
         dlg.exec_()
-        print('config = %r' % (config,))
+        logger.info('config = %r' % (config,))
         updated_config = self.config  # NOQA
-        print('updated_config = %r' % (updated_config,))
+        logger.info('updated_config = %r' % (updated_config,))
         qres_wgt.review_cfg = updated_config.asdict()
         qres_wgt.repopulate()
 
     def repopulate(qres_wgt):
-        print('repopulate')
+        logger.info('repopulate')
         # Really just reloads the widget
         qreq_ = qres_wgt.qreq_
 
-        print('[qres_wgt] repopulate set_query_results()')
+        logger.info('[qres_wgt] repopulate set_query_results()')
         tblnice = 'Query Results: ' + qres_wgt.query_title
 
         qres_wgt.qreq_ = qreq_
@@ -342,17 +344,17 @@ class QueryResultsWidget(gt.APIItemWidget):
 
     @gt.slot_(QtCore.QModelIndex)
     def _on_doubleclick(qres_wgt, qtindex):
-        print('[qres_wgt] _on_doubleclick: ')
-        print('[qres_wgt] DoubleClicked: ' + str(gt.qtype.qindexinfo(qtindex)))
+        logger.info('[qres_wgt] _on_doubleclick: ')
+        logger.info('[qres_wgt] DoubleClicked: ' + str(gt.qtype.qindexinfo(qtindex)))
         col = qtindex.column()
         if qres_wgt.review_api.col_edit_list[col]:
-            print('do nothing special for editable columns')
+            logger.info('do nothing special for editable columns')
             return
         return qres_wgt.show_match_at_qtindex(qtindex)
 
     # @gt.slot_(QtCore.QModelIndex)
     # def _on_pressed(qres_wgt, qtindex):
-    #    print('[qres_wgt] _on_pressed: ')
+    #    logger.info('[qres_wgt] _on_pressed: ')
     #    def _check_for_double_click(qres_wgt, qtindex):
     #        threshold = 0.20  # seconds
     #        distance = ut.toc(qres_wgt.tt)
@@ -384,7 +386,7 @@ class QueryResultsWidget(gt.APIItemWidget):
             pos = qrect.center()
             qres_wgt.on_contextMenuRequested(qtindex, pos)
         else:
-            print('[alt] Multiple %d selection' % (len(selected_qtindex_list),))
+            logger.info('[alt] Multiple %d selection' % (len(selected_qtindex_list),))
 
     def on_special_key_pressed(qres_wgt, view, event):
         # selected_qtindex_list = view.selectedIndexes()
@@ -392,8 +394,8 @@ class QueryResultsWidget(gt.APIItemWidget):
 
         # if len(selected_qtindex_list) == 1:
         for qtindex in selected_qtindex_list:
-            print('event = %r ' % (event,))
-            print('event.key() = %r ' % (event.key(),))
+            logger.info('event = %r ' % (event,))
+            logger.info('event.key() = %r ' % (event.key(),))
             qtindex = selected_qtindex_list[0]
             ibs = qres_wgt.ibs
             aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)
@@ -418,7 +420,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                 return option_dict
 
             # TODO: use guitool options dict
-            # print('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
+            # logger.info('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
             option_dict = make_option_dict(options)
 
             event_key = event.key()
@@ -449,7 +451,7 @@ class QueryResultsWidget(gt.APIItemWidget):
             #    option_dict['S']()
             # elif event_key == QtCore.Qt.Key_P:
             #    option_dict['P']()
-            print('emiting data changed')
+            logger.info('emiting data changed')
             # This may not work with PyQt5
             # http://stackoverflow.com/questions/22560296/view-not-resp-datachanged
             model = qtindex.model()
@@ -457,10 +459,10 @@ class QueryResultsWidget(gt.APIItemWidget):
             model.dataChanged.emit(qtindex, qtindex)
             # but it doesnt seem to be, but this seems to solve the issue
             model.layoutChanged.emit()
-            print('emited data changed')
+            logger.info('emited data changed')
             # model.select()
         # else:
-        #    print('[key] Multiple %d selection' % (len(selected_qtindex_list),))
+        #    logger.info('[key] Multiple %d selection' % (len(selected_qtindex_list),))
 
     @gt.slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(qres_wgt, qtindex, qpoint):
@@ -486,7 +488,7 @@ class QueryResultsWidget(gt.APIItemWidget):
             )
             gt.popup_menu(qwin, qpoint, options)
         else:
-            print('[context] Multiple %d selection' % (len(selected_qtindex_list),))
+            logger.info('[context] Multiple %d selection' % (len(selected_qtindex_list),))
 
     def get_widget_review_vars(qres_wgt, qaid):
         ibs = qres_wgt.ibs
@@ -509,7 +511,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         return annotmatch_rowid_list
 
     def show_match_at_qtindex(qres_wgt, qtindex):
-        print('interact')
+        logger.info('interact')
         qaid, daid = qres_wgt.get_aidpair_from_qtindex(qtindex)
         cm = qres_wgt.qaid2_cm[qaid]
         match_interaction = cm.ishow_single_annotmatch(qres_wgt.qreq_, daid, mode=0)
@@ -522,7 +524,7 @@ class QueryResultsWidget(gt.APIItemWidget):
             qtindex = selected_qtindex_list[0]
             # aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)
             thresh = qtindex.model().get_header_data('score', qtindex)
-            print('thresh = %r' % (thresh,))
+            logger.info('thresh = %r' % (thresh,))
 
             rows = qres_wgt.review_api.ider()
             scores_ = qres_wgt.review_api.get(
@@ -588,10 +590,10 @@ class QueryResultsWidget(gt.APIItemWidget):
                 # the new graph name inference algorithm.
                 # then the chosen point will be used as the threshold. Then
                 # the graph cut algorithm will be applied.
-                logger = qres_wgt.logger
-                logger.debug(msg)
-                logger.info('START MASS_THRESHOLD_MERGE')
-                logger.info('num_groups=%d thresh=%r' % (len(dbside_groups), thresh,))
+                logger_ = qres_wgt.logger
+                logger_.debug(msg)
+                logger_.info('START MASS_THRESHOLD_MERGE')
+                logger_.info('num_groups=%d thresh=%r' % (len(dbside_groups), thresh,))
                 for count, subgraph in enumerate(dbside_groups):
                     thresh_aid_pairs = [
                         edge
@@ -634,14 +636,14 @@ class QueryResultsWidget(gt.APIItemWidget):
                         am_rowids, ['algo:lnbnn_thresh'] * len(am_rowids)
                     )
 
-                    logger.info('START GROUP %d' % (count,))
-                    logger.info(
+                    logger_.info('START GROUP %d' % (count,))
+                    logger_.info(
                         'GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)'
                         % (len(thresh_uuid_pairs), thresh,)
                     )
-                    logger.debug('(uuid_pairs=%r)' % (thresh_uuid_pairs))
-                    logger.debug('(merge_name=%r)' % (merge_name))
-                    logger.debug(
+                    logger_.debug('(uuid_pairs=%r)' % (thresh_uuid_pairs))
+                    logger_.debug('(merge_name=%r)' % (merge_name))
+                    logger_.debug(
                         'CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)'
                         % (
                             len(annot_uuids),
@@ -651,7 +653,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                             merge_name,
                         )
                     )
-                    logger.debug(
+                    logger_.debug(
                         'ADDITIONAL CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)'
                         % (
                             len(other_auuids),
@@ -661,12 +663,12 @@ class QueryResultsWidget(gt.APIItemWidget):
                             merge_name,
                         )
                     )
-                    logger.info('END GROUP %d' % (count,))
+                    logger_.info('END GROUP %d' % (count,))
                     new_nids = [merge_nid] * len(aids)
                     ibs.set_annot_name_rowids(aids, new_nids)
-                logger.info('END MASS_THRESHOLD_MERGE')
+                logger_.info('END MASS_THRESHOLD_MERGE')
         else:
-            print('[context] Multiple %d selection' % (len(selected_qtindex_list),))
+            logger.info('[context] Multiple %d selection' % (len(selected_qtindex_list),))
 
 
 # ______
@@ -709,11 +711,11 @@ def set_annot_pair_as_positive_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
             on_nontrivial_merge=on_nontrivial_merge,
             logger=kwargs.get('logger', None),
         )
-        print('status = %r' % (status,))
+        logger.info('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
         review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:
-        print('user canceled positive match')
+        logger.info('user canceled positive match')
 
 
 def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
@@ -723,7 +725,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
 
     def on_nontrivial_split(ibs, aid1, aid2):
         aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
-        print(
+        logger.info(
             'There are %d annots in this name. Need more sophisticated split'
             % (len(aid1_groundtruth))
         )
@@ -736,7 +738,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
             on_nontrivial_split=on_nontrivial_split,
             logger=kwargs.get('logger', None),
         )
-        print('status = %r' % (status,))
+        logger.info('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
         options = ['Flag for later', 'Review now']
         reply = gt.user_option(
@@ -764,7 +766,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
         elif reply == options[1]:
             review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:
-        print('user canceled negative match')
+        logger.info('user canceled negative match')
 
 
 def review_match(
@@ -777,7 +779,7 @@ def review_match(
     cm=None,
     **kwargs,
 ):
-    print('Review match: {}-vs-{}'.format(aid1, aid2))
+    logger.info('Review match: {}-vs-{}'.format(aid1, aid2))
     from wbia.viz.interact import interact_name
 
     # ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
@@ -838,7 +840,7 @@ def get_aidpair_context_menu_options(
         >>> print(result)
     """
     if ut.VERBOSE:
-        print('[inspect_gui] Building AID pair context menu options')
+        logger.info('[inspect_gui] Building AID pair context menu options')
     options = []
 
     # assert qreq_ is not None, 'must specify qreq_'
@@ -938,7 +940,7 @@ def get_aidpair_context_menu_options(
 
         def vsmany_load_and_show():
             if qreq_ is None:
-                print('no qreq_ given')
+                logger.info('no qreq_ given')
                 return None
                 # qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
             else:
@@ -959,12 +961,12 @@ def get_aidpair_context_menu_options(
     if ut.is_developer():
 
         def dev_debug():
-            print('=== DBG ===')
-            print('ibs = %r' % (ibs,))
-            print('cm = %r' % (cm,))
-            print('aid1 = %r' % (aid1,))
-            print('aid2 = %r' % (aid2,))
-            print('qreq_ = %r' % (qreq_,))
+            logger.info('=== DBG ===')
+            logger.info('ibs = %r' % (ibs,))
+            logger.info('cm = %r' % (cm,))
+            logger.info('aid1 = %r' % (aid1,))
+            logger.info('aid2 = %r' % (aid2,))
+            logger.info('qreq_ = %r' % (qreq_,))
             cm.print_inspect_str(qreq_)
             cm.print_rawinfostr()
 
@@ -1043,7 +1045,7 @@ def make_vsone_tuner(
 
 def show_vsone_tuner(ibs, qaid, daid, qreq_=None):
     edge = (qaid, daid)
-    print('[inspect_gui] show_vsone_tuner edge={}'.format(edge))
+    logger.info('[inspect_gui] show_vsone_tuner edge={}'.format(edge))
     self = make_vsone_tuner(ibs, edge, qreq_=qreq_)
     self.show()
 
@@ -1087,8 +1089,8 @@ def make_annotpair_context_options(ibs, aid1, aid2, qreq_):
         config2_list_ = [qreq_.extern_query_config2, qreq_.extern_data_config2]
 
     chip_contex_options = []
-    print('config2_list_ = %r' % (config2_list_,))
-    print('aid_list2 = %r' % (aid_list2,))
+    logger.info('config2_list_ = %r' % (config2_list_,))
+    logger.info('aid_list2 = %r' % (aid_list2,))
     for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
         chip_contex_options += [
             (
@@ -1146,22 +1148,22 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
     case_hotlink_list = gt.make_word_hotlinks(case_list, used_chars)
     pair_tag_options = []
     if True or ut.VERBOSE:
-        print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
-        print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
-        print('[inspect_gui] tags = %r' % (tags,))
+        logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+        logger.info('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
+        logger.info('[inspect_gui] tags = %r' % (tags,))
     if ut.VERBOSE:
-        print('[inspect_gui] Making case hotlist: ' + ut.repr2(case_hotlink_list))
+        logger.info('[inspect_gui] Making case hotlist: ' + ut.repr2(case_hotlink_list))
 
     def _wrap_set_annotmatch_prop(prop, toggle_val):
         if ut.VERBOSE:
-            print('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,))
+            logger.info('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,))
         am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
         if ut.VERBOSE:
-            print('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
-            print('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
+            logger.info('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
+            logger.info('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
         ibs.set_annotmatch_prop(prop, [am_rowid], [toggle_val])
         if ut.VERBOSE:
-            print('[SETTING] done')
+            logger.info('[SETTING] done')
         if True:
             # hack for reporting
             if annotmatch_rowid is None:
@@ -1169,9 +1171,9 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
             else:
                 tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
                 tags = [_.lower() for _ in tags]
-            print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
-            print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
-            print('[inspect_gui] tags = %r' % (tags,))
+            logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+            logger.info('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
+            logger.info('[inspect_gui] tags = %r' % (tags,))
 
     for case, case_hotlink in zip(case_list, case_hotlink_list):
         toggle_val = case.lower() not in tags
@@ -1188,7 +1190,7 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
             ),
         ]
     if ut.VERBOSE:
-        print(
+        logger.info(
             'Partial tag funcs:'
             + ut.repr2(
                 [

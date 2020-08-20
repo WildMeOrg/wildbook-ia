@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 from prometheus_client import Info, Gauge, Counter, Enum, Histogram  # NOQA
 from wbia.control import controller_inject
 import wbia.constants as const
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -124,7 +126,7 @@ def prometheus_update(ibs, *args, **kwargs):
             global PROMETHEUS_COUNTER
 
             PROMETHEUS_COUNTER = PROMETHEUS_COUNTER + 1  # NOQA
-            # print('PROMETHEUS LIMIT %d / %d' % (PROMETHEUS_COUNTER, PROMETHEUS_LIMIT, ))
+            # logger.info('PROMETHEUS LIMIT %d / %d' % (PROMETHEUS_COUNTER, PROMETHEUS_LIMIT, ))
 
             if PROMETHEUS_COUNTER >= PROMETHEUS_LIMIT:
                 PROMETHEUS_COUNTER = 0
@@ -240,7 +242,7 @@ def prometheus_update(ibs, *args, **kwargs):
                                 seconds,
                                 total_seconds,
                             ) = calculate_timedelta(started, now)
-                            print(
+                            logger.info(
                                 'ELAPSED (%s): %d seconds...' % (job_uuid, total_seconds,)
                             )
                             PROMETHEUS_DATA['elapsed'].labels(
@@ -255,7 +257,7 @@ def prometheus_update(ibs, *args, **kwargs):
 
                     try:
                         if status not in status_dict_template:
-                            print('UNRECOGNIZED STATUS %r' % (status,))
+                            logger.info('UNRECOGNIZED STATUS %r' % (status,))
                         status_dict[endpoint][status] += 1
                         status_dict['*'][status] += 1
 
@@ -317,7 +319,7 @@ def prometheus_update(ibs, *args, **kwargs):
                     pass
 
                 try:
-                    # print(ut.repr3(status_dict))
+                    # logger.info(ut.repr3(status_dict))
                     for endpoint in status_dict:
                         for status in status_dict[endpoint]:
                             number = status_dict[endpoint][status]

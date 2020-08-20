@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
+import logging
 import utool
 
 (print, rrr, profile) = utool.inject2(__name__, '[web]')
+logger = logging.getLogger('wbia')
 
 from wbia.web import apis_detect
 from wbia.web import apis_engine

@@ -2,6 +2,7 @@
 """
 Interface to Faster R-CNN object proposals.
 """
+import logging
 import utool as ut
 import vtool as vt
 from six.moves import zip, range
@@ -11,6 +12,7 @@ import sys
 import cv2
 
 (print, rrr, profile) = ut.inject2(__name__, '[faster r-cnn]')
+logger = logging.getLogger('wbia')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
 SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'py-faster-rcnn')))
@@ -39,11 +41,13 @@ if not ut.get_argflag('--no-faster-rcnn'):
 
         # from fast_rcnn.nms_wrapper import nms
     except AssertionError:
-        print('WARNING Failed to find py-faster-rcnn. ' 'Faster R-CNN is unavailable')
+        logger.info(
+            'WARNING Failed to find py-faster-rcnn. ' 'Faster R-CNN is unavailable'
+        )
         # if ut.SUPER_STRICT:
         #     raise
     except ImportError:
-        print('WARNING Failed to import fast_rcnn. ' 'Faster R-CNN is unavailable')
+        logger.info('WARNING Failed to import fast_rcnn. ' 'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
 

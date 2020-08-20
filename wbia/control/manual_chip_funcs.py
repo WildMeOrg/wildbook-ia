@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six
 import utool as ut
 from six.moves import zip
@@ -8,6 +9,7 @@ from wbia.control import accessor_decors, controller_inject
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -236,7 +238,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     thumb_gpaths = ibs.get_annot_chip_thumbpath(
         aid_list, thumbsize=thumbsize, config2_=config2_
     )
-    # print(thumb_gpaths)
+    # logger.info(thumb_gpaths)
     chip_paths = ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=config2_)
     chipsize_list = ibs.get_annot_chip_sizes(aid_list, ensure=False, config2_=config2_)
     thumbtup_list = [
@@ -305,7 +307,7 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
     # FIXME: Should config2_ be passed down?
     # Not sure why it isn't currently
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-    # print(thumbpath_list)
+    # logger.info(thumbpath_list)
     # ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
     ut.remove_existing_fpaths(thumbpath_list, quiet=False, lbl='chip_thumbs')
     ibs.depc_annot.delete_property('chips', aid_list, config=config2_)

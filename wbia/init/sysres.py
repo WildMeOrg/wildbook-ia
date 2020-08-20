@@ -4,6 +4,7 @@ sysres.py == system_resources
 Module for dealing with system resoureces in the context of IBEIS
 but without the need for an actual IBEIS Controller
 """
+import logging
 import os
 from os.path import exists, join, realpath
 import utool as ut
@@ -13,6 +14,7 @@ from wbia import constants as const
 
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 WORKDIR_CACHEID = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
@@ -34,7 +36,7 @@ def _wbia_cache_write(key, val):
     """ Writes to global IBEIS cache
     TODO: Use text based config file
     """
-    print('[sysres] set %s=%r' % (key, val))
+    logger.info('[sysres] set %s=%r' % (key, val))
     ut.global_cache_write(key, val, appname=__APPNAME__)
 
 
@@ -48,14 +50,14 @@ def _wbia_cache_read(key, **kwargs):
 
 def set_default_dbdir(dbdir):
     if ut.DEBUG2:
-        print('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
+        logger.info('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
     _wbia_cache_write(DEFAULTDB_CAHCEID, dbdir)
 
 
 def get_default_dbdir():
     dbdir = _wbia_cache_read(DEFAULTDB_CAHCEID, default=None)
     if ut.DEBUG2:
-        print('[sysres] READING DEFAULT DBDIR: %r' % dbdir)
+        logger.info('[sysres] READING DEFAULT DBDIR: %r' % dbdir)
     return dbdir
 
 
@@ -84,7 +86,7 @@ def get_workdir(allow_gui=True):
         >>> print(result)
     """
     work_dir = _wbia_cache_read(WORKDIR_CACHEID, default='.')
-    print('[wbia.sysres.get_workdir] work_dir = {!r}'.format(work_dir))
+    logger.info('[wbia.sysres.get_workdir] work_dir = {!r}'.format(work_dir))
     if work_dir != '.' and exists(work_dir):
         return work_dir
     if allow_gui:
@@ -214,7 +216,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
     Implicitly gets dbdir. Searches for db inside of workdir
     """
     if ut.VERBOSE:
-        print('[sysres] db_to_dbdir: db=%r, allow_newdir=%r' % (db, allow_newdir))
+        logger.info('[sysres] db_to_dbdir: db=%r, allow_newdir=%r' % (db, allow_newdir))
 
     if db is None:
         raise ValueError('db is None')
@@ -238,39 +240,39 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
             break
 
     # Create the database if newdbs are allowed in the workdir
-    # print('allow_newdir=%r' % allow_newdir)
+    # logger.info('allow_newdir=%r' % allow_newdir)
     if allow_newdir:
         ut.ensuredir(dbdir, verbose=True)
 
     # Complain if the implicit dbdir does not exist
     if not exists(dbdir):
-        print('!!!')
-        print('[sysres] WARNING: db=%r not found in work_dir=%r' % (db, work_dir))
+        logger.info('!!!')
+        logger.info('[sysres] WARNING: db=%r not found in work_dir=%r' % (db, work_dir))
         fname_list = os.listdir(work_dir)
         lower_list = [fname.lower() for fname in fname_list]
         index = ut.listfind(lower_list, db.lower())
         if index is not None:
-            print('[sysres] WARNING: db capitalization seems to be off')
+            logger.info('[sysres] WARNING: db capitalization seems to be off')
             if not ut.STRICT:
-                print('[sysres] attempting to fix it')
+                logger.info('[sysres] attempting to fix it')
                 db = fname_list[index]
                 dbdir = join(work_dir, db)
-                print('[sysres] dbdir=%r' % dbdir)
-                print('[sysres] db=%r' % db)
+                logger.info('[sysres] dbdir=%r' % dbdir)
+                logger.info('[sysres] db=%r' % db)
         if not exists(dbdir):
             msg = '[sysres!] ERROR: Database does not exist and allow_newdir=False'
-            print('<!!!>')
-            print(msg)
-            print(
+            logger.info('<!!!>')
+            logger.info(msg)
+            logger.info(
                 '[sysres!] Here is a list of valid dbs: '
                 + ut.indentjoin(sorted(fname_list), '\n  * ')
             )
-            print('[sysres!] dbdir=%r' % dbdir)
-            print('[sysres!] db=%r' % db)
-            print('[sysres!] work_dir=%r' % work_dir)
-            print('</!!!>')
+            logger.info('[sysres!] dbdir=%r' % dbdir)
+            logger.info('[sysres!] db=%r' % db)
+            logger.info('[sysres!] work_dir=%r' % work_dir)
+            logger.info('</!!!>')
             raise AssertionError(msg)
-        print('!!!')
+        logger.info('!!!')
     return dbdir
 
 
@@ -306,9 +308,9 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
         >>> print('dir3 = %r' % (dir2,))
     """
     if not ut.QUIET and ut.VERBOSE:
-        print('[sysres] get_args_dbdir: parsing commandline for dbdir')
-        print('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
-        print('[sysres] db=%r, dbdir=%r' % (db, dbdir))
+        logger.info('[sysres] get_args_dbdir: parsing commandline for dbdir')
+        logger.info('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
+        logger.info('[sysres] db=%r, dbdir=%r' % (db, dbdir))
 
     def prioritize(dbdir_, db_):
         invalid = ['', ' ', '.', 'None']
@@ -412,18 +414,18 @@ def ensure_pz_mtest():
         >>> from wbia.init.sysres import *  # NOQA
         >>> ensure_pz_mtest()
     """
-    print('ensure_pz_mtest')
+    logger.info('ensure_pz_mtest')
     from wbia import sysres
 
     workdir = sysres.get_workdir()
     mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
     mtest_dir = ut.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
-    print('have mtest_dir=%r' % (mtest_dir,))
+    logger.info('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
     import wbia
 
     ibs = wbia.opendb('PZ_MTEST')
-    print('cleaning up old database and ensureing everything is properly computed')
+    logger.info('cleaning up old database and ensureing everything is properly computed')
     ibs.db.vacuum()
     valid_aids = ibs.get_valid_aids()
     assert len(valid_aids) == 119
@@ -489,7 +491,7 @@ def ensure_pz_mtest():
     ibs.set_image_imagesettext(other_gids2, ['Occurrence 3'] * len(other_gids2))
 
     # hack in some tags
-    print('Hacking in some tags')
+    logger.info('Hacking in some tags')
     foal_aids = [
         4,
         8,
@@ -601,7 +603,7 @@ def reset_mtest_graph():
     infr.reset_feedback('annotmatch', apply=True)
     assert infr.status()['nInconsistentCCs'] == 0
 
-    # print(ibs.staging['reviews'].as_pandas())
+    # logger.info(ibs.staging['reviews'].as_pandas())
 
 
 def copy_wbiadb(source_dbdir, dest_dbdir):
@@ -714,16 +716,16 @@ def ensure_pz_mtest_batchworkflow_test():
             # netx_graph.remove_edges_from(cut_edges)
             # components = list(netx.connected_components(netx_graph))
             # components = ut.sortedby(components, list(map(len, components)), reverse=True)
-            # print(components)
+            # logger.info(components)
             # imageset_aids_list[0].extend(components[0])
             # for component in components:
 
             # TODO do max-nway cut
         # day_diffs = spdist.squareform(hourdiffs) / 24.0
-        # print(ut.repr2(day_diffs, precision=2, suppress_small=True))
+        # logger.info(ut.repr2(day_diffs, precision=2, suppress_small=True))
         # import itertools
         # compare_idxs = [(r, c) for r, c in itertools.product(range(len(aids)), range(len(aids))) if (c > r)]
-        # print(len(aids))
+        # logger.info(len(aids))
     # def make_netx_graph(edges_pairs, nodes=None, edge_weights=None):
     #    import networkx as netx
     #    node_lbls = [('id_', 'int')]
@@ -731,7 +733,7 @@ def ensure_pz_mtest_batchworkflow_test():
     #    edge_lbls = [('weight', 'float')]
     #    edges = [(pair[0], pair[1], weight) for pair, weight in zip(edges_pairs, edge_weights)]
 
-    #    print('make_netx_graph')
+    #    logger.info('make_netx_graph')
     #    # Make a graph between the chips
     #    netx_nodes = [(ntup[0], {key[0]: val for (key, val) in zip(node_lbls, ntup[1:])})
     #                  for ntup in iter(zip(nodes))]
@@ -833,7 +835,7 @@ def ensure_pz_mtest_mergesplit_test():
         ibs.set_annot_name_rowids(aids_odd, [combo_nids[1]] * len(aids_odd))
 
     final_result = ibs.unflat_map(ibs.get_annot_nids, modify_aids)
-    print('final_result = %s' % (ub.repr2(final_result),))
+    logger.info('final_result = %s' % (ub.repr2(final_result),))
 
 
 def ensure_wilddogs():
@@ -875,7 +877,7 @@ def ensure_db_from_url(zipped_db_url):
     dbdir = ut.grab_zipped_url(
         zipped_url=zipped_db_url, ensure=True, download_dir=workdir
     )
-    print('have %s=%r' % (zipped_db_url, dbdir,))
+    logger.info('have %s=%r' % (zipped_db_url, dbdir,))
     return dbdir
 
 

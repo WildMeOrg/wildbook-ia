@@ -4,12 +4,14 @@ python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'wbia.templat
 sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_feat_funcs
 sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_funcs
 """
+import logging
 import six  # NOQA
 from wbia.control.accessor_decors import getter_1to1, getter_1toM, deleter
 import utool as ut
 from wbia.control import controller_inject
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -59,7 +61,7 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
         >>> ut.assert_eq(num_deleted2, 0)
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d annots leaf nodes' % len(aid_list))
+        logger.info('[ibs] deleting %d annots leaf nodes' % len(aid_list))
     return ibs.depc_annot.delete_property('feat', aid_list, config=config2_)
 
 

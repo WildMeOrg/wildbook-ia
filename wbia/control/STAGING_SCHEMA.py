@@ -9,10 +9,12 @@ with the last version number that they existed in
 CommandLine:
     python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema
 """
+import logging
 from wbia import constants as const
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 try:
     from wbia.control import STAGING_SCHEMA_CURRENT
@@ -22,7 +24,7 @@ try:
 except Exception:
     UPDATE_CURRENT = None
     VERSION_CURRENT = None
-    print('[dbcache] NO STAGING_SCHEMA_CURRENT AUTO-GENERATED!')
+    logger.info('[dbcache] NO STAGING_SCHEMA_CURRENT AUTO-GENERATED!')
 
 profile = ut.profile
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import numpy as np
 import warnings
 import utool as ut
@@ -9,6 +10,7 @@ from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -161,9 +163,9 @@ class GraphVisualization(object):
                 thresh = 0.5
                 weights[nan_idxs] = thresh
             colors = infr.get_colored_weights(weights)
-            # print('!! weights = %r' % (len(weights),))
-            # print('!! edges = %r' % (len(edges),))
-            # print('!! colors = %r' % (len(colors),))
+            # logger.info('!! weights = %r' % (len(weights),))
+            # logger.info('!! edges = %r' % (len(edges),))
+            # logger.info('!! colors = %r' % (len(colors),))
             if len(nan_idxs) > 0:
                 import wbia.plottool as pt
 
@@ -653,7 +655,7 @@ class GraphVisualization(object):
                 nodesep=0.1,
             )
             layoutkw.update(kwargs)
-            # print(ut.repr3(graph.edges))
+            # logger.info(ut.repr3(graph.edges))
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
         if edge_overrides:
@@ -812,10 +814,10 @@ class GraphVisualization(object):
         return win
 
     def debug_edge_repr(infr):
-        print('DEBUG EDGE REPR')
+        logger.info('DEBUG EDGE REPR')
         for u, v, d in infr.graph.edges(data=True):
-            print('edge = %r, %r' % (u, v))
-            print(infr.repr_edge_data(d, visual=False))
+            logger.info('edge = %r, %r' % (u, v))
+            logger.info(infr.repr_edge_data(d, visual=False))
 
     def repr_edge_data(infr, all_edge_data, visual=True):
         visual_edge_data = {
@@ -902,7 +904,7 @@ class GraphVisualization(object):
 def on_pick(event, infr=None):
     import wbia.plottool as pt
 
-    print('ON PICK: %r' % (event,))
+    logger.info('ON PICK: %r' % (event,))
     artist = event.artist
     plotdat = pt.get_plotdat_dict(artist)
     if plotdat:
@@ -913,16 +915,16 @@ def on_pick(event, infr=None):
             node = plotdat['node']
             node_data['degree'] = infr.graph.degree(node)
             node_label = infr.pos_graph.node_label(node)
-            print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
-            print('node_data: ' + ut.repr2(node_data, nl=1))
+            logger.info('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
+            logger.info('node_data: ' + ut.repr2(node_data, nl=1))
             ut.cprint('node: ' + ut.repr2(plotdat['node']), 'blue')
-            print('(pcc) node_label = %r' % (node_label,))
-            print('artist = %r' % (artist,))
+            logger.info('(pcc) node_label = %r' % (node_label,))
+            logger.info('artist = %r' % (artist,))
         elif 'edge' in plotdat:
             all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
-            print(infr.repr_edge_data(all_edge_data))
+            logger.info(infr.repr_edge_data(all_edge_data))
             ut.cprint('edge: ' + ut.repr2(plotdat['edge']), 'blue')
-            print('artist = %r' % (artist,))
+            logger.info('artist = %r' % (artist,))
         else:
-            print('???: ' + ut.repr2(plotdat))
-    print(ut.get_timestamp())
+            logger.info('???: ' + ut.repr2(plotdat))
+    logger.info(ut.get_timestamp())

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
 from wbia.guitool.__PYQT__ import QtWidgets
@@ -7,6 +8,7 @@ import utool as ut
 from wbia.guitool import api_item_view
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # If you need to set the selected index try:

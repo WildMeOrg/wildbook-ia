@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
+import logging
 from os.path import expanduser, join
 from wbia import constants as const
 import utool as ut
@@ -13,6 +14,7 @@ import copy
 import PIL
 
 (print, rrr, profile) = ut.inject2(__name__, '[orientation]')
+logger = logging.getLogger('wbia')
 
 
 PARALLEL = not const.CONTAINERIZED
@@ -29,10 +31,10 @@ if not ut.get_argflag('--no-pytorch'):
         import torch.optim as optim
         import torchvision
 
-        print('PyTorch Version: ', torch.__version__)
-        print('Torchvision Version: ', torchvision.__version__)
+        logger.info('PyTorch Version: ', torch.__version__)
+        logger.info('Torchvision Version: ', torchvision.__version__)
     except ImportError:
-        print('WARNING Failed to import pytorch. ' 'PyTorch is unavailable')
+        logger.info('WARNING Failed to import pytorch. ' 'PyTorch is unavailable')
         if ut.SUPER_STRICT:
             raise
 
@@ -87,7 +89,7 @@ if not ut.get_argflag('--no-pytorch'):
         }
     except ImportError:
         AUGMENTATION = {}
-        print(
+        logger.info(
             'WARNING Failed to import imgaug. '
             'install with pip install git+https://github.com/aleju/imgaug'
         )
@@ -209,7 +211,7 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
             self.total,
             multiplier,
         )
-        print(
+        logger.info(
             'Initialized Sampler for %r (sampling %d for %d classes | min %d per class, %d total, %0.02f multiplier)'
             % args
         )
@@ -246,8 +248,8 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
         start_batch = time.time()
 
         lr = optimizer.param_groups[0]['lr']
-        print('Epoch {}/{} (lr = {:0.06f})'.format(epoch, num_epochs - 1, lr))
-        print('-' * 10)
+        logger.info('Epoch {}/{} (lr = {:0.06f})'.format(epoch, num_epochs - 1, lr))
+        logger.info('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in phases:
@@ -298,7 +300,7 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
             if flag:
                 best_loss[phase] = epoch_loss
 
-            print(
+            logger.info(
                 '{:<5} Loss: {:.4f} Acc: {:.4f} {}'.format(
                     phase, epoch_loss, epoch_acc, '!' if flag else ''
                 )
@@ -307,30 +309,30 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
             # deep copy the model
             if phase == 'val' and epoch_acc > best_accuracy:
                 best_accuracy = epoch_acc
-                print('\tFound better model!')
+                logger.info('\tFound better model!')
                 best_model_state = copy.deepcopy(model.state_dict())
             if phase == 'val':
                 scheduler.step(epoch_loss)
 
                 time_elapsed_batch = time.time() - start_batch
-                print(
+                logger.info(
                     'time: {:.0f}m {:.0f}s'.format(
                         time_elapsed_batch // 60, time_elapsed_batch % 60
                     )
                 )
 
                 ratio = last_loss['train'] / last_loss['val']
-                print('ratio: {:.04f}'.format(ratio))
+                logger.info('ratio: {:.04f}'.format(ratio))
 
-        print('\n')
+        logger.info('\n')
 
     time_elapsed = time.time() - start
-    print(
+    logger.info(
         'Training complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60
         )
     )
-    print('Best val Acc: {:4f}'.format(best_accuracy))
+    logger.info('Best val Acc: {:4f}'.format(best_accuracy))
 
     # load best model weights
     model.load_state_dict(best_model_state)
@@ -342,7 +344,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
 
     samples = dataset.samples
     flags = np.array(ut.take_column(samples, 1))
-    print('Dataset %r has %d samples' % (tag, len(flags),))
+    logger.info('Dataset %r has %d samples' % (tag, len(flags),))
 
     indices = []
     for flag in set(flags):
@@ -368,7 +370,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
 
     augment = augmentation(**kwargs)
     for index in range(len(indices) - 1):
-        print(index)
+        logger.info(index)
         images_ = [augment(image.copy()) for image in images]
         canvas = np.hstack(images_)
         canvas_list.append(canvas)
@@ -395,7 +397,7 @@ def train(
 
     phases = ['train', 'val']
 
-    print('Initializing Datasets and Dataloaders...')
+    logger.info('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
     transforms = _init_transforms(**kwargs)
@@ -426,7 +428,7 @@ def train(
     assert len(train_classes) == len(val_classes)
     num_classes = len(train_classes)
 
-    print('Initializing Model...')
+    logger.info('Initializing Model...')
 
     # Initialize the model for this run
     model = torchvision.models.densenet201(pretrained=True)
@@ -438,22 +440,22 @@ def train(
 
     # Multi-GPU
     if multi:
-        print('USING MULTI-GPU MODEL')
+        logger.info('USING MULTI-GPU MODEL')
         model = nn.DataParallel(model)
 
-    print('Print Examples of Training Augmentation...')
+    logger.info('Print Examples of Training Augmentation...')
 
     for phase in phases:
         visualize_augmentations(datasets[phase], AUGMENTATION[phase], phase, **kwargs)
 
-    print('Initializing Optimizer...')
+    logger.info('Initializing Optimizer...')
 
-    # print('Params to learn:')
+    # logger.info('Params to learn:')
     params_to_update = []
     for name, param in model.named_parameters():
         if param.requires_grad:
             params_to_update.append(param)
-            # print('\t', name)
+            # logger.info('\t', name)
 
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
@@ -473,7 +475,7 @@ def train(
     # Setup the loss fxn
     criterion = nn.CrossEntropyLoss(weight=weight)
 
-    print('Start Training...')
+    logger.info('Start Training...')
 
     # Train and evaluate
     model = finetune(model, dataloaders, criterion, optimizer, scheduler, device)
@@ -495,7 +497,7 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
 
-    print('Initializing Datasets and Dataloaders...')
+    logger.info('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
     transforms = _init_transforms(**kwargs)
@@ -506,7 +508,7 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
         dataset, batch_size=batch_size, num_workers=0, pin_memory=using_gpu
     )
 
-    print('Initializing Model...')
+    logger.info('Initializing Model...')
     try:
         weights = torch.load(weights_path)
     except RuntimeError:
@@ -537,7 +539,7 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
 
     # Make parallel at end
     if multi:
-        print('USING MULTI-GPU MODEL')
+        logger.info('USING MULTI-GPU MODEL')
         model = nn.DataParallel(model)
 
     # Send the model to GPU
@@ -550,19 +552,19 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
     counter = 0
     outputs = []
     for (inputs,) in tqdm.tqdm(dataloader, desc='test'):
-        print('Loading batch %d from disk' % (counter,))
+        logger.info('Loading batch %d from disk' % (counter,))
         inputs = inputs.to(device)
-        print('Moving batch %d to GPU' % (counter,))
+        logger.info('Moving batch %d to GPU' % (counter,))
         with torch.set_grad_enabled(False):
-            print('Pre-model inference %d' % (counter,))
+            logger.info('Pre-model inference %d' % (counter,))
             output = model(inputs)
-            print('Post-model inference %d' % (counter,))
+            logger.info('Post-model inference %d' % (counter,))
             outputs += output.tolist()
-            print('Outputs done %d' % (counter,))
+            logger.info('Outputs done %d' % (counter,))
         counter += 1
 
     time_elapsed = time.time() - start
-    print(
+    logger.info(
         'Testing complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60
         )
@@ -698,7 +700,7 @@ def test(
         archive_url = ARCHIVE_URL_DICT[classifier_weight_filepath]
         archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
     else:
-        print(
+        logger.info(
             'classifier_weight_filepath %r not recognized' % (classifier_weight_filepath,)
         )
         raise RuntimeError
@@ -718,7 +720,7 @@ def test(
 
     kwargs.pop('classifier_algo', None)
 
-    print(
+    logger.info(
         'Using weights in the ensemble, index %r: %s '
         % (ensemble_index, ut.repr3(weights_path_list),)
     )
@@ -778,7 +780,7 @@ def features(filepath_list, batch_size=512, multi=PARALLEL, **kwargs):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
 
-    print('Initializing Datasets and Dataloaders...')
+    logger.info('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
     transforms = _init_transforms(**kwargs)
@@ -796,7 +798,7 @@ def features(filepath_list, batch_size=512, multi=PARALLEL, **kwargs):
     model = model.to(device)
 
     if multi:
-        print('USING MULTI-GPU MODEL')
+        logger.info('USING MULTI-GPU MODEL')
         model = nn.DataParallel(model)
 
     model.eval()
@@ -812,7 +814,7 @@ def features(filepath_list, batch_size=512, multi=PARALLEL, **kwargs):
 
     outputs = np.array(outputs, dtype=np.float32)
     time_elapsed = time.time() - start
-    print(
+    logger.info(
         'Testing complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60
         )

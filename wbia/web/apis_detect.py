@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Dependencies: flask, tornado."""
+import logging
 from wbia.control import accessor_decors, controller_inject
 from wbia import constants as const
 import utool as ut
@@ -11,6 +12,7 @@ from wbia.web import appfuncs as appf
 import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -1070,7 +1072,7 @@ def log_detections(ibs, aid_list, fallback=True):
     json_log_path = ibs.get_logdir_local()
     json_log_filename = 'detections.json'
     json_log_filepath = os.path.join(json_log_path, json_log_filename)
-    print('Logging detections added to: %r' % (json_log_filepath,))
+    logger.info('Logging detections added to: %r' % (json_log_filepath,))
 
     try:
         # Log has never been made, create one
@@ -1111,11 +1113,11 @@ def log_detections(ibs, aid_list, fallback=True):
             json_log_file.write(json_str)
     except Exception:
         if fallback:
-            print('WRITE DETECTION.JSON FAILED - ATTEMPTING FALLBACK')
+            logger.info('WRITE DETECTION.JSON FAILED - ATTEMPTING FALLBACK')
             ut.delete(json_log_filepath)
             ibs.log_detections(aid_list, fallback=False)
         else:
-            print('WRITE DETECTION.JSON FAILED - FALLBACK FAILED')
+            logger.info('WRITE DETECTION.JSON FAILED - FALLBACK FAILED')
 
 
 @register_ibs_method

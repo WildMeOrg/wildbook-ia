@@ -15,6 +15,7 @@ Zebra Experiment:
            :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
 """
+import logging
 from wbia import dtool
 import six
 import utool as ut
@@ -27,6 +28,7 @@ from wbia import core_annots
 from wbia.algo import Config as old_config
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class MatchHeuristicsConfig(dtool.Config):
@@ -189,7 +191,7 @@ class SMKRequest(mc5.EstimatorRequest):
                 defaultdb='Oxford', a='oxford',
                 p='default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None')
         """
-        print('Ensure data for %s' % (qreq_,))
+        logger.info('Ensure data for %s' % (qreq_,))
 
         # qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
@@ -302,13 +304,13 @@ class SMKRequest(mc5.EstimatorRequest):
         qreq_.qinva = qinva
         qreq_.dinva = dinva
 
-        print('loading keypoints')
+        logger.info('loading keypoints')
         if qreq_.qparams.sv_on:
             qreq_.data_kpts = qreq_.ibs.get_annot_kpts(
                 qreq_.daids, config2_=qreq_.extern_data_config2
             )
 
-        print('building aid index')
+        logger.info('building aid index')
         qreq_.daid_to_didx = ut.make_index_lookup(qreq_.daids)
 
     def execute_pipeline(qreq_):
@@ -345,7 +347,7 @@ class SMK(ut.NiceRepr):
         >>> ibs, smk, qreq_ = testdata_smk()
         >>> verbose = True
         """
-        print('Predicting matches')
+        logger.info('Predicting matches')
         # assert qreq_.qinva.vocab is qreq_.dinva.vocab
         # X_list = qreq_.qinva.inverted_annots(qreq_.qaids)
         # Y_list = qreq_.dinva.inverted_annots(qreq_.daids)

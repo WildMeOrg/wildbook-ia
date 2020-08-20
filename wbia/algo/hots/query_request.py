@@ -6,6 +6,7 @@ TODO:
 
     python -m utool.util_inspect check_module_usage --pat="query_request.py"
 """
+import logging
 from os.path import join
 from wbia import dtool
 import itertools as it
@@ -25,6 +26,7 @@ import wbia.constants as const
 
 # import warnings
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 VERBOSE_QREQ, VERYVERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
 
@@ -139,7 +141,7 @@ def new_wbia_query_request(
         verbose = int(ut.NOT_QUIET)
         # verbose = VERBOSE_QREQ
     if verbose:
-        print('[qreq] +--- New IBEIS QRequest --- ')
+        logger.info('[qreq] +--- New IBEIS QRequest --- ')
 
     if ut.SUPER_STRICT:
         ibs.assert_valid_aids(qaid_list, msg='error in new qreq qaids')
@@ -159,7 +161,7 @@ def new_wbia_query_request(
     #     piperoot = None
 
     if verbose > 2:
-        print('[qreq] piperoot = %r' % (piperoot,))
+        logger.info('[qreq] piperoot = %r' % (piperoot,))
     if piperoot is not None and piperoot in ['smk']:
         from wbia.algo.smk import smk_pipeline
 
@@ -175,7 +177,7 @@ def new_wbia_query_request(
     # HACK FOR DEPC REQUESTS including flukes
     elif query_cfg is not None and isinstance(query_cfg, dtool.Config):
         if verbose > 2:
-            print('[qreq] dtool.Config HACK')
+            logger.info('[qreq] dtool.Config HACK')
         tablename = query_cfg.get_config_name()
         cfgdict = dict(query_cfg.parse_items())
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
@@ -186,7 +188,7 @@ def new_wbia_query_request(
     elif piperoot is not None and piperoot not in ['vsmany']:
         # Hack to ensure that correct depcache style request gets called
         if verbose > 2:
-            print('[qreq] piperoot HACK')
+            logger.info('[qreq] piperoot HACK')
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
         assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
@@ -195,11 +197,11 @@ def new_wbia_query_request(
         # assert qreq_.qparams.pipeline_root != 'vsone', 'pipeline vsone is depricated'
     else:
         if verbose > 2:
-            print('[qreq] default hots config HACK')
+            logger.info('[qreq] default hots config HACK')
 
         # <HACK>
         if not hasattr(ibs, 'generate_species_background_mask'):
-            print('HACKING FG OFF')
+            logger.info('HACKING FG OFF')
             cfgdict['fg_on'] = False
 
         if unique_species is None:
@@ -243,12 +245,12 @@ def new_wbia_query_request(
         # qreq_.data_config2_ = data_config2_
         qreq_.unique_species = unique_species_  # HACK
         if verbose > 1:
-            print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
+            logger.info('[qreq] * unique_species = %s' % (qreq_.unique_species,))
     if verbose:
-        print('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
-        print('[qreq] * data_hashid  = %s' % (qreq_.get_data_hashid(),))
-        print('[qreq] * query_hashid = %s' % (qreq_.get_query_hashid(),))
-        print('[qreq] L___ New IBEIS QRequest ___ ')
+        logger.info('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
+        logger.info('[qreq] * data_hashid  = %s' % (qreq_.get_data_hashid(),))
+        logger.info('[qreq] * query_hashid = %s' % (qreq_.get_query_hashid(),))
+        logger.info('[qreq] L___ New IBEIS QRequest ___ ')
     return qreq_
 
 
@@ -291,18 +293,20 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids, verbose=None):
             )
             if verbose > 1:
                 if len(unique_species) != 1:
-                    print('[qreq]  * len(unique_species) = %r' % len(unique_species))
+                    logger.info(
+                        '[qreq]  * len(unique_species) = %r' % len(unique_species)
+                    )
                 else:
-                    print('[qreq]  * unique_species = %r' % (unique_species,))
-        # print('[qreq]  * valid species = %r' % (
+                    logger.info('[qreq]  * unique_species = %r' % (unique_species,))
+        # logger.info('[qreq]  * valid species = %r' % (
         #    ibs.get_species_with_detectors(),))
         # cfg._featweight_cfg.featweight_enabled = 'ERR'
         cfgdict['featweight_enabled'] = False  # 'ERR'
         cfgdict['fg_on'] = False
     else:
-        # print(ibs.get_annot_species_texts(aid_list))
+        # logger.info(ibs.get_annot_species_texts(aid_list))
         if verbose:
-            print('[qreq] Using fgweights of unique_species=%r' % (unique_species,))
+            logger.info('[qreq] Using fgweights of unique_species=%r' % (unique_species,))
     return unique_species
 
 
@@ -633,7 +637,7 @@ class QueryRequest(ut.NiceRepr):
         """
         typestr = qreq_.__class__.__name__
         parts = qreq_.get_shortinfo_parts()
-        # print('parts = %r' % (parts,))
+        # logger.info('parts = %r' % (parts,))
         custom_str = '%s(%s) %s %s %s' % ((typestr,) + tuple(parts))
         return custom_str
 
@@ -1083,7 +1087,7 @@ class QueryRequest(ut.NiceRepr):
         Load non-query specific normalizers / weights
         """
         if verbose >= 2:
-            print('[qreq] lazy preloading')
+            logger.info('[qreq] lazy preloading')
         if prog_hook is not None:
             prog_hook.initialize_subhooks(4)
 
@@ -1114,7 +1118,7 @@ class QueryRequest(ut.NiceRepr):
         """
         Performs preloading of all data needed for a batch of queries
         """
-        print('[qreq] lazy loading')
+        logger.info('[qreq] lazy loading')
         qreq_.hasloaded = True
         qreq_.lazy_preload(verbose=verbose)
         if qreq_.qparams.pipeline_root in ['vsmany']:
@@ -1152,7 +1156,7 @@ class QueryRequest(ut.NiceRepr):
             >>> print(result)
         """
         if verbose:
-            print('[qreq] ensure_chips')
+            logger.info('[qreq] ensure_chips')
         external_qaids = qreq_.qaids
         external_daids = qreq_.daids
         # np.union1d(external_qaids, external_daids)
@@ -1192,7 +1196,7 @@ class QueryRequest(ut.NiceRepr):
         """
         # with ut.EmbedOnException():
         if verbose:
-            print('[qreq] ensure_features')
+            logger.info('[qreq] ensure_features')
         if prog_hook is not None:
             prog_hook(0, 3, 'ensure features')
         if prog_hook is not None:
@@ -1208,7 +1212,7 @@ class QueryRequest(ut.NiceRepr):
     def ensure_featweights(qreq_, verbose=ut.NOT_QUIET):
         """ ensure feature weights are computed """
         if verbose:
-            print('[qreq] ensure_featweights')
+            logger.info('[qreq] ensure_featweights')
         qreq_.qannots.preload('fgweights')
         qreq_.dannots.preload('fgweights')
 
@@ -1225,7 +1229,7 @@ class QueryRequest(ut.NiceRepr):
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer
                 if ut.VERYVERBOSE or verbose:
-                    print('[qreq] loading single indexer normalizer')
+                    logger.info('[qreq] loading single indexer normalizer')
                 indexer = neighbor_index_cache.request_wbia_nnindexer(
                     qreq_,
                     verbose=verbose,
@@ -1234,7 +1238,7 @@ class QueryRequest(ut.NiceRepr):
                 )
             # elif index_method == 'multi':
             #    if ut.VERYVERBOSE or verbose:
-            #        print('[qreq] loading multi indexer normalizer')
+            #        logger.info('[qreq] loading multi indexer normalizer')
             #    indexer = multi_index.request_wbia_mindexer(
             #        qreq_, verbose=verbose)
             else:

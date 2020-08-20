@@ -12,6 +12,7 @@ CommandLine:
 
 
 """
+import logging
 import numpy as np
 import utool as ut
 from six.moves import zip
@@ -26,6 +27,7 @@ from wbia.viz import viz_chip
 from wbia.plottool.abstract_interaction import AbstractInteraction
 
 (print, rrr, profile) = ut.inject2(__name__, '[interact_name]', DEBUG=False)
+logger = logging.getLogger('wbia')
 
 
 # ==========================
@@ -36,7 +38,7 @@ MAX_COLS = 3
 
 
 def build_name_context_options(ibs, nids):
-    print('build_name_context_options nids = %r' % (nids,))
+    logger.info('build_name_context_options nids = %r' % (nids,))
     callback_list = []
     from wbia.viz import viz_graph2
 
@@ -92,7 +94,7 @@ def ishow_name(
             viztype = vh.get_ibsdat(ax, 'viztype')
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
-                print('... aid=%r' % aid)
+                logger.info('... aid=%r' % aid)
                 if event.button == 3:  # right-click
                     from wbia import guitool
                     from wbia.viz.interact import interact_chip
@@ -174,9 +176,9 @@ class MatchVerificationInteraction(AbstractInteraction):
         **kwargs,
     ):
         if ut.VERBOSE:
-            print('[matchver] __init__')
+            logger.info('[matchver] __init__')
         if ut.VERBOSE or ut.is_developer():
-            print('[matchver] __init__ aid1=%r, aid2=%r ' % (aid1, aid2))
+            logger.info('[matchver] __init__ aid1=%r, aid2=%r ' % (aid1, aid2))
         super(MatchVerificationInteraction, self).__init__(**kwargs)
         self.ibs = ibs
         self.max_cols = max_cols
@@ -242,12 +244,12 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Grab not just the exemplars
 
         if ut.VERBOSE or ut.is_developer():
-            print('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
-            print('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
+            logger.info('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
+            logger.info('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
 
         if ut.VERBOSE or ut.is_developer():
-            print('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
-            print('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
+            logger.info('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
+            logger.info('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
 
     def get_other_nids(self):
         ibs = self.ibs
@@ -361,12 +363,12 @@ class MatchVerificationInteraction(AbstractInteraction):
         """
         if ut.VERBOSE:
             if not fulldraw:
-                print(
+                logger.info(
                     '[matchver] show_page(fulldraw=%r, onlyrows=%r)'
                     % (fulldraw, onlyrows)
                 )
             else:
-                print('[matchver] show_page(fulldraw=%r)' % (fulldraw))
+                logger.info('[matchver] show_page(fulldraw=%r)' % (fulldraw))
         self.prepare_page(fulldraw=fulldraw)
         # Variables we will work with to paint a pretty picture
         ibs = self.ibs
@@ -386,7 +388,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         row_aids_list = self.get_row_aids_list()
 
         if self.cm is not None:
-            print('DRAWING QRES')
+            logger.info('DRAWING QRES')
             pnum = (1, nCols, 1)
             if not fulldraw:
                 # not doing full draw so we have to clear any axes
@@ -420,8 +422,8 @@ class MatchVerificationInteraction(AbstractInteraction):
                         color = self.nid2_color[nid]
                 except Exception as ex:
                     ut.printex(ex)
-                    print('nid = %r' % (nid,))
-                    print('self.nid2_color = %s' % (ut.repr2(self.nid2_color),))
+                    logger.info('nid = %r' % (nid,))
+                    logger.info('self.nid2_color = %s' % (ut.repr2(self.nid2_color),))
                     raise
                 px = colx + offset
                 ax = self.plot_chip(
@@ -477,7 +479,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             ax = self.fig.add_subplot(*pnum)
             self.clear_parent_axes(ax)
             # ut.embed()
-            # print(subax)
+            # logger.info(subax)
 
         viz_chip_kw = {
             'fnum': self.fnum,
@@ -649,7 +651,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def unname_annotation(self, aid, event=None):
         if ut.VERBOSE:
-            print('remove name')
+            logger.info('remove name')
         self.ibs.delete_annot_nids([aid])
         self.update_callback()
         self.backend_callback()
@@ -657,7 +659,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def mark_annotation_as_new_name(self, aid, event=None):
         if ut.VERBOSE:
-            print('new name')
+            logger.info('new name')
         self.ibs.set_annot_names_to_same_new_name([aid])
         self.update_callback()
         self.backend_callback()
@@ -665,7 +667,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def rename_annotation(self, aid, nid, event=None):
         if ut.VERBOSE:
-            print('rename nid1')
+            logger.info('rename nid1')
         self.ibs.set_annot_name_rowids([aid], [nid])
         self.update_callback()
         self.backend_callback()
@@ -679,11 +681,11 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def review(self, event=None):
         if ut.VERBOSE:
-            print('review pressed')
+            logger.info('review pressed')
         if self.qres_callback is not None:
             self.qres_callback()
         else:
-            print('Warning: no review callback connected.')
+            logger.info('Warning: no review callback connected.')
 
     def close_(self, event=None):
         # closing this gui with the button means you have reviewed the annotation.
@@ -692,7 +694,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def unname_all(self, event=None):
         if ut.VERBOSE:
-            print('unname_all')
+            logger.info('unname_all')
         self.ibs.delete_annot_nids(self.all_aid_list)
         self.show_page()
 
@@ -743,7 +745,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             viztype = vh.get_ibsdat(ax, 'viztype')
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
-                # print('... aid=%r' % aid)
+                # logger.info('... aid=%r' % aid)
                 if event.button == 3:  # right-click
                     # import wbia.guitool
                     # height = self.fig.canvas.geometry().height()
@@ -766,6 +768,6 @@ class MatchVerificationInteraction(AbstractInteraction):
                     # interact_chip.show_annot_context_menu(
                     #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     # ibs.print_annotation_table()
-                # print(ut.repr2(event.__dict__))
+                # logger.info(ut.repr2(event.__dict__))
             elif viztype == 'matches':
                 self.cm.ishow_single_annotmatch(self.qreq_, self.aid2, fnum=None, mode=0)

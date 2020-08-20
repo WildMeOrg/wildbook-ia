@@ -25,11 +25,13 @@ CommandLine:
     sh experiment_inspect_acfg.sh
 
 """
+import logging
 import sys
 from os.path import expanduser
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 TEST_GEN_FUNCS = []
@@ -184,7 +186,7 @@ def parse_latex_comments_for_commmands():
         cmd_list2.append(cmd)
     cmd_list = cmd_list2
 
-    print('cmd_list = %s' % (ut.repr2(cmd_list),))
+    logger.info('cmd_list = %s' % (ut.repr2(cmd_list),))
     from os.path import splitext
 
     script_fname = 'regen_' + splitext(fname)[0] + '.sh'
@@ -484,7 +486,7 @@ def write_formatted_script_lines(cmd_fmtstr_list, varydict_list, fname):
             try:
                 line_list.extend([cmd_fmtstr.format(**kw) for kw in cfgdicts])
             except Exception as ex:
-                print(cmd_fmtstr)
+                logger.info(cmd_fmtstr)
                 ut.printex(ex, keys=['cmd_fmtstr', 'kw'])
                 raise
     return write_script_lines(line_list, fname)
@@ -504,7 +506,7 @@ def write_script_lines(line_list, fname):
     script_lines.append('EOF')
     script_lines.extend(line_list)
     script = '\n'.join(script_lines)
-    print(script)
+    logger.info(script)
     import wbia
     from os.path import dirname, join
 

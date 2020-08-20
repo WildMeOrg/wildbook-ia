@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import wbia.plottool as pt
 
 (print, rrr, profile) = ut.inject2(__name__, '[viz_chip]')
+logger = logging.getLogger('wbia')
 
 
 def chip_montage(ibs, qaids, config=None):

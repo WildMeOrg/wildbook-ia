@@ -4,6 +4,7 @@ It is better to use constant variables instead of hoping you spell the same
 string correctly every time you use it. (Also it makes it much easier if a
 string name changes)
 """
+import logging
 import six
 import numpy as np
 import math
@@ -12,6 +13,7 @@ from collections import OrderedDict
 from os.path import join
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CONTAINERIZED = ut.get_argflag('--containerized')

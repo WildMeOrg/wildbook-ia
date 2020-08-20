@@ -6,6 +6,7 @@ Wrappers around matplotlib
 
 __version__ = '2.1.2'
 
+import logging
 import utool as ut
 
 ut.noinject(__name__, '[plottool.__init__]')
@@ -455,6 +456,7 @@ if DOELSE:
     import utool
 
     print, rrr, profile = utool.inject2(__name__, '[plottool]')
+    logger = logging.getLogger('wbia')
 
     def reassign_submodule_attributes(verbose=True):
         """

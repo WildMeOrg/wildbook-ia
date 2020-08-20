@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
+import logging
 import networkx as nx
 import utool as ut
 import pandas as pd
 import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 edges = {
     2234: {5383: {'decision': 'match', 'reviewed_tags': ['needswork']}},
@@ -133,7 +135,7 @@ try:
     time_deltas = np.array(
         [abs(node_to_time[u] - node_to_time[v]) for u, v in candidate_mst_edges]
     )
-    # print('time_deltas = %r' % (time_deltas,))
+    # logger.info('time_deltas = %r' % (time_deltas,))
     maxweight = vt.safe_max(time_deltas, nans=False, fill=0) + 1
     time_deltas[np.isnan(time_deltas)] = maxweight
     time_delta_weight = 10 * time_deltas / (time_deltas.max() + 1)
@@ -141,7 +143,7 @@ try:
     comp_weight = 10 * (1 - is_comp)
     extra_weight = comp_weight + time_delta_weight
 
-    # print('time_deltas = %r' % (time_deltas,))
+    # logger.info('time_deltas = %r' % (time_deltas,))
     nx.set_edge_attributes(
         aug_graph,
         name='weight',
@@ -150,7 +152,7 @@ try:
         },
     )
 except Exception:
-    print('FAILED WEIGHTING USING TIME')
+    logger.info('FAILED WEIGHTING USING TIME')
     nx.set_edge_attributes(
         aug_graph,
         name='weight',

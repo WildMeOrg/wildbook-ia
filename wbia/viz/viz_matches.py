@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import wbia.plottool as pt
 import wbia.plottool.plot_helpers as ph
 from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches, **kwargs):
@@ -25,11 +27,11 @@ def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches, **kwargs):
 def get_query_annot_pair_info(
     ibs, qaid, qreq_, draw_fmatches, kpts1=None, as_fpath=False
 ):
-    # print('!!! qqreq_ = %r' % (qreq_,))
+    # logger.info('!!! qqreq_ = %r' % (qreq_,))
     query_config2_ = None if qreq_ is None else qreq_.extern_query_config2
     tblhack = getattr(qreq_, 'tablename', None)
 
-    # print('!!! query_config2_ = %r' % (query_config2_,))
+    # logger.info('!!! query_config2_ = %r' % (query_config2_,))
     if (
         not tblhack
         or tblhack.lower()
@@ -72,8 +74,8 @@ def get_data_annot_pair_info(
     ibs, aid_list, qreq_, draw_fmatches, scale_down=False, kpts2_list=None, as_fpath=False
 ):
     data_config2_ = None if qreq_ is None else qreq_.extern_data_config2
-    # print('!!! data_config2_ = %r' % (data_config2_,))
-    # print('!!! dqreq_ = %r' % (qreq_,))
+    # logger.info('!!! data_config2_ = %r' % (data_config2_,))
+    # logger.info('!!! dqreq_ = %r' % (qreq_,))
     tblhack = getattr(qreq_, 'tablename', None)
 
     if (
@@ -190,8 +192,8 @@ def show_name_matches(
         >>> ut.quit_if_noshow()
         >>> ut.show_if_requested()
     """
-    # print("SHOW NAME MATCHES")
-    # print(ut.repr2(kwargs, nl=True))
+    # logger.info("SHOW NAME MATCHES")
+    # logger.info(ut.repr2(kwargs, nl=True))
     # from wbia import constants as const
     from wbia import tag_funcs
 
@@ -328,7 +330,7 @@ def annotate_matches3(
     # score         = kwargs.pop('score', None)
     # rawscore      = kwargs.pop('rawscore', None)
     # aid2_raw_rank = kwargs.pop('aid2_raw_rank', None)
-    # print(kwargs)
+    # logger.info(kwargs)
     # title = vh.get_query_text(ibs, None, aid2, truth, qaid=aid1, **kwargs)
     # Build xlbl
     ax = pt.gca()
@@ -589,7 +591,7 @@ def show_matches2(
         >>> ut.show_if_requested()
     """
     if qreq_ is None:
-        print('[viz_matches] WARNING: qreq_ is None')
+        logger.info('[viz_matches] WARNING: qreq_ is None')
     kwargs = kwargs.copy()
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.pop('draw_fmatches', True)
@@ -629,7 +631,7 @@ def show_matches2(
         )
     except Exception as ex:
         ut.printex(ex, 'consider qr.remove_corrupted_queries', '[viz_matches]')
-        print('')
+        logger.info('')
         raise
     # Moved the code into show_chipmatch
     # if len(sel_fm) > 0:

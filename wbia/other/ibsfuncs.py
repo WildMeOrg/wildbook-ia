@@ -12,6 +12,7 @@ TODO: need to split up into sub modules:
     then there are also convineience functions that need to be ordered at least
     within this file
 """
+import logging
 import six
 import types
 import functools
@@ -44,6 +45,7 @@ PST = pytz.timezone('US/Pacific')
 
 # Inject utool function
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
+logger = logging.getLogger('wbia')
 
 
 # Must import class before injection
@@ -155,7 +157,7 @@ def filter_junk_annotations(ibs, aid_list):
 @register_ibs_method
 def compute_all_chips(ibs, aid_list=None, **kwargs):
     """ Executes lazy evaluation of all chips """
-    print('[ibs] compute_all_chips')
+    logger.info('[ibs] compute_all_chips')
     if aid_list is None:
         aid_list = ibs.get_valid_aids(**kwargs)
     cid_list = ibs.depc_annot.get_rowids('chips', aid_list)
@@ -303,11 +305,11 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
             ut.compress(gid_list, isinvalid_list),
         )
     except AssertionError as ex:
-        print('dbname = %r' % (ibs.get_dbname()))
+        logger.info('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
         raise
     if veryverbose:
-        print('passed assert_valid_gids')
+        logger.info('passed assert_valid_gids')
 
 
 @register_ibs_method
@@ -392,7 +394,7 @@ def assert_valid_aids(
         )
         raise
     if veryverbose:
-        print('passed assert_valid_aids')
+        logger.info('passed assert_valid_aids')
 
 
 @register_ibs_method
@@ -429,17 +431,17 @@ def get_missing_gids(ibs, gid_list=None):
 def assert_images_exist(ibs, gid_list=None, verbose=True):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
-    print('checking images exist')
+    logger.info('checking images exist')
     bad_gids = ibs.get_missing_gids()
     num_bad_gids = len(bad_gids)
     if verbose:
         bad_gpaths = ibs.get_image_paths(bad_gids)
-        print('Bad Gpaths:')
-        print(ut.truncate_str(ut.repr2(bad_gpaths), maxlen=500))
-        print('Bad GIDs:')
-        print(bad_gids)
-    print('%d images dont exist' % (num_bad_gids,))
-    print('[check] checked %d images exist' % len(gid_list))
+        logger.info('Bad Gpaths:')
+        logger.info(ut.truncate_str(ut.repr2(bad_gpaths), maxlen=500))
+        logger.info('Bad GIDs:')
+        logger.info(bad_gids)
+    logger.info('%d images dont exist' % (num_bad_gids,))
+    logger.info('[check] checked %d images exist' % len(gid_list))
     return num_bad_gids
 
 
@@ -489,24 +491,24 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
 
                 if len(set(aids_len_list)) > 1:
                     divergent += 1
-                    # print('FOUND DIVERGENT')
+                    # logger.info('FOUND DIVERGENT')
 
-                # print(gid_list)
-                # print(aids_list)
-                # print(aids_len_list)
-                # print(max_aids)
-                # print(filtered_gid_list)
-                # print(survive_gid)
-                # print(delete_gid_list)
-                # print('-' * 40)
+                # logger.info(gid_list)
+                # logger.info(aids_list)
+                # logger.info(aids_len_list)
+                # logger.info(max_aids)
+                # logger.info(filtered_gid_list)
+                # logger.info(survive_gid)
+                # logger.info(delete_gid_list)
+                # logger.info('-' * 40)
 
         total = len(hash_histogram.keys())
-        print(
+        logger.info(
             'Found [%d / %d / %d] images that have duplicates...'
             % (divergent, counter, total,)
         )
         ibs.delete_images(global_delete_gid_list)
-        print('Deleted %d images.' % (len(global_delete_gid_list),))
+        logger.info('Deleted %d images.' % (len(global_delete_gid_list),))
 
 
 def assert_valid_names(name_list):
@@ -545,8 +547,10 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
         assert all(validtype_list), 'not all types match valid type'
     except AssertionError as ex:
         tup_list = list(map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list))))
-        print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + ut.indentjoin(tup_list))
-        print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
+        logger.info(
+            '[!!!] (lbltype_rowid, lblannot_rowid) = : ' + ut.indentjoin(tup_list)
+        )
+        logger.info('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
 
         ut.printex(
             ex,
@@ -563,7 +567,7 @@ def check_for_unregistered_images(ibs):
     gpath_disk = set(ut.ls(ibs.imgdir))
     gpath_registered = set(images.paths)
     overlaps = ut.set_overlaps(gpath_disk, gpath_registered, 'ondisk', 'reg')
-    print('overlaps' + ut.repr3(overlaps))
+    logger.info('overlaps' + ut.repr3(overlaps))
     gpath_unregistered = gpath_disk - gpath_registered
     return overlaps, gpath_unregistered
 
@@ -601,7 +605,7 @@ def check_image_consistency(ibs, gid_list=None):
     # TODO: more consistency checks
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
-    print('check image consistency. len(gid_list)=%r' % len(gid_list))
+    logger.info('check image consistency. len(gid_list)=%r' % len(gid_list))
     assert len(ut.debug_duplicate_items(gid_list)) == 0
     assert_images_exist(ibs, gid_list)
     image_uuid_list = ibs.get_image_uuids(gid_list)
@@ -639,7 +643,7 @@ def check_image_uuid_consistency(ibs, gid_list=None):
         >>> gid_list = list(images)
         >>> wbia.other.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
     """
-    print('checking image uuid consistency')
+    logger.info('checking image uuid consistency')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
     uuid_list = ibs.get_image_uuids(gid_list)
@@ -656,7 +660,7 @@ def check_image_uuid_consistency(ibs, gid_list=None):
 
 @register_ibs_method
 def check_image_loadable(ibs, gid_list=None):
-    print('checking image loadable')
+    logger.info('checking image loadable')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
@@ -701,7 +705,7 @@ def check_image_loadable_worker(gpath, orient):
 
 @register_ibs_method
 def check_image_duplcates(ibs, gid_list=None):
-    print('checking image duplcates')
+    logger.info('checking image duplcates')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
@@ -723,7 +727,7 @@ def check_image_duplcates(ibs, gid_list=None):
         if length == 1:
             continue
 
-        print(uuid, duplcate_gid_list)
+        logger.info(uuid, duplcate_gid_list)
         keep_index = None
 
         uuid_list = ibs.get_image_uuids(duplcate_gid_list)
@@ -744,7 +748,7 @@ def check_image_duplcates(ibs, gid_list=None):
             if index == keep_index:
                 continue
             delete_gid_list_.append(duplcate_gid)
-        print(keep_index, delete_gid_list_)
+        logger.info(keep_index, delete_gid_list_)
 
         delete_gid_list += delete_gid_list_
 
@@ -775,9 +779,9 @@ def check_annot_overlap(ibs, gid_list=None, PIXELS=100.0, IOU=0.1):
         std = np.mean(np.abs(bbox_list - mean), axis=0)
         a = sum(std <= PIXELS)
         if a == 4:
-            print(gid)
-            print(bbox_list)
-            print(std)
+            logger.info(gid)
+            logger.info(bbox_list)
+            logger.info(std)
             bad_gid_list.append(gid)
 
     # Criteria 2 - IoU
@@ -806,8 +810,8 @@ def check_annot_overlap(ibs, gid_list=None, PIXELS=100.0, IOU=0.1):
             overlap_flag = overlap >= IOU
             total = np.sum(overlap_flag)
             if total > 0:
-                print(gid)
-                print(overlap)
+                logger.info(gid)
+                logger.info(overlap)
                 bad_gid_list.append(gid)
 
     # ibs.set_image_reviewed(bad_gid_list, [0] * len(bad_gid_list))
@@ -836,15 +840,15 @@ def check_annot_consistency(ibs, aid_list=None):
     # TODO: more consistency checks
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
-    print('check annot consistency. len(aid_list)=%r' % len(aid_list))
+    logger.info('check annot consistency. len(aid_list)=%r' % len(aid_list))
     annot_gid_list = ibs.get_annot_gids(aid_list)
     num_None_annot_gids = sum(ut.flag_None_items(annot_gid_list))
-    print('num_None_annot_gids = %r ' % (num_None_annot_gids,))
+    logger.info('num_None_annot_gids = %r ' % (num_None_annot_gids,))
     assert num_None_annot_gids == 0
-    # print(ut.repr2(dict(ut.debug_duplicate_items(annot_gid_list))))
+    # logger.info(ut.repr2(dict(ut.debug_duplicate_items(annot_gid_list))))
     assert_images_exist(ibs, annot_gid_list)
     unique_gids = list(set(annot_gid_list))
-    print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
+    logger.info('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
     cfpath_list = ibs.get_annot_chip_fpath(aid_list, ensure=False)
     valid_chip_list = [
         None if cfpath is None else exists(cfpath) for cfpath in cfpath_list
@@ -852,7 +856,7 @@ def check_annot_consistency(ibs, aid_list=None):
     invalid_list = [flag is False for flag in valid_chip_list]
     invalid_aids = ut.compress(aid_list, invalid_list)
     if len(invalid_aids) > 0:
-        print('found %d inconsistent chips attempting to fix' % len(invalid_aids))
+        logger.info('found %d inconsistent chips attempting to fix' % len(invalid_aids))
         ibs.delete_annot_chips(invalid_aids)
     ibs.check_chip_existence(aid_list=aid_list)
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
@@ -886,10 +890,10 @@ def check_annot_corrupt_uuids(ibs, aid_list=None):
                 ibs.get_annot_uuids(aid)
             except Exception:
                 failed_aids.append(aid)
-        print('failed_aids = %r' % (failed_aids,))
+        logger.info('failed_aids = %r' % (failed_aids,))
         return failed_aids
     else:
-        print('uuids do not seem to be corrupt')
+        logger.info('uuids do not seem to be corrupt')
 
 
 def check_name_consistency(ibs, nid_list):
@@ -911,9 +915,9 @@ def check_name_consistency(ibs, nid_list):
         >>> print(result)
     """
     # aids_list = ibs.get_name_aids(nid_list)
-    print('check name consistency. len(nid_list)=%r' % len(nid_list))
+    logger.info('check name consistency. len(nid_list)=%r' % len(nid_list))
     aids_list = ibs.get_name_aids(nid_list)
-    print('Checking that all annotations of a name have the same species')
+    logger.info('Checking that all annotations of a name have the same species')
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
     error_list = []
     for aids, sids in zip(aids_list, species_rowids_list):
@@ -922,7 +926,7 @@ def check_name_consistency(ibs, nid_list):
                 'aids=%r have the same name, but belong to multiple species=%r'
                 % (aids, ibs.get_species_texts(ut.unique_ordered(sids)))
             )
-            print(error_msg)
+            logger.info(error_msg)
             error_list.append(error_msg)
     if len(error_list) > 0:
         raise AssertionError(
@@ -948,7 +952,7 @@ def check_name_mapping_consistency(ibs, nx2_aids):
         for nx, aids in enumerate(nx2_aids):
             nids = ibs.get_annot_name_rowids(aids)
             if np.all(np.array(nids) > 0):
-                print(nids)
+                logger.info(nids)
                 if ut.allsame(nids):
                     good += 1
                 else:
@@ -960,17 +964,17 @@ def check_name_mapping_consistency(ibs, nx2_aids):
 
 @register_ibs_method
 def check_annot_size(ibs):
-    print('Checking annot sizes')
+    logger.info('Checking annot sizes')
     aid_list = ibs.get_valid_aids()
     uuid_list = ibs.get_annot_uuids(aid_list)
     desc_list = ibs.get_annot_vecs(aid_list, ensure=False)
     kpts_list = ibs.get_annot_kpts(aid_list, ensure=False)
     vert_list = ibs.get_annot_verts(aid_list)
-    print('size(aid_list) = ' + ut.byte_str2(ut.get_object_nbytes(aid_list)))
-    print('size(vert_list) = ' + ut.byte_str2(ut.get_object_nbytes(vert_list)))
-    print('size(uuid_list) = ' + ut.byte_str2(ut.get_object_nbytes(uuid_list)))
-    print('size(desc_list) = ' + ut.byte_str2(ut.get_object_nbytes(desc_list)))
-    print('size(kpts_list) = ' + ut.byte_str2(ut.get_object_nbytes(kpts_list)))
+    logger.info('size(aid_list) = ' + ut.byte_str2(ut.get_object_nbytes(aid_list)))
+    logger.info('size(vert_list) = ' + ut.byte_str2(ut.get_object_nbytes(vert_list)))
+    logger.info('size(uuid_list) = ' + ut.byte_str2(ut.get_object_nbytes(uuid_list)))
+    logger.info('size(desc_list) = ' + ut.byte_str2(ut.get_object_nbytes(desc_list)))
+    logger.info('size(kpts_list) = ' + ut.byte_str2(ut.get_object_nbytes(kpts_list)))
 
 
 def check_exif_data(ibs, gid_list):
@@ -996,7 +1000,7 @@ def check_exif_data(ibs, gid_list):
         else:
             has_latlon.append(False)
 
-    print('%d / %d have gps info' % (sum(has_latlon), len(has_latlon),))
+    logger.info('%d / %d have gps info' % (sum(has_latlon), len(has_latlon),))
 
     key2_freq = ut.ddict(lambda: 0)
     num_tags_list = []
@@ -1006,17 +1010,17 @@ def check_exif_data(ibs, gid_list):
         for key in exif_dict2.keys():
             key2_freq[key] += 1
 
-    print('Stats for num tags per image')
-    print(ut.repr4(ut.get_stats(num_tags_list)))
+    logger.info('Stats for num tags per image')
+    logger.info(ut.repr4(ut.get_stats(num_tags_list)))
 
-    print('tag frequency')
-    print(ut.repr2(key2_freq))
+    logger.info('tag frequency')
+    logger.info(ut.repr2(key2_freq))
 
 
 @register_ibs_method
 def run_integrity_checks(ibs, embed=False):
     """ Function to run all database consistency checks """
-    print('[ibsfuncs] Checking consistency')
+    logger.info('[ibsfuncs] Checking consistency')
     gid_list = ibs.get_valid_gids()
     aid_list = ibs.get_valid_aids()
     nid_list = ibs.get_valid_nids()
@@ -1029,7 +1033,7 @@ def run_integrity_checks(ibs, embed=False):
     check_image_uuid_consistency(ibs, gid_list)
     if embed:
         ut.embed()
-    print('[ibsfuncs] Finshed consistency check')
+    logger.info('[ibsfuncs] Finshed consistency check')
 
 
 @register_ibs_method
@@ -1041,7 +1045,9 @@ def check_annotmatch_consistency(ibs):
     exists2_list = ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid2_list)
     invalid_list = ut.not_list(ut.and_lists(exists1_list, exists2_list))
     invalid_annotmatch_rowids = ut.compress(annomatch_rowids, invalid_list)
-    print('There are %d invalid annotmatch rowids' % (len(invalid_annotmatch_rowids),))
+    logger.info(
+        'There are %d invalid annotmatch rowids' % (len(invalid_annotmatch_rowids),)
+    )
     return invalid_annotmatch_rowids
 
 
@@ -1250,7 +1256,7 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
     now = datetime.datetime.now(tz=PST)
     expires = now - datetime.timedelta(days=ttl_days)
     expires = datetime.datetime(expires.year, expires.month, 1, 0, 0, 0, tzinfo=PST)
-    print('Checking cached files since %r' % (expires,))
+    logger.info('Checking cached files since %r' % (expires,))
     timestamp = int(expires.timestamp())
 
     blacklist = [
@@ -1284,9 +1290,9 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
             delete_subpath_list = ut.compress(subpath_list, flag_list)
 
             if len(delete_subpath_list) > 0:
-                print(entry)
-                print('\tChecked:  %d' % (len(subpath_list),))
-                print('\tPurgable: %d' % (len(delete_subpath_list),))
+                logger.info(entry)
+                logger.info('\tChecked:  %d' % (len(subpath_list),))
+                logger.info('\tPurgable: %d' % (len(delete_subpath_list),))
                 delete_path_list += delete_subpath_list
 
     arguments_list = list(zip(delete_path_list))
@@ -1306,8 +1312,8 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
             if os.path.exists(delete_path):
                 failed_list.append(delete_path)
 
-    print('Purged: %s' % (bytes2human(purged_bytes),))
-    print('Failed: %d' % (len(failed_list),))
+    logger.info('Purged: %s' % (bytes2human(purged_bytes),))
+    logger.info('Failed: %d' % (len(failed_list),))
 
     table_list = []
     table_list += ibs.depc_image.tables
@@ -1315,17 +1321,17 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
     table_list += ibs.depc_part.tables
 
     for table in table_list:
-        print(table)
+        logger.info(table)
         internal_colnames = table.get_intern_data_col_attr('intern_colname')
         is_extern = table.get_intern_data_col_attr('is_external_pointer')
         extern_colnames = tuple(ut.compress(internal_colnames, is_extern))
 
         if len(extern_colnames) > 0:
-            print('\tHas %d external columns' % (len(extern_colnames),))
+            logger.info('\tHas %d external columns' % (len(extern_colnames),))
 
-            print('\tGetting all rowids...')
+            logger.info('\tGetting all rowids...')
             rowid_list = table._get_all_rowids()
-            print('\tGetting all extern URIs...')
+            logger.info('\tGetting all extern URIs...')
             uris = table.get_internal_columns(
                 rowid_list,
                 extern_colnames,
@@ -1356,9 +1362,9 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
             corrupted_rowid_list = ut.compress(extern_rowid_list, flag_list)
             corrupted_rowid_list = list(set(corrupted_rowid_list))
 
-            print('\tHas %d total rows' % (len(rowid_list),))
-            print('\tHas %d extern files' % (len(set(extern_path_list)),))
-            print('\tHas %d corrupted rows' % (len(corrupted_rowid_list),))
+            logger.info('\tHas %d total rows' % (len(rowid_list),))
+            logger.info('\tHas %d extern files' % (len(set(extern_path_list)),))
+            logger.info('\tHas %d corrupted rows' % (len(corrupted_rowid_list),))
 
             if len(corrupted_rowid_list) > 0:
                 table.delete_rows(corrupted_rowid_list, delete_extern=True)
@@ -1380,15 +1386,15 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
 
     for table_list, parent_tablename, parent_rowid_set in tables_list:
         for table in table_list:
-            print(table)
+            logger.info(table)
             table_parent_names = list(set(table.parents()))
             if len(table_parent_names) == 1 and table_parent_names[0] == parent_tablename:
                 table_all_rowids = table._get_all_rowids()
-                print('\tRetrieved %d rowids' % (len(table_all_rowids),))
+                logger.info('\tRetrieved %d rowids' % (len(table_all_rowids),))
                 table_parent_rowids_list = table.get_parent_rowids(table_all_rowids)
                 table_parent_rowids_set = list(map(set, table_parent_rowids_list))
 
-                print('\tChecking parents...')
+                logger.info('\tChecking parents...')
                 table_bad_rowids = []
                 zipped = list(zip(table_all_rowids, table_parent_rowids_set))
                 for table_rowid, table_parent_rowid_set in zipped:
@@ -1399,7 +1405,7 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
                         table_bad_rowids.append(table_rowid)
 
                 if len(table_bad_rowids) > 0:
-                    print('\tFound %d bad rowids' % (len(table_bad_rowids),))
+                    logger.info('\tFound %d bad rowids' % (len(table_bad_rowids),))
                     table.delete_rows(table_bad_rowids, delete_extern=True)
                     squeeze_tables.append(table)
 
@@ -1411,7 +1417,7 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
         db_list += [table.db for table in set(squeeze_tables)]
 
         for db in tqdm.tqdm(db_list):
-            print(db.fname)
+            logger.info(db.fname)
             db.squeeze()
 
     return failed_list
@@ -1419,7 +1425,7 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
 
 @register_ibs_method
 def fix_invalid_annotmatches(ibs):
-    print('Fixing invalid annotmatches')
+    logger.info('Fixing invalid annotmatches')
     invalid_annotmatch_rowids = ibs.check_annotmatch_consistency()
     ibs.delete_annotmatch(invalid_annotmatch_rowids)
 
@@ -1453,7 +1459,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
             dupaids_list.append(aids[1:])
 
         toremove_aids = ut.flatten(dupaids_list)
-        print('About to delete toremove_aids=%r' % (toremove_aids,))
+        logger.info('About to delete toremove_aids=%r' % (toremove_aids,))
         if ut.are_you_sure('About to delete %r aids' % (len(toremove_aids))):
             ibs.delete_annots(toremove_aids)
 
@@ -1490,7 +1496,7 @@ def fix_and_clean_database(ibs):
     """
     # TODO: Call more stuff, maybe rename to 'apply duct tape'
     with ut.Indenter('[FIX_AND_CLEAN]'):
-        print('starting fixes and consistency checks')
+        logger.info('starting fixes and consistency checks')
         ibs.fix_unknown_exemplars()
         ibs.fix_invalid_name_texts()
         ibs.fix_invalid_nids()
@@ -1500,7 +1506,7 @@ def fix_and_clean_database(ibs):
         ibs.delete_empty_nids()
         ibs.delete_empty_imgsetids()
         ibs.db.vacuum()
-        print('finished fixes and consistency checks\n')
+        logger.info('finished fixes and consistency checks\n')
 
 
 @register_ibs_method
@@ -1548,7 +1554,9 @@ def fix_exif_data(ibs, gid_list):
         ibs_prop_list = ibs_getter(gid_list_)
         isdirty_list = [prop == dirty_ibs_val for prop in ibs_prop_list]
 
-        print('%d / %d need %s update' % (sum(isdirty_list), len(isdirty_list), propname))
+        logger.info(
+            '%d / %d need %s update' % (sum(isdirty_list), len(isdirty_list), propname)
+        )
 
         if False and sum(isdirty_list) > 0:
             assert sum(isdirty_list) == len(
@@ -1572,7 +1580,7 @@ def fix_exif_data(ibs, gid_list):
         # gps_list = ibs.get_image_gps(gid_list_)
         # isdirty_list = [gps == (-1, -1) for gps in gps_list]
 
-        # print('%d / %d need gps update' % (sum(isdirty_list),
+        # logger.info('%d / %d need gps update' % (sum(isdirty_list),
         #                                   len(isdirty_list)))
 
         # if False and sum(isdirty_list)  > 0:
@@ -1599,7 +1607,7 @@ def fix_exif_data(ibs, gid_list):
         # ibs_prop_list   = ibs.get_image_unixtime(gid_list_)
         # isdirty_list    = [prop == dirty_ibs_val for prop in ibs_prop_list]
 
-        # print('%d / %d need time update' % (sum(isdirty_list),
+        # logger.info('%d / %d need time update' % (sum(isdirty_list),
         #                                    len(isdirty_list)))
 
         # if False and sum(isdirty_list)  > 0:
@@ -1633,7 +1641,7 @@ def fix_invalid_nids(ibs):
         >>> result = fix_invalid_nids(ibs)
         >>> print(result)
     """
-    print('[ibs] fixing invalid nids (nids that are <= ibs.UKNOWN_NAME_ROWID)')
+    logger.info('[ibs] fixing invalid nids (nids that are <= ibs.UKNOWN_NAME_ROWID)')
     # Get actual rowids from sql database (no postprocessing)
     nid_list = ibs._get_all_known_name_rowids()
     # Get actual names from sql database (no postprocessing)
@@ -1647,8 +1655,8 @@ def fix_invalid_nids(ibs):
             and invalid_nids[0] == const.UNKNOWN_NAME_ROWID
             and invalid_texts[0] == const.UNKNOWN
         ):
-            print('[ibs] found bad name rowids = %r' % (invalid_nids,))
-            print('[ibs] found bad name texts  = %r' % (invalid_texts,))
+            logger.info('[ibs] found bad name rowids = %r' % (invalid_nids,))
+            logger.info('[ibs] found bad name texts  = %r' % (invalid_texts,))
             ibs.delete_names([const.UNKNOWN_NAME_ROWID])
         else:
             errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
@@ -1678,7 +1686,7 @@ def fix_invalid_name_texts(ibs):
     ibs.set_name_texts(nid_list[3], '____')
     ibs.set_name_texts(nid_list[2], '')
     """
-    print('checking for invalid name texts')
+    logger.info('checking for invalid name texts')
     # Get actual rowids from sql database (no postprocessing)
     nid_list = ibs._get_all_known_name_rowids()
     # Get actual names from sql database (no postprocessing)
@@ -1698,11 +1706,11 @@ def fix_invalid_name_texts(ibs):
             )
             base_str = 'fixedname%d' + invalid_text
             new_text = ut.get_nonconflicting_string(base_str, conflict_set, offset=count)
-            print('Fixing name %r -> %r' % (invalid_text, new_text))
+            logger.info('Fixing name %r -> %r' % (invalid_text, new_text))
             ibs.set_name_texts((invalid_nid,), (new_text,))
-        print('Fixed %d name texts' % (len(invalid_nids)))
+        logger.info('Fixed %d name texts' % (len(invalid_nids)))
     else:
-        print('all names seem valid')
+        logger.info('all names seem valid')
 
 
 @register_ibs_method
@@ -1762,7 +1770,7 @@ def fix_unknown_exemplars(ibs):
     # Exemplars should all be known
     unknown_exemplar_flags = ut.compress(flag_list, unknown_list)
     unknown_aid_list = ut.compress(aid_list, unknown_list)
-    print(
+    logger.info(
         'Fixing %d unknown annotations set as exemplars' % (sum(unknown_exemplar_flags),)
     )
     ibs.set_annot_exemplar_flags(unknown_aid_list, [False] * len(unknown_aid_list))
@@ -1777,11 +1785,11 @@ def fix_unknown_exemplars(ibs):
 @register_ibs_method
 def delete_all_recomputable_data(ibs):
     """ Delete all cached data including chips and imagesets """
-    print('[ibs] delete_all_recomputable_data')
+    logger.info('[ibs] delete_all_recomputable_data')
     ibs.delete_cachedir()
     ibs.delete_all_chips()
     ibs.delete_all_imagesets()
-    print('[ibs] finished delete_all_recomputable_data')
+    logger.info('[ibs] finished delete_all_recomputable_data')
 
 
 @register_ibs_method
@@ -1821,13 +1829,13 @@ def delete_cachedir(ibs):
         >>> ibs = wbia.opendb()
         >>> result = ibs.delete_cachedir()
     """
-    print('[ibs] delete_cachedir')
+    logger.info('[ibs] delete_cachedir')
     # Need to close depc before restarting
     ibs._close_depcache()
     cachedir = ibs.get_cachedir()
-    print('[ibs] cachedir=%r' % cachedir)
+    logger.info('[ibs] cachedir=%r' % cachedir)
     ut.delete(cachedir)
-    print('[ibs] finished delete cachedir')
+    logger.info('[ibs] finished delete cachedir')
     # Reinit cache
     ibs.ensure_directories()
     ibs._init_depcache()
@@ -1852,7 +1860,7 @@ def delete_qres_cache(ibs):
         >>> result = delete_qres_cache(ibs)
         >>> print(result)
     """
-    print('[ibs] delete delete_qres_cache')
+    logger.info('[ibs] delete delete_qres_cache')
     qreq_cachedir = ibs.get_qres_cachedir()
     qreq_bigcachedir = ibs.get_big_cachedir()
     # Preliminary-ensure
@@ -1863,54 +1871,54 @@ def delete_qres_cache(ibs):
     # Re-ensure
     ut.ensuredir(qreq_bigcachedir)
     ut.ensuredir(qreq_cachedir)
-    print('[ibs] finished delete_qres_cache')
+    logger.info('[ibs] finished delete_qres_cache')
 
 
 @register_ibs_method
 def delete_neighbor_cache(ibs):
-    print('[ibs] delete neighbor_cache')
+    logger.info('[ibs] delete neighbor_cache')
     neighbor_cachedir = ibs.get_neighbor_cachedir()
     ut.delete(neighbor_cachedir)
     ut.ensuredir(neighbor_cachedir)
-    print('[ibs] finished delete neighbor_cache')
+    logger.info('[ibs] finished delete neighbor_cache')
 
 
 @register_ibs_method
 def delete_all_features(ibs):
-    print('[ibs] delete_all_features')
+    logger.info('[ibs] delete_all_features')
     all_fids = ibs._get_all_fids()
     ibs.delete_features(all_fids)
-    print('[ibs] finished delete_all_features')
+    logger.info('[ibs] finished delete_all_features')
 
 
 @register_ibs_method
 def delete_all_chips(ibs):
-    print('[ibs] delete_all_chips')
+    logger.info('[ibs] delete_all_chips')
     ut.ensuredir(ibs.chipdir)
     ibs.delete_annot_chipl(ibs.get_valid_aids())
     ut.delete(ibs.chipdir)
     ut.ensuredir(ibs.chipdir)
-    print('[ibs] finished delete_all_chips')
+    logger.info('[ibs] finished delete_all_chips')
 
 
 @register_ibs_method
 def delete_all_imagesets(ibs):
-    print('[ibs] delete_all_imagesets')
+    logger.info('[ibs] delete_all_imagesets')
     all_imgsetids = ibs._get_all_imgsetids()
     ibs.delete_imagesets(all_imgsetids)
-    print('[ibs] finished delete_all_imagesets')
+    logger.info('[ibs] finished delete_all_imagesets')
 
 
 @register_ibs_method
 def delete_all_annotations(ibs):
     """ Carefull with this function. Annotations are not recomputable """
-    print('[ibs] delete_all_annotations')
+    logger.info('[ibs] delete_all_annotations')
     ans = six.moves.input('Are you sure you want to delete all annotations?')
     if ans != 'yes':
         return
     all_aids = ibs._get_all_aids()
     ibs.delete_annots(all_aids)
-    print('[ibs] finished delete_all_annotations')
+    logger.info('[ibs] finished delete_all_annotations')
 
 
 @register_ibs_method
@@ -1922,14 +1930,14 @@ def delete_thumbnails(ibs):
 
 @register_ibs_method
 def delete_flann_cachedir(ibs):
-    print('[ibs] delete_flann_cachedir')
+    logger.info('[ibs] delete_flann_cachedir')
     flann_cachedir = ibs.get_flann_cachedir()
     ut.remove_files_in_dir(flann_cachedir)
 
 
 def delete_wbia_database(dbdir):
     _ibsdb = join(dbdir, const.PATH_NAMES._ibsdb)
-    print('[ibsfuncs] DELETEING: _ibsdb=%r' % _ibsdb)
+    logger.info('[ibsfuncs] DELETEING: _ibsdb=%r' % _ibsdb)
     if exists(_ibsdb):
         ut.delete(_ibsdb)
 
@@ -2367,21 +2375,21 @@ def update_ungrouped_special_imageset(ibs):
     """
     # FIXME SLOW
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_imageset.1')
+        logger.info('[ibsfuncs] update_ungrouped_special_imageset.1')
     ungrouped_imgsetid = ibs.get_imageset_imgsetids_from_text(
         const.UNGROUPED_IMAGES_IMAGESETTEXT
     )
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_imageset.2')
+        logger.info('[ibsfuncs] update_ungrouped_special_imageset.2')
     ibs.delete_gsgr_imageset_relations(ungrouped_imgsetid)
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_imageset.3')
+        logger.info('[ibsfuncs] update_ungrouped_special_imageset.3')
     ungrouped_gids = ibs.get_ungrouped_gids()
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_imageset.4')
+        logger.info('[ibsfuncs] update_ungrouped_special_imageset.4')
     ibs.set_image_imgsetids(ungrouped_gids, [ungrouped_imgsetid] * len(ungrouped_gids))
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_imageset.5')
+        logger.info('[ibsfuncs] update_ungrouped_special_imageset.5')
 
 
 @register_ibs_method
@@ -2517,7 +2525,7 @@ def print_dbinfo(ibs, **kwargs):
 
 @register_ibs_method
 def print_infostr(ibs, **kwargs):
-    print(ibs.get_infostr())
+    logger.info(ibs.get_infostr())
 
 
 @register_ibs_method
@@ -2557,8 +2565,10 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[], include_columns
             exclude_columns.remove(x)
         except ValueError:
             pass
-    print('\n')
-    print(ibs.db.get_table_csv(const.ANNOTATION_TABLE, exclude_columns=exclude_columns))
+    logger.info('\n')
+    logger.info(
+        ibs.db.get_table_csv(const.ANNOTATION_TABLE, exclude_columns=exclude_columns)
+    )
 
 
 @register_ibs_method
@@ -2581,23 +2591,25 @@ def print_annotmatch_table(ibs):
         >>> result = print_annotmatch_table(ibs)
         >>> print(result)
     """
-    print('\n')
+    logger.info('\n')
     exclude_columns = ['annotmatch_confidence']
-    print(ibs.db.get_table_csv(const.ANNOTMATCH_TABLE, exclude_columns=exclude_columns))
+    logger.info(
+        ibs.db.get_table_csv(const.ANNOTMATCH_TABLE, exclude_columns=exclude_columns)
+    )
 
 
 @register_ibs_method
 def print_chip_table(ibs):
     """ Dumps chip table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.CHIP_TABLE))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.CHIP_TABLE))
 
 
 @register_ibs_method
 def print_feat_table(ibs):
     """ Dumps chip table to stdout """
-    print('\n')
-    print(
+    logger.info('\n')
+    logger.info(
         ibs.db.get_table_csv(
             const.FEATURE_TABLE, exclude_columns=['feature_keypoints', 'feature_vecs']
         )
@@ -2607,52 +2619,52 @@ def print_feat_table(ibs):
 @register_ibs_method
 def print_image_table(ibs, **kwargs):
     """ Dumps chip table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.IMAGE_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.IMAGE_TABLE, **kwargs))
     # , exclude_columns=['image_rowid']))
 
 
 @register_ibs_method
 def print_party_table(ibs, **kwargs):
     """ Dumps chip table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.PARTY_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.PARTY_TABLE, **kwargs))
     # , exclude_columns=['image_rowid']))
 
 
 @register_ibs_method
 def print_lblannot_table(ibs, **kwargs):
     """ Dumps lblannot table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.LBLANNOT_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.LBLANNOT_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_name_table(ibs, **kwargs):
     """ Dumps name table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.NAME_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.NAME_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_species_table(ibs, **kwargs):
     """ Dumps species table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.SPECIES_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.SPECIES_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_alr_table(ibs, **kwargs):
     """ Dumps alr table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.AL_RELATION_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.AL_RELATION_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_config_table(ibs, **kwargs):
     """ Dumps config table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.CONFIG_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.CONFIG_TABLE, **kwargs))
 
 
 @register_ibs_method
@@ -2662,15 +2674,15 @@ def print_imageset_table(ibs, **kwargs):
     Kwargs:
         exclude_columns (list):
     """
-    print('\n')
-    print(ibs.db.get_table_csv(const.IMAGESET_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.IMAGESET_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_egpairs_table(ibs, **kwargs):
     """ Dumps egpairs table to stdout """
-    print('\n')
-    print(ibs.db.get_table_csv(const.GSG_RELATION_TABLE, **kwargs))
+    logger.info('\n')
+    logger.info(ibs.db.get_table_csv(const.GSG_RELATION_TABLE, **kwargs))
 
 
 @register_ibs_method
@@ -2690,8 +2702,8 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     for table_name in ibs.db.get_table_names():
         if table_name in exclude_tables:
             continue
-        print('\n')
-        print(ibs.db.get_table_csv(table_name, exclude_columns=exclude_columns))
+        logger.info('\n')
+        logger.info(ibs.db.get_table_csv(table_name, exclude_columns=exclude_columns))
     # ibs.print_image_table()
     # ibs.print_annotation_table()
     # ibs.print_lblannots_table()
@@ -2699,7 +2711,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     # ibs.print_config_table()
     # ibs.print_chip_table()
     # ibs.print_feat_table()
-    print('\n')
+    logger.info('\n')
 
 
 @register_ibs_method
@@ -2726,8 +2738,10 @@ def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
         exclude_columns += ['contributor_location_state']
         exclude_columns += ['contributor_location_country']
         exclude_columns += ['contributor_location_zip']
-    print('\n')
-    print(ibs.db.get_table_csv(const.CONTRIBUTOR_TABLE, exclude_columns=exclude_columns))
+    logger.info('\n')
+    logger.info(
+        ibs.db.get_table_csv(const.CONTRIBUTOR_TABLE, exclude_columns=exclude_columns)
+    )
 
 
 @register_ibs_method
@@ -2765,7 +2779,7 @@ def batch_rename_consecutive_via_species(
         return conflict_names
 
     def _assert_no_name_conflicts(ibs, new_nid_list, new_name_list):
-        print('checking for conflicting names')
+        logger.info('checking for conflicting names')
         conflit_names = get_conflict_names(ibs, new_nid_list, new_name_list)
         assert len(conflit_names) == 0, 'conflit_names=%r' % (conflit_names,)
 
@@ -2840,7 +2854,7 @@ def get_consecutive_newname_list_via_species(
     """
     wildbook_existing_name_set = set(wildbook_existing_name_list)
     args = (len(wildbook_existing_name_set),)
-    print(
+    logger.info(
         '[ibs] get_consecutive_newname_list_via_species with %d existing WB names' % args
     )
     location_text = get_location_text(ibs, location_text, 'IBEIS')
@@ -2855,7 +2869,7 @@ def get_consecutive_newname_list_via_species(
     try:
         assert len(species_rowid_list) == len(nid_list)
     except AssertionError:
-        print('WARNING: Names assigned to annotations with inconsistent species')
+        logger.info('WARNING: Names assigned to annotations with inconsistent species')
         inconsistent_nid_list = []
         for nid, unique_species_rowid_list in zip(nid_list, unique_species_rowids_list):
             if len(unique_species_rowid_list) > 1:
@@ -2906,7 +2920,7 @@ def get_consecutive_newname_list_via_species(
 def set_annot_names_to_same_new_name(ibs, aid_list):
     new_nid = ibs.make_next_nids(num=1)[0]
     if ut.VERBOSE:
-        print(
+        logger.info(
             'Setting aid_list={aid_list} to have new_nid={new_nid}'.format(
                 aid_list=aid_list, new_nid=new_nid
             )
@@ -2918,7 +2932,7 @@ def set_annot_names_to_same_new_name(ibs, aid_list):
 def set_annot_names_to_different_new_names(ibs, aid_list, **kwargs):
     new_nid_list = ibs.make_next_nids(num=len(aid_list))
     if ut.VERBOSE:
-        print(
+        logger.info(
             'Setting aid_list={aid_list} to have new_nid_list={new_nid_list}'.format(
                 aid_list=aid_list, new_nid_list=new_nid_list
             )
@@ -3192,7 +3206,7 @@ def get_extended_viewpoints(
     yawdist = vt.signed_ori_distance(ori1, ori2)
     if yawdist == 0:
         # break ties
-        print('warning extending viewpoint yaws from the same position as towards')
+        logger.info('warning extending viewpoint yaws from the same position as towards')
         yawdist += 1e-3
     if num1 is None:
         num1 = 0
@@ -3273,9 +3287,9 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         valid_yawtexts = {'left', 'frontleft'}
     flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
     aid_list = ut.compress(aid_list, flags_list)
-    # print('print subset info')
-    # print(ut.dict_hist(ibs.get_annot_viewpoints(aid_list)))
-    # print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
+    # logger.info('print subset info')
+    # logger.info(ut.dict_hist(ibs.get_annot_viewpoints(aid_list)))
+    # logger.info(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
     singletons, multitons = partition_annots_into_singleton_multiton(ibs, aid_list)
     # process multitons
     hourdists_list = ibs.get_unflat_annots_hourdists_list(multitons)
@@ -3665,14 +3679,14 @@ def merge_names(ibs, merge_name, other_names):
         >>> print(result)
         >>> ibs.print_names_table()
     """
-    print(
+    logger.info(
         '[ibsfuncs] merging other_names=%r into merge_name=%r' % (other_names, merge_name)
     )
     other_nid_list = ibs.get_name_rowids_from_text(other_names)
     ibs.set_name_alias_texts(other_nid_list, [merge_name] * len(other_nid_list))
     other_aids_list = ibs.get_name_aids(other_nid_list)
     other_aids = ut.flatten(other_aids_list)
-    print(
+    logger.info(
         '[ibsfuncs] ... %r annotations are being merged into merge_name=%r'
         % (len(other_aids), merge_name)
     )
@@ -3690,7 +3704,7 @@ def inspect_nonzero_yaws(ibs):
     aids = ut.compress(aids, isnone_list)
     yaws = ut.compress(yaws, isnone_list)
     for aid, yaw in zip(aids, yaws):
-        print(yaw)
+        logger.info(yaw)
         # We seem to be storing FULL paths in
         # the probchip table
         ibs.delete_annot_chips(aid)
@@ -3793,7 +3807,7 @@ def set_exemplars_from_quality_and_viewpoint(
     #                new_flag_list[idxs[0]] = True
     #            if len(idxs) > 1:
     #                new_flag_list[idxs[1]] = True
-    #    print('(exemplars) num_hacked = %r' % (num_hacked,))
+    #    logger.info('(exemplars) num_hacked = %r' % (num_hacked,))
 
     if not dry_run:
         ibs.set_annot_exemplar_flags(aid_list, new_flag_list)
@@ -3888,7 +3902,7 @@ def get_annot_quality_viewpoint_subset(
         # try:
         #    total_value, chosen_items = ut.knapsack(items, annots_per_view, method='recursive')
         # except Exception:
-        #    print('WARNING: iterative method does not work correctly, but stack too big for recrusive')
+        #    logger.info('WARNING: iterative method does not work correctly, but stack too big for recrusive')
         #    total_value, chosen_items = ut.knapsack(items, annots_per_view, method='iterative')
 
         chosen_indices = ut.get_list_column(chosen_items, 2)
@@ -3933,7 +3947,9 @@ def get_annot_quality_viewpoint_subset(
     assert ut.sortedby(new_flag_list, new_aid_list) == ut.sortedby(flag_list, aid_list)
 
     if verbose:
-        print('Found %d exemplars for %d names' % (sum(flag_list), len(unique_nids)))
+        logger.info(
+            'Found %d exemplars for %d names' % (sum(flag_list), len(unique_nids))
+        )
     return flag_list
 
 
@@ -4154,7 +4170,7 @@ def check_chip_existence(ibs, aid_list=None):
     ]
     aid_kill_list = ut.filterfalse_items(aid_list, flag_list)
     if len(aid_kill_list) > 0:
-        print('found %d inconsistent chips attempting to fix' % len(aid_kill_list))
+        logger.info('found %d inconsistent chips attempting to fix' % len(aid_kill_list))
     ibs.delete_annot_chips(aid_kill_list)
 
 
@@ -4189,7 +4205,7 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
     """
     minqual_int = const.QUALITY_TEXT_TO_INT[minqual]
     qual_int_list = ibs.get_annot_qualities(aid_list)
-    # print('qual_int_list = %r' % (qual_int_list,))
+    # logger.info('qual_int_list = %r' % (qual_int_list,))
     if unknown_ok:
         qual_flags = (
             (qual_int is None or qual_int == -1) or qual_int >= minqual_int
@@ -4971,7 +4987,9 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
             [np.nan if dists is None else np.nanmin(dists) for dists in timedeltas]
         )
         min_name_timedelta_stats = ut.get_stats(min_timedeltas, use_nan=True)
-        print('min_name_timedelta_stats = %s' % (ut.repr2(min_name_timedelta_stats),))
+        logger.info(
+            'min_name_timedelta_stats = %s' % (ut.repr2(min_name_timedelta_stats),)
+        )
     return filtered_aids
 
 
@@ -5177,27 +5195,27 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
         neg_age_list = ibs.get_annot_age_months_est(negative_list)
         neg_chip_list = ibs.get_annot_chip_fpath(negative_list)
 
-        print('positive_aid_list = %s\n' % (positive_list,))
-        print('positive_yaw_list = %s\n' % (pos_yaw_list,))
-        print('positive_qua_list = %s\n' % (pos_qua_list,))
-        print('positive_sex_list = %s\n' % (pos_sex_list,))
-        print('positive_age_list = %s\n' % (pos_age_list,))
-        print('positive_chip_list = %s\n' % (pos_chip_list,))
+        logger.info('positive_aid_list = %s\n' % (positive_list,))
+        logger.info('positive_yaw_list = %s\n' % (pos_yaw_list,))
+        logger.info('positive_qua_list = %s\n' % (pos_qua_list,))
+        logger.info('positive_sex_list = %s\n' % (pos_sex_list,))
+        logger.info('positive_age_list = %s\n' % (pos_age_list,))
+        logger.info('positive_chip_list = %s\n' % (pos_chip_list,))
 
-        print('-' * 90, '\n')
+        logger.info('-' * 90, '\n')
 
-        print('negative_aid_list = %s\n' % (negative_list,))
-        print('negative_yaw_list = %s\n' % (neg_yaw_list,))
-        print('negative_qua_list = %s\n' % (neg_qua_list,))
-        print('negative_sex_list = %s\n' % (neg_sex_list,))
-        print('negative_age_list = %s\n' % (neg_age_list,))
-        print('negative_chip_list = %s\n' % (neg_chip_list,))
+        logger.info('negative_aid_list = %s\n' % (negative_list,))
+        logger.info('negative_yaw_list = %s\n' % (neg_yaw_list,))
+        logger.info('negative_qua_list = %s\n' % (neg_qua_list,))
+        logger.info('negative_sex_list = %s\n' % (neg_sex_list,))
+        logger.info('negative_age_list = %s\n' % (neg_age_list,))
+        logger.info('negative_chip_list = %s\n' % (neg_chip_list,))
 
-        print('mkdir ~/Desktop/chips')
+        logger.info('mkdir ~/Desktop/chips')
         for pos_chip in pos_chip_list:
-            print('cp "%s" ~/Desktop/chips/' % (pos_chip,))
+            logger.info('cp "%s" ~/Desktop/chips/' % (pos_chip,))
         for neg_chip in neg_chip_list:
-            print('cp "%s" ~/Desktop/chips/' % (neg_chip,))
+            logger.info('cp "%s" ~/Desktop/chips/' % (neg_chip,))
 
     return positive_list, negative_list
 
@@ -5663,7 +5681,7 @@ def get_annot_stats_dict(
 @register_ibs_method
 def print_annot_stats(ibs, aids, prefix='', label='', **kwargs):
     aid_stats_dict = ibs.get_annot_stats_dict(aids, prefix=prefix, **kwargs)
-    print(label + ut.repr4(aid_stats_dict, strkeys=True, strvals=True))
+    logger.info(label + ut.repr4(aid_stats_dict, strkeys=True, strvals=True))
 
 
 @register_ibs_method
@@ -5761,7 +5779,7 @@ def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
     stats_str2 = ut.repr4(
         annotconfig_stats, strvals=True, strkeys=True, nl=True, explicit=False, nobr=False
     )
-    print(stats_str2)
+    logger.info(stats_str2)
 
 
 @register_ibs_method
@@ -5879,10 +5897,10 @@ def get_annotconfig_stats(
         qaids2.sort()
         daids2.sort()
         if not np.all(qaids2 == qaids):
-            print('WARNING: qaids are not sorted')
+            logger.info('WARNING: qaids are not sorted')
             # raise AssertionError('WARNING: qaids are not sorted')
         if not np.all(daids2 == daids):
-            print('WARNING: daids are not sorted')
+            logger.info('WARNING: daids are not sorted')
             # raise AssertionError('WARNING: qaids are not sorted')
 
         qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q', **kwargs)
@@ -5979,7 +5997,7 @@ def get_annotconfig_stats(
                 explicit=False,
                 nobraces=False,
             )
-            print('annot_config_stats = ' + stats_str2)
+            logger.info('annot_config_stats = ' + stats_str2)
 
         return annotconfig_stats
 
@@ -6030,8 +6048,8 @@ def find_unlabeled_name_members(ibs, **kwargs):
             missing_percent_list = [
                 sum(flags) / len(flags) for flags in missing_flag_list
             ]
-            print('Missing per name stats')
-            print(ut.repr2(ut.get_stats(missing_percent_list, use_median=True)))
+            logger.info('Missing per name stats')
+            logger.info(ut.repr2(ut.get_stats(missing_percent_list, use_median=True)))
         return missing_aid_list
 
     selected_aids_list = []
@@ -6040,21 +6058,21 @@ def find_unlabeled_name_members(ibs, **kwargs):
         props_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
         flags_list = [np.isnan(props) for props in props_list]
         missing_time_aid_list = find_missing(props_list, flags_list)
-        print('missing_time_aid_list = %r' % (len(missing_time_aid_list),))
+        logger.info('missing_time_aid_list = %r' % (len(missing_time_aid_list),))
         selected_aids_list.append(missing_time_aid_list)
 
     if kwargs.get('yaw', False):
         props_list = ibs.unflat_map(ibs.get_annot_yaws, aids_list)
         flags_list = [ut.flag_None_items(props) for props in props_list]
         missing_yaw_aid_list = find_missing(props_list, flags_list)
-        print('num_names_missing_yaw = %r' % (len(missing_yaw_aid_list),))
+        logger.info('num_names_missing_yaw = %r' % (len(missing_yaw_aid_list),))
         selected_aids_list.append(missing_yaw_aid_list)
 
     if kwargs.get('qual', False):
         props_list = ibs.unflat_map(ibs.get_annot_qualities, aids_list)
         flags_list = [[p is None or p == -1 for p in props] for props in props_list]
         missing_qual_aid_list = find_missing(props_list, flags_list)
-        print('num_names_missing_qual = %r' % (len(missing_qual_aid_list),))
+        logger.info('num_names_missing_qual = %r' % (len(missing_qual_aid_list),))
         selected_aids_list.append(missing_qual_aid_list)
 
     if kwargs.get('suspect_yaws', False):
@@ -6358,7 +6376,7 @@ def get_annot_fgweights_subset(ibs, aid_list, fxs_list, config2_=None):
 @register_ibs_method
 def _clean_species(ibs):
     if ut.VERBOSE:
-        print('[_clean_species] Cleaning...')
+        logger.info('[_clean_species] Cleaning...')
     if ibs.readonly:
         # SUPER HACK
         return
@@ -6382,7 +6400,7 @@ def _clean_species(ibs):
                     alias = species_nice
                     species_code, species_nice = const.SPECIES_MAPPING[species_nice]
             elif text is None or text.strip() in ['_', const.UNKNOWN, 'none', 'None', '']:
-                print('[_clean_species] deleting species: %r' % (text,))
+                logger.info('[_clean_species] deleting species: %r' % (text,))
                 ibs.delete_species(rowid)
                 continue
             elif len(nice) == 0:
@@ -6390,7 +6408,7 @@ def _clean_species(ibs):
                     species_nice = text
                     species_code = _convert_species_nice_to_code([species_nice])[0]
                 else:
-                    print('Found an unknown species: %r' % (text,))
+                    logger.info('Found an unknown species: %r' % (text,))
                     species_nice = raw_input_('Input a NICE name for %r: ' % (text,))
                     species_code = raw_input_('Input a CODE name for %r: ' % (text,))
                     assert len(species_code) > 0 and len(species_nice) > 0
@@ -6458,7 +6476,7 @@ def get_annot_occurrence_text(ibs, aids):
     _occur_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
     _occur_texts = [t if len(t) > 0 else [None] for t in _occur_texts]
     if not all([len(t) == 1 for t in _occur_texts]):
-        print(
+        logger.info(
             '[%s] WARNING: annot must be in exactly one occurrence'
             % (ut.get_caller_name(),)
         )
@@ -6482,7 +6500,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
     if len(waypoint_list) == 0:
         # raise IOError('There are no observations (waypoints) in this
         # Patrol XML file: %r' % (xml_path, ))
-        print(
+        logger.info(
             'There are no observations (waypoints) in this Patrol XML file: %r'
             % (xml_path,)
         )
@@ -6538,7 +6556,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
                     except ValueError:
                         # raise IOError('The photonumber sValue is invalid,
                         # waypoint_id: %r' % (waypoint_id, ))
-                        print(
+                        logger.info(
                             (
                                 '[ibs]     '
                                 'Skipped Invalid Observation with '
@@ -6568,7 +6586,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
                 else:
                     # raise IOError('The photonumber value is missing from
                     # waypoint, waypoint_id: %r' % (waypoint_id, ))
-                    print(
+                    logger.info(
                         (
                             '[ibs]     Skipped Empty Observation with'
                             '"categoryKey": %r, waypoint_id: %r'
@@ -6576,7 +6594,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
                         % (categoryKey, waypoint_id,)
                     )
             else:
-                print(
+                logger.info(
                     (
                         '[ibs]     '
                         'Skipped Incompatible Observation with '
@@ -6599,12 +6617,12 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
     dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)
     ut.copy(smart_xml_fpath, dst_xml_path, overwrite=True)
     # Process the XML File
-    print('[ibs] Processing Patrol XML file: %r' % (dst_xml_path,))
+    logger.info('[ibs] Processing Patrol XML file: %r' % (dst_xml_path,))
     try:
         imageset_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
     except Exception as e:
         ibs.delete_images(gid_list)
-        print(
+        logger.info(
             (
                 '[ibs] ERROR: Parsing Patrol XML file failed, '
                 'rolling back by deleting %d images...'
@@ -6622,10 +6640,10 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
         smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = imageset_info
         start, end = range_
         gid_list_ = gid_list[start:end]
-        print('[ibs]     Found Patrol ImageSet: %r' % (imageset_info,))
-        print('[ibs]         GIDs: %r' % (gid_list_,))
+        logger.info('[ibs]     Found Patrol ImageSet: %r' % (imageset_info,))
+        logger.info('[ibs]         GIDs: %r' % (gid_list_,))
         if len(gid_list_) == 0:
-            print('[ibs]         SKIPPING EMPTY IMAGESET')
+            logger.info('[ibs]         SKIPPING EMPTY IMAGESET')
             continue
         # Add the GPS data to the images
         gps_list = [gps] * len(gid_list_)
@@ -6646,7 +6664,7 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
         ibs.set_imageset_start_time_posix([imgsetid], [start_time])
         ibs.set_imageset_end_time_posix([imgsetid], [end_time])
     # Complete
-    print('[ibs] ...Done processing Patrol XML file')
+    logger.info('[ibs] ...Done processing Patrol XML file')
 
 
 @register_ibs_method
@@ -6684,7 +6702,7 @@ def compute_occurrences(ibs, config=None):
     """
     from wbia.algo.preproc import preproc_occurrence
 
-    print('[ibs] Computing and adding imagesets.')
+    logger.info('[ibs] Computing and adding imagesets.')
     # Only ungrouped images are clustered
     gid_list = ibs.get_ungrouped_gids()
     # gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
@@ -6705,12 +6723,12 @@ def compute_occurrences(ibs, config=None):
     imagesettext_list = [
         'Occurrence ' + str(imgsetid) for imgsetid in flat_imgsetids_offset
     ]
-    print('[ibs] Finished computing, about to add imageset.')
+    logger.info('[ibs] Finished computing, about to add imageset.')
     ibs.set_image_imagesettext(flat_gids, imagesettext_list)
     # HACK TO UPDATE IMAGESET POSIX TIMES
     # CAREFUL THIS BLOWS AWAY SMART DATA
     ibs.update_imageset_info(ibs.get_valid_imgsetids())
-    print('[ibs] Finished computing and adding imagesets.')
+    logger.info('[ibs] Finished computing and adding imagesets.')
 
 
 @register_ibs_method
@@ -6952,14 +6970,14 @@ def compute_ggr_imagesets(
             imageset_id,
             len(gid_list),
         )
-        print('Creating new GGR imageset: %r (ID %d) with %d images' % args)
+        logger.info('Creating new GGR imageset: %r (ID %d) with %d images' % args)
         ibs.delete_gsgr_imageset_relations(imageset_id)
         ibs.set_image_imgsetids(gid_list, [imageset_id] * len(gid_list))
 
-    print('SKIPPED %d IMAGES' % (skipped,))
+    logger.info('SKIPPED %d IMAGES' % (skipped,))
     skipped_note_list = sorted(list(set(skipped_note_list)))
-    print('skipped_note_list = %r' % (skipped_note_list,))
-    print('skipped_gid_list = %r' % (skipped_gid_list,))
+    logger.info('skipped_note_list = %r' % (skipped_note_list,))
+    logger.info('skipped_gid_list = %r' % (skipped_gid_list,))
 
     return imageset_id_list, skipped_note_list, skipped_gid_list
 
@@ -7011,10 +7029,10 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
             m = closest_diff // 60
             closest_diff %= 60
             s = closest_diff
-            print('FOUND LOCATION FOR AID %d' % (aid,))
-            print('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
-            print('\tNEW GPS: %s' % (closest_gps,))
-    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found,))
+            logger.info('FOUND LOCATION FOR AID %d' % (aid,))
+            logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
+            logger.info('\tNEW GPS: %s' % (closest_gps,))
+    logger.info(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found,))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -7025,7 +7043,7 @@ def parse_ggr_name(
     imageset_text = imageset_text.strip()
 
     if verbose:
-        print('Processing %r' % (imageset_text,))
+        logger.info('Processing %r' % (imageset_text,))
 
     imageset_text_ = imageset_text.split(',')
 
@@ -7054,9 +7072,9 @@ def parse_ggr_name(
         return None
 
     if verbose:
-        print('\tDataset: %r' % (dataset,))
-        print('\tLetter : %r' % (letter,))
-        print('\tNumber : %r' % (number,))
+        logger.info('\tDataset: %r' % (dataset,))
+        logger.info('\tLetter : %r' % (letter,))
+        logger.info('\tNumber : %r' % (number,))
 
     return dataset, letter, number
 
@@ -7068,7 +7086,7 @@ def search_ggr_qr_codes_worker(
     import cv2
 
     if values is None:
-        print(imageset_text)
+        logger.info(imageset_text)
     assert values is not None
     dataset, letter, number = values
 
@@ -7078,20 +7096,20 @@ def search_ggr_qr_codes_worker(
         zip(gid_list, filepath_list, note_list)
     ):
         if timeout is not None and index > timeout:
-            print('\tTimeout exceeded')
+            logger.info('\tTimeout exceeded')
             break
 
         if match:
-            print('\tMatch was found')
+            logger.info('\tMatch was found')
             break
 
-        print('\tProcessing %r (%s)' % (filepath, note,))
+        logger.info('\tProcessing %r (%s)' % (filepath, note,))
 
         image = cv2.imread(filepath, 0)
         qr_list = pyzbar.decode(image, [pyzbar.ZBarSymbol.QRCODE])
 
         if len(qr_list) > 0:
-            print('\t\tFound...')
+            logger.info('\t\tFound...')
             qr = qr_list[0]
             data = qr.data.decode('utf-8')
 
@@ -7099,17 +7117,17 @@ def search_ggr_qr_codes_worker(
                 data = data.split('/')[-1].strip('?')
                 data = data.split('&')
                 data = sorted(data)
-                print('\t\t%r' % (data,))
+                logger.info('\t\t%r' % (data,))
 
                 assert data[0] == 'car=%d' % (number,)
                 assert data[1] == 'event=ggr2018'
                 assert data[2] == 'person=%s' % (letter.lower(),)
 
                 match = True
-                print('\t\tPassed!')
+                logger.info('\t\tPassed!')
             except Exception:
                 pass
-                print('\t\tFailed!')
+                logger.info('\t\tFailed!')
 
             ret = (
                 imageset_text,
@@ -7394,7 +7412,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
         letter_list = sorted(list(qr_dict.keys()))
         num_letters = len(letter_list)
         if num_letters == 0:
-            print('Empty car: %r' % (number,))
+            logger.info('Empty car: %r' % (number,))
             break
         elif num_letters == 1:
             letter = letter_list[0]
@@ -7403,11 +7421,11 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
             match_gid = None
 
             if letter != 'A':
-                print('Individual car missing A: %r (%r)' % (number, letter,))
+                logger.info('Individual car missing A: %r (%r)' % (number, letter,))
                 match_gid = None
 
             if len(qr_list) == 0:
-                print(
+                logger.info(
                     'Individual car missing QR: %r %r (imageset_rowid = %r)'
                     % (number, letter, imageset_rowid,)
                 )
@@ -7418,14 +7436,14 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                         break
 
                 if match_gid in [None, -1]:
-                    print(
+                    logger.info(
                         'Individual car incorrect QR: %r %r (imageset_rowid = %r)'
                         % (number, letter, imageset_rowid,)
                     )
-                    print('\t%r' % (qr_list,))
+                    logger.info('\t%r' % (qr_list,))
 
             if imageset_rowid in cleared_imageset_rowid_list:
-                print('\tCleared Imageset: %d %r' % (number, letter,))
+                logger.info('\tCleared Imageset: %d %r' % (number, letter,))
 
             sync_dict[imageset_rowid] = match_gid
         else:
@@ -7452,22 +7470,22 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                         failed_list.append((letter, imageset_rowid))
 
                 if imageset_rowid in cleared_imageset_rowid_list:
-                    print('\tCleared Imageset: %d %r' % (number, letter,))
+                    logger.info('\tCleared Imageset: %d %r' % (number, letter,))
 
                 sync_dict[imageset_rowid] = match_gid
 
             if len(missing_list) > 0:
-                print('Group car missing QR: %r (%r)' % (number, letter_list,))
+                logger.info('Group car missing QR: %r (%r)' % (number, letter_list,))
                 for missing, imageset_rowid in missing_list:
-                    print(
+                    logger.info(
                         '\tNo QR for %r %r (imageset_rowid = %r)'
                         % (number, missing, imageset_rowid,)
                     )
 
             if len(failed_list) > 0:
-                print('Group car incorrect QR: %r (%r)' % (number, letter_list,))
+                logger.info('Group car incorrect QR: %r (%r)' % (number, letter_list,))
                 for failed, imageset_rowid in failed_list:
-                    print(
+                    logger.info(
                         '\tBad QR for %r %r (imageset_rowid = %r)'
                         % (number, failed, imageset_rowid,)
                     )
@@ -7519,7 +7537,9 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
             count = overwrite_unixtimes_from_gps(ibs, gid_list, gmt_offset=gmt_offset)
 
             if count > 0:
-                print('Overwrote %d image unixtimes from GPS for %r' % (count, values))
+                logger.info(
+                    'Overwrote %d image unixtimes from GPS for %r' % (count, values)
+                )
 
 
 def overwrite_unixtimes_from_gps_worker(path):
@@ -7638,7 +7658,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
                     count += 1
 
             if count > 0:
-                print('Found %d images to delete for %r' % (count, values))
+                logger.info('Found %d images to delete for %r' % (count, values))
 
     cleared_imageset_rowid_list = [
         187,  # Images from GGR2 but from 2015 with valid GPS coordinates
@@ -7661,7 +7681,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             continue
 
         if qr_gid is None:
-            print('Skipping None QR %r' % (values,))
+            logger.info('Skipping None QR %r' % (values,))
             continue
 
         assert qr_gid in gid_list
@@ -7670,7 +7690,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
         assert anchor_gid != qr_gid
 
         if anchor_gid is None:
-            print('Skipping None Anchor %r' % (values,))
+            logger.info('Skipping None Anchor %r' % (values,))
             continue
 
         qr_time = ibs.get_image_unixtime(qr_gid)
@@ -7680,7 +7700,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             current_offset = ibs.get_image_timedelta_posix([qr_gid])[0]
             offset += current_offset
             ibs.set_image_timedelta_posix(gid_list, [offset] * len(gid_list))
-            print('Correcting offset for %r: %d' % (values, offset,))
+            logger.info('Correcting offset for %r: %d' % (values, offset,))
 
         try:
             qr_time = ibs.get_image_unixtime(qr_gid)
@@ -7688,7 +7708,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             offset = anchor_time - qr_time
             assert offset == 0
         except AssertionError:
-            print('\tFailed to correct offset for %r: %d ' % (values, offset,))
+            logger.info('\tFailed to correct offset for %r: %d ' % (values, offset,))
 
         if imageset_rowid not in cleared_imageset_rowid_list:
             assert lower_posix <= qr_time and qr_time <= upper_posix
@@ -7703,7 +7723,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
                 count += 1
 
         if count > 0:
-            print('Found %d images to delete from %r' % (count, values))
+            logger.info('Found %d images to delete from %r' % (count, values))
 
     delete_gid_list = sorted(list(set(delete_gid_list)))
     return delete_gid_list
@@ -7751,7 +7771,7 @@ def query_ggr_gids_between_dates(
 @register_ibs_method
 def purge_ggr_unixtime_out_of_bounds(ibs, *args, **kwargs):
     delete_gid_list = ibs.sync_ggr_with_qr_codes(ibs, *args, **kwargs)
-    print('Deleting %d gids' % (len(delete_gid_list),))
+    logger.info('Deleting %d gids' % (len(delete_gid_list),))
     ibs.delete_images(delete_gid_list)
     # ibs.delete_empty_imgsetids()
 
@@ -7818,20 +7838,20 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
                 m = closest_diff // 60
                 closest_diff %= 60
                 s = closest_diff
-                print('FOUND LOCATION FOR GID %d' % (gid,))
-                print('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
-                print('\tNEW GPS: %s' % (closest_gps,))
+                logger.info('FOUND LOCATION FOR GID %d' % (gid,))
+                logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
+                logger.info('\tNEW GPS: %s' % (closest_gps,))
             else:
                 not_found.add(note)
         else:
             not_found.add(note)
-    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
+    logger.info(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
     num_recovered = len(recovered_gid_list)
     num_unrecovered = num_bad - len(recovered_gid_list)
-    print('Missing GPS: %d' % (num_bad,))
-    print('Recovered  : %d' % (num_recovered,))
-    print('Unrecovered: %d' % (num_unrecovered,))
-    print('Not Found  : %r' % (not_found,))
+    logger.info('Missing GPS: %d' % (num_bad,))
+    logger.info('Recovered  : %d' % (num_recovered,))
+    logger.info('Unrecovered: %d' % (num_unrecovered,))
+    logger.info('Not Found  : %r' % (not_found,))
     return recovered_gid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -7896,20 +7916,20 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
                 m = closest_diff // 60
                 closest_diff %= 60
                 s = closest_diff
-                print('FOUND LOCATION FOR AID %d' % (aid,))
-                print('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
-                print('\tNEW GPS: %s' % (closest_gps,))
+                logger.info('FOUND LOCATION FOR AID %d' % (aid,))
+                logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
+                logger.info('\tNEW GPS: %s' % (closest_gps,))
             else:
                 not_found.add(note)
         else:
             not_found.add(note)
-    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
+    logger.info(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
     num_recovered = len(recovered_aid_list)
     num_unrecovered = num_bad - len(recovered_aid_list)
-    print('Missing GPS: %d' % (num_bad,))
-    print('Recovered  : %d' % (num_recovered,))
-    print('Unrecovered: %d' % (num_unrecovered,))
-    print('Not Found  : %r' % (not_found,))
+    logger.info('Missing GPS: %d' % (num_bad,))
+    logger.info('Recovered  : %d' % (num_recovered,))
+    logger.info('Unrecovered: %d' % (num_unrecovered,))
+    logger.info('Not Found  : %r' % (not_found,))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -8221,7 +8241,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
 
     broken_gid_list = []
     for gid, metadata_dict, aid_list in zipped:
-        print('Processing gid = %r with %d annots' % (gid, len(aid_list),))
+        logger.info('Processing gid = %r with %d annots' % (gid, len(aid_list),))
         if len(aid_list) < 2:
             continue
 
@@ -8238,7 +8258,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
                 assert user_id in user_dict
                 user_dict[user_id].append(aid)
         except AssertionError:
-            print('\tBad GID')
+            logger.info('\tBad GID')
             broken_gid_list.append(gid)
             continue
 
@@ -8276,7 +8296,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
                     min_overlap=min_overlap,
                 )
         except Exception:
-            print('\tInvalid GID')
+            logger.info('\tInvalid GID')
             broken_gid_list.append(gid)
             continue
 
@@ -8316,12 +8336,14 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
             new_bbox_list.append(bbox)
             new_interest_list.append(interest)
 
-        print('\tSegments = %r' % (segment_list,))
-        print('\tAIDS = %d' % (len(segment_list),))
+        logger.info('\tSegments = %r' % (segment_list,))
+        logger.info('\tAIDS = %d' % (len(segment_list),))
 
-    print('Performing delete of %d existing non-staged AIDS' % (len(existing_aid_list),))
+    logger.info(
+        'Performing delete of %d existing non-staged AIDS' % (len(existing_aid_list),)
+    )
     ibs.delete_annots(existing_aid_list)
-    print('Adding %d new non-staged AIDS' % (len(new_gid_list),))
+    logger.info('Adding %d new non-staged AIDS' % (len(new_gid_list),))
     new_aid_list = ibs.add_annots(
         new_gid_list, bbox_list=new_bbox_list, interest_list=new_interest_list
     )
@@ -8371,7 +8393,7 @@ def check_ggr_valid_aids(
     num_finish = len(aid_list)
     num_difference = num_start - num_finish
     if verbose:
-        print(
+        logger.info(
             'Filtered out %d annotations from %d / %d'
             % (num_difference, num_finish, num_start,)
         )
@@ -8443,11 +8465,11 @@ def create_ggr_match_trees(ibs):
         ('Giraffe Low', 'giraffe_reticulated', 0.0, 5),
     ]
     for tag, species, threshold, levels in species_list:
-        print('Processing Tag: %r' % (tag,))
+        logger.info('Processing Tag: %r' % (tag,))
         len_list = []
         imageset_rowid_list = []
         for number, imageset_rowid in value_list:
-            # print('Processing car %r (ImageSet ID: %r)' % (number, imageset_rowid, ))
+            # logger.info('Processing car %r (ImageSet ID: %r)' % (number, imageset_rowid, ))
             aid_list = ibs.get_imageset_aids(imageset_rowid)
             aid_list_ = ibs.check_ggr_valid_aids(
                 aid_list, species=species, threshold=threshold, verbose=False
@@ -8483,7 +8505,7 @@ def print_partition_sizes_recursive(vals, k, level=0, index=0):
         )
 
     prefix = '\t' * level
-    print('%sLevel %d, %d - %d' % (prefix, level, index, length,))
+    logger.info('%sLevel %d, %d - %d' % (prefix, level, index, length,))
 
     return length
 
@@ -8505,7 +8527,7 @@ def create_ggr_match_leaves_recursive(ibs, tag, imageset_rowid_list, k, level=0,
     gid_list = ut.flatten(ibs.get_imageset_gids(imageset_rowid_list_))
     imageset_text_ = 'Leaf - %s - %d - %d' % (tag, level, index,)
 
-    print(
+    logger.info(
         'Setting %d for %d to %r'
         % (len(gid_list), len(imageset_rowid_list_), imageset_text_,)
     )
@@ -8694,7 +8716,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         # Get primitives
         imageset_text = metadata_dict.pop('Image_Set')
         found = imageset_text in imageset_text_set
-        # print('Processing %r (Found %s)' % (imageset_text, found, ))
+        # logger.info('Processing %r (Found %s)' % (imageset_text, found, ))
         if not found:
             invalid_list.append(imageset_text)
             continue
@@ -8710,7 +8732,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
                 imageset_rowid,
                 imageset_rowid_,
             )
-            print('Invalid ImageSetID for %r - WANTED: %r, GAVE: %r' % args)
+            logger.info('Invalid ImageSetID for %r - WANTED: %r, GAVE: %r' % args)
         # Check #Imgs
         imageset_num_images = len(ibs.get_imageset_gids(imageset_rowid))
         imageset_num_images_ = int(metadata_dict.pop('#Imgs'))
@@ -8720,7 +8742,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
                 imageset_num_images,
                 imageset_num_images_,
             )
-            print('Invalid #Imgs for %r - WANTED: %r, GAVE: %r' % args)
+            logger.info('Invalid #Imgs for %r - WANTED: %r, GAVE: %r' % args)
         # ADD TO TRACKER
         seen_set.add(imageset_text)
         imageset_rowid_list.append(imageset_rowid)
@@ -8730,10 +8752,10 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
 
     invalid = len(invalid_list) + len(duplicate_list) + len(missing_list)
     if invalid > 0:
-        print('VALID:     %r' % (valid_list,))
-        print('INVALID:   %r' % (invalid_list,))
-        print('DUPLICATE: %r' % (duplicate_list,))
-        print('MISSING:   %r' % (missing_list,))
+        logger.info('VALID:     %r' % (valid_list,))
+        logger.info('INVALID:   %r' % (invalid_list,))
+        logger.info('DUPLICATE: %r' % (duplicate_list,))
+        logger.info('MISSING:   %r' % (missing_list,))
     else:
         ibs.set_imageset_metadata(imageset_rowid_list, metadata_list)
 
@@ -8784,7 +8806,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 found1,
                 found2,
             )
-            print('Invalid Gname %r AID %r (aid %s, gname %s)' % args)
+            logger.info('Invalid Gname %r AID %r (aid %s, gname %s)' % args)
             if found2:
                 zip_list = [
                     value
@@ -8794,7 +8816,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 assert len(zip_list) == 1
                 gid_ = zip_list[0][1]
                 aid_list_ = ibs.get_image_aids(gid_)
-                print('\t AID_LIST: %r' % (aid_list_,))
+                logger.info('\t AID_LIST: %r' % (aid_list_,))
             invalid_list.append(aid)
             continue
         if aid in seen_aid_set:
@@ -8802,7 +8824,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             continue
         # if nid in seen_nid_set:
         #     args = (nid, gname, aid, )
-        #     print('Duplicate NID %r for Gname %r AID %r' % args)
+        #     logger.info('Duplicate NID %r for Gname %r AID %r' % args)
         #     continue
         # if nid is not None:
         #     seen_nid_set.add(nid)
@@ -8815,7 +8837,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 gname_,
                 gname,
             )
-            print(
+            logger.info(
                 'Invalid Photo# %r for AnnotationID for %r - WANTED: %r, GAVE: %r' % args
             )
             zip_list = [
@@ -8824,7 +8846,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             assert len(zip_list) == 1
             gid_ = zip_list[0][1]
             aid_list_ = ibs.get_image_aids(gid_)
-            print('\t AID_LIST: %r' % (aid_list_,))
+            logger.info('\t AID_LIST: %r' % (aid_list_,))
         seen_aid_set.add(aid)
         annot_rowid_list.append(aid)
         metadata_list.append(metadata_dict)
@@ -8845,11 +8867,11 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                         found1,
                         found2,
                     )
-                    print(
+                    logger.info(
                         'Invalid NID %r for Secondary AID2 %r (aid %s, gname %s)' % args
                     )
                     if nid > 0 and nid is not None:
-                        print('\tfixing to %r...' % (nid,))
+                        logger.info('\tfixing to %r...' % (nid,))
                         ibs.set_annot_name_rowids([aid2], [nid])
                         aid2_list = ut.flatten(ibs.get_name_aids([nid]))
                 # Check if found
@@ -8861,19 +8883,19 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                         found1,
                         found2,
                     )
-                    print('Invalid Secondary AID2 %r (aid %s, gname %s)' % args)
+                    logger.info('Invalid Secondary AID2 %r (aid %s, gname %s)' % args)
                     args = (
                         gname,
                         aid,
                     )
-                    print('\tGname %r AID %r' % args)
+                    logger.info('\tGname %r AID %r' % args)
                     args = (
                         nid2,
                         nid,
                     )
-                    print('\tNIDs - WANTED: %r, GAVE: %r' % args)
+                    logger.info('\tNIDs - WANTED: %r, GAVE: %r' % args)
                     args = (aid2_list,)
-                    print('\tAID2_LIST: %r' % args)
+                    logger.info('\tAID2_LIST: %r' % args)
                     invalid_list.append(aid2)
                     continue
                 seen_aid_set.add(aid2)
@@ -8884,7 +8906,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 gname,
                 aid,
             )
-            print('Invalid secondary list for Gname %r AID %r' % args)
+            logger.info('Invalid secondary list for Gname %r AID %r' % args)
             raise ValueError
 
     valid_list = list(seen_aid_set)
@@ -8892,10 +8914,10 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
     invalid = len(invalid_list) + len(duplicate_list)  # + len(missing_list)
     if invalid > 0:
-        print('VALID:     %r' % (valid_list,))
-        print('INVALID:   %r' % (invalid_list,))
-        print('DUPLICATE: %r' % (duplicate_list,))
-        # print('MISSING:   %r' % (missing_list, ))
+        logger.info('VALID:     %r' % (valid_list,))
+        logger.info('INVALID:   %r' % (invalid_list,))
+        logger.info('DUPLICATE: %r' % (duplicate_list,))
+        # logger.info('MISSING:   %r' % (missing_list, ))
     else:
         ibs.set_annot_metadata(annot_rowid_list, metadata_list)
 
@@ -9191,14 +9213,14 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
             printing = True
 
         if printing:
-            print('Failed: %r' % (value_dict.get('split', None),))
-    print(ut.repr3(status_dict))
+            logger.info('Failed: %r' % (value_dict.get('split', None),))
+    logger.info(ut.repr3(status_dict))
     return status_dict
 
 
 @register_ibs_method
 def princeton_cameratrap_ocr_bottom_bar(ibs, gid_list=None):
-    print('OCR Camera Trap Bottom Bar')
+    logger.info('OCR Camera Trap Bottom Bar')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
@@ -9238,7 +9260,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
         value_list_ = value_list[-5:]
         assert len(value_list_) == 5
         value_dict['parsed'] = value_list_
-        # print('Parsed: %s' % (value_list_, ))
+        # logger.info('Parsed: %s' % (value_list_, ))
         tempc, tempf, date, time, sequence = value_list_
 
         try:
@@ -9360,7 +9382,7 @@ def export_ggr_folders(ibs, output_path=None):
     for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
         if needle in imageset_text:
             imageset_text = imageset_text.replace(needle, '').strip()
-            print(imageset_text)
+            logger.info(imageset_text)
             imageset_dict[imageset_text] = set(ibs.get_imageset_gids(imageset_rowid))
 
     header = [
@@ -9436,7 +9458,7 @@ def export_ggr_folders(ibs, output_path=None):
         output_filename = '%04d.jpg' % (image,)
         output_filepath = join(output_path, output_filename)
         assert '.jpg' in gpath
-        # print(output_filepath)
+        # logger.info(output_filepath)
         if VERIFY:
             assert exists(output_filepath)
         else:
@@ -9493,7 +9515,7 @@ def export_ggr_folders(ibs, output_path=None):
             output_path = join(output_path_census, number, letter)
             ut.ensuredir(output_path)
             output_filepath = join(output_path, output_filename)
-            # print(output_filepath)
+            # logger.info(output_filepath)
             if VERIFY:
                 assert exists(output_filepath)
             else:

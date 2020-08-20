@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # import warning
+import logging
 import numpy as np
 import utool as ut
 import pandas as pd
@@ -14,6 +15,7 @@ from six.moves import zip
 from sklearn.model_selection._split import _BaseKFold
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # from sklearn.utils.fixes import bincount
@@ -111,7 +113,7 @@ class StratifiedGroupKFold(_BaseKFold):
         sortx = np.argsort(grouped_y_counts.sum(axis=1))[::-1]
         grouped_splitx = []
         for count, group_idx in enumerate(sortx):
-            # print('---------\n')
+            # logger.info('---------\n')
             group_freq = grouped_y_counts[group_idx]
             cand_freq = split_freq + group_freq
             cand_ratio = cand_freq / cand_freq.sum(axis=1)[:, None]
@@ -131,12 +133,12 @@ class StratifiedGroupKFold(_BaseKFold):
             freq_loss = split_freq.sum(axis=1)
             freq_loss = freq_loss / freq_loss.sum()
             losses = ratio_loss + freq_loss
-            # print('group_freq = %r' % (group_freq,))
-            # print('freq_loss = %s' % (ut.repr2(freq_loss, precision=2),))
-            # print('ratio_loss = %s' % (ut.repr2(ratio_loss, precision=2),))
+            # logger.info('group_freq = %r' % (group_freq,))
+            # logger.info('freq_loss = %s' % (ut.repr2(freq_loss, precision=2),))
+            # logger.info('ratio_loss = %s' % (ut.repr2(ratio_loss, precision=2),))
             # -------
             splitx = np.argmin(losses)
-            # print('losses = %r, splitx=%r' % (losses, splitx))
+            # logger.info('losses = %r, splitx=%r' % (losses, splitx))
             split_freq[splitx] = cand_freq[splitx]
             split_ratios[splitx] = cand_ratio[splitx]
             split_diffs[splitx] = cand_diffs[splitx]
@@ -145,22 +147,22 @@ class StratifiedGroupKFold(_BaseKFold):
             # if count > 4:
             #     break
             # else:
-            #     print('split_freq = \n' +
+            #     logger.info('split_freq = \n' +
             #           ut.repr2(split_freq, precision=2, suppress_small=True))
-            #     print('target_ratio = \n' +
+            #     logger.info('target_ratio = \n' +
             #           ut.repr2(target_ratio, precision=2, suppress_small=True))
-            #     print('split_ratios = \n' +
+            #     logger.info('split_ratios = \n' +
             #           ut.repr2(split_ratios, precision=2, suppress_small=True))
-            #     print(ut.dict_hist(grouped_splitx))
+            #     logger.info(ut.dict_hist(grouped_splitx))
 
         # final_ratio_loss = ((split_ratios - target_ratio) ** 2).sum(axis=1)
-        # print('split_freq = \n' +
+        # logger.info('split_freq = \n' +
         #       ut.repr2(split_freq, precision=3, suppress_small=True))
-        # print('target_ratio = \n' +
+        # logger.info('target_ratio = \n' +
         #       ut.repr2(target_ratio, precision=3, suppress_small=True))
-        # print('split_ratios = \n' +
+        # logger.info('split_ratios = \n' +
         #       ut.repr2(split_ratios, precision=3, suppress_small=True))
-        # print(ut.dict_hist(grouped_splitx))
+        # logger.info(ut.dict_hist(grouped_splitx))
 
         test_folds = np.empty(n_samples, dtype=np.int)
         for group_idx, splitx in zip(sortx, grouped_splitx):
@@ -187,9 +189,9 @@ def temp(samples):
 
     def check_balance(idxs):
         # from sklearn.utils.fixes import bincount
-        print('-------')
+        logger.info('-------')
         for count, (test, train) in enumerate(idxs):
-            print('split %r' % (count))
+            logger.info('split %r' % (count))
             groups_train = set(groups.take(train))
             groups_test = set(groups.take(test))
             n_group_isect = len(groups_train.intersection(groups_test))
@@ -198,10 +200,10 @@ def temp(samples):
             y_test_ratio = y_test_freq / y_test_freq.sum()
             y_train_ratio = y_train_freq / y_train_freq.sum()
             balance_error = np.sum((y_test_ratio - y_train_ratio) ** 2)
-            print('n_group_isect = %r' % (n_group_isect,))
-            print('y_test_ratio = %r' % (y_test_ratio,))
-            print('y_train_ratio = %r' % (y_train_ratio,))
-            print('balance_error = %r' % (balance_error,))
+            logger.info('n_group_isect = %r' % (n_group_isect,))
+            logger.info('y_test_ratio = %r' % (y_test_ratio,))
+            logger.info('y_train_ratio = %r' % (y_train_ratio,))
+            logger.info('balance_error = %r' % (balance_error,))
 
     X = np.empty((len(samples), 0))
     y = samples.encoded_1d().values
@@ -427,7 +429,7 @@ def classification_report2(
             'raw': mcc_raw,
         }
 
-        # print('%r <<<' % (mcc_known,))
+        # logger.info('%r <<<' % (mcc_known,))
         means = {
             'a': amean,
             # 'h': hmean,
@@ -450,15 +452,15 @@ def classification_report2(
                 m = mean(mccs, w)
                 r_key = '{} {}'.format(mean_key, w_key)
                 report[r_key] = m
-                # print(r_key)
-                # print(np.abs(m - mcc_known))
+                # logger.info(r_key)
+                # logger.info(np.abs(m - mcc_known))
 
-        # print(ut.repr4(report, precision=8))
+        # logger.info(ut.repr4(report, precision=8))
         return report
-        # print('mcc_known = %r' % (mcc_known,))
-        # print('mcc_combo1 = %r' % (mcc_combo1,))
-        # print('mcc_combo2 = %r' % (mcc_combo2,))
-        # print('mcc_combo3 = %r' % (mcc_combo3,))
+        # logger.info('mcc_known = %r' % (mcc_known,))
+        # logger.info('mcc_combo1 = %r' % (mcc_combo1,))
+        # logger.info('mcc_combo2 = %r' % (mcc_combo2,))
+        # logger.info('mcc_combo3 = %r' % (mcc_combo3,))
 
     # if target_names is None:
     #     target_names = list(range(k))
@@ -492,15 +494,15 @@ def classification_report2(
 
     if verbose:
         cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
-        print('Confusion Matrix (real × pred) :')
-        print(ut.hz_str('    ', cfsm_str))
+        logger.info('Confusion Matrix (real × pred) :')
+        logger.info(ut.hz_str('    ', cfsm_str))
 
         # ut.cprint('\nExtended Report', 'turquoise')
-        print('\nEvaluation Metric Report:')
+        logger.info('\nEvaluation Metric Report:')
         float_precision = 2
         float_format = '%.' + str(float_precision) + 'f'
         ext_report = metric_df.to_string(float_format=float_format)
-        print(ut.hz_str('    ', ext_report))
+        logger.info(ut.hz_str('    ', ext_report))
 
     report = {
         'metrics': metric_df,
@@ -559,11 +561,11 @@ def classification_report2(
         for k, v in mcc_significance_scales.items():
             if np.abs(mcc) >= k:
                 if verbose:
-                    print('classifier correlation is %s' % (v,))
+                    logger.info('classifier correlation is %s' % (v,))
                 break
         if verbose:
             float_precision = 2
-            print(("MCC' = %." + str(float_precision) + 'f') % (mcc,))
+            logger.info(("MCC' = %." + str(float_precision) + 'f') % (mcc,))
         report['mcc'] = mcc
     except ValueError:
         pass
@@ -804,7 +806,7 @@ def voting_ensemble(clf_list, voting='hard'):
     # classes_ = ut.list_getattr(clf_list, 'classes_')
     # if not ut.allsame(classes_):
     #     for clf in clf_list:
-    #         print(clf.predict_proba(X_train))
+    #         logger.info(clf.predict_proba(X_train))
     #         pass
     #     # Note: There is a corner case where one fold doesn't get any labels of
     #     # a certain class. Because y_train is an encoded integer, the

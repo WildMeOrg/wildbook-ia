@@ -3,11 +3,13 @@
 """
 Converts an IBEIS database to a hotspotter db
 """
+import logging
 from six.moves import map
 from os.path import join, relpath
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def get_hsdb_image_gpaths(ibs, gid_list):
@@ -109,7 +111,7 @@ def get_hots_table_strings(ibs):
              12,   12,    6,   [0  0  673  634],   0.00,                                             #
              13,   13,    7,  [0  0  1114  545],   0.00,                                             #
     """
-    print('export to hsdb')
+    logger.info('export to hsdb')
     # ibs.inject_func(get_hsdb_image_gpaths)
 
     # Build Image Table
@@ -152,11 +154,11 @@ def get_hots_table_strings(ibs):
 
     if ut.VERBOSE:
         if len(aid_list) < 87:
-            print(chip_table_csv)
+            logger.info(chip_table_csv)
         if len(nid_list) < 87:
-            print(name_table_csv)
+            logger.info(name_table_csv)
         if len(gid_list) < 87:
-            print(image_table_csv)
+            logger.info(image_table_csv)
     return image_table_csv, name_table_csv, chip_table_csv
 
 
@@ -245,7 +247,7 @@ def get_hots_flat_table(ibs):
 def dump_hots_flat_table(ibs):
     flat_table_fpath = join(ibs.dbdir, 'IBEIS_DUMP_flat_table.csv')
     flat_table_str = ibs.get_flat_table()
-    print('[ibs] dumping flat table to: %r' % flat_table_fpath)
+    logger.info('[ibs] dumping flat table to: %r' % flat_table_fpath)
     with open(flat_table_fpath, 'w') as file_:
         file_.write(flat_table_str)
 

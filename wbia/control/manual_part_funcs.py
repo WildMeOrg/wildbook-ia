@@ -6,6 +6,7 @@ Autogen:
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_  # NOQA
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_ --diff  # NOQA
 """
+import logging
 import six
 import uuid
 import numpy as np
@@ -16,6 +17,7 @@ from wbia.control.controller_inject import make_ibs_register_decorator
 from wbia.web import routes_ajax
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -184,7 +186,7 @@ def add_parts(
     from vtool import geometry
 
     if ut.VERBOSE:
-        print('[ibs] adding parts')
+        logger.info('[ibs] adding parts')
     # Prepare the SQL input
     # For import only, we can specify both by setting import_override to True
     assert bool(bbox_list is None) != bool(
@@ -214,8 +216,8 @@ def add_parts(
 
     if len(aid_list) == 0:
         # nothing is being added
-        print('[ibs] WARNING: 0 parts are being added!')
-        print(ut.repr2(locals()))
+        logger.info('[ibs] WARNING: 0 parts are being added!')
+        logger.info(ut.repr2(locals()))
         return []
 
     if detect_confidence_list is None:
@@ -347,7 +349,7 @@ def delete_parts(ibs, part_rowid_list):
         part_rowid_list (int):  list of part ids
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d parts' % len(part_rowid_list))
+        logger.info('[ibs] deleting %d parts' % len(part_rowid_list))
     # delete parent rowid column if exists in part table
     return ibs.db.delete_rowids(const.PART_TABLE, part_rowid_list)
 
@@ -1094,7 +1096,7 @@ def set_part_viewpoints(ibs, part_rowid_list, viewpoint_list):
 #         part_tags_list
 
 #     """
-#     #print('[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r' % (part_rowid_list, part_tags_list))
+#     #logger.info('[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r' % (part_rowid_list, part_tags_list))
 #     id_iter = part_rowid_list
 #     colnames = (PART_TAG_TEXT,)
 #     ibs.db.set(const.PART_TABLE, colnames, part_tags_list,

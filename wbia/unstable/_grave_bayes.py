@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
+import logging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 """
 
@@ -117,7 +119,7 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
         )
         if verbose:
             evidence_str = ', '.join(model.pretty_evidence(evidence))
-            print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
+            logger.info('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
         # Compute MAP joints
         # There is a bug here.
         # map_assign = infr.map_query(query_vars, evidence)
@@ -206,13 +208,13 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
         joint2 = pgmpy.factors.Factor(
             new_vars_, cardinality, values, statename_dict=statename_dict
         )
-        print(joint2)
+        logger.info(joint2)
         max_marginals = {}
         for i, var in enumerate(query_name_vars):
             one_out = query_name_vars[:i] + query_name_vars[i + 1 :]
             max_marginals[var] = joint2.marginalize(one_out, inplace=False)
             # max_marginals[var] = joint2.maximize(one_out, inplace=False)
-        print(joint2.marginalize(['Nb', 'Nc'], inplace=False))
+        logger.info(joint2.marginalize(['Nb', 'Nc'], inplace=False))
         factor_list = max_marginals.values()
 
         # Better map assignment based on knowledge of labels
@@ -346,7 +348,7 @@ def name_model_mode5(num_annots, num_names=None, verbose=True, mode=1):
     #              for cpds in zip(trimatch_cpds)]
 
     cpd_list = name_cpds + score_cpds + match_cpds + trimatch_cpds
-    print('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    logger.info('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
 
     # Make Model
     model = pgm_ext.define_model(cpd_list)
@@ -378,7 +380,7 @@ def name_model_mode1(num_annots, num_names=None, verbose=True):
 
     Ignore:
         import nx2tikz
-        print(nx2tikz.dumps_tikz(model, layout='layered', use_label=True))
+        logger.info(nx2tikz.dumps_tikz(model, layout='layered', use_label=True))
     """
     annots = ut.chr_range(num_annots, base=ut.get_argval('--base', default='a'))
     # The indexes of match CPDs will not change if another annotation is added
@@ -431,7 +433,7 @@ def name_model_mode1(num_annots, num_names=None, verbose=True):
     # L___ End CPD Definitions ___
 
     cpd_list = name_cpds + score_cpds + match_cpds
-    print('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    logger.info('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
 
     # Make Model
     model = pgm_ext.define_model(cpd_list)
@@ -661,8 +663,8 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         ]
         cpd_list = name_cpds + score_cpds + match_cpds + dup_cpds
 
-    # print('upper_diag_idxs = %r' % (upper_diag_idxs,))
-    print('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    # logger.info('upper_diag_idxs = %r' % (upper_diag_idxs,))
+    logger.info('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
     # import sys
     # sys.exit(1)
 
@@ -861,7 +863,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 
         def hack_fix_centeralign():
             if textprops['horizontalalignment'] == 'center':
-                print('Fixing centeralign')
+                logger.info('Fixing centeralign')
                 fig = pt.gcf()
                 fig.canvas.draw()
 
@@ -953,7 +955,7 @@ def flow():
     pairwise_scores = np.array([metric(*zz) for zz in pairwise_aidxs])
     pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
     if num_annots <= 10:
-        print(ut.repr2(pairwise_scores_mat, precision=1))
+        logger.info(ut.repr2(pairwise_scores_mat, precision=1))
 
     # aids = list(range(num_annots))
     # g = netx.DiGraph()
@@ -1005,10 +1007,12 @@ def flow():
     thresh = 2.0
     labels = scipy.cluster.hierarchy.fclusterdata(X_data, thresh, metric=metric)
     unique_lbls, lblgroupxs = vt.group_indices(labels)
-    print(groupxs)
-    print(lblgroupxs)
-    print('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
-    print('common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),))
+    logger.info(groupxs)
+    logger.info(lblgroupxs)
+    logger.info('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
+    logger.info(
+        'common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),)
+    )
     # X_data, seconds_thresh, criterion='distance')
 
     # help(hdbscan.HDBSCAN)
@@ -1021,10 +1025,12 @@ def flow():
     labels = alg.fit_predict(X_data)
     labels[labels == -1] = np.arange(np.sum(labels == -1)) + labels.max() + 1
     unique_lbls, lblgroupxs = vt.group_indices(labels)
-    print(groupxs)
-    print(lblgroupxs)
-    print('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
-    print('common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),))
+    logger.info(groupxs)
+    logger.info(lblgroupxs)
+    logger.info('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
+    logger.info(
+        'common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),)
+    )
 
     # import ddbscan
     # help(ddbscan.DDBSCAN)
@@ -1080,8 +1086,8 @@ def flow():
 #    # more or less
 #    p[:] = (1 - chance) / (len(p) - 1)
 #    p[idx] = chance
-#    #print('p = %r' % (p,))
+#    #logger.info('p = %r' % (p,))
 #    #nids = rng.randint(0, num_names, num_annots)
-#    #print('avail_nids = %r' % (avail_nids,))
+#    #logger.info('avail_nids = %r' % (avail_nids,))
 #    nids = rng.choice(avail_nids, num_annots, p=p)
-#    #print('nids = %r' % (nids,))
+#    #logger.info('nids = %r' % (nids,))

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 from wbia.control import controller_inject
 import utool as ut
 import time
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 try:
@@ -12,7 +14,7 @@ try:
     DOCKER_CLIENT = docker.from_env()
     assert DOCKER_CLIENT is not None
 except Exception:
-    print('Local docker client is not available')
+    logger.info('Local docker client is not available')
     DOCKER_CLIENT = None
     raise RuntimeError('Failed to connect to Docker for Deepsense Plugin')
 
@@ -53,7 +55,7 @@ def docker_register_config(
                 'Container name has already been added to the config registry'
             )
         else:
-            print(
+            logger.info(
                 'Warning: docker_register_config called on an existing config. Already have container named %s'
                 % (container_name,)
             )
@@ -93,7 +95,7 @@ def docker_run(
     run_args['ports'] = {port_key: ext_port}
     container_clone_name = docker_container_clone_name(container_name, clone=clone)
     run_args['name'] = container_clone_name
-    print(
+    logger.info(
         "We're starting image_name %s as %s with args %r"
         % (image_name, container_clone_name, run_args)
     )
@@ -260,7 +262,7 @@ def docker_container_urls_from_name(ibs, container_name, clone=None):
 @register_ibs_method
 def docker_container_urls(ibs, container, docker_get_config):
     _internal_port = docker_get_config.get('run_args', {}).get('_internal_port', None)
-    print('[docker_container_urls] Found _internal_port: %s' % (_internal_port,))
+    logger.info('[docker_container_urls] Found _internal_port: %s' % (_internal_port,))
     option_list = ibs.docker_container_IP_port_options(container)
     url_list = []
     for option in option_list:
@@ -325,17 +327,17 @@ def docker_check_container(
         return url_list
     valid_url_list = []
     for retry_index in range(retry_count):
-        print(
+        logger.info(
             '[docker_control] Performing container check (attempt %d, max %d)'
             % (retry_index + 1, retry_count,)
         )
         for url in url_list:
-            print('\tChecking URL: %s' % (url,))
+            logger.info('\tChecking URL: %s' % (url,))
             if check_func(url):
                 valid_url_list.append(url)
         if len(valid_url_list) > 0:
             break
-        print(
+        logger.info(
             '[docker_control] ERROR!  Container failed the plugin-defined check, sleeping for %d seconds and will try again'
             % (retry_timeout,)
         )

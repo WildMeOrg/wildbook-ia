@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import wbia.constants as const
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 POSTV = const.EVIDENCE_DECISION.CODE.POSITIVE
 NEGTV = const.EVIDENCE_DECISION.CODE.NEGATIVE

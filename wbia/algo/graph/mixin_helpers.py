@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import itertools as it
 import networkx as nx
 import operator
@@ -13,6 +14,7 @@ from wbia.algo.graph import nx_utils as nxu
 import six
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 DEBUG_INCON = True
@@ -198,7 +200,7 @@ class Convenience(object):
         return infr.review_graphs[UNKWN]
 
     def print_graph_info(infr):
-        print(ut.repr3(ut.graph_info(infr.simplify_graph())))
+        logger.info(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
     def print_graph_connections(infr, label='orig_name_label'):
         """
@@ -206,19 +208,19 @@ class Convenience(object):
         """
         node_to_label = infr.get_node_attrs(label)
         label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
-        print('CC info')
+        logger.info('CC info')
         for name, cc in label_to_nodes.items():
-            print('\nname = %r' % (name,))
+            logger.info('\nname = %r' % (name,))
             edges = list(nxu.edges_between(infr.graph, cc))
-            print(infr.get_edge_df_text(edges))
+            logger.info(infr.get_edge_df_text(edges))
 
-        print('CC pair info')
+        logger.info('CC pair info')
         for (n1, cc1), (n2, cc2) in it.combinations(label_to_nodes.items(), 2):
             if n1 == n2:
                 continue
-            print('\nname_pair = {}-vs-{}'.format(n1, n2))
+            logger.info('\nname_pair = {}-vs-{}'.format(n1, n2))
             edges = list(nxu.edges_between(infr.graph, cc1, cc2))
-            print(infr.get_edge_df_text(edges))
+            logger.info(infr.get_edge_df_text(edges))
 
     def print_within_connection_info(infr, edge=None, cc=None, aid=None, nid=None):
         if edge is not None:
@@ -230,7 +232,7 @@ class Convenience(object):
         # subgraph = infr.graph.subgraph(cc)
         # list(nxu.complement_edges(subgraph))
         edges = list(nxu.edges_between(infr.graph, cc))
-        print(infr.get_edge_df_text(edges))
+        logger.info(infr.get_edge_df_text(edges))
 
     def pair_connection_info(infr, aid1, aid2):
         """
@@ -290,43 +292,43 @@ class Convenience(object):
                 df_str = ut.highlight_regex(
                     df_str, ut.regex_word(str(nid2)), color='darkred'
                 )
-            print('\n\n=====')
-            print(lbl)
-            print('=====')
-            print(df_str)
+            logger.info('\n\n=====')
+            logger.info(lbl)
+            logger.info('=====')
+            logger.info(df_str)
 
-        print('================')
-        print('Pair Connection Info')
-        print('================')
+        logger.info('================')
+        logger.info('Pair Connection Info')
+        logger.info('================')
 
         nid1_, nid2_ = ibs.get_annot_nids([aid1, aid2])
-        print('AIDS        aid1, aid2 = %r, %r' % (aid1, aid2))
-        print('INFR NAMES: nid1, nid2 = %r, %r' % (nid1, nid2))
+        logger.info('AIDS        aid1, aid2 = %r, %r' % (aid1, aid2))
+        logger.info('INFR NAMES: nid1, nid2 = %r, %r' % (nid1, nid2))
         if nid1 == nid2:
-            print('INFR cc = %r' % (sorted(cc1),))
+            logger.info('INFR cc = %r' % (sorted(cc1),))
         else:
-            print('INFR cc1 = %r' % (sorted(cc1),))
-            print('INFR cc2 = %r' % (sorted(cc2),))
+            logger.info('INFR cc1 = %r' % (sorted(cc1),))
+            logger.info('INFR cc2 = %r' % (sorted(cc2),))
 
         if (nid1 == nid2) != (nid1_ == nid2_):
             ut.cprint('DISAGREEMENT IN GRAPH AND DB', 'red')
         else:
             ut.cprint('GRAPH AND DB AGREE', 'green')
 
-        print('IBS  NAMES: nid1, nid2 = %r, %r' % (nid1_, nid2_))
+        logger.info('IBS  NAMES: nid1, nid2 = %r, %r' % (nid1_, nid2_))
         if nid1_ == nid2_:
-            print('IBS CC: %r' % (sorted(ibs.get_name_aids(nid1_)),))
+            logger.info('IBS CC: %r' % (sorted(ibs.get_name_aids(nid1_)),))
         else:
-            print('IBS CC1: %r' % (sorted(ibs.get_name_aids(nid1_)),))
-            print('IBS CC2: %r' % (sorted(ibs.get_name_aids(nid2_)),))
+            logger.info('IBS CC1: %r' % (sorted(ibs.get_name_aids(nid1_)),))
+            logger.info('IBS CC2: %r' % (sorted(ibs.get_name_aids(nid2_)),))
 
         # Does this exist in annotmatch?
         in_am = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
-        print('in_am = %r' % (in_am,))
+        logger.info('in_am = %r' % (in_am,))
 
         # Does this exist in staging?
         staging_rowids = ibs.get_review_rowids_from_edges([(aid1, aid2)])[0]
-        print('staging_rowids = %r' % (staging_rowids,))
+        logger.info('staging_rowids = %r' % (staging_rowids,))
 
         if False:
             # Make absolutely sure
@@ -335,7 +337,7 @@ class Convenience(object):
             has_aid1 = (stagedf[aid_cols] == aid1).any(axis=1)
             from_aid1 = stagedf[has_aid1]
             conn_aid2 = (from_aid1[aid_cols] == aid2).any(axis=1)
-            print('# connections = %r' % (conn_aid2.sum(),))
+            logger.info('# connections = %r' % (conn_aid2.sum(),))
 
         # Next check indirect relationships
         graph = infr.graph
@@ -353,8 +355,8 @@ class Convenience(object):
             print_df(out_df2, 'Outgoing2')
         else:
             subgraph = infr.pos_graph.subgraph(cc1)
-            print('Shortest path between endpoints')
-            print(nx.shortest_path(subgraph, aid1, aid2))
+            logger.info('Shortest path between endpoints')
+            logger.info(nx.shortest_path(subgraph, aid1, aid2))
 
         edge_df3 = get_aug_df(nxu.edges_between(graph, cc1, cc2))
         print_df(edge_df3, 'Between')
@@ -637,12 +639,12 @@ class DummyEdges(object):
                     avail = _heuristic_weighting(nodes, avail_uv)
                 else:
                     avail = avail_uv
-                # print(len(pos_sub))
+                # logger.info(len(pos_sub))
                 try:
                     aug_edges = list(nxu.k_edge_augmentation(pos_sub, k=1, avail=avail))
                 except nx.NetworkXUnfeasible:
-                    print('Warning: MST augmentation is not feasible')
-                    print('explicit negative edges might disconnect a PCC')
+                    logger.info('Warning: MST augmentation is not feasible')
+                    logger.info('explicit negative edges might disconnect a PCC')
                     aug_edges = list(
                         nxu.k_edge_augmentation(pos_sub, k=1, avail=avail, partial=True)
                     )
@@ -727,8 +729,8 @@ class AssertInvariants(object):
         edge_union = set.union(*edge_sets.values())
         all_edges = set(it.starmap(e_, infr.graph.edges()))
         if edge_union != all_edges:
-            print('ERROR STATUS DUMP:')
-            print(ut.repr4(infr.status()))
+            logger.info('ERROR STATUS DUMP:')
+            logger.info(ut.repr4(infr.status()))
             raise AssertionError(
                 'edge sets must have full union. Found union=%d vs all=%d'
                 % (len(edge_union), len(all_edges))

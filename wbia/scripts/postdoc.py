@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import wbia.plottool as pt
 import utool as ut
 from wbia.algo.verif import vsone
@@ -19,6 +20,7 @@ import vtool as vt
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLF = 'VAMP'
@@ -33,7 +35,7 @@ def turk_pz():
     infr.reset_feedback('staging', apply=True)
     infr.relabel_using_reviews(rectify=True)
     # infr.apply_nondynamic_update()
-    print(ut.repr4(infr.status()))
+    logger.info(ut.repr4(infr.status()))
 
     infr.wbia_delta_info()
 
@@ -246,8 +248,8 @@ class GraphExpt(DBInputs):
         pred_confusion = pd.DataFrame(infr.test_state['confusion'])
         pred_confusion.index.name = 'real'
         pred_confusion.columns.name = 'pred'
-        print('Edge confusion')
-        print(pred_confusion)
+        logger.info('Edge confusion')
+        logger.info(pred_confusion)
 
         expt_data = {
             'real_ccs': list(infr.nid_to_gt_cc.values()),
@@ -891,7 +893,7 @@ class VerifierExpt(DBInputs):
         """
         self._precollect()
 
-        print('VerifierExpt _setup()')
+        logger.info('VerifierExpt _setup()')
 
         ibs = self.ibs
 
@@ -945,7 +947,7 @@ class VerifierExpt(DBInputs):
         cfg_prefix = '{}'.format(len(pblm.samples))
         config = pblm.hyper_params
         self._setup_links(cfg_prefix, config)
-        print('Finished setup')
+        logger.info('Finished setup')
 
     @classmethod
     def agg_dbstats(cls):
@@ -980,14 +982,14 @@ class VerifierExpt(DBInputs):
             # labels.append(self.species_nice.capitalize())
 
         df = pd.DataFrame(dfs)
-        print('df =\n{!r}'.format(df))
+        logger.info('df =\n{!r}'.format(df))
         df = df.set_index('Database')
         df.index.name = None
 
         tabular = Tabular(df, colfmt='numeric')
         tabular.theadify = 16
         enc_text = tabular.as_tabular()
-        print(enc_text)
+        logger.info(enc_text)
 
         ut.write_to(join(cls.base_dpath, 'agg-dbstats.tex'), enc_text)
 
@@ -1147,17 +1149,17 @@ class VerifierExpt(DBInputs):
 
         nums = [1]
         for rank in nums:
-            print('-----')
-            print('AUC at rank = {!r}'.format(rank))
+            logger.info('-----')
+            logger.info('AUC at rank = {!r}'.format(rank))
             rank_auc_df = rank_auc_tables[rank]
-            print(to_string_monkey(rank_auc_df, 'all'))
+            logger.info(to_string_monkey(rank_auc_df, 'all'))
 
-        print('===============')
+        logger.info('===============')
         for rank in nums:
-            print('-----')
-            print('TPR at rank = {!r}'.format(rank))
+            logger.info('-----')
+            logger.info('TPR at rank = {!r}'.format(rank))
             rank_tpr_df = rank_tpr_tables[rank]
-            print(to_string_monkey(rank_tpr_df, 'all'))
+            logger.info(to_string_monkey(rank_tpr_df, 'all'))
 
         def _bf_best(df):
             df = df.copy()
@@ -1206,7 +1208,7 @@ class VerifierExpt(DBInputs):
                 '$\\mathbf{' + ut.bref_field('num') + '}$',
                 tex_text,
             )
-            print(tex_text)
+            logger.info(tex_text)
             # tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
             # tex_text = tex_text.replace('$}', '}$')
 
@@ -1224,13 +1226,13 @@ class VerifierExpt(DBInputs):
             # Tables
             rank1_auc_table = rank_auc_tables[1]
             rank1_tpr_table = rank_tpr_tables[1]
-            print(
+            logger.info(
                 '\nrank1_auc_table =\n{}'.format(to_string_monkey(rank1_auc_table, 'all'))
             )
-            print(
+            logger.info(
                 '\nrank1_tpr_table =\n{}'.format(to_string_monkey(rank1_tpr_table, 'all'))
             )
-            print(
+            logger.info(
                 '\nrank1_cmc_table =\n{}'.format(to_string_monkey(rank1_cmc_table, 'all'))
             )
 
@@ -1271,8 +1273,8 @@ class VerifierExpt(DBInputs):
                 '$\\mathbf{' + ut.bref_field('num') + '}$',
                 tex_text,
             )
-            print(tex_text)
-            print(tex_text)
+            logger.info(tex_text)
+            logger.info(tex_text)
             # tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
             # tex_text = tex_text.replace('$}', '}$')
             ut.write_to(join(cls.base_dpath, 'agg-results.tex'), tex_text)
@@ -1557,8 +1559,8 @@ class VerifierExpt(DBInputs):
                     continue
 
                 # Find auto thresholds
-                print('-----')
-                print('dbname = {!r}'.format(dbname))
+                logger.info('-----')
+                logger.info('dbname = {!r}'.format(dbname))
                 for k in range(res.y_test_bin.shape[1]):
                     class_k_truth = res.y_test_bin.T[k]
                     class_k_probs = res.clf_probs.T[k]
@@ -1573,10 +1575,10 @@ class VerifierExpt(DBInputs):
                     )
                     # thresh = cfsm_scores_rank.get_metric_at_metric(
                     #     'thresh', 'fpr', 0, tiebreaker='minthresh')
-                    print('state = {!r}'.format(state))
-                    print('tpr = {:.3f}'.format(tpr))
-                    print('+--')
-                print('-----')
+                    logger.info('state = {!r}'.format(state))
+                    logger.info('tpr = {:.3f}'.format(tpr))
+                    logger.info('+--')
+                logger.info('-----')
 
                 # aggregate results
                 y_pred = res.clf_probs.argmax(axis=1)
@@ -1601,8 +1603,8 @@ class VerifierExpt(DBInputs):
             multiclass_mcc = agg_report['mcc']
             metric_df.loc['combined', 'mcc'] = multiclass_mcc
 
-            print(metric_df)
-            print(confusion_df)
+            logger.info(metric_df)
+            logger.info(confusion_df)
 
             dpath = str(self.base_dpath)
             confusion_fname = 'agg_confusion_{}'.format(task_key)
@@ -1629,7 +1631,7 @@ class VerifierExpt(DBInputs):
             latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
             latex_str = latex_str.replace(sum_real, r'$\sum$ real')
             confusion_tex = ut.align(latex_str, '&', pos=None)
-            print(confusion_tex)
+            logger.info(confusion_tex)
 
             ut.render_latex(confusion_tex, dpath=self.base_dpath, fname=confusion_fname)
 
@@ -1654,7 +1656,7 @@ class VerifierExpt(DBInputs):
             latex_str = tabular.as_tabular()
             latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
             metrics_tex = latex_str
-            print(metrics_tex)
+            logger.info(metrics_tex)
 
             confusion_tex = confusion_tex.replace('Incomparable', 'Incomp.')
             confusion_tex = confusion_tex.replace('predicted', 'pred')
@@ -1671,22 +1673,26 @@ class VerifierExpt(DBInputs):
         cmc_diff = new_cmc - old_cmc
         cmc_change = cmc_diff / old_cmc
         improved = cmc_diff > 0
-        print('{} / {} datasets saw CMC improvement'.format(sum(improved), len(cmc_diff)))
-        print('CMC average absolute diff: {}'.format(cmc_diff.mean()))
-        print('CMC average percent change: {}'.format(cmc_change.mean()))
+        logger.info(
+            '{} / {} datasets saw CMC improvement'.format(sum(improved), len(cmc_diff))
+        )
+        logger.info('CMC average absolute diff: {}'.format(cmc_diff.mean()))
+        logger.info('CMC average percent change: {}'.format(cmc_change.mean()))
 
-        print('Average AUC:\n{}'.format(rank1_auc_table.mean(axis=0)))
+        logger.info('Average AUC:\n{}'.format(rank1_auc_table.mean(axis=0)))
 
-        print('Average TPR:\n{}'.format(rank1_tpr_table.mean(axis=0)))
+        logger.info('Average TPR:\n{}'.format(rank1_tpr_table.mean(axis=0)))
 
         old_tpr = rank1_tpr_table[LNBNN]
         new_tpr = rank1_tpr_table[CLF]
         tpr_diff = new_tpr - old_tpr
         tpr_change = tpr_diff / old_tpr
         improved = tpr_diff > 0
-        print('{} / {} datasets saw TPR improvement'.format(sum(improved), len(tpr_diff)))
-        print('TPR average absolute diff: {}'.format(tpr_diff.mean()))
-        print('TPR average percent change: {}'.format(tpr_change.mean()))
+        logger.info(
+            '{} / {} datasets saw TPR improvement'.format(sum(improved), len(tpr_diff))
+        )
+        logger.info('TPR average absolute diff: {}'.format(tpr_diff.mean()))
+        logger.info('TPR average percent change: {}'.format(tpr_change.mean()))
 
     @profile
     def measure_dbstats(self):
@@ -1749,7 +1755,7 @@ class VerifierExpt(DBInputs):
             annot_info['enc_time_deltas'] = ut.get_stats(enc_deltas)
             annot_info['n_enc_per_name'] = ut.get_stats(n_enc_per_name)
             annot_info['n_annot_per_enc'] = ut.get_stats(n_annot_per_enc)
-            # print(ut.repr4(annot_info, si=True, nl=1, precision=2))
+            # logger.info(ut.repr4(annot_info, si=True, nl=1, precision=2))
             return annot_info
 
         enc_info = ut.odict()
@@ -1775,8 +1781,8 @@ class VerifierExpt(DBInputs):
         info['qual'] = qual_info
         info['view'] = view_info
 
-        print('Annotation Pool DBStats')
-        print(ut.repr4(info, si=True, nl=3, precision=2))
+        logger.info('Annotation Pool DBStats')
+        logger.info(ut.repr4(info, si=True, nl=3, precision=2))
 
         def _ave_str2(d):
             try:
@@ -1807,7 +1813,7 @@ class VerifierExpt(DBInputs):
         tabular = Tabular(df, colfmt='numeric')
         tabular.theadify = 16
         enc_text = tabular.as_tabular()
-        print(enc_text)
+        logger.info(enc_text)
 
         # ut.render_latex(enc_text, dpath=self.dpath, fname='dbstats',
         #                         preamb_extra=['\\usepackage{makecell}'])
@@ -1898,7 +1904,7 @@ class VerifierExpt(DBInputs):
         """
         results = self.ensure_results('all')
         eval_task_keys = set(results['task_combo_res'].keys())
-        print('eval_task_keys = {!r}'.format(eval_task_keys))
+        logger.info('eval_task_keys = {!r}'.format(eval_task_keys))
         task_key = 'match_state'
 
         if ut.get_argflag('--cases'):
@@ -2003,7 +2009,7 @@ class VerifierExpt(DBInputs):
 
             auc_text = 'AUC when restricting to the top `num` LNBNN ranks:'
             auc_text += '\n' + str(rank_auc_df)
-            print(auc_text)
+            logger.info(auc_text)
             roc_info_lines += [auc_text]
 
         if True:
@@ -2021,7 +2027,7 @@ class VerifierExpt(DBInputs):
                 tpr_info += [(ut.repr4(info, align=True, precision=8))]
 
             tpr_text = 'Metric TPR relationships\n' + '\n'.join(tpr_info)
-            print(tpr_text)
+            logger.info(tpr_text)
 
             roc_info_lines += [tpr_text]
 
@@ -2039,13 +2045,13 @@ class VerifierExpt(DBInputs):
                 fpr_info += [(ut.repr4(info, align=True, precision=8))]
 
             fpr_text = 'Metric FPR relationships\n' + '\n'.join(fpr_info)
-            print(fpr_text)
+            logger.info(fpr_text)
 
             roc_info_lines += [fpr_text]
 
         roc_info_text = '\n\n'.join(roc_info_lines)
         ut.writeto(join(self.dpath, 'roc_info.txt'), roc_info_text)
-        # print(roc_info_text)
+        # logger.info(roc_info_text)
 
         fig = pt.figure(fnum=1)  # NOQA
         ax = pt.gca()
@@ -2065,7 +2071,7 @@ class VerifierExpt(DBInputs):
         fname = 'roc_{}.png'.format(task_key)
         fig_fpath = join(str(self.dpath), fname)
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        print('wrote roc figure to fig_fpath= {!r}'.format(fig_fpath))
+        logger.info('wrote roc figure to fig_fpath= {!r}'.format(fig_fpath))
 
         for num in [1, 2, 5, np.inf]:
             roc_curves_ = [rank_clf_roc_curve[num], rank_lnbnn_roc_curve[num]]
@@ -2089,7 +2095,7 @@ class VerifierExpt(DBInputs):
             fname = 'rank_{}_roc_{}.png'.format(num, task_key)
             fig_fpath = join(str(self.dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-            print('wrote roc figure to fig_fpath= {!r}'.format(fig_fpath))
+            logger.info('wrote roc figure to fig_fpath= {!r}'.format(fig_fpath))
 
     def draw_rerank(self):
         mpl.rcParams.update(TMP_RC)
@@ -2362,21 +2368,21 @@ class VerifierExpt(DBInputs):
         grid_output = {}
         dial = {}
         grid_output['baseline'] = to_optimize(dial)
-        print('SO FAR: ')
-        print(
+        logger.info('SO FAR: ')
+        logger.info(
             ut.align(ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2)
         )
 
         for dial in combos:
             score = to_optimize(dial)
-            print('FINISHED: ')
-            print('score = {!r}'.format(score))
-            print('dial = {!r}'.format(dial))
+            logger.info('FINISHED: ')
+            logger.info('score = {!r}'.format(score))
+            logger.info('dial = {!r}'.format(dial))
             hashdial = ut.hashdict(dial)
             grid_output[hashdial] = score
 
-            print('SO FAR: ')
-            print(
+            logger.info('SO FAR: ')
+            logger.info(
                 ut.align(
                     ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2
                 )
@@ -2411,9 +2417,9 @@ class VerifierExpt(DBInputs):
             >>> self._setup()
         """
         if getattr(self, 'pblm', None) is None:
-            print('Need to setup before measuring hard cases')
+            logger.info('Need to setup before measuring hard cases')
             self._setup()
-        print('Measuring hard cases')
+        logger.info('Measuring hard cases')
 
         pblm = self.pblm
 
@@ -2421,14 +2427,14 @@ class VerifierExpt(DBInputs):
 
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
 
-        print('task_key = %r' % (task_key,))
+        logger.info('task_key = %r' % (task_key,))
         if task_key == 'photobomb_state':
             method = 'max-mcc'
             method = res.get_thresholds('mcc', 'maximize')
-            print('Using thresholds: ' + ut.repr4(method))
+            logger.info('Using thresholds: ' + ut.repr4(method))
         else:
             method = 'argmax'
-            print('Using argmax')
+            logger.info('Using argmax')
 
         case_df = res.hardness_analysis(pblm.samples, pblm.infr, method=method)
         # group = case_df.sort_values(['real_conf', 'easiness'])
@@ -2437,10 +2443,10 @@ class VerifierExpt(DBInputs):
         # failure_cases = case_df[(case_df['real_conf'] > 0) & case_df['failed']]
         failure_cases = case_df[case_df['failed']]
         if len(failure_cases) == 0:
-            print('No reviewed failures exist. Do pblm.qt_review_hardcases')
+            logger.info('No reviewed failures exist. Do pblm.qt_review_hardcases')
 
-        print('There are {} failure cases'.format(len(failure_cases)))
-        print(
+        logger.info('There are {} failure cases'.format(len(failure_cases)))
+        logger.info(
             'With average hardness {}'.format(
                 ut.repr2(
                     ut.stats_dict(failure_cases['hardness']), strkeys=True, precision=2
@@ -2455,7 +2461,7 @@ class VerifierExpt(DBInputs):
             flags = ut.flag_percentile_parts(group['easiness'], front, mid, back)
             subgroup = group[flags]
 
-            print(
+            logger.info(
                 'Selected {} r({})-p({}) cases'.format(
                     len(subgroup), res.class_names[real], res.class_names[pred]
                 )
@@ -2481,7 +2487,7 @@ class VerifierExpt(DBInputs):
                     }
                 )
 
-        print('Selected %d cases in total' % (len(cases)))
+        logger.info('Selected %d cases in total' % (len(cases)))
 
         # Augment cases with their one-vs-one matches
         infr = pblm.infr
@@ -2508,7 +2514,7 @@ class VerifierExpt(DBInputs):
 
         fpath = join(str(self.dpath), task_key + '_hard_cases.pkl')
         ut.save_data(fpath, cases)
-        print('Hard case space on disk: {}'.format(ut.get_file_nBytes_str(fpath)))
+        logger.info('Hard case space on disk: {}'.format(ut.get_file_nBytes_str(fpath)))
 
         # if False:
         #     ybin_df = res.target_bin_df
@@ -2540,8 +2546,8 @@ class VerifierExpt(DBInputs):
 
         #     # infr.verbose = 100
         #     # for edge in missing:
-        #     #     print(edge[0] in infr.aids)
-        #     #     print(edge[1] in infr.aids)
+        #     #     logger.info(edge[0] in infr.aids)
+        #     #     logger.info(edge[1] in infr.aids)
 
         #     # fix = [
         #     #     (1184, 1185),
@@ -2599,7 +2605,7 @@ class VerifierExpt(DBInputs):
                 self._precollect()
 
         cases = self.ensure_results(task_key + '_hard_cases')
-        print('Loaded {} {} hard cases'.format(len(cases), task_key))
+        logger.info('Loaded {} {} hard cases'.format(len(cases), task_key))
 
         subdir = 'cases_{}'.format(task_key)
         dpath = join(str(self.dpath), subdir)
@@ -2712,8 +2718,8 @@ class VerifierExpt(DBInputs):
         multiclass_mcc = report['mcc']
         metric_df.loc['combined', 'mcc'] = multiclass_mcc
 
-        print(metric_df)
-        print(confusion_df)
+        logger.info(metric_df)
+        logger.info(confusion_df)
 
         # df = self.task_confusion[task_key]
         df = confusion_df
@@ -2732,7 +2738,7 @@ class VerifierExpt(DBInputs):
         latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
         latex_str = latex_str.replace(sum_real, r'$\sum$ real')
         confusion_tex = ut.align(latex_str, '&', pos=None)
-        print(confusion_tex)
+        logger.info(confusion_tex)
 
         df = metric_df
         # df = self.task_metrics[task_key]
@@ -2755,7 +2761,7 @@ class VerifierExpt(DBInputs):
         latex_str = tabular.as_tabular()
         latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
         metrics_tex = latex_str
-        print(metrics_tex)
+        logger.info(metrics_tex)
 
         dpath = str(self.dpath)
         confusion_fname = 'confusion_{}'.format(task_key)
@@ -2980,7 +2986,7 @@ class VerifierExpt(DBInputs):
         rowids = ibs._get_all_annotmatch_rowids()
         texts = ['' if t is None else t for t in ibs.get_annotmatch_tag_text(rowids)]
         tags = [[] if t is None else t.split(';') for t in texts]
-        print(ut.repr4(ut.dict_hist(ut.flatten(tags))))
+        logger.info(ut.repr4(ut.dict_hist(ut.flatten(tags))))
 
         flags = [query_tag in t.lower() for t in texts]
         filtered_rowids = ut.compress(rowids, flags)

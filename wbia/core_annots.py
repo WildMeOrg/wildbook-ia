@@ -46,6 +46,7 @@ Setup:
     >>> depc = ibs.depc_annot
     >>> aid_list = ibs.get_valid_aids()[0:2]
 """
+import logging
 from six.moves import zip
 from vtool import image_filters
 from wbia import dtool
@@ -59,6 +60,7 @@ from wbia.algo.hots.chip_match import ChipMatch
 from wbia.algo.hots import neighbor_index
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 derived_attribute = register_preprocs['annot']
@@ -120,8 +122,8 @@ def compute_chipthumb(depc, aid_list, config=None):
         >>> interact_obj.start()
         >>> pt.show_if_requested()
     """
-    print('Chips Thumbs')
-    print('config = %r' % (config,))
+    logger.info('Chips Thumbs')
+    logger.info('config = %r' % (config,))
 
     ibs = depc.controller
 
@@ -340,8 +342,8 @@ def compute_chip(depc, aid_list, config=None):
         >>> pt.imshow(vt.stack_image_recurse(chips))
         >>> pt.show_if_requested()
     """
-    print('Preprocess Chips')
-    print('config = %r' % (config,))
+    logger.info('Preprocess Chips')
+    logger.info('config = %r' % (config,))
 
     ibs = depc.controller
 
@@ -354,7 +356,7 @@ def compute_chip(depc, aid_list, config=None):
     )
     for result in result_list:
         yield result
-    print('Done Preprocessing Chips')
+    logger.info('Done Preprocessing Chips')
 
 
 def gen_chip_configure_and_compute(
@@ -624,7 +626,7 @@ def compute_annotmask(depc, aid_list, config=None):
             init_mask = None
         mask = interact_impaint.impaint_mask2(img, init_mask=init_mask)
         vt.imwrite(mask_fpath, mask)
-        print('imwrite')
+        logger.info('imwrite')
         w, h = vt.get_size(mask)
 
         yield mask_fpath, w, h
@@ -696,16 +698,16 @@ def compute_probchip(depc, aid_list, config=None):
         >>> iteract_obj.start()
         >>> ut.show_if_requested()
     """
-    print('[core] COMPUTING FEATWEIGHTS')
-    print('config = %r' % (config,))
+    logger.info('[core] COMPUTING FEATWEIGHTS')
+    logger.info('config = %r' % (config,))
     import vtool as vt
 
     ibs = depc.controller
 
     # Use the labeled species for the fw_detector
     species_list = ibs.get_annot_species_texts(aid_list)
-    # print('aid_list = %r' % (aid_list,))
-    # print('species_list = %r' % (species_list,))
+    # logger.info('aid_list = %r' % (aid_list,))
+    # logger.info('species_list = %r' % (species_list,))
 
     fw_detector = config['fw_detector']
     dim_size = config['fw_dim_size']
@@ -745,16 +747,16 @@ def compute_probchip(depc, aid_list, config=None):
     unique_species = ut.get_list_column(grouped_species, 0)
 
     if ut.VERBOSE:
-        print('[preproc_probchip] +--------------------')
-    print(
+        logger.info('[preproc_probchip] +--------------------')
+    logger.info(
         (
             '[preproc_probchip.compute_and_write_probchip] '
             'Preparing to compute %d probchips of %d species'
         )
         % (len(aid_list), len(unique_species))
     )
-    print('unique_species = %r' % (unique_species,))
-    print(config)
+    logger.info('unique_species = %r' % (unique_species,))
+    logger.info(config)
 
     # grouped_probchip_fpath_list = []
     grouped_probchips = []
@@ -799,8 +801,8 @@ def compute_probchip(depc, aid_list, config=None):
         raise NotImplementedError('unknown fw_detector=%r' % (fw_detector,))
 
     if ut.VERBOSE:
-        print('[preproc_probchip] Done computing probability images')
-        print('[preproc_probchip] L_______________________')
+        logger.info('[preproc_probchip] Done computing probability images')
+        logger.info('[preproc_probchip] L_______________________')
 
     probchip_result_list = vt.invert_apply_grouping2(
         grouped_probchips, groupxs, dtype=object
@@ -1165,9 +1167,9 @@ def compute_feats(depc, cid_list, config=None):
         probchip_fpath_list = (None for _ in range(nInput))
 
     if ut.NOT_QUIET:
-        print('[preproc_feat] config = %s' % config)
+        logger.info('[preproc_feat] config = %s' % config)
         if ut.VERYVERBOSE:
-            print('full_params = ' + ut.repr2())
+            logger.info('full_params = ' + ut.repr2())
 
     ibs = depc.controller
     if feat_type == 'hesaff+sift':
@@ -1306,7 +1308,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
     ibs = depc.controller
     nTasks = len(fid_list)
-    print('[compute_fgweights] Computing %d fgweights' % (nTasks,))
+    logger.info('[compute_fgweights] Computing %d fgweights' % (nTasks,))
     # aid_list = depc.get_ancestor_rowids('feat', fid_list, 'annotations')
     # probchip_fpath_list = depc.get(aid_list, 'img', config={}, read_extern=False)
     probchip_list = depc.get_native('probchip', pcid_list, 'img')
@@ -1325,7 +1327,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         futures_threaded=True,
     )
     featweight_list = list(featweight_gen)
-    print('[compute_fgweights] Done computing %d fgweights' % (nTasks,))
+    logger.info('[compute_fgweights] Done computing %d fgweights' % (nTasks,))
     for fw in featweight_list:
         yield (fw,)
 
@@ -1644,7 +1646,7 @@ def compute_neighbor_index(depc, fids_list, config):
         >>> assert nnindexer1.knn(ibs.get_annot_vecs(1), 1) is not None
         >>> assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None
     """
-    print('[IBEIS] COMPUTE_NEIGHBOR_INDEX:')
+    logger.info('[IBEIS] COMPUTE_NEIGHBOR_INDEX:')
     # TODO: allow augment
     assert len(fids_list) == 1, 'only working with one indexer at a time'
     fid_list = fids_list[0]
@@ -1700,7 +1702,7 @@ if testmode:
             >>> config = ibs.depc_annot['feat_neighbs'].configclass()
             >>> compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)
         """
-        print('[IBEIS] NEAREST NEIGHBORS')
+        logger.info('[IBEIS] NEAREST NEIGHBORS')
         # assert False
         # do computation
         # num_neighbors = (config['K'] + config['Knorm'])
@@ -1802,8 +1804,8 @@ def compute_classifications(depc, aid_list, config=None):
         >>> results = depc.get_property('classifier', gid_list, None)
         >>> print(results)
     """
-    print('[ibs] Process Image Classifications')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Image Classifications')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
@@ -1878,8 +1880,8 @@ def compute_canonical(depc, aid_list, config=None):
         >>> results = depc.get_property('canonical', gid_list, None)
         >>> print(results)
     """
-    print('[ibs] Process Annot Canonical')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Annot Canonical')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
@@ -1975,14 +1977,14 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> results = depc.get_property('labeler', aid_list, None, config=config)
         >>> print(results)
     """
-    print('[ibs] Process Annotation Labels')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Annotation Labels')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
 
     if config['labeler_algo'] in ['pipeline', 'cnn']:
-        print('[ibs] labeling using Detection Pipeline Labeler')
+        logger.info('[ibs] labeling using Detection Pipeline Labeler')
         config_ = {
             'dim_size': (128, 128),
             'resize_dim': 'wh',
@@ -1993,7 +1995,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
     elif config['labeler_algo'] in ['azure']:
         from wbia.algo.detect import azure
 
-        print('[ibs] detecting using Azure AI for Earth Species Classification API')
+        logger.info('[ibs] detecting using Azure AI for Earth Species Classification API')
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
     elif config['labeler_algo'] in ['densenet']:
         from wbia.algo.detect import densenet
@@ -2142,8 +2144,8 @@ def compute_aoi2(depc, aid_list, config=None):
         >>> results = depc.get_property('aoi_two', aid_list, None)
         >>> print(results)
     """
-    print('[ibs] Process Annotation AoI2s')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Annotation AoI2s')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
@@ -2216,14 +2218,14 @@ def compute_orients_annotations(depc, aid_list, config=None):
         >>> result_list = depc.get_property('orienter', aid_list, None, config=config)
         >>> print(result_list)
     """
-    print('[ibs] Process Annotation Labels')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Annotation Labels')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
 
     if config['orienter_algo'] in ['deepsense']:
-        print('[ibs] orienting using Deepsense Orienter')
+        logger.info('[ibs] orienting using Deepsense Orienter')
         try:
             bbox_list = ibs.get_annot_bboxes(aid_list)
             annot_uuid_list = ibs.get_annot_uuids(aid_list)

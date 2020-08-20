@@ -4,6 +4,7 @@ get_dbinfo is probably the only usefull funciton in here
 # This is not the cleanest module
 """
 # TODO: ADD COPYRIGHT TAG
+import logging
 from wbia import constants as const
 import collections
 import functools
@@ -12,6 +13,7 @@ import numpy as np
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
@@ -22,12 +24,12 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
     information for a query/database aid configuration
     """
     bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
-    print('[qd_info] * dbname = %s' % ibs.get_dbname())
-    print('[qd_info] * qaid_list = %s' % bigstr(str(qaid_list)))
-    print('[qd_info] * daid_list = %s' % bigstr(str(daid_list)))
-    print('[qd_info] * len(qaid_list) = %d' % len(qaid_list))
-    print('[qd_info] * len(daid_list) = %d' % len(daid_list))
-    print(
+    logger.info('[qd_info] * dbname = %s' % ibs.get_dbname())
+    logger.info('[qd_info] * qaid_list = %s' % bigstr(str(qaid_list)))
+    logger.info('[qd_info] * daid_list = %s' % bigstr(str(daid_list)))
+    logger.info('[qd_info] * len(qaid_list) = %d' % len(qaid_list))
+    logger.info('[qd_info] * len(daid_list) = %d' % len(daid_list))
+    logger.info(
         '[qd_info] * intersection = %r'
         % len(list(set(daid_list).intersection(set(qaid_list))))
     )
@@ -41,9 +43,9 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
         q_info_str = get_dbinfo(ibs, aid_list=qaid_list, tag='QueryInfo', **infokw)[
             'info_str2'
         ]
-        print(q_info_str)
-        print('\n')
-        print(d_info_str)
+        logger.info(q_info_str)
+        logger.info('\n')
+        logger.info(d_info_str)
 
 
 def get_dbinfo(
@@ -173,7 +175,7 @@ def get_dbinfo(
         if isinstance(aid_list, str):
             # Hack to get experiment stats on aids
             acfg_name_list = [aid_list]
-            print('Specified custom aids via acfgname %s' % (acfg_name_list,))
+            logger.info('Specified custom aids via acfgname %s' % (acfg_name_list,))
             from wbia.expt import experiment_helpers
 
             acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
@@ -182,7 +184,7 @@ def get_dbinfo(
             aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))
             # aid_list =
         if verbose:
-            print('Specified %d custom aids' % (len(aid_list,)))
+            logger.info('Specified %d custom aids' % (len(aid_list,)))
         request_annot_subset = True
         valid_aids = aid_list
         valid_nids = list(
@@ -196,7 +198,7 @@ def get_dbinfo(
 
     # Image info
     if verbose:
-        print('Checking Image Info')
+        logger.info('Checking Image Info')
     gx2_aids = valid_images.aids
     if request_annot_subset:
         # remove annots not in this subset
@@ -212,7 +214,7 @@ def get_dbinfo(
 
     # Name stats
     if verbose:
-        print('Checking Name Info')
+        logger.info('Checking Name Info')
     nx2_aids = ibs.get_name_aids(valid_nids)
     if request_annot_subset:
         # remove annots not in this subset
@@ -295,7 +297,7 @@ def get_dbinfo(
     except Exception:
         pair_tag_info = {}
 
-    # print(ut.repr2(pair_tag_info))
+    # logger.info(ut.repr2(pair_tag_info))
 
     # Annot Stats
     # TODO: number of images where chips cover entire image
@@ -309,14 +311,14 @@ def get_dbinfo(
     """
     #
     if verbose:
-        print('Checking Annot Species')
+        logger.info('Checking Annot Species')
     unknown_annots = valid_annots.compress(ibs.is_aid_unknown(valid_annots))
     species_list = valid_annots.species_texts
     species2_annots = valid_annots.group_items(valid_annots.species_texts)
     species2_nAids = {key: len(val) for key, val in species2_annots.items()}
 
     if verbose:
-        print('Checking Multiton/Singleton Species')
+        logger.info('Checking Multiton/Singleton Species')
     nx2_nAnnots = np.array(list(map(len, nx2_aids)))
     # Seperate singleton / multitons
     multiton_nxs = np.where(nx2_nAnnots > 1)[0]
@@ -328,7 +330,7 @@ def get_dbinfo(
 
     # Annot Info
     if verbose:
-        print('Checking Annot Info')
+        logger.info('Checking Annot Info')
     multiton_aids_list = ut.take(nx2_aids, multiton_nxs)
     assert len(set(multiton_nxs)) == len(multiton_nxs)
     if len(multiton_aids_list) == 0:
@@ -342,7 +344,7 @@ def get_dbinfo(
     # Image size stats
     if with_imgsize:
         if verbose:
-            print('Checking ImageSize Info')
+            logger.info('Checking ImageSize Info')
         gpath_list = ibs.get_image_paths(valid_gids)
 
         def wh_print_stats(wh_list):
@@ -366,7 +368,7 @@ def get_dbinfo(
             )
             return '{\n    ' + ret + '\n}'
 
-        print('reading image sizes')
+        logger.info('reading image sizes')
         # Image size stats
         img_size_list = ibs.get_image_sizes(valid_gids)
         img_size_stats = wh_print_stats(img_size_list)
@@ -388,7 +390,7 @@ def get_dbinfo(
         imgsize_stat_lines = []
 
     if verbose:
-        print('Building Stats String')
+        logger.info('Building Stats String')
 
     multiton_stats = ut.repr3(
         ut.get_stats(multiton_nid2_nannots, use_median=True), nl=0, precision=2, si=True
@@ -418,7 +420,7 @@ def get_dbinfo(
             if min_age is None:
                 min_age = max_age
             if max_age is None and min_age is None:
-                print('Found UNKNOWN Age: %r, %r' % (min_age, max_age,))
+                logger.info('Found UNKNOWN Age: %r, %r' % (min_age, max_age,))
                 age_dict['UNKNOWN'] += 1
             elif (min_age is None or min_age < 12) and max_age < 12:
                 age_dict['Infant'] += 1
@@ -461,7 +463,7 @@ def get_dbinfo(
         return viewcode2_nAnnots
 
     if verbose:
-        print('Checking Other Annot Stats')
+        logger.info('Checking Other Annot Stats')
 
     qualtext2_nAnnots = get_annot_qual_stats(ibs, valid_aids)
     viewcode2_nAnnots = get_annot_viewpoint_stats(ibs, valid_aids)
@@ -469,7 +471,7 @@ def get_dbinfo(
     sextext2_nAnnots = get_annot_sex_stats(valid_aids)
 
     if verbose:
-        print('Checking Contrib Stats')
+        logger.info('Checking Contrib Stats')
 
     # Contributor Statistics
     # hack remove colon for image alignment
@@ -498,7 +500,7 @@ def get_dbinfo(
     }
 
     if verbose:
-        print('Summarizing')
+        logger.info('Summarizing')
 
     # Summarize stats
     num_names = len(valid_nids)
@@ -513,7 +515,7 @@ def get_dbinfo(
 
     if with_bytes:
         if verbose:
-            print('Checking Disk Space')
+            logger.info('Checking Disk Space')
         ibsdir_space = ut.byte_str2(ut.get_disk_space(ibs.get_ibsdir()))
         dbdir_space = ut.byte_str2(ut.get_disk_space(ibs.get_dbdir()))
         imgdir_space = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
@@ -521,7 +523,7 @@ def get_dbinfo(
 
     if True:
         if verbose:
-            print('Check asserts')
+            logger.info('Check asserts')
         try:
             bad_aids = np.intersect1d(multiton_aids, unknown_annots)
             _num_names_total_check = (
@@ -693,7 +695,7 @@ def get_dbinfo(
     info_str = '\n'.join(ut.filter_Nones(info_str_lines))
     info_str2 = ut.indent(info_str, '[{tag}]'.format(tag=tag))
     if verbose:
-        print(info_str2)
+        logger.info(info_str2)
     locals_ = locals()
     return locals_
 
@@ -862,10 +864,10 @@ def show_time_distributions(ibs, unixtime_list):
             # # x = np.array(ax.get_xlim()).sum() / 2
             # # y = np.array(ax.get_ylim()).sum() / 2
             # # xy = [x, y]
-            # # print('xy = %r' % (xy,))
+            # # logger.info('xy = %r' % (xy,))
             # # x = np.nanmin(unixtime_list)
             # # xy = [x, y]
-            # # print('xy = %r' % (xy,))
+            # # logger.info('xy = %r' % (xy,))
             # # ax.get_ylim()[0]]
             # xy = [ax.get_xlim()[0], ax.get_ylim()[1]]
             # ab = mpl.offsetbox.AnnotationBbox(
@@ -1093,7 +1095,7 @@ def latex_dbstats(ibs_list, **kwargs):
         **tablekw
     )
 
-    # print(row_lbls)
+    # logger.info(row_lbls)
 
     if SINGLE_TABLE:
         tabular_str = count_tabular_str
@@ -1168,7 +1170,7 @@ def get_short_infostr(ibs):
 
 
 def cache_memory_stats(ibs, cid_list, fnum=None):
-    print('[dev stats] cache_memory_stats()')
+    logger.info('[dev stats] cache_memory_stats()')
     # kpts_list = ibs.get_annot_kpts(cid_list)
     # desc_list = ibs.get_annot_vecs(cid_list)
     # nFeats_list = map(len, kpts_list)
@@ -1203,7 +1205,7 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
 
     tabular = ut.util_latex.tabular_join(tabular_body_list)
 
-    print(tabular)
+    logger.info(tabular)
     ut.util_latex.render(tabular)
 
     if fnum is None:

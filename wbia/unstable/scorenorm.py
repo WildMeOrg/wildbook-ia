@@ -28,6 +28,7 @@ GOALS:
 TODO:
     * One class SVM http://scikit-learn.org/stable/auto_examples/svm/plot_oneclass.html
 """
+import logging
 import re
 from wbia import dtool
 import numpy as np
@@ -40,6 +41,7 @@ from wbia import constants as const
 from wbia.init import sysres
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def compare_score_pdfs(testres):
@@ -138,7 +140,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         >>> testres.draw_feat_scoresep(f=f)
         >>> ut.show_if_requested()
     """
-    print('[testres] draw_feat_scoresep')
+    logger.info('[testres] draw_feat_scoresep')
     import wbia.plottool as pt
 
     def load_feat_scores(qreq_, qaids):
@@ -165,11 +167,11 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
             from wbia.algo.hots import scorenorm
 
             cm_list = qreq_.execute(qaids)
-            # print('Done loading cached chipmatches')
+            # logger.info('Done loading cached chipmatches')
             tup = scorenorm.get_training_featscores(
                 qreq_, cm_list, disttype, namemode, fsvx, threshx, thresh, num=num
             )
-            # print(ut.depth_profile(tup))
+            # logger.info(ut.depth_profile(tup))
             tp_scores, tn_scores, scorecfg = tup
             return tp_scores, tn_scores, scorecfg
 
@@ -195,7 +197,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         # testres.print_pcfg_info()
         score_group = []
         for cfgx, qreq_ in zip(cfgxs, testres.cfgx2_qreq_):
-            print('Loading cached chipmatches')
+            logger.info('Loading cached chipmatches')
             qaids = cfgx2_valid_qaids[cfgx]
             tp_scores, tn_scores, scorecfg = load_feat_scores(qreq_, qaids)
             score_group.append((tp_scores, tn_scores, scorecfg))
@@ -381,7 +383,7 @@ def compare_featscores():
     ibs, testres = wbia.testdata_expts(
         defaultdb='PZ_MTEST', a=['default'], p=['default:K=1']
     )
-    print('nfs_cfg_list = ' + ut.repr3(nfs_cfg_list))
+    logger.info('nfs_cfg_list = ' + ut.repr3(nfs_cfg_list))
 
     encoder_list = []
     lbl_list = []
@@ -399,7 +401,7 @@ def compare_featscores():
                 encoder = vt.ScoreNormalizer()
                 encoder.load(cfgstr=cfgstr)
             except IOError:
-                print('datakw = %r' % (datakw,))
+                logger.info('datakw = %r' % (datakw,))
                 encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
                 encoder.save(cfgstr=cfgstr)
             encoder_list.append(encoder)
@@ -601,8 +603,8 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> ut.show_if_requested()
     """
     cm_list = qreq_.execute()
-    print('learning scorenorm')
-    print('datakw = %s' % ut.repr3(datakw))
+    logger.info('learning scorenorm')
+    logger.info('datakw = %s' % ut.repr3(datakw))
     tp_scores, tn_scores, scorecfg = get_training_featscores(qreq_, cm_list, **datakw)
     _learnkw = dict(monotonize=True, adjust=2)
     _learnkw.update(learnkw)
@@ -749,7 +751,7 @@ def get_training_featscores(
         for cm in cm_list
     ]
     cm_list_ = ut.compress(cm_list, trainable)
-    print('training using %d chipmatches' % (len(cm_list)))
+    logger.info('training using %d chipmatches' % (len(cm_list)))
 
     if disttype is None:
         # fsv_col_lbls = cm.fsv_col_lbls

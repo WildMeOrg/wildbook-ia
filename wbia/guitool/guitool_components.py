@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six
 from six.moves import map, range  # NOQA
 from wbia.guitool.__PYQT__ import QtCore, QtGui
@@ -10,6 +11,7 @@ from wbia.guitool import guitool_dialogs
 import weakref
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 DEBUG_WIDGET = ut.get_argflag(('--dbgwgt', '--debugwidget', '--debug-widget'))
 
@@ -336,7 +338,7 @@ def newMenuAction(
         action.setShortcut(action_shortcut)
         # action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         action.setShortcutContext(Qt.WindowShortcut)
-        # print('<%s>.setShortcut(%r)' % (name, action_shortcut,))
+        # logger.info('<%s>.setShortcut(%r)' % (name, action_shortcut,))
     if triggered is not None:
         action.triggered.connect(triggered)
     return action
@@ -348,7 +350,7 @@ PROG_TEXT = ut.get_argflag('--progtext')
 class GuiProgContext(object):
     def __init__(ctx, title, prog_bar):
         if PROG_TEXT:
-            print('[guitool] GuiProgContext.__init__')
+            logger.info('[guitool] GuiProgContext.__init__')
         ctx.prog_bar = prog_bar
         ctx.title = title
         ctx.total = None
@@ -371,7 +373,7 @@ class GuiProgContext(object):
 
     def __enter__(ctx):
         if PROG_TEXT:
-            print('[guitool] GuiProgContext.__enter__')
+            logger.info('[guitool] GuiProgContext.__enter__')
         ctx.prog_bar.setVisible(True)
         ctx.prog_bar.setWindowTitle(ctx.title)
         ctx.prog_hook.lbl = ctx.title
@@ -383,11 +385,11 @@ class GuiProgContext(object):
 
     def __exit__(ctx, type_, value, trace):
         if PROG_TEXT:
-            print('[guitool] GuiProgContext.__exit__')
+            logger.info('[guitool] GuiProgContext.__exit__')
         ctx.prog_bar.setVisible(False)
         if trace is not None:
             if ut.VERBOSE:
-                print('[back] Error in context manager!: ' + str(value))
+                logger.info('[back] Error in context manager!: ' + str(value))
             return False  # return a falsey value on error
 
 
@@ -644,15 +646,15 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         # DEBUG = False
         # if DEBUG:
         #    with ut.Indenter(' ' * 4 * length):
-        #        print('\n')
-        #        print('+____<NEW SUBSTEPS>____')
-        #        print('Making %d substeps for hook.lbl = %s' % (num_substeps, hook.lbl,))
-        #        print(' * step_min         = %.2f' % (step_min,))
-        #        print(' * step_size        = %.2f' % (step_size,))
-        #        print(' * substep_size     = %.2f' % (substep_size,))
-        #        print(' * substep_min_list = %r' % (substep_min_list,))
-        #        print(r'L____</NEW SUBSTEPS>____')
-        #        print('\n')
+        #        logger.info('\n')
+        #        logger.info('+____<NEW SUBSTEPS>____')
+        #        logger.info('Making %d substeps for hook.lbl = %s' % (num_substeps, hook.lbl,))
+        #        logger.info(' * step_min         = %.2f' % (step_min,))
+        #        logger.info(' * step_size        = %.2f' % (step_size,))
+        #        logger.info(' * substep_size     = %.2f' % (substep_size,))
+        #        logger.info(' * substep_min_list = %r' % (substep_min_list,))
+        #        logger.info(r'L____</NEW SUBSTEPS>____')
+        #        logger.info('\n')
 
     def set_progress(hook, count, length=None, lbl=None):
         if length is None:
@@ -692,14 +694,14 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
             resolution = 75
             num_full = int(round(global_fraction * resolution))
             num_empty = resolution - num_full
-            print('\n')
-            print(
+            logger.info('\n')
+            logger.info(
                 '['
                 + '#' * num_full
                 + '.' * num_empty
                 + '] %7.3f%% %s' % (global_fraction * 100, hook.lbl)
             )
-            print('\n')
+            logger.info('\n')
         prog_bar = hook.prog_bar
         if prog_bar is not None:
             prog_bar.setRange(0, 10000)
@@ -731,10 +733,10 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         qtapp = guitool.get_qtapp()
         flag = QtCore.QEventLoop.ExcludeUserInputEvents
         return_status = qtapp.processEvents(flag)
-        # print('(1)return_status = %r' % (return_status,))
+        # logger.info('(1)return_status = %r' % (return_status,))
         if not return_status:
             return_status = qtapp.processEvents(flag)
-            # print('(2)return_status = %r' % (return_status,))
+            # logger.info('(2)return_status = %r' % (return_status,))
 
 
 def newProgressBar(parent, visible=True, verticalStretch=1):
@@ -962,7 +964,7 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}, min_wi
         label.setScaledContents(True)
 
         def _on_resize_slot():
-            # print('_on_resize_slot')
+            # logger.info('_on_resize_slot')
             label.setPixmap(
                 label._orig_pixmap.scaled(
                     label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
@@ -1561,8 +1563,8 @@ def walk_widget_heirarchy(obj, **kwargs):
     r"""
     Walk the widget hierarchy looking for object
 
-    print('\n'.join(gt.walk_widget_heirarchy(self, attrs=['minimumWidth'], skip=True)))
-    print('\n'.join(gt.walk_widget_heirarchy(self, attrs=['sizePolicy'], skip=True)))
+    logger.info('\n'.join(gt.walk_widget_heirarchy(self, attrs=['minimumWidth'], skip=True)))
+    logger.info('\n'.join(gt.walk_widget_heirarchy(self, attrs=['sizePolicy'], skip=True)))
     """
     default_attrs = [
         'sizePolicy'
@@ -1627,7 +1629,7 @@ def walk_widget_heirarchy(obj, **kwargs):
 def print_widget_heirarchy(obj, *args, **kwargs):
     lines = walk_widget_heirarchy(obj, *args, **kwargs)
     text = '\n'.join(lines)
-    print(text)
+    logger.info(text)
 
 
 def fix_child_attr_heirarchy(obj, attr, val):
@@ -1812,16 +1814,16 @@ class ConfigConfirmWidget(GuitoolWidget):
         # Set default button
 
     def update_state(self, *args):
-        print('*args = %r' % (args,))
-        print('Update state')
+        logger.info('*args = %r' % (args,))
+        logger.info('Update state')
         if self.param_info_dict is None:
-            print('Need dtool config')
+            logger.info('Need dtool config')
 
         for key, pi in self.param_info_dict.items():
             row = self.row_dict[key]
             if pi.type_ is bool:
                 value = row.edit.currentValue()
-                print('Changed: key, value = %r, %r' % (key, value))
+                logger.info('Changed: key, value = %r, %r' % (key, value))
                 self.config[key] = value
 
         for key, pi in self.param_info_dict.items():
@@ -1830,8 +1832,8 @@ class ConfigConfirmWidget(GuitoolWidget):
             row.edit.setEnabled(flag)
 
     def confirm(self, confirm_option=None):
-        print('[gt] Confirmed config')
-        print('confirm_option = %r' % (confirm_option,))
+        logger.info('[gt] Confirmed config')
+        logger.info('confirm_option = %r' % (confirm_option,))
         self.confirm_option = confirm_option
         self.close()
 
@@ -1887,8 +1889,8 @@ class ConfigConfirmWidget(GuitoolWidget):
         #    return s
 
         def _adjust_widget(w):
-            print('-----------')
-            print('w = %r' % (w,))
+            logger.info('-----------')
+            logger.info('w = %r' % (w,))
             orig_size = w.size()
             hint_size = w.sizeHint()
             # adj_size = adjusted_size(w)
@@ -1898,13 +1900,13 @@ class ConfigConfirmWidget(GuitoolWidget):
             # height = min(adj_size.height(), hint_size.height())
             height = hint_size.height()
             newsize = (orig_size.width(), height)
-            print('orig_size = %r' % (orig_size,))
-            print('hint_size = %r' % (hint_size,))
-            print('adj_size = %r' % (adj_size,))
-            print('newsize = %r' % (newsize,))
+            logger.info('orig_size = %r' % (orig_size,))
+            logger.info('hint_size = %r' % (hint_size,))
+            logger.info('adj_size = %r' % (adj_size,))
+            logger.info('newsize = %r' % (newsize,))
             # w.setMinimumSize(*newsize)
             w.resize(*newsize)
-            print('Actual new size = %r' % (w.size()))
+            logger.info('Actual new size = %r' % (w.size()))
 
         if hasattr(self, 'topLevelWidget'):
             top = self.topLevelWidget()
@@ -1921,7 +1923,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         #    _adjust_widget(parent)
 
     def cancel(self):
-        print('[gt] Canceled confirm config')
+        logger.info('[gt] Canceled confirm config')
         self.close()
 
 
@@ -2662,7 +2664,7 @@ class SimpleTree(QtCore.QObject):
         self.tree.setHeaderHidden(True)
         self.root = self.tree.invisibleRootItem()
         self.tree.itemChanged.connect(self.handleChanged)
-        # print('x = %r' % (x,))
+        # logger.info('x = %r' % (x,))
         # self.tree.itemClicked.connect(self.handleClicked)
         self.callbacks = {}
 
@@ -2719,7 +2721,7 @@ class SimpleTree(QtCore.QObject):
     # @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
     # def handleClicked(self, item, column):
     #     pass
-    #     # print('item = %r' % (item,))
+    #     # logger.info('item = %r' % (item,))
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
     def handleChanged(self, item, column):
@@ -2985,8 +2987,8 @@ class ComboRadioHybrid(GuitoolWidget):
                     self.combo.setItemData(i, Qt.AlignCenter, Qt.TextAlignmentRole)
 
                 for i in range(len(self.combo_options)):
-                    print(self.combo.itemData(0))
-                    print(model.itemData(model.index(i, 0)))
+                    logger.info(self.combo.itemData(0))
+                    logger.info(model.itemData(model.index(i, 0)))
             else:
                 self.combo.setEditable(True)
                 self.combo.lineEdit().setAlignment(QtCore.Qt.AlignCenter)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import numpy as np
 import vtool as vt
@@ -7,6 +8,7 @@ import torch
 
 # from torch.autograd import Variable  # NOQA
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # from pysseg import getLogger
 # logger = getLogger(__name__)
@@ -142,7 +144,7 @@ class LRSchedules(NetMathParams):
             lr *= 0.1
 
         if epoch % lr_decay_epoch == 0:
-            print('LR is set to {}'.format(lr))
+            logger.info('LR is set to {}'.format(lr))
 
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
@@ -222,7 +224,7 @@ class Metrics(NetMathParams):
         neg_dist = (
             0 if len(l2_dist_tensor[~is_pos]) == 0 else l2_dist_tensor[~is_pos].mean()
         )
-        # print('same dis : diff dis  {} : {}'.format(l2_dist_tensor[is_pos == 0].mean(), l2_dist_tensor[is_pos].mean()))
+        # logger.info('same dis : diff dis  {} : {}'.format(l2_dist_tensor[is_pos == 0].mean(), l2_dist_tensor[is_pos].mean()))
 
         # accuracy
         pred_pos_flags = torch.ByteTensor()

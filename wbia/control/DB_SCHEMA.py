@@ -14,12 +14,14 @@ TODO:
 CommandLine:
     python -m wbia.control.DB_SCHEMA --test-autogen_db_schema
 """
+import logging
 from wbia import constants as const
 from wbia.control import _sql_helpers
 from wbia.dtool.dump import dumps
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 try:
@@ -30,7 +32,7 @@ try:
 except Exception:
     UPDATE_CURRENT = None
     VERSION_CURRENT = None
-    print('[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!')
+    logger.info('[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!')
 
 profile = ut.profile
 
@@ -277,12 +279,12 @@ def update_1_0_0(db, ibs=None):
 
 def post_1_0_0(db, ibs=None):
     # We are dropping the versions table and rather using the metadata table
-    print('applying post_1_0_0')
+    logger.info('applying post_1_0_0')
     db.drop_table(const.VERSIONS_TABLE)
 
 
 def post_1_2_0(db, ibs=None):
-    print('applying post_1_2_0')
+    logger.info('applying post_1_2_0')
 
     def schema_1_2_0_postprocess_fixuuids(ibs):
         """
@@ -422,7 +424,7 @@ def post_1_2_0(db, ibs=None):
         ), 'cannot update to 1_2_0 species length error'
 
         if ut.list_all_eq_to(nid_list, 0) and ut.list_all_eq_to(speciesid_list, 0):
-            print('... returning No information in lblannot table to transfer')
+            logger.info('... returning No information in lblannot table to transfer')
             return
 
         # Make sure information has not gotten out of sync
@@ -453,14 +455,14 @@ def post_1_2_0(db, ibs=None):
         ibs._init_rowid_constants()
         schema_1_2_0_postprocess_fixuuids(ibs)
     else:
-        print(
+        logger.info(
             'warning: ibs is None, so cannot apply name/species column fixes to existing database'
         )
 
 
 def post_1_2_1(db, ibs=None):
     if ibs is not None:
-        print('applying post_1_2_1')
+        logger.info('applying post_1_2_1')
         import utool as ut
 
         if ibs is not None:
@@ -692,7 +694,7 @@ def pre_1_3_1(db, ibs=None):
                 aids = ut.take(aid_list, dupxs)
                 dupaids_list.append(aids[1:])
             toremove_aids = ut.flatten(dupaids_list)
-            print('About to delete toremove_aids=%r' % (toremove_aids,))
+            logger.info('About to delete toremove_aids=%r' % (toremove_aids,))
             ibs.db.delete_rowids(const.ANNOTATION_TABLE, toremove_aids)
 
             aid_list = ibs.get_valid_aids(is_staged=None)
@@ -1018,7 +1020,7 @@ def update_1_3_4(db, ibs=None):
     #    val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
     #    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)
     #    ibs.update_annot_visual_uuids(aid_list)
-    print('executing update_1_3_4')
+    logger.info('executing update_1_3_4')
     TAU = const.TAU
 
     def convert_old_viewpoint_to_yaw(angle):
@@ -1654,7 +1656,7 @@ def post_1_5_2(db, ibs=None, verbose=False):
 
         def _parse_orient(gpath):
             if verbose:
-                print('[db_update (1.5.2)]     Parsing: %r' % (gpath,))
+                logger.info('[db_update (1.5.2)]     Parsing: %r' % (gpath,))
             pil_img = Image.open(gpath, 'r')  # NOQA
             time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
             return orient
@@ -1669,7 +1671,7 @@ def post_1_5_2(db, ibs=None, verbose=False):
         zipped = zip(gid_list, orient_list)
         gid_list_ = [gid for gid, orient in zipped if orient in [0, None]]
         args = (len(gid_list_), len(gid_list_all), valid_list.count(False))
-        print(
+        logger.info(
             '[db_update (1.5.2)] Parsing Exif orientations for %d / %d images (skipping %d)'
             % args
         )
@@ -1738,7 +1740,7 @@ def post_1_6_1(db, ibs=None, verbose=False):
         unpack_scalars=False,
         where_colnames=('annotmatch_truth',),
     )[0]
-    print('Setting %d old unknown values to NULL' % (len(ams)))
+    logger.info('Setting %d old unknown values to NULL' % (len(ams)))
     # if ibs is not None:
     #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
     #         'this is a hacked state. to fix bug where EVIDENCE_DECISION.UNKNOWN was 2')
@@ -2084,7 +2086,7 @@ def __test_db_version_table_constraints():
         ibs.db.set_metadata_val('contributors_superkeys', "[('contributor_tag',)]")
 
         # Made a mistake
-        print(ibs.db.get_table_csv_header('metadata'))
+        logger.info(ibs.db.get_table_csv_header('metadata'))
         badrowid = ibs.db.get_rowid_from_superkey('metadata', [('contributors_superkey',)], ('metadata_key',))
         assert len(badrowid) == 1
         ibs.db.delete('metadata', [badrowid[0]])
@@ -2108,7 +2110,7 @@ def __test_db_version_table_constraints():
     ibs2 = wbia.opendb(dbdir=tmpdir, request_dbversion='1.0.3', use_cache=False)
     ibs2.db.print_schema()
     assert 'contributors' in ibs2.db.get_table_names()
-    print(ibs2.db.get_schema_current_autogeneration_str('foo'))
+    logger.info(ibs2.db.get_schema_current_autogeneration_str('foo'))
 
     assert 'contributors_superkeys' in ut.get_list_column(ibs2.db.get_metadata_items(), 0)
 
@@ -2168,10 +2170,10 @@ def dump_schema_sql():
     db = dt.SQLDatabaseController(fpath=':memory:')
     DB_SCHEMA_CURRENT.update_current(db)
     dump_str = dumps(db.connection)
-    print(dump_str)
+    logger.info(dump_str)
 
     for tablename in db.get_table_names():
         autogen_dict = db.get_table_autogen_dict(tablename)
         coldef_list = autogen_dict['coldef_list']
         str_ = db._make_add_table_sqlstr(tablename, coldef_list=coldef_list, sep='\n    ')
-        print(str_)
+        logger.info(str_)

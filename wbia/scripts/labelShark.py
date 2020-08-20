@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 from wbia.scripts import classify_shark
 import numpy as np
 import vtool as vt
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[sharkspotter]')
+logger = logging.getLogger('wbia')
 
 modelStateLocation = (
     'https://wildbookiarepository.azureedge.net/models/classifier.lenet.whale_shark.pkl'

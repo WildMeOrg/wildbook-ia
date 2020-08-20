@@ -2,6 +2,7 @@
 """
 Runs many queries and keeps track of some results
 """
+import logging
 import sys
 import textwrap
 import numpy as np  # NOQA
@@ -10,6 +11,7 @@ from wbia.expt import experiment_helpers
 from wbia.expt import test_result
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
@@ -62,7 +64,7 @@ def run_expt(
         >>> use_cache = False
         >>> testres_list = run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache)
     """
-    print('[harn] run_expt')
+    logger.info('[harn] run_expt')
     # Generate list of database annotation configurations
     if len(acfg_name_list) == 0:
         raise ValueError('must give acfg name list')
@@ -142,12 +144,12 @@ def run_expt(
         testres_.test_cfg_name_list = test_cfg_name_list
         testres_list.append(testres_)
     if DRY_RUN:
-        print('DRYRUN: Cannot continue past run_expt')
+        logger.info('DRYRUN: Cannot continue past run_expt')
         sys.exit(0)
 
     testres = test_result.combine_testres_list(ibs, testres_list)
     # testres.print_results()
-    print('Returning Test Result')
+    logger.info('Returning Test Result')
     return testres
 
 
@@ -175,7 +177,7 @@ def make_single_testres(
     dbname = ibs.get_dbname()
 
     # if ut.NOT_QUIET:
-    #     print('[harn] Make single testres')
+    #     logger.info('[harn] Make single testres')
 
     cfgx2_qreq_ = [
         ibs.new_query_request(qaids, daids, verbose=False, query_cfg=pipe_cfg)
@@ -270,10 +272,10 @@ def make_single_testres(
     if ut.NOT_QUIET:
         ut.colorprint('[harn] Completed running test configurations', 'white')
     if DRY_RUN:
-        print('ran tests dryrun mode.')
+        logger.info('ran tests dryrun mode.')
         return
     if NOMEMORY:
-        print('ran tests in memory savings mode. Cannot Print. exiting')
+        logger.info('ran tests in memory savings mode. Cannot Print. exiting')
         return
     # Store all pipeline config results in a test result object
     testres = test_result.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_)

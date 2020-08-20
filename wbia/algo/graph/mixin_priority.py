@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six
 import numpy as np
 import utool as ut
@@ -10,6 +11,7 @@ from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 from wbia.algo.graph import mixin_loops
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 ENABLE_PRIORITY_PCC_CORRECTION = True
@@ -47,7 +49,7 @@ class Priority(object):
         infr.assert_edge(edge)
 
         if mixin_loops.PRINCETON_KAIA_EDGE_LIST is not None:
-            # print('[Priority._push] FILTERING EDGES FOR KAIA')
+            # logger.info('[Priority._push] FILTERING EDGES FOR KAIA')
             # Sanity check, make sure that one of the edges is in the tier 1 dataset
             include_filter_set = set(mixin_loops.PRINCETON_KAIA_EDGE_LIST)
 
@@ -191,7 +193,7 @@ class Priority(object):
             infr.add_candidate_edges(edges)
 
             infr.prioritize()
-            print(ut.repr4(infr.status()))
+            logger.info(ut.repr4(infr.status()))
         """
         if reset or infr.queue is None:
             infr.queue = ut.PriorityQueue()
@@ -373,7 +375,7 @@ class Priority(object):
                         if pred == NEGTV and nid1 != nid2:
                             continue  # Loop instead of recursive (infr.pop())
                     else:
-                        print('in error recover mode')
+                        logger.info('in error recover mode')
                 infr.assert_edge(edge)
                 return edge, priority
 

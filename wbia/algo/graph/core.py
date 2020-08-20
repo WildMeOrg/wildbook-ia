@@ -29,6 +29,7 @@ import networkx as nx
 import logging
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 DEBUG_CC = False
@@ -307,7 +308,7 @@ class Feedback(object):
             )
             + ']'
         )
-        print(msg)
+        logger.info(msg)
 
     @ut.classproperty
     def feedback_keys(Infr):
@@ -758,8 +759,8 @@ class MiscHelpers(object):
 
         new_groups = list(infr.positive_components())
 
-        # print('old_groups = {!r}'.format(old_groups))
-        # print('new_groups = {!r}'.format(new_groups))
+        # logger.info('old_groups = {!r}'.format(old_groups))
+        # logger.info('new_groups = {!r}'.format(new_groups))
         delta = ut.grouping_delta(old_groups, new_groups)
         splits = delta['splits']
 
@@ -772,7 +773,7 @@ class MiscHelpers(object):
         )
 
         return splits
-        # print(ub.repr2(delta, nl=2))
+        # logger.info(ub.repr2(delta, nl=2))
 
     def add_aids(infr, aids, nids=None):
         """
@@ -889,7 +890,7 @@ class MiscHelpers(object):
             # Send the message to a python logger
             infr.logger.log(loglevel, msg)
 
-        print(msg)
+        logger.info(msg)
 
     print = log_message
 
@@ -902,10 +903,10 @@ class MiscHelpers(object):
             return [infr.logs[x][0] for x in range(index, len(infr.logs))]
 
     def dump_logs(infr):
-        print('--- <LOG DUMP> ---')
+        logger.info('--- <LOG DUMP> ---')
         for msg, color in infr.logs:
             ut.cprint('[infr] ' + msg, color)
-        print('--- <\\LOG DUMP> ---')
+        logger.info('--- <\\LOG DUMP> ---')
 
 
 class AltConstructors(object):
@@ -1187,7 +1188,7 @@ class AnnotInference(
                 logger = logging.getLogger(logname)
                 if not logger.handlers:
                     fh = logging.FileHandler(join(logdir, logname + '.log'))
-                    print('logger.handlers = {!r}'.format(logger.handlers))
+                    logger.info('logger.handlers = {!r}'.format(logger.handlers))
                     logger.addHandler(fh)
                 # logger.setLevel(logging.INFO)
                 logger.setLevel(logging.DEBUG)

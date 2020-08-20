@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import six
 from os.path import exists, join, realpath
 
 (print, rrr, profile) = ut.inject2(__name__, '[grabmodels]')
+logger = logging.getLogger('wbia')
 
 
 # DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))
@@ -109,12 +111,12 @@ def redownload_models(modeldir='default', verbose=True):
         >>> from wbia.algo.detect.grabmodels import *  # NOQA
         >>> result = redownload_models()
     """
-    print('[grabmodels] redownload_detection_models')
+    logger.info('[grabmodels] redownload_detection_models')
     modeldir = _expand_modeldir(modeldir)
     ut.delete(modeldir)
     ensure_models(modeldir=modeldir, verbose=verbose)
     if verbose:
-        print('[grabmodels] finished redownload_detection_models')
+        logger.info('[grabmodels] finished redownload_detection_models')
 
 
 def _download_model(algo, algo_modeldir):
@@ -123,7 +125,7 @@ def _download_model(algo, algo_modeldir):
     """
     zip_fpath = realpath(join(algo_modeldir, algo + '.zip'))
     # Download and unzip model
-    print('[grabmodels] Downloading model_dir=%s' % zip_fpath)
+    logger.info('[grabmodels] Downloading model_dir=%s' % zip_fpath)
     model_link = MODEL_URLS[algo]
     ut.download_url(model_link, zip_fpath)
     ut.unzip_file(zip_fpath)

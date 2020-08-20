@@ -32,6 +32,7 @@ Needed Tables:
     ViewpointClassifier
 
 """
+import logging
 from six.moves import zip
 from wbia import dtool
 import utool as ut
@@ -43,6 +44,7 @@ import sys
 import wbia.constants as const
 
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
+logger = logging.getLogger('wbia')
 
 
 register_preproc = register_preprocs['image']
@@ -296,8 +298,8 @@ def compute_classifications(depc, gid_list, config=None):
         >>> results = depc.get_property('classifier', gid_list, None, config=config)
         >>> print(results)
     """
-    print('[ibs] Process Image Classifications')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Image Classifications')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
@@ -381,8 +383,8 @@ def compute_classifications2(depc, gid_list, config=None):
         >>> results = depc.get_property('classifier_two', gid_list, None)
         >>> print(results)
     """
-    print('[ibs] Process Image Classifications2')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Image Classifications2')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
@@ -505,8 +507,8 @@ def compute_features(depc, gid_list, config=None):
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
     """
-    print('[ibs] Preprocess Features')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Preprocess Features')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
@@ -799,8 +801,8 @@ def compute_localizations_original(depc, gid_list, config=None):
                 accum_list.append(accum_value)
             yield tuple(accum_list)
 
-    print('[ibs] Preprocess Localizations')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Preprocess Localizations')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
@@ -823,24 +825,24 @@ def compute_localizations_original(depc, gid_list, config=None):
     if config['algo'] in ['pydarknet', 'yolo', 'cnn']:
         from wbia.algo.detect import yolo
 
-        print('[ibs] detecting using PyDarknet CNN YOLO v1')
+        logger.info('[ibs] detecting using PyDarknet CNN YOLO v1')
         detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['lightnet']:
         from wbia.algo.detect import lightnet
 
-        print('[ibs] detecting using Lightnet CNN YOLO v2')
+        logger.info('[ibs] detecting using Lightnet CNN YOLO v2')
         detect_gen = lightnet.detect_gid_list(ibs, gid_list, **config)
     elif config['algo'] in ['azure']:
         from wbia.algo.detect import azure
 
-        print('[ibs] detecting using Azure CustomVision')
+        logger.info('[ibs] detecting using Azure CustomVision')
         detect_gen = azure.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['rf']:
         from wbia.algo.detect import randomforest
 
-        print('[ibs] detecting using Random Forests')
+        logger.info('[ibs] detecting using Random Forests')
         assert config['species'] is not None
         base_key_list[6] = (config['species'],)  # class == species
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
@@ -848,7 +850,7 @@ def compute_localizations_original(depc, gid_list, config=None):
     elif config['algo'] in ['selective-search']:
         from wbia.algo.detect import selectivesearch
 
-        print('[ibs] detecting using Selective Search')
+        logger.info('[ibs] detecting using Selective Search')
         matlab_command = 'selective_search'
         detect_gen = selectivesearch.detect_gid_list(
             ibs, gid_list, matlab_command=matlab_command, **config
@@ -857,7 +859,7 @@ def compute_localizations_original(depc, gid_list, config=None):
     elif config['algo'] in ['selective-search-rcnn']:
         from wbia.algo.detect import selectivesearch
 
-        print('[ibs] detecting using Selective Search (R-CNN)')
+        logger.info('[ibs] detecting using Selective Search (R-CNN)')
         matlab_command = 'selective_search_rcnn'
         detect_gen = selectivesearch.detect_gid_list(
             ibs, gid_list, matlab_command=matlab_command, **config
@@ -865,25 +867,25 @@ def compute_localizations_original(depc, gid_list, config=None):
     ######################################################################################
     # elif config['algo'] in ['fast-rcnn']:
     #     from wbia.algo.detect import fasterrcnn
-    #     print('[ibs] detecting using CNN Fast R-CNN')
+    #     logger.info('[ibs] detecting using CNN Fast R-CNN')
     #     detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['faster-rcnn']:
         from wbia.algo.detect import fasterrcnn
 
-        print('[ibs] detecting using CNN Faster R-CNN')
+        logger.info('[ibs] detecting using CNN Faster R-CNN')
         detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['darknet']:
         from wbia.algo.detect import darknet
 
-        print('[ibs] detecting using Darknet CNN YOLO')
+        logger.info('[ibs] detecting using Darknet CNN YOLO')
         detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['ssd']:
         from wbia.algo.detect import ssd
 
-        print('[ibs] detecting using CNN SSD')
+        logger.info('[ibs] detecting using CNN SSD')
         detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
     # ######################################################################################
     elif config['algo'] in ['_COMBINED']:
@@ -975,8 +977,8 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
     """
-    print('[ibs] Preprocess Localizations')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Preprocess Localizations')
+    logger.info('config = %r' % (config,))
 
     VERBOSE = False
 
@@ -1011,7 +1013,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
                 count_new = len(bboxes)
                 if VERBOSE:
-                    print(
+                    logger.info(
                         'Filtered with sensitivity = %0.02f (%d -> %d)'
                         % (config['sensitivity'], count_old, count_new,)
                     )
@@ -1125,7 +1127,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                             nms_count_old,
                             count_new,
                         )
-                        print(
+                        logger.info(
                             'Filtered nms_key = %r with nms_thresh = %0.02f (%d -> %d)'
                             % nms_args
                         )
@@ -1160,7 +1162,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                     count_old,
                     count_new,
                 )
-                print('Filtered with nms_thresh = %0.02f (%d -> %d)' % nms_args)
+                logger.info('Filtered with nms_thresh = %0.02f (%d -> %d)' % nms_args)
 
         # Kill invalid images
         if config['invalid']:
@@ -1205,7 +1207,9 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
                 count_new = len(bboxes)
                 if VERBOSE:
-                    print('Filtered invalid images (%d -> %d)' % (count_old, count_new,))
+                    logger.info(
+                        'Filtered invalid images (%d -> %d)' % (count_old, count_new,)
+                    )
 
         if config['boundary']:
             gid = depc.get_ancestor_rowids(
@@ -1344,7 +1348,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128), axis_aligne
         max(len_list),
         sum(len_list),
     )
-    print(
+    logger.info(
         'Extracting %d localization chips (min: %d, avg: %0.02f, max: %d, total: %d)'
         % args
     )
@@ -1473,7 +1477,7 @@ def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
         max(len_list),
         sum(len_list),
     )
-    print(
+    logger.info(
         'Extracting %d localization masks (min: %d, avg: %0.02f, max: %d, total: %d)'
         % args
     )
@@ -1631,8 +1635,8 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
         >>> results = depc.get_property('localizations_chips', gid_list, None, config=config)
         >>> print(results)
     """
-    print('[ibs] Process Localization Chips')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Localization Chips')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
 
@@ -1660,13 +1664,13 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
     img_list = (ibs.get_images(gid) for gid in gid_list_)
 
     if masking:
-        print(
+        logger.info(
             'Extracting %d localization masks (min: %d, avg: %0.02f, max: %d, total: %d)'
             % args
         )
         worker_func = get_localization_masks_worker
     else:
-        print(
+        logger.info(
             'Extracting %d localization chips (min: %d, avg: %0.02f, max: %d, total: %d)'
             % args
         )
@@ -1756,8 +1760,8 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
     """
-    print('[ibs] Process Localization Classifications')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Localization Classifications')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
 
@@ -1966,8 +1970,8 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     from PIL import Image
     from keras.preprocessing import image as preprocess_image
 
-    print('[ibs] Preprocess Features')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Preprocess Features')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     target_size = (224, 224)
@@ -2103,8 +2107,8 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
     """
     from os.path import join, exists
 
-    print('[ibs] Process Localization Labels')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Localization Labels')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
 
@@ -2226,8 +2230,8 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
         >>> results = depc.get_property('labeler', gid_list, 'species')
         >>> print(results)
     """
-    print('[ibs] Process Localization AoI2s')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Process Localization AoI2s')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
 
@@ -2322,8 +2326,8 @@ def compute_detections(depc, gid_list, config=None):
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)
     """
-    print('[ibs] Preprocess Detections')
-    print('config = %r' % (config,))
+    logger.info('[ibs] Preprocess Detections')
+    logger.info('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
@@ -2417,8 +2421,8 @@ def compute_detections(depc, gid_list, config=None):
         #         species_dict[species] = 0
         #     species_dict[species] += 1
         # for tup in species_dict.iteritems():
-        #     print('\t%r' % (tup, ))
-        # print('----')
+        #     logger.info('\t%r' % (tup, ))
+        # logger.info('----')
         viewpoint_list = viewpoints_list[index]
         conf_list = confses_list[index]
         score_list = scores_list[index]
@@ -2440,10 +2444,12 @@ def compute_detections(depc, gid_list, config=None):
             ):
                 zipped_.append([bbox, theta, species, viewpoint, conf * score])
             else:
-                print(
+                logger.info(
                     'Localizer %0.02f %0.02f' % (conf, config['localizer_sensitivity'],)
                 )
-                print('Labeler   %0.02f %0.02f' % (score, config['labeler_sensitivity'],))
+                logger.info(
+                    'Labeler   %0.02f %0.02f' % (score, config['labeler_sensitivity'],)
+                )
         if len(zipped_) == 0:
             detect_list = list(empty_list)
         else:
@@ -2458,9 +2464,9 @@ def compute_detections(depc, gid_list, config=None):
         else:
             assert gid in detect_dict
             result = detect_dict[gid]
-        # print(result)
+        # logger.info(result)
         # raw_input()
-        # print('')
+        # logger.info('')
         # image = ibs.get_images(gid)
         # image = vt.resize(image, (500, 500))
         # cv2.imshow('', image)

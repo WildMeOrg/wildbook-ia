@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import numpy as np
 import vtool as vt
@@ -8,6 +9,7 @@ import scipy.cluster.hierarchy
 import sklearn.cluster
 
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_occurrence]')
+logger = logging.getLogger('wbia')
 
 
 def wbia_compute_occurrences(ibs, gid_list, config=None, verbose=None):
@@ -87,8 +89,8 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False, verbose=N
     # Config info
     gid_list = np.unique(gid_list)
     if verbose:
-        print('[occur] Computing occurrences on %r images.' % (len(gid_list)))
-        print('[occur] config = ' + ut.repr3(config))
+        logger.info('[occur] Computing occurrences on %r images.' % (len(gid_list)))
+        logger.info('[occur] config = ' + ut.repr3(config))
 
     use_gps = config['use_gps']
     datas = prepare_X_data(ibs, gid_list, use_gps=use_gps)
@@ -135,9 +137,9 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False, verbose=N
         labels, label_gids, min_imgs_per_occurence, occur_unixtimes
     )
     if verbose:
-        print('[occur] Found %d clusters.' % len(occur_labels))
+        logger.info('[occur] Found %d clusters.' % len(occur_labels))
     if len(label_gids) > 0 and verbose:
-        print('[occur] Cluster image size stats:')
+        logger.info('[occur] Cluster image size stats:')
         ut.print_dict(
             ut.get_stats(list(map(len, occur_gids)), use_median=True, use_sum=True),
             'occur image stats',
@@ -539,26 +541,26 @@ def plot_gps_html(gps_list):
     # from mpl_toolkits.basemap import shiftgrid, cm  # NOQA
     # from netCDF4 import Dataset
     # # Read information to make background pretty
-    # print('Grab topo information')
+    # logger.info('Grab topo information')
     # etopodata = Dataset('http://ferret.pmel.noaa.gov/thredds/dodsC/data/PMEL/etopo5.nc')
-    # print('Read topo information')
+    # logger.info('Read topo information')
     # topoin = etopodata.variables['ROSE'][:]
     # lons = etopodata.variables['ETOPO05_X'][:]
     # lats = etopodata.variables['ETOPO05_Y'][:]
     # # shift data so lons go from -180 to 180 instead of 20 to 380.
-    # print('Shift data')
+    # logger.info('Shift data')
     # topoin, lons = shiftgrid(180., topoin, lons, start=False)
 
-    # print('Make figure')
+    # logger.info('Make figure')
     # fnum = pt.ensure_fnum(None)
     # fig = pt.figure(fnum=fnum, doclf=True, docla=True)  # NOQA
-    # print('Draw projection')
+    # logger.info('Draw projection')
     # m = Basemap(projection='mill', **basemap_extent)
     # # setup Lambert Conformal basemap.
     # #m = Basemap(projection='cea',resolution='h', **basemap_extent)
 
     # # transform to nx x ny regularly spaced 5km native projection grid
-    # print('projection grid')
+    # logger.info('projection grid')
     # nx = int((m.xmax - m.xmin) / 5000.) + 1
     # ny = int((m.ymax - m.ymin) / 5000.) + 1
     # topodat = m.transform_scalar(topoin, lons, lats, nx, ny)

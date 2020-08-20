@@ -7,9 +7,11 @@ AutogenCommandLine:
     python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema --force-incremental-db-update
 """
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # =======================
 # Schema Version Current

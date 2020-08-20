@@ -7,10 +7,12 @@ Consider moving to pytest and using xdoctest (because regular doctest does not
 accept the syntax of IBEIS doctests)
 """
 
+import logging
 import networkx as nx
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def test_neg_metagraph_simple_add_remove():

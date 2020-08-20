@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six  # NOQA
 import utool as ut  # NOQA
 import numpy as np
@@ -9,6 +10,7 @@ from wbia.control import accessor_decors  # NOQA
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
@@ -114,7 +116,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
 def get_feat_kpts_distinctiveness(
     ibs, fid_list, dstncvs_normer=None, species_rowid=None, **kwargs
 ):
-    # print('[ibs] get_feat_kpts_distinctiveness fid_list=%r' % (fid_list,))
+    # logger.info('[ibs] get_feat_kpts_distinctiveness fid_list=%r' % (fid_list,))
     vecs_list = ibs.get_feat_vecs(fid_list, eager=True, nInput=None)
     dstncvs_list = [
         None if vecs is None else dstncvs_normer.get_distinctiveness(vecs, **kwargs)

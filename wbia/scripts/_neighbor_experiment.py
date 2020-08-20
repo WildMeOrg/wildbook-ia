@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import vtool as vt
 import numpy as np
 import utool as ut
@@ -10,6 +11,7 @@ from wbia.algo.hots import neighbor_index_cache
 # import mem_top
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def augment_nnindexer_experiment():
@@ -111,11 +113,11 @@ def augment_nnindexer_experiment():
             addition_count_list.append(count)
             time_list_addition.append(t.ellapsed)
             tmp_cfgstr_list.append(nnindexer_.cfgstr)
-            print('===============\n\n')
-        print(ut.repr2(time_list_addition))
-        print(ut.repr2(list(map(id, nnindexer_list))))
-        print(ut.repr2(tmp_cfgstr_list))
-        print(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+            logger.info('===============\n\n')
+        logger.info(ut.repr2(time_list_addition))
+        logger.info(ut.repr2(list(map(id, nnindexer_list))))
+        logger.info(ut.repr2(tmp_cfgstr_list))
+        logger.info(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
 
         IS_SMALL = False
 
@@ -130,7 +132,7 @@ def augment_nnindexer_experiment():
         reindex_count_list = []
 
         for count in reindex_iter:
-            print('\n+===PREDONE====================\n')
+            logger.info('\n+===PREDONE====================\n')
             # check only a single size for memory leaks
             # count = max_num // 16 + ((x % 6) * 1)
             # x += 1
@@ -144,19 +146,19 @@ def augment_nnindexer_experiment():
                 )
             memtrack.report('AFTER REINDEX')
             ibs.print_cachestats_str()
-            print(
+            logger.info(
                 '[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s'
                 % (ut.get_object_size_str(neighbor_index_cache.NEIGHBOR_CACHE.items()),)
             )
-            print(
+            logger.info(
                 '[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %s'
                 % (len(neighbor_index_cache.NEIGHBOR_CACHE.items()),)
             )
-            print(
+            logger.info(
                 '[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = %s'
                 % (ut.get_object_size_str(neighbor_index_cache.UUID_MAP_CACHE),)
             )
-            print('totalsize(nnindexer) = ' + ut.get_object_size_str(nnindexer_))
+            logger.info('totalsize(nnindexer) = ' + ut.get_object_size_str(nnindexer_))
             memtrack.report_type(neighbor_index_cache.NeighborIndex)
             ut.print_object_size_tree(nnindexer_, lbl='nnindexer_')
             if IS_SMALL:
@@ -165,29 +167,29 @@ def augment_nnindexer_experiment():
             time_list_reindex.append(t.ellapsed)
             # import cv2
             # import matplotlib as mpl
-            # print(mem_top.mem_top(limit=30, width=120,
+            # logger.info(mem_top.mem_top(limit=30, width=120,
             #                      #exclude_refs=[cv2.__dict__, mpl.__dict__]
             #     ))
-            print('L___________________\n\n\n')
-        print(ut.repr2(time_list_reindex))
+            logger.info('L___________________\n\n\n')
+        logger.info(ut.repr2(time_list_reindex))
         if IS_SMALL:
-            print(ut.repr2(list(map(id, nnindexer_list))))
-            print(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+            logger.info(ut.repr2(list(map(id, nnindexer_list))))
+            logger.info(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
     except KeyboardInterrupt:
-        print('\n[train] Caught CRTL+C')
+        logger.info('\n[train] Caught CRTL+C')
         resolution = ''
         from six.moves import input
 
         while not (resolution.isdigit()):
-            print('\n[train] What do you want to do?')
-            print('[train]     0 - Continue')
-            print('[train]     1 - Embed')
-            print('[train]  ELSE - Stop network training')
+            logger.info('\n[train] What do you want to do?')
+            logger.info('[train]     0 - Continue')
+            logger.info('[train]     1 - Embed')
+            logger.info('[train]  ELSE - Stop network training')
             resolution = input('[train] Resolution: ')
         resolution = int(resolution)
         # We have a resolution
         if resolution == 0:
-            print('resuming training...')
+            logger.info('resuming training...')
         elif resolution == 1:
             ut.embed()
 
@@ -325,15 +327,15 @@ def flann_add_time_experiment():
     for count in addition_iter:
         addition_step(count, flann, count_list2, time_list_addition)
 
-    print('---')
-    print('Reindex took time_list_reindex %.2s seconds' % sum(time_list_reindex))
-    print('Addition took time_list_reindex  %.2s seconds' % sum(time_list_addition))
-    print('---')
+    logger.info('---')
+    logger.info('Reindex took time_list_reindex %.2s seconds' % sum(time_list_reindex))
+    logger.info('Addition took time_list_reindex  %.2s seconds' % sum(time_list_addition))
+    logger.info('---')
     statskw = dict(precision=2, newlines=True)
-    print('Reindex stats ' + ut.get_stats_str(time_list_reindex, **statskw))
-    print('Addition stats ' + ut.get_stats_str(time_list_addition, **statskw))
+    logger.info('Reindex stats ' + ut.get_stats_str(time_list_reindex, **statskw))
+    logger.info('Addition stats ' + ut.get_stats_str(time_list_addition, **statskw))
 
-    print('Plotting')
+    logger.info('Plotting')
 
     # with pt.FigureContext:
 
@@ -492,19 +494,19 @@ def trytest_multiple_add_removes():
     nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
 
     assert len(nnindexer.get_removed_idxs()) == 0
-    print('\n\n --- got nnindex testdata --- ')
-    print('')
+    logger.info('\n\n --- got nnindex testdata --- ')
+    logger.info('')
 
     @ut.tracefunc_xml
     def print_nnindexer(nnindexer):
-        print('nnindexer.get_indexed_aids() = %r' % (nnindexer.get_indexed_aids(),))
-        print('nnindexer.num_indexed_vecs() = %r' % (nnindexer.num_indexed_vecs(),))
-        print(
+        logger.info('nnindexer.get_indexed_aids() = %r' % (nnindexer.get_indexed_aids(),))
+        logger.info('nnindexer.num_indexed_vecs() = %r' % (nnindexer.num_indexed_vecs(),))
+        logger.info(
             'nnindexer.get_removed_idxs().shape = %r'
             % (nnindexer.get_removed_idxs().shape,)
         )
 
-    print('INITIALIZE TEST')
+    logger.info('INITIALIZE TEST')
     print_nnindexer(nnindexer)
 
     config2_ = qreq_.get_internal_query_config2()
@@ -512,36 +514,36 @@ def trytest_multiple_add_removes():
     qfx2_vec = ibs.get_annot_vecs(qaid, config2_=config2_)
     (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
     aids1 = set(nnindexer.get_nn_aids(qfx2_idx1).ravel())
-    print('aids1 = %r' % (aids1,))
+    logger.info('aids1 = %r' % (aids1,))
 
-    print('')
-    print('TESTING ADD')
+    logger.info('')
+    logger.info('TESTING ADD')
     add_first_daids = [17, 22]
     nnindexer.add_wbia_support(qreq_, add_first_daids)
     print_nnindexer(nnindexer)
     (qfx2_idx0, qfx2_dist0) = nnindexer.knn(qfx2_vec, K)
     assert np.any(qfx2_idx0 != qfx2_idx1), 'some should change'
     aids0 = set(nnindexer.get_nn_aids(qfx2_idx0).ravel())
-    print('aids0 = %r' % (aids0,))
+    logger.info('aids0 = %r' % (aids0,))
 
     # execute test function
-    print('')
-    print('TESTING REMOVE')
+    logger.info('')
+    logger.info('TESTING REMOVE')
     remove_daid_list = [8, 10, 11]
     nnindexer.remove_wbia_support(qreq_, remove_daid_list)
     print_nnindexer(nnindexer)
     # test after modification
     (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
     aids2 = set(nnindexer.get_nn_aids(qfx2_idx2).ravel())
-    print('aids2 = %r' % (aids2,))
+    logger.info('aids2 = %r' % (aids2,))
     assert len(aids2.intersection(remove_daid_list)) == 0
 
     __removed_ids = nnindexer.flann._FLANN__removed_ids
     invalid_idxs = nnindexer.get_removed_idxs()
     assert len(np.intersect1d(invalid_idxs, __removed_ids)) == len(__removed_ids)
 
-    print('')
-    print('TESTING DUPLICATE REMOVE')
+    logger.info('')
+    logger.info('TESTING DUPLICATE REMOVE')
     nnindexer.remove_wbia_support(qreq_, remove_daid_list)
     print_nnindexer(nnindexer)
     # test after modification
@@ -549,8 +551,8 @@ def trytest_multiple_add_removes():
     assert np.all(qfx2_idx2_ == qfx2_idx2)
     assert np.all(qfx2_dist2_ == qfx2_dist2)
 
-    print('')
-    print('TESTING ADD AFTER REMOVE')
+    logger.info('')
+    logger.info('TESTING ADD AFTER REMOVE')
     # Is the error here happening because added points seem to
     # get the ids of the removed points?
     new_daid_list = [8, 10]
@@ -561,8 +563,8 @@ def trytest_multiple_add_removes():
     qfx2_aid3 = nnindexer.get_nn_aids(qfx2_idx3)
     found_removed_idxs = np.intersect1d(qfx2_idx3, nnindexer.get_removed_idxs())
     if len(found_removed_idxs) != 0:
-        print('found_removed_idxs.max() = %r' % (found_removed_idxs.max(),))
-        print('found_removed_idxs.min() = %r' % (found_removed_idxs.min(),))
+        logger.info('found_removed_idxs.max() = %r' % (found_removed_idxs.max(),))
+        logger.info('found_removed_idxs.min() = %r' % (found_removed_idxs.min(),))
         raise AssertionError(
             'found_removed_idxs.shape = %r' % (found_removed_idxs.shape,)
         )
@@ -571,7 +573,7 @@ def trytest_multiple_add_removes():
         remove_daid_list
     )
 
-    print('TESTING DUPLICATE ADD')
+    logger.info('TESTING DUPLICATE ADD')
     new_daid_list = [8, 10]
     nnindexer.add_wbia_support(qreq_, new_daid_list)
     # test after modification
@@ -580,7 +582,7 @@ def trytest_multiple_add_removes():
     qfx2_aid3_ = nnindexer.get_nn_aids(qfx2_idx3_)
     assert np.all(qfx2_aid3 == qfx2_aid3_)
 
-    print('TESTING ADD QUERY TO DATABASE')
+    logger.info('TESTING ADD QUERY TO DATABASE')
     add_daid_list1 = [qaid]
     nnindexer.add_wbia_support(qreq_, add_daid_list1)
     print_nnindexer(nnindexer)
@@ -590,14 +592,14 @@ def trytest_multiple_add_removes():
     assert np.all(qfx2_aid4_.T[0] == qaid), 'should find self'
     assert ut.issorted(qfx2_fx4_.T[0]), 'should be in order'
 
-    print('TESTING REMOVE QUERY POINTS')
+    logger.info('TESTING REMOVE QUERY POINTS')
     add_daid_list1 = [qaid]
     nnindexer.remove_wbia_support(qreq_, add_daid_list1)
     print_nnindexer(nnindexer)
     (qfx2_idx5_, qfx2_dist5_) = nnindexer.knn(qfx2_vec, K)
     issame = qfx2_idx5_ == qfx2_idx3_
     percentsame = issame.sum() / issame.size
-    print('percentsame = %r' % (percentsame,))
+    logger.info('percentsame = %r' % (percentsame,))
     assert (
         percentsame > 0.85
     ), 'a large majority of the feature idxs should remain the same'
@@ -612,13 +614,13 @@ def trytest_multiple_add_removes():
         (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
         issame = qfx2_idxX_ == qfx2_idx3_
         percentsame = issame.sum() / issame.size
-        print('percentsame = %r' % (percentsame,))
+        logger.info('percentsame = %r' % (percentsame,))
         assert (
             percentsame > 0.85
         ), 'a large majority of the feature idxs should remain the same'
 
     # Test again with more data
-    print('testing remove query points with more data')
+    logger.info('testing remove query points with more data')
     nnindexer.add_wbia_support(qreq_, ibs.get_valid_aids())
     (qfx2_idx6_, qfx2_dist6_) = nnindexer.knn(qfx2_vec, K)
     qfx2_aid6_ = nnindexer.get_nn_aids(qfx2_idx6_)
@@ -639,7 +641,7 @@ def trytest_multiple_add_removes():
         (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
         issame = qfx2_idxX_ == qfx2_idx7_
         percentsame = issame.sum() / issame.size
-        print('percentsame = %r' % (percentsame,))
+        logger.info('percentsame = %r' % (percentsame,))
         print_nnindexer(nnindexer)
         assert (
             percentsame > 0.85
@@ -651,7 +653,7 @@ def trytest_multiple_add_removes():
     nnindexer.add_wbia_support(qreq_, big_set)
 
     # Try again where remove is not the last operation
-    print('testing remove query points with more op')
+    logger.info('testing remove query points with more op')
     extra_data = np.setdiff1d(ibs.get_valid_aids()[0:5], add_daid_list1)
     nnindexer.remove_wbia_support(qreq_, extra_data)
 
@@ -671,7 +673,7 @@ def trytest_multiple_add_removes():
     nnindexer.add_wbia_support(qreq_, add_daid_list1)
     nnindexer.add_wbia_support(qreq_, extra_data)
     nnindexer.remove_wbia_support(qreq_, remove_later)
-    print(nnindexer.ax2_aid)
+    logger.info(nnindexer.ax2_aid)
 
     aid_list = nnindexer.get_indexed_aids()  # NOQA
     nnindexer.flann.save_index('test.flann')
@@ -711,7 +713,7 @@ def pyflann_test_remove_add():
 
     rng = np.random.RandomState(0)
 
-    print('Test initial save load')
+    logger.info('Test initial save load')
     flann_params = {
         'random_seed': 42,
         # 'log_level': 'debug', 'info',
@@ -719,7 +721,7 @@ def pyflann_test_remove_add():
 
     # pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
 
-    print('Test remove and then add disjoint points')
+    logger.info('Test remove and then add disjoint points')
     flann = pyflann.FLANN()
     vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
     flann.build_index(vecs, **flann_params)  # NOQA
@@ -736,10 +738,10 @@ def pyflann_test_remove_add():
     nonzero_idxs = np.nonzero(dist_all.T[0] != 0)[0]
     removed_idxs = flann.get_removed_ids()
     assert np.all(nonzero_idxs == removed_idxs)
-    print('removed correctly indexes has nonzero dists')
+    logger.info('removed correctly indexes has nonzero dists')
     nonself_idxs = np.nonzero(np.arange(len(idx_all)) != idx_all.T[0])[0]
     assert np.all(nonself_idxs == removed_idxs)
-    print('removed indexexes were only ones whos nearest neighbor was not self')
+    logger.info('removed indexexes were only ones whos nearest neighbor was not self')
 
 
 def pyflann_test_remove_add2():
@@ -758,7 +760,7 @@ def pyflann_test_remove_add2():
     rng = np.random.RandomState(0)
     vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
 
-    print('Test initial save load')
+    logger.info('Test initial save load')
     flann_params = {
         'random_seed': 42,
         'log_level': 'debug',
@@ -766,7 +768,7 @@ def pyflann_test_remove_add2():
 
     # pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
 
-    print('Test remove and then add THE SAME points')
+    logger.info('Test remove and then add THE SAME points')
     flann = pyflann.FLANN()
     flann.build_index(vecs, **flann_params)  # NOQA
 
@@ -782,11 +784,11 @@ def pyflann_test_remove_add2():
     removed_idxs = flann.get_removed_ids()
     nonself_idxs = np.nonzero(np.arange(len(idx_all)) != idx_all.T[0])[0]
     assert np.all(nonself_idxs == removed_idxs)
-    print('removed indexexes were only ones whos nearest neighbor was not self')
+    logger.info('removed indexexes were only ones whos nearest neighbor was not self')
     assert np.all(
         idx_all.T[0][-len(vecs2) :] == np.arange(len(vecs), len(vecs) + len(vecs2))
     )
-    print('added vecs correctly got their padded index')
+    logger.info('added vecs correctly got their padded index')
     assert idx_all.T[0].max() == 499
 
 
@@ -841,7 +843,7 @@ def pyflann_remove_and_save():
     ut.delete('test3.flann')
     ut.delete('test4.flann')
 
-    print('\nTest initial save load')
+    logger.info('\nTest initial save load')
     flann_params = {
         'random_seed': 42,
         # 'log_level': 'debug', 'info',
@@ -862,7 +864,7 @@ def pyflann_remove_and_save():
     idx1_, dist = flann1.nn_index(qvecs, 3)
     assert np.all(idx1 == idx1_), 'initial save load fail'
 
-    print('\nTEST ADD SAVE LOAD')
+    logger.info('\nTEST ADD SAVE LOAD')
     flann2 = flann1
     flann2.add_points(vecs2)
     idx2, dist = flann2.nn_index(qvecs, 3)
@@ -879,26 +881,26 @@ def pyflann_remove_and_save():
     assert np.all(idx2_ == idx2), 'loading saved added data fails'
 
     # Load saved data with remoed vecs
-    print('\n\n---TEST REMOVE SAVE LOAD')
+    logger.info('\n\n---TEST REMOVE SAVE LOAD')
     flann1 = pyflann.FLANN()  # rebuild flann1
     _params1 = flann1.build_index(vecs, **flann_params)  # NOQA
-    print('\n * CHECK NN')
+    logger.info('\n * CHECK NN')
     _idx1, dist = flann1.nn_index(qvecs, 3)
     idx1 = _idx1
 
-    print('\n * REMOVE POINTS')
+    logger.info('\n * REMOVE POINTS')
     remove_idx_list = np.unique(idx1.T[0][0:10])
     flann1.remove_points(remove_idx_list)
     flann3 = flann1
-    print('\n * CHECK NN')
+    logger.info('\n * CHECK NN')
     idx3, dist = flann3.nn_index(qvecs, 3)
     assert (
         len(np.intersect1d(idx3.ravel(), remove_idx_list)) == 0
     ), 'points were not removed'
-    print('\n * SAVE')
+    logger.info('\n * SAVE')
     flann3.save_index('test3.flann')
 
-    print('\n\n---TEST LOAD SAVED INDEX 0 (with removed points)')
+    logger.info('\n\n---TEST LOAD SAVED INDEX 0 (with removed points)')
     clean_vecs = np.delete(vecs, remove_idx_list, axis=0)
     flann3.clean_removed_points()
     flann3.save_index('test4.flann')
@@ -907,20 +909,20 @@ def pyflann_remove_and_save():
     flann4.load_index('test4.flann', clean_vecs)
     idx4, dist = flann4.nn_index(qvecs, 3)
     assert np.all(idx4 == idx3), 'load failed'
-    print('\nloaded succesfully (WITHOUT THE BAD DATA)')
+    logger.info('\nloaded succesfully (WITHOUT THE BAD DATA)')
 
-    print('\n\n---TEST LOAD SAVED INDEX 1 (with removed points)')
+    logger.info('\n\n---TEST LOAD SAVED INDEX 1 (with removed points)')
     flann4 = pyflann.FLANN(**flann_params)
     flann4.load_index('test3.flann', vecs)
     idx4, dist = flann4.nn_index(qvecs, 3)
     assert np.all(idx4 == idx3), 'load failed'
-    print('\nloaded succesfully (BUT NEED TO MAINTAIN BAD DATA)')
+    logger.info('\nloaded succesfully (BUT NEED TO MAINTAIN BAD DATA)')
 
     if False:
-        print('\n\n---TEST LOAD SAVED INDEX 2 (with removed points)')
+        logger.info('\n\n---TEST LOAD SAVED INDEX 2 (with removed points)')
         clean_vecs = np.delete(vecs, remove_idx_list, axis=0)
         flann4 = pyflann.FLANN(**flann_params)
-        print('\n * CALL LOAD')
+        logger.info('\n * CALL LOAD')
         flann4.load_index('test3.flann', clean_vecs)
 
     # assert np.all(idx1 == _idx1), 'rebuild is not determenistic!'

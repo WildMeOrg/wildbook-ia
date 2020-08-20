@@ -2,6 +2,7 @@
 ### __init__.py ###
 # flake8: noqa
 
+import logging
 import utool as ut
 
 ut.noinject(__name__, '[wbia.viz.interact.__init__]', DEBUG=False)
@@ -24,6 +25,7 @@ from wbia.viz.interact.interact_sver import ishow_sver
 import utool
 
 print, rrr, profile = utool.inject2(__name__, '[wbia.viz.interact]')
+logger = logging.getLogger('wbia')
 
 
 def reassign_submodule_attributes(verbose=True):

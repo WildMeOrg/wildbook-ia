@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import numpy as np
 from wbia.algo.hots.nn_weights import (
@@ -7,6 +8,7 @@ from wbia.algo.hots.nn_weights import (
 )
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
@@ -75,7 +77,7 @@ def get_mask_func(config):
 
     # maskscore_mode = config.get('maskscore_mode', 'grid')
     maskscore_mode = 'grid'
-    # print(maskscore_mode)
+    # logger.info(maskscore_mode)
     FUNC_ARGS_DICT = {
         'grid': (coverage_grid.make_grid_coverage_mask, coverage_grid.COVGRID_DEFAULT),
         'kpts': (coverage_kpts.make_kpts_coverage_mask, coverage_kpts.COVKPTS_DEFAULT),
@@ -189,8 +191,8 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
         >>> ut.show_if_requested()
     """
     if ut.VERYVERBOSE:
-        print('[acov] make_mask_func = %r' % (make_mask_func,))
-        print('[acov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
+        logger.info('[acov] make_mask_func = %r' % (make_mask_func,))
+        logger.info('[acov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
     return general_coverage_mask_generator(
         make_mask_func,
         qreq_,
@@ -236,8 +238,8 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
     import vtool as vt
 
     if ut.VERYVERBOSE:
-        print('[ncov] make_mask_func = %r' % (make_mask_func,))
-        print('[ncov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
+        logger.info('[ncov] make_mask_func = %r' % (make_mask_func,))
+        logger.info('[ncov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
     assert cm.dnid_list is not None, 'eval nids'
     unique_dnids, groupxs = vt.group_indices(cm.dnid_list)
     fm_groups = vt.apply_grouping_(cm.fm_list, groupxs)
@@ -264,8 +266,8 @@ def general_coverage_mask_generator(
     DEPRICATE
     """
     if ut.VERYVERBOSE:
-        print('[acov] make_mask_func = %r' % (make_mask_func,))
-        print('[acov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
+        logger.info('[acov] make_mask_func = %r' % (make_mask_func,))
+        logger.info('[acov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
     # Distinctivness and foreground weight
     qweights = get_annot_kpts_baseline_weights(
         qreq_.ibs, [qaid], config2_=qreq_.extern_query_config2, config=config

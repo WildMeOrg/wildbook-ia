@@ -3,6 +3,7 @@
 # if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
+import logging
 import six
 import utool as ut
 import uuid  # NOQA
@@ -10,6 +11,7 @@ from wbia.control import controller_inject
 import wbia.constants as const
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -36,7 +38,7 @@ def ensure_simple_server(port=5832):
     else:
         bgserver = ut.DynStruct()
         bgserver.terminate2 = lambda: None
-        print('server is running elsewhere')
+        logger.info('server is running elsewhere')
     return bgserver
 
 
@@ -534,10 +536,10 @@ def start_identify_annots_query(
             value = curvrank_daily_tag
             raise controller_inject.WebInvalidInput(message, key, value)
     else:
-        print(ut.repr3(query_config_dict))
+        logger.info(ut.repr3(query_config_dict))
         pop_key_list = ['curvrank_daily_tag']
         for pop_key in pop_key_list:
-            print('Popping irrelevant key for config: %r' % (pop_key,))
+            logger.info('Popping irrelevant key for config: %r' % (pop_key,))
             query_config_dict.pop(pop_key, None)
 
     # Check UUIDs

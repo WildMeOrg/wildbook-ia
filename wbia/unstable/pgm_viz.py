@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import networkx as nx
 import six  # NOQA
 import utool as ut
@@ -6,6 +7,7 @@ import numpy as np
 from six.moves import zip
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def print_ascii_graph(model_):
@@ -31,7 +33,7 @@ def print_ascii_graph(model_):
     sio.write(png_str)
     sio.seek(0)
     pil_img = Image.open(sio)  # NOQA
-    print('pil_img.size = %r' % (pil_img.size,))
+    logger.info('pil_img.size = %r' % (pil_img.size,))
     # def print_ascii_image(pil_img):
     #    img2txt = ut.import_module_from_fpath('/home/joncrall/venv/bin/img2txt.py')
     #    import sys
@@ -54,11 +56,11 @@ def print_ascii_graph(model_):
         img = pil_img
         S = (int(round(img.size[0] * SC * WCF * 3)), int(round(img.size[1] * SC)))
         img = np.sum(np.asarray(img.resize(S)), axis=2)
-        print('img.shape = %r' % (img.shape,))
+        logger.info('img.shape = %r' % (img.shape,))
         img -= img.min()
         chars = np.asarray(list(' .,:;irsXA253hMHGS#9B&@'))
         img = (1.0 - img / img.max()) ** GCF * (chars.size - 1)
-        print('\n'.join((''.join(r) for r in chars[img.astype(int)])))
+        logger.info('\n'.join((''.join(r) for r in chars[img.astype(int)])))
 
     print_ascii_image(pil_img)
     pil_img.close()
@@ -114,7 +116,7 @@ def _debug_repr_cpd(cpd):
     # HACK
     dict_['values'] = cpd.get_cpd()
     r = ut.repr2(dict_, explicit=True, nobraces=True, nl=True)
-    print(r)
+    logger.info(r)
 
     # Parse props that are needed for this fmtstr
     fmt_keys = [match.groups()[0] for match in re.finditer('{(.*?)}', code_fmt)]
@@ -193,7 +195,7 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
             agraph.add_subgraph(nodes, rank='same')
     else:
         agraph = nx.nx_agraph.to_agraph(netx_graph2)
-    print(agraph)
+    logger.info(agraph)
 
     args = ''
     agraph.layout(prog=prog, args=args)
@@ -205,7 +207,7 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
             xx, yy = node_.attr['pos'].split(',')
             node_pos[n] = (float(xx), float(yy))
         except Exception:
-            print('no position for node', n)
+            logger.info('no position for node', n)
             node_pos[n] = (0.0, 0.0)
     return node_pos
 
@@ -281,7 +283,7 @@ def get_node_viz_attrs(
             dist_next = phi.values[order[0]] - phi.values[order[1]]
         dist_total = phi.values[order[0]]
         confidence = (dist_total * dist_next) ** (2.5 / 4)
-        # print('confidence = %r' % (confidence,))
+        # logger.info('confidence = %r' % (confidence,))
         color = ttype_colors['name'][order[0]]
         color = pt.color_funcs.desaturate_rgb(color, 1 - confidence)
         color = np.array(color)
@@ -686,7 +688,7 @@ def show_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None, **kwarg
 
     Ignore:
         import nx2tikz
-        print(nx2tikz.dumps_tikz(model, layout='layered', use_label=True))
+        logger.info(nx2tikz.dumps_tikz(model, layout='layered', use_label=True))
 
     Ignore:
         sudo apt-get  install libgraphviz4 libgraphviz-dev -y

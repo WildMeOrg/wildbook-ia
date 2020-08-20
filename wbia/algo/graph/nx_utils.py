@@ -2,6 +2,7 @@
 """
 TODO: the k-components will soon be implemented in networkx 2.0 use those instead
 """
+import logging
 import numpy as np
 import utool as ut
 import networkx as nx
@@ -13,6 +14,7 @@ from wbia.algo.graph import nx_edge_augmentation as nx_aug
 from collections import defaultdict
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def _dz(a, b):

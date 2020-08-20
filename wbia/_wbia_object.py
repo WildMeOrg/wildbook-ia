@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import numpy as np  # NOQA
 from six.moves import range
 
 (print, rrr, profile) = ut.inject2(__name__, '[_wbia_object]')
+logger = logging.getLogger('wbia')
 
 
 def _find_wbia_attrs(ibs, objname, blacklist=[]):

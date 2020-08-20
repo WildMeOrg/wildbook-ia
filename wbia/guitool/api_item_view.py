@@ -2,6 +2,7 @@
 """
 provides common methods for api_tree_view and api_table_view
 """
+import logging
 from wbia.guitool.__PYQT__ import QtGui  # NOQA
 from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__ import QtWidgets
@@ -23,6 +24,7 @@ from wbia.guitool.filter_proxy_model import FilterProxyModel
 from wbia.guitool.api_item_model import APIItemModel
 
 (print, rrr, profile) = utool.inject2(__name__, '[APIItemView]')
+logger = logging.getLogger('wbia')
 
 VERBOSE_QT = ut.get_argflag(('--verbose-qt', '--verbqt'))
 VERBOSE_ITEM_VIEW = ut.get_argflag(('--verbose-item-view'))

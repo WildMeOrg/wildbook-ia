@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import numpy as np
 import pandas as pd
 import utool as ut
@@ -9,6 +10,7 @@ import vtool as vt
 # import itertools as it
 # from os.path import join
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 @ut.reloadable_class
@@ -198,7 +200,7 @@ class IntraVerifier(BaseVerifier):
         assert set(have_edges) | set(need_edges) == set(want_edges)
 
         # Predict on unseen edges using an ensemble of evaluation classifiers
-        print('Predicting %s probabilities' % (task_key,))
+        logger.info('Predicting %s probabilities' % (task_key,))
         eclf_probs = verif.ensemble.predict_proba_df(need_edges)
 
         # Combine probabilities --- get probabilites for each sample

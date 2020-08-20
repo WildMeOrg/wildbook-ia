@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import six
 import itertools as it
@@ -6,6 +7,7 @@ from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 (print, rrr, profile) = ut.inject2(__name__, '[annot]')
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
@@ -454,7 +456,7 @@ class _AnnotGroupPropInjector(BASE_TYPE):
 
         for attrname in ANNOT_BASE_ATTRS:
             if hasattr(metaself, attrname):
-                print('Cannot inject annot group attrname = %r' % (attrname,))
+                logger.info('Cannot inject annot group attrname = %r' % (attrname,))
                 continue
             ibs_unflat_getter = _make_unflat_getter('annot', attrname)
             setattr(metaself, '_unflat_get_' + attrname, ibs_unflat_getter)

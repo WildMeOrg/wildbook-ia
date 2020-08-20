@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 # UTool
+import logging
 import utool
 
 (print, rrr, profile) = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # Inject utool functions

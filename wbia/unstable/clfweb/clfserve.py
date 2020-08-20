@@ -2,6 +2,7 @@
 """
 A example for creating a Table that is sortable by its header
 """
+import logging
 import flask_table
 import six
 
@@ -13,6 +14,7 @@ import flask
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 task_data = {
@@ -102,9 +104,9 @@ def index():
     sort = flask.request.args.get('sort', 'index')
     reverse = flask.request.args.get('direction', 'asc') == 'desc'
 
-    # print('task_data =\n%s' % (ut.repr4(task_data),))
+    # logger.info('task_data =\n%s' % (ut.repr4(task_data),))
     sorted_data = sorted(task_data.values(), key=lambda x: x[sort], reverse=reverse)
-    # print('sorted_data =\n%s' % (ut.repr4(sorted_data),))
+    # logger.info('sorted_data =\n%s' % (ut.repr4(sorted_data),))
     table = DBTaskTable(sorted_data, sort_by=sort, sort_reverse=reverse)
     html = table.__html__()
     return html
@@ -149,7 +151,7 @@ def run_clf_server():
         import webbrowser
 
         webbrowser.open(app.server_url)
-    print('Tornado server starting at %s' % (app.server_url,))
+    logger.info('Tornado server starting at %s' % (app.server_url,))
     http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
     try:
         http_server.listen(app.server_port)

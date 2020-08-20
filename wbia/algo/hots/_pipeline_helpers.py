@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 VERB_PIPELINE = ut.get_argflag(('--verb-pipeline', '--verb-pipe')) or ut.VERYVERBOSE
@@ -40,9 +42,9 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
         build_impossible_daids_list,
     )
 
-    print('RUN PIPELINE UPTO: %s' % (stop_node,))
+    logger.info('RUN PIPELINE UPTO: %s' % (stop_node,))
 
-    print(qreq_)
+    logger.info(qreq_)
 
     qreq_.lazy_load(verbose=verbose)
     # ---

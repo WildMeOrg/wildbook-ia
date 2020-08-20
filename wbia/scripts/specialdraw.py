@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def nx_makenode(graph, name, **attrkw):
@@ -44,7 +46,7 @@ def multidb_montage():
         aids = ibs.sample_annots_general(minqual='good', sample_size=sample_size)
         aids_list.append(aids)
 
-    print(ut.depth_profile(aids_list))
+    logger.info(ut.depth_profile(aids_list))
 
     chip_lists = []
     for ibs, aids in zip(ibs_list, aids_list):
@@ -225,7 +227,7 @@ def double_depcache_graph():
 
     # edge = ('feat', 'neighbor_index')
     # data = graph.get_edge_data(*edge)[0]
-    # print('data = %r' % (data,))
+    # logger.info('data = %r' % (data,))
     # graph.remove_edge(*edge)
     # # hack
     # graph.add_edge('featweight', 'neighbor_index', **data)
@@ -817,8 +819,8 @@ def setcover_example():
         # wbia.testdata_aids('testdb2', a='default:mingt=2')
         aids = [a for a in aids if len(a) > 1]
         for a in aids:
-            print(ut.repr3(ibs.get_annot_stats_dict(a)))
-        print(aids[-2])
+            logger.info(ut.repr3(ibs.get_annot_stats_dict(a)))
+        logger.info(aids[-2])
     # aids = [78, 79, 80, 81, 88, 91]
     aids = [78, 79, 81, 88, 91]
     qreq_ = ibs.depc.new_request('vsone', aids, aids)
@@ -829,7 +831,7 @@ def setcover_example():
     unique_aids, prob_annots = infr.make_prob_annots()
     import numpy as np
 
-    print(
+    logger.info(
         ut.hz_str(
             'prob_annots = ',
             ut.repr2(prob_annots, precision=2, max_line_width=140, suppress_small=True),
@@ -871,8 +873,8 @@ def setcover_example():
         exemplar_idxs = list(soln_cover.keys())
         soln_weight = len(exemplar_idxs)
         val = max_weight - soln_weight
-        # print('val = %r' % (val,))
-        # print('soln_weight = %r' % (soln_weight,))
+        # logger.info('val = %r' % (val,))
+        # logger.info('soln_weight = %r' % (soln_weight,))
         if val < current_val:
             current_val = val
             current_covers = covering_sets
@@ -1174,10 +1176,10 @@ def show_id_graph():
             for cc in parent_infr.positive_components():
                 a = ibs.annots(cc)
                 if any(t is not None and 'left' not in t for t in a.yaw_texts):
-                    # print(a.yaw_texts)
+                    # logger.info(a.yaw_texts)
                     if any(t is not None and 'left' in t for t in a.yaw_texts):
                         if any(t is not None and 'right' in t for t in a.yaw_texts):
-                            print(a.yaw_texts)
+                            logger.info(a.yaw_texts)
                             if len(cc) <= MAX_SIZE:
                                 pccs.append(cc)
                         # break
@@ -1188,8 +1190,8 @@ def show_id_graph():
                 # s1 = len(parent_infr.pos_graph._ccs[n1])
                 # s2 = len(parent_infr.pos_graph._ccs[n2])
                 # if s1 in {3} and s2 in {3}:
-                # print(annots1.yaw_texts)
-                # print(annots2.yaw_texts)
+                # logger.info(annots1.yaw_texts)
+                # logger.info(annots2.yaw_texts)
                 pccs.append(frozenset(cc1))
                 pccs.append(frozenset(cc2))
                 break
@@ -1550,11 +1552,11 @@ def intraoccurrence_connected():
         # # node_layout_attrs  = layout_info['node']
 
         # for key, vals in layout_info['node'].items():
-        #    #print('[special] key = %r' % (key,))
+        #    #logger.info('[special] key = %r' % (key,))
         #    nx.set_node_attributes(graph, name=key, values=vals)
 
         # for key, vals in layout_info['edge'].items():
-        #    #print('[special] key = %r' % (key,))
+        #    #logger.info('[special] key = %r' % (key,))
         #    nx.set_edge_attributes(graph, name=key, values=vals)
 
         # nx.set_edge_attributes(graph, name='alpha', values=.8)
@@ -1604,7 +1606,7 @@ def intraoccurrence_connected():
     # TODO: match these along with the intra encounter set
     # interact = viz_graph.make_name_graph_interaction(
     #    ibs, aids=dbaids, with_all=False, prog='neato', framewidth=True)
-    # print(interact)
+    # logger.info(interact)
 
     # Groupid only works for dot
     # nx.set_node_attributes(unlabeled_graph, name='groupid', values='unlabeled')
@@ -2094,7 +2096,7 @@ def redun_demo3():
     import networkx as nx
 
     for e in nxu.edges_between(nx.complement(infr.graph), ccs[0], ccs[1]):
-        print('e = %r' % (e,))
+        logger.info('e = %r' % (e,))
         infr.add_feedback(e, evidence_decision=INCMP)
     infr.graph.graph.update(graphkw)
     infr.show(pnum=pnum_(), **showkw)

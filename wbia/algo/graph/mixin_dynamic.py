@@ -15,6 +15,7 @@ TODO:
     the neg redun graph, we just filter them out afterwords)
 
 """
+import logging
 import six
 import numpy as np
 import utool as ut
@@ -26,6 +27,7 @@ from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN, UNINFERABLE
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 DECISION_LEVEL = 4
 
@@ -633,8 +635,8 @@ class Recovery(object):
         if neg_edges:
             pos_subgraph_ = infr.pos_graph.subgraph(cc, dynamic=False).copy()
             if not nx.is_connected(pos_subgraph_):
-                print('cc = %r' % (cc,))
-                print('pos_subgraph_ = %r' % (pos_subgraph_,))
+                logger.info('cc = %r' % (cc,))
+                logger.info('pos_subgraph_ = %r' % (pos_subgraph_,))
                 raise AssertionError('must be connected')
             hypothesis = dict(infr.hypothesis_errors(pos_subgraph_, neg_edges))
             assert len(hypothesis) > 0, 'must have at least one'

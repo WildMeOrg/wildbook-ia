@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
 import numpy as np
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
@@ -86,7 +88,7 @@ def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
 #             for tup in ut.lmap(tuple, aid_pairs)
 #         ]
 #         auc = sklearn.metrics.roc_auc_score(truth_list, lnbnn_score_list)
-#         print('auc = %r' % (auc,))
+#         logger.info('auc = %r' % (auc,))
 
 #     if False:
 #         nfeats = len(withnan_cols)  # NOQA
@@ -125,17 +127,17 @@ def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
 #             for i in range(1, n_top + 1):
 #                 candidates = np.flatnonzero(results['rank_test_score'] == i)
 #                 for candidate in candidates:
-#                     print('Model with rank: {0}'.format(i))
-#                     print('Mean validation score: {0:.3f} (std: {1:.3f})'.format(
+#                     logger.info('Model with rank: {0}'.format(i))
+#                     logger.info('Mean validation score: {0:.3f} (std: {1:.3f})'.format(
 #                           results['mean_test_score'][candidate],
 #                           results['std_test_score'][candidate]))
-#                     print('Parameters: {0}'.format(results['params'][candidate]))
-#                     print('')
+#                     logger.info('Parameters: {0}'.format(results['params'][candidate]))
+#                     logger.info('')
 
 #         results = search.cv_results_
 #         report(results, n_top=10)
 
-#         print(ut.sort_dict(search.cv_results_).keys())
+#         logger.info(ut.sort_dict(search.cv_results_).keys())
 
 #         params = results['params']
 #         cols = sorted(param_grid.keys())
@@ -162,23 +164,23 @@ def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
 
 #         num_top = 5
 #         top_feats = zX.take(zY.argsort()[::-1], axis=0)[0:num_top]
-#         print('num_top = %r' % (num_top,))
+#         logger.info('num_top = %r' % (num_top,))
 
-#         print('Marginalized probabilities over top feature values')
+#         logger.info('Marginalized probabilities over top feature values')
 #         uvals = [np.unique(f) for f in top_feats.T]
 #         marginal_probs = [[np.sum(f == u) / len(f) for u in us] for us, f in zip(uvals , top_feats.T)]
 #         for c, us, mprobs in zip(cols, uvals, marginal_probs):
-#             print(c + ' = ' + ut.repr3(ut.dzip(us, mprobs), precision=2))
+#             logger.info(c + ' = ' + ut.repr3(ut.dzip(us, mprobs), precision=2))
 
 #         mode_top_zX_ = mode(top_feats, axis=0)
 #         mode_top_zX = mode_top_zX_.mode[0]
 #         flags = (mode_top_zX_.count == 1)[0]
 #         mode_top_zX[flags] = top_feats[0][flags]
-#         print('mode')
-#         print(ut.repr4(ut.dzip(cols, mode_top_zX)))
+#         logger.info('mode')
+#         logger.info(ut.repr4(ut.dzip(cols, mode_top_zX)))
 #         mean_top_zX = np.mean(top_feats, axis=0)
-#         print('mean')
-#         print(ut.repr4(ut.dzip(cols, mean_top_zX)))
+#         logger.info('mean')
+#         logger.info(ut.repr4(ut.dzip(cols, mean_top_zX)))
 
 #         import sklearn.ensemble
 #         clf = sklearn.ensemble.RandomForestRegressor(bootstrap=True, oob_score=True)
@@ -186,13 +188,13 @@ def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
 
 #         importances = dict(zip(cols, clf.feature_importances_))
 #         importances = ut.sort_dict(importances, 'vals', reverse=True)
-#         print(ut.align(ut.repr4(importances, precision=4), ':'))
+#         logger.info(ut.align(ut.repr4(importances, precision=4), ':'))
 
 #         mean_test_score
 
-#     # print(df.to_string())
+#     # logger.info(df.to_string())
 
-#     # print(df_results)
+#     # logger.info(df_results)
 
 #     # TODO: TSNE?
 #     # http://scikit-learn.org/stable/auto_examples/manifold/plot_manifold_sphere.html#sphx-glr-auto-examples-manifold-plot-manifold-sphere-py
@@ -207,7 +209,7 @@ def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
 #     # ax.xaxis.set_major_formatter(NullFormatter())
 #     # ax.yaxis.set_major_formatter(NullFormatter())
 #     # plt.axis('tight')
-#     print('--------')
+#     logger.info('--------')
 
 
 def gridsearch_ratio_thresh(matches):
@@ -255,7 +257,7 @@ def gridsearch_ratio_thresh(matches):
         subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=0.8)
         best_ratio_thresh = subx[suby.argmax()]
         skf_results.append(best_ratio_thresh)
-    print('skf_results.append = %r' % (np.mean(skf_results),))
+    logger.info('skf_results.append = %r' % (np.mean(skf_results),))
     import utool
 
     utool.embed()

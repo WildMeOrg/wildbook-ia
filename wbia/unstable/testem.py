@@ -2,10 +2,12 @@
 """
 TODO: move to wbia/scripts
 """
+import logging
 import numpy as np
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def draw_em_graph(P, Pn, PL, gam, num_labels):
@@ -24,7 +26,7 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
     # PL2 = PL2 / np.linalg.norm(PL2, axis=0)
     zero_part = np.zeros((num_labels, len(Pn) + num_labels))
     prob_part = np.hstack([PL2, Pn])
-    print(ut.hz_str(' PL2 = ', ut.repr2(PL2, precision=2)))
+    logger.info(ut.hz_str(' PL2 = ', ut.repr2(PL2, precision=2)))
     # Redo p with posteriors
     if ut.get_argflag('--postem'):
         P = np.vstack([zero_part, prob_part])
@@ -56,26 +58,26 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
         graph.nodes[name_nodes[2]]['pos'] = (230.0, 300.0)
         nx.set_node_attributes(graph, name='pin', values='true')
 
-        print('annot_nodes = %r' % (annot_nodes,))
-        print('name_nodes = %r' % (name_nodes,))
+        logger.info('annot_nodes = %r' % (annot_nodes,))
+        logger.info('name_nodes = %r' % (name_nodes,))
 
         for u in annot_nodes:
             for v in name_nodes:
                 if graph.has_edge(u, v):
-                    print('1) u, v = %r' % ((u, v),))
+                    logger.info('1) u, v = %r' % ((u, v),))
                     graph.edge[u][v]['taillabel'] = graph.edge[u][v]['label']
                     graph.edge[u][v]['color'] = pt.ORANGE
                     graph.edge[u][v]['labelcolor'] = pt.BLUE
                     del graph.edge[u][v]['label']
                 elif graph.has_edge(v, u):
-                    print('2) u, v = %r' % ((u, v),))
+                    logger.info('2) u, v = %r' % ((u, v),))
                     graph.edge[v][u]['headlabel'] = graph.edge[v][u]['label']
                     graph.edge[v][u]['color'] = pt.ORANGE
                     graph.edge[v][u]['labelcolor'] = pt.BLUE
                     del graph.edge[v][u]['label']
                 else:
-                    print((u, v))
-                    print('!!')
+                    logger.info((u, v))
+                    logger.info('!!')
 
     # import itertools
     # name_const_edges = [(u, v, {'style': 'invis'}) for u, v in itertools.combinations(name_nodes, 2)]
@@ -218,7 +220,7 @@ def random_case_set():
         for label, (case1, case2) in ut.ProgIter(list(zip(labels, test_pairs)), bs=1)
     ]
     pairwise_feats = np.vstack(pairwise_feats_)
-    print(ut.dict_hist(labels))
+    logger.info(ut.dict_hist(labels))
     return labels, pairwise_feats
 
 
@@ -246,7 +248,7 @@ def try_rf_classifier():
     clf.fit(X_train_valid, y_train_valid)
     clf_probs = clf.predict_proba(X_test)
     score = log_loss(y_test, clf_probs)
-    print('score = %r' % (score,))
+    logger.info('score = %r' % (score,))
 
     # Train random forest classifier, calibrate on validation data and evaluate
     # on test data
@@ -257,7 +259,7 @@ def try_rf_classifier():
     sig_clf.fit(X_valid, y_valid)
     sig_clf_probs = sig_clf.predict_proba(X_test)
     sig_score = log_loss(y_test, sig_clf_probs)
-    print('sig_score = %r' % (sig_score,))
+    logger.info('sig_score = %r' % (sig_score,))
 
 
 def make_test_pairwise_fetaures(case1, case2, label, rng):
@@ -366,7 +368,7 @@ def try_em():
         >>> draw_em_graph(P, Pn, PL, gam, num_labels)
         >>> ut.show_if_requested()
     """
-    print('EM')
+    logger.info('EM')
 
     # Matrix if unary probabilites, The probability that each node takes on a
     # given label, independent of its edges.
@@ -425,7 +427,7 @@ def try_em():
         P[np.diag_indices(len(P))] = 0
         P = P + P.T / 2
         P = np.clip(P, 0.01, 0.99)
-        print(ut.hz_str(' P = ', ut.repr2(P, precision=2, max_line_width=140)))
+        logger.info(ut.hz_str(' P = ', ut.repr2(P, precision=2, max_line_width=140)))
         return P
 
     Pn = make_test_similarity(test_case)
@@ -517,7 +519,7 @@ def try_em():
         # Stack everything into a single matrix
         zero_part = np.zeros((num_labels, num_nodes + num_labels))
         prob_part = np.hstack([PL, Pn])
-        # print(ut.hz_str(' prob_part = ', ut.repr2(prob_part[:, :], precision=2)))
+        # logger.info(ut.hz_str(' prob_part = ', ut.repr2(prob_part[:, :], precision=2)))
         P = np.vstack([zero_part, prob_part])
 
         # Gamma will hold a probability distribution over the nodes
@@ -527,10 +529,12 @@ def try_em():
             [np.eye(num_labels), np.ones((num_labels, num_nodes)) / num_labels]
         )
 
-        print('Initialize')
-        print('num_labels = %r' % (num_labels,))
-        # print(ut.hz_str(' gamma = ', ut.repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
-        print(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
+        logger.info('Initialize')
+        logger.info('num_labels = %r' % (num_labels,))
+        # logger.info(ut.hz_str(' gamma = ', ut.repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
+        logger.info(
+            ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2))
+        )
 
         delta_i = np.zeros(num_labels)
 
@@ -556,15 +560,15 @@ def try_em():
             for i in range(num_labels, d):
                 dGam[:, i] = dErr(i, gam, P)
             # Make a step in the gradient direction
-            # print(ut.hz_str(' dGam = ', ut.repr2(dGam, max_line_width=140, precision=2)))
+            # logger.info(ut.hz_str(' dGam = ', ut.repr2(dGam, max_line_width=140, precision=2)))
             gam = gam + learn_rate * dGam
             # Normalize
             gam = np.clip(gam, 0, 1)
             for i in range(num_labels, d):
                 gam[:, i] = gam[:, i] / np.sum(gam[:, i])
-        # print(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
-        # print(ut.hz_str(' gamma = ', ut.repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
-        print('Finished')
+        # logger.info(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
+        # logger.info(ut.hz_str(' gamma = ', ut.repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
+        logger.info('Finished')
     return P, Pn, PL, gam, num_labels
 
 
@@ -607,9 +611,9 @@ def try_em2(prob_names, prob_annots=None):
 
     verbose = 1
     if verbose:
-        print('Initialize')
-        print('num_names = %r' % (num_names,))
-        print(
+        logger.info('Initialize')
+        logger.info('num_names = %r' % (num_names,))
+        logger.info(
             ut.hz_str(
                 'prior = ',
                 ut.repr2(
@@ -617,13 +621,13 @@ def try_em2(prob_names, prob_annots=None):
                 ),
             )
         )
-        print(
+        logger.info(
             ut.hz_str(
                 'gamma = ',
                 ut.repr2(gam[:, :], max_line_width=140, precision=2, suppress_small=True),
             )
         )
-    # print(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
+    # logger.info(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
 
     delta_i = np.zeros(num_names)
 
@@ -655,15 +659,15 @@ def try_em2(prob_names, prob_annots=None):
         for i in range(num_names, num_nodes):
             dGam[:, i] = dErr(i, gam, prior)
         # Make a step in the gradient direction
-        # print(ut.hz_str(' dGam = ', ut.repr2(dGam, max_line_width=140, precision=2)))
+        # logger.info(ut.hz_str(' dGam = ', ut.repr2(dGam, max_line_width=140, precision=2)))
         gam = gam + learn_rate * dGam
         # Normalize
         gam = np.clip(gam, 0, 1)
         for i in range(num_names, num_nodes):
             gam[:, i] = gam[:, i] / np.sum(gam[:, i])
-    # print(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
+    # logger.info(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
     if verbose:
-        print(
+        logger.info(
             ut.hz_str(
                 ' gamma = ',
                 ut.repr2(
@@ -674,7 +678,7 @@ def try_em2(prob_names, prob_annots=None):
                 ),
             )
         )
-        print('Finished')
+        logger.info('Finished')
     return gam
 
 
