@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # import os
+import logging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 BLACKLIST = ['get_images', 'get_annotations', 'get_chips']
 
@@ -17,13 +19,13 @@ def get_func(line):
 def get_parts(line, sub):
     line = get_func(line)
     if line.startswith('_'):
-        print('Processing Line: %r' % (line,))
-        print('    Stripped: %r' % (line,))
+        logger.info('Processing Line: %r' % (line,))
+        logger.info('    Stripped: %r' % (line,))
         input('SKIPPED')
         return None, None, None
     if line in BLACKLIST:
-        print('Processing Line: %r' % (line,))
-        print('    Stripped: %r' % (line,))
+        logger.info('Processing Line: %r' % (line,))
+        logger.info('    Stripped: %r' % (line,))
         input('BLACKLISTED')
         return None, None, None
     # Ascertain method
@@ -50,19 +52,19 @@ def get_parts(line, sub):
         method = 'post'
         return sub, '', method
     else:
-        print('Processing Line: %r' % (line,))
-        print('    Stripped: %r' % (line,))
+        logger.info('Processing Line: %r' % (line,))
+        logger.info('    Stripped: %r' % (line,))
         input('FAILED')
         return None, None, None
-    # print('    Method-less: %r' % (line, ))
+    # logger.info('    Method-less: %r' % (line, ))
     submodule = sub
-    # print('    Submodule: %r' % (submodule, ))
+    # logger.info('    Submodule: %r' % (submodule, ))
     line = line.replace('%ss_' % (submodule,), '')
     line = line.replace('%s_' % (submodule,), '')
     line = line.replace('_%ss' % (submodule,), '')
     line = line.replace('_%s' % (submodule,), '')
     func = line
-    # print('    Function: %r' % (func, ))
+    # logger.info('    Function: %r' % (func, ))
     return submodule, func, method
 
 
@@ -168,7 +170,7 @@ def process_file(filename, sub):
             if latest is not None:
                 url, method = latest
                 wrapper = "@register_api('%s', methods=['%s'])\n" % (url, method,)
-                # print(wrapper)
+                # logger.info(wrapper)
                 processed.append(wrapper)
         processed.append(line)
 
@@ -177,7 +179,7 @@ def process_file(filename, sub):
         dst.write(''.join(processed))
 
     # output = os.popen('diff %s %s' % (filename_dst, filename_cmp, )).read()
-    # print(output)
+    # logger.info(output)
 
 
 if __name__ == '__main__':

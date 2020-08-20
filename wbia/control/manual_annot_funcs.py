@@ -6,6 +6,7 @@ Autogen:
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_  # NOQA
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff  # NOQA
 """
+import logging
 import six
 import uuid
 import numpy as np
@@ -20,6 +21,7 @@ from wbia.web import routes_ajax
 import requests
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -356,13 +358,13 @@ def add_annots(
     assert yaw_list is None, 'yaw is depricated'
 
     if ut.VERBOSE:
-        print('[ibs] adding annotations')
+        logger.info('[ibs] adding annotations')
 
     ut.assert_all_not_None(gid_list, 'gid_list')
     if len(gid_list) == 0:
         # nothing is being added
-        print('[ibs] WARNING: 0 annotations are beign added!')
-        print(ut.repr2(locals()))
+        logger.info('[ibs] WARNING: 0 annotations are beign added!')
+        logger.info(ut.repr2(locals()))
         return []
 
     preprocess_dict = ibs.compute_annot_visual_semantic_uuids(
@@ -641,7 +643,7 @@ def update_annot_visual_uuids(ibs, aid_list):
         8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
     """
     visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
-    print('visual_infotup = %r' % (visual_infotup,))
+    logger.info('visual_infotup = %r' % (visual_infotup,))
     assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
     annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
     ibs.db.set(
@@ -1055,7 +1057,7 @@ def delete_annots(ibs, aid_list):
 
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d annotations' % len(aid_list))
+        logger.info('[ibs] deleting %d annotations' % len(aid_list))
     # FIXME: Need to reliabely delete thumbnails
     # config2_ = {'draw_annots': True, 'thumbsize': 221}
     # MEGA HACK FOR QT
@@ -2324,7 +2326,7 @@ def set_annot_viewpoints(
         except Exception:
             message = 'Could not purge CurvRankDorsal cache for viewpoint'
             # raise RuntimeError(message)
-            print(message)
+            logger.info(message)
         try:
             ibs.wbia_plugin_curvrank_delete_cache_optimized(
                 update_aid_list, 'CurvRankFinfindrHybridDorsal'
@@ -2332,7 +2334,7 @@ def set_annot_viewpoints(
         except Exception:
             message = 'Could not purge CurvRankFinfindrHybridDorsal cache for viewpoint'
             # raise RuntimeError(message)
-            print(message)
+            logger.info(message)
 
     # oops didn't realize there was a structure already here for this
     if _code_update:
@@ -2912,8 +2914,8 @@ def get_annot_image_paths(ibs, aid_list):
     try:
         ut.assert_all_not_None(gid_list, 'gid_list')
     except AssertionError:
-        print('[!get_annot_image_paths] aids=' + ut.repr4(aid_list))
-        print('[!get_annot_image_paths] gids=' + ut.repr4(gid_list))
+        logger.info('[!get_annot_image_paths] aids=' + ut.repr4(aid_list))
+        logger.info('[!get_annot_image_paths] gids=' + ut.repr4(gid_list))
         raise
     gpath_list = ibs.get_image_paths(gid_list)
     ut.assert_all_not_None(gpath_list, 'gpath_list')
@@ -4103,21 +4105,21 @@ def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
     #    SELECT annot_rowid from ANNOTATIONS
     #    WHERE annot_visual_uuid LIKE ? || '%'
     #    ''', (bytes(partial_vuuid),))
-    # print(res.fetchall())
+    # logger.info(res.fetchall())
 
     # res = ibs.db.cur.execute(
     #    '''
     #    SELECT annot_rowid from ANNOTATIONS
     #    WHERE annot_visual_uuid LIKE ? || '%'
     #    ''', (partial_vuuid,))
-    # print(res.fetchall())
+    # logger.info(res.fetchall())
 
     # res = ibs.db.cur.execute(
     #    '''
     #    SELECT annot_rowid from ANNOTATIONS
     #    WHERE annot_visual_uuid LIKE ? || '%'
     #    ''', (bytes(partial_vuuid),))
-    # print(res.fetchall())
+    # logger.info(res.fetchall())
 
     # # || - is used to concat strings
 
@@ -4126,7 +4128,7 @@ def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
     #    SELECT annot_rowid from ANNOTATIONS
     #    WHERE annot_note LIKE ? || '%'
     #    ''', ('very',))
-    # print(res.fetchall())
+    # logger.info(res.fetchall())
     # pass
 
 
@@ -4175,7 +4177,7 @@ def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error
         annot_tags_list
 
     """
-    # print('[ibs] set_annot_tag_text of aids=%r to tags=%r' % (aid_list, annot_tags_list))
+    # logger.info('[ibs] set_annot_tag_text of aids=%r to tags=%r' % (aid_list, annot_tags_list))
     id_iter = aid_list
     colnames = (ANNOT_TAG_TEXT,)
     ibs.db.set(

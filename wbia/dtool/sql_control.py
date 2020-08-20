@@ -5,6 +5,7 @@ Interface into SQL for the IBEIS Controller
 TODO; need to use some sort of sticky bit so
 sql files are created with reasonable permissions.
 """
+import logging
 import collections
 import os
 import parse
@@ -23,6 +24,7 @@ from wbia.dtool.dump import dumps
 
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 READ_ONLY = ut.get_argflag(('--readonly-mode', '--read-only', '--readonly'))
@@ -187,9 +189,9 @@ class SQLExecutionContext(object):
                 context.connection.rollback()
                 context.cur.execute('BEGIN')
         if context.verbose or VERBOSE_SQL:
-            print(context.operation_lbl)
+            logger.info(context.operation_lbl)
             if context.verbose:
-                print('[sql] operation=\n' + context.operation)
+                logger.info('[sql] operation=\n' + context.operation)
         # Comment out timeing code
         # if __debug__:
         #    if NOT_QUIET and (VERBOSE_SQL or context.verbose):
@@ -202,14 +204,14 @@ class SQLExecutionContext(object):
         try:
             context.cur.execute(context.operation, params)
         except lite.Error as ex:
-            print('Reporting SQLite Error')
-            print('params = ' + ut.repr2(params, truncate=not ut.VERBOSE))
+            logger.info('Reporting SQLite Error')
+            logger.info('params = ' + ut.repr2(params, truncate=not ut.VERBOSE))
             ut.printex(ex, 'sql.Error', keys=['params'])
             if (
                 hasattr(ex, 'message')
                 and ex.message.find('probably unsupported type') > -1
             ):
-                print(
+                logger.info(
                     'ERR REPORT: given param types = ' + ut.repr2(ut.lmap(type, params))
                 )
                 if context.tablename is None:
@@ -223,7 +225,9 @@ class SQLExecutionContext(object):
                     tablename = context.tablename
                 try:
                     coldef_list = context.db.get_coldef_list(tablename)
-                    print('ERR REPORT: expected types = %s' % (ut.repr4(coldef_list),))
+                    logger.info(
+                        'ERR REPORT: expected types = %s' % (ut.repr4(coldef_list),)
+                    )
                 except Exception:
                     pass
             raise
@@ -257,9 +261,9 @@ class SQLExecutionContext(object):
         """ Finalization of an SQLController call """
         if trace is not None:
             # An SQLError is a serious offence.
-            print('[sql] FATAL ERROR IN QUERY CONTEXT')
-            print('[sql] operation=\n' + context.operation)
-            print('[sql] Error in context manager!: ' + str(value))
+            logger.info('[sql] FATAL ERROR IN QUERY CONTEXT')
+            logger.info('[sql] operation=\n' + context.operation)
+            logger.info('[sql] Error in context manager!: ' + str(value))
             # return a falsey value on error
             return False
         else:
@@ -267,7 +271,7 @@ class SQLExecutionContext(object):
             if context.auto_commit:
                 context.connection.commit()
             else:
-                print('no commit %r' % context.operation_lbl)
+                logger.info('no commit %r' % context.operation_lbl)
 
 
 def get_operation_type(operation):
@@ -301,8 +305,8 @@ def sanitize_sql(db, tablename_, columns=None):
     tablename = re.sub('[^a-zA-Z_0-9]', '', tablename_)
     valid_tables = db.get_table_names()
     if tablename not in valid_tables:
-        print('tablename_ = %r' % (tablename_,))
-        print('valid_tables = %r' % (valid_tables,))
+        logger.info('tablename_ = %r' % (tablename_,))
+        logger.info('valid_tables = %r' % (valid_tables,))
         raise Exception(
             'UNSAFE TABLE: tablename=%r. '
             'Column names and table names should be different' % tablename
@@ -342,7 +346,7 @@ def dev_test_new_schema_version(
     """
     TESTING_NEW_SQL_VERSION = version_current != version_next
     if TESTING_NEW_SQL_VERSION:
-        print('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
+        logger.info('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
         devdb_list = [
             'PZ_MTEST',
             'testdb1',
@@ -364,11 +368,11 @@ def dev_test_new_schema_version(
             ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
             # Set testing schema version
             # ibs.db_version_expected = '1.3.6'
-            print('[sql] TESTING NEW SQLDB VERSION: %r' % (version_next,))
-            # print('[sql] ... pass --force-fresh to reload any changes')
+            logger.info('[sql] TESTING NEW SQLDB VERSION: %r' % (version_next,))
+            # logger.info('[sql] ... pass --force-fresh to reload any changes')
             return version_next, dev_sqldb_fname
         else:
-            print('[ibs] NOT TESTING')
+            logger.info('[ibs] NOT TESTING')
     return version_current, sqldb_fname
 
 
@@ -767,7 +771,7 @@ class SQLDatabaseController(object):
         else:
             assert exists(self.dir_), '[sql] self.dir_=%r does not exist!' % self.dir_
             if not exists(self.fpath):
-                print('[sql] Initializing new database: %r' % (self.fname,))
+                logger.info('[sql] Initializing new database: %r' % (self.fname,))
                 if self.readonly:
                     raise AssertionError('Cannot open a new database in readonly mode')
             # Open the SQL database connection with support for custom types
@@ -926,7 +930,7 @@ class SQLDatabaseController(object):
             http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
         """
         if NOT_QUIET:
-            print('[sql] Copying database into RAM')
+            logger.info('[sql] Copying database into RAM')
         tempfile = StringIO()
         for line in self.connection.iterdump():
             tempfile.write('%s\n' % line)
@@ -941,7 +945,7 @@ class SQLDatabaseController(object):
         self.connection.row_factory = lite.Row
 
     def reboot(self):
-        print('[sql] reboot')
+        logger.info('[sql] reboot')
         self.cur.close()
         del self.cur
         self.connection.close()
@@ -976,11 +980,11 @@ class SQLDatabaseController(object):
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
         if VERBOSE_SQL:
-            print('[sql] running sql pragma optimizions')
+            logger.info('[sql] running sql pragma optimizions')
         # self.cur.execute('PRAGMA cache_size = 0;')
         # self.cur.execute('PRAGMA cache_size = 1024;')
         # self.cur.execute('PRAGMA page_size = 1024;')
-        # print('[sql] running sql pragma optimizions')
+        # logger.info('[sql] running sql pragma optimizions')
         self.cur.execute('PRAGMA cache_size = 10000;')  # Default: 2000
         self.cur.execute('PRAGMA temp_store = MEMORY;')
         self.cur.execute('PRAGMA synchronous = OFF;')
@@ -991,25 +995,25 @@ class SQLDatabaseController(object):
         # self.cur.execute('PRAGMA default_cache_size = 0;')
 
     def shrink_memory(self):
-        print('[sql] shrink_memory')
+        logger.info('[sql] shrink_memory')
         self.connection.commit()
         self.cur.execute('PRAGMA shrink_memory;')
         self.connection.commit()
 
     def vacuum(self):
-        print('[sql] vaccum')
+        logger.info('[sql] vaccum')
         self.connection.commit()
         self.cur.execute('VACUUM;')
         self.connection.commit()
 
     def integrity(self):
-        print('[sql] vaccum')
+        logger.info('[sql] vaccum')
         self.connection.commit()
         self.cur.execute('PRAGMA integrity_check;')
         self.connection.commit()
 
     def squeeze(self):
-        print('[sql] squeeze')
+        logger.info('[sql] squeeze')
         self.shrink_memory()
         self.vacuum()
 
@@ -1167,7 +1171,7 @@ class SQLDatabaseController(object):
         rowid_list_ = get_rowid_from_superkey(*superkey_lists)
         isnew_list = [rowid is None for rowid in rowid_list_]
         if VERBOSE_SQL and not all(isunique_list):
-            print('[WARNING]: duplicate inputs to db.add_cleanly')
+            logger.info('[WARNING]: duplicate inputs to db.add_cleanly')
         # Flag each item that needs to added to the database
         needsadd_list = list(map(all, zip(isvalid_list, isunique_list, isnew_list)))
         # ADD_CLEANLY_3.1: EXIT IF CLEAN
@@ -1176,7 +1180,7 @@ class SQLDatabaseController(object):
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
         dirty_params = ut.compress(params_list, needsadd_list)
         if ut.VERBOSE:
-            print(
+            logger.info(
                 '[sql] adding %r/%r new %s'
                 % (len(dirty_params), len(params_list), tblname)
             )
@@ -1263,7 +1267,7 @@ class SQLDatabaseController(object):
                 tblname,
                 params_length,
             )
-            print('Using sql_control.get_where_eq_set() for %r on %d params' % args)
+            logger.info('Using sql_control.get_where_eq_set() for %r on %d params' % args)
 
         if params_length == 0:
             return []
@@ -1431,7 +1435,7 @@ class SQLDatabaseController(object):
             >>> assert got_data == [1, 2, 3]
         """
         if VERBOSE_SQL:
-            print(
+            logger.info(
                 '[sql]'
                 + ut.get_caller_name(list(range(1, 4)))
                 + ' db.get(%r, %r, ...)' % (tblname, colnames,)
@@ -1523,11 +1527,11 @@ class SQLDatabaseController(object):
         id_list = list(id_iter)  # eager evaluation
 
         if VERBOSE_SQL or (NOT_QUIET and VERYVERBOSE):
-            print('[sql] SETTER: ' + ut.get_caller_name())
-            print('[sql] * tblname=%r' % (tblname,))
-            print('[sql] * val_list=%r' % (val_list,))
-            print('[sql] * id_list=%r' % (id_list,))
-            print('[sql] * id_colname=%r' % (id_colname,))
+            logger.info('[sql] SETTER: ' + ut.get_caller_name())
+            logger.info('[sql] * tblname=%r' % (tblname,))
+            logger.info('[sql] * val_list=%r' % (val_list,))
+            logger.info('[sql] * id_list=%r' % (id_list,))
+            logger.info('[sql] * id_colname=%r' % (id_colname,))
 
         if duplicate_behavior == 'error':
             try:
@@ -1554,7 +1558,7 @@ class SQLDatabaseController(object):
                         for index in sorted(pop_list, reverse=True):
                             del id_list[index]
                             del val_list[index]
-                        print(
+                        logger.info(
                             '[!set] Auto Resolution: Removed %d duplicate (id, value) pairs from the database operation'
                             % (len(pop_list),)
                         )
@@ -1670,8 +1674,8 @@ class SQLDatabaseController(object):
     ):
         operation = operation_fmt.format(**fmtdict)
         if dryrun:
-            print('Dry Run')
-            print(operation)
+            logger.info('Dry Run')
+            logger.info(operation)
             return
         return self.executemany(
             operation, params_iter, unpack_scalars=unpack_scalars, eager=eager, **kwargs
@@ -1715,19 +1719,19 @@ class SQLDatabaseController(object):
                 nInput = len(params_iter)
             else:
                 if VERBOSE_SQL:
-                    print(
+                    logger.info(
                         '[sql!] WARNING: aggressive eval of params_iter because nInput=None'
                     )
                 params_iter = list(params_iter)
                 nInput = len(params_iter)
         else:
             if VERBOSE_SQL:
-                print('[sql] Taking params_iter as iterator')
+                logger.info('[sql] Taking params_iter as iterator')
 
         # Do not compute executemany without params
         if nInput == 0:
             if VERBOSE_SQL:
-                print(
+                logger.info(
                     '[sql!] WARNING: dont use executemany'
                     'with no params use executeone instead.'
                 )
@@ -1779,7 +1783,9 @@ class SQLDatabaseController(object):
     #    db.connection.commit()
 
     def print_dbg_schema(self):
-        print('\n\nCREATE'.join(dumps(self.connection, schema_only=True).split('CREATE')))
+        logger.info(
+            '\n\nCREATE'.join(dumps(self.connection, schema_only=True).split('CREATE'))
+        )
 
     # =========
     # SQLDB METADATA
@@ -1856,7 +1862,7 @@ class SQLDatabaseController(object):
 
     def add_column(self, tablename, colname, coltype):
         if VERBOSE_SQL:
-            print(
+            logger.info(
                 '[sql] add column=%r of type=%r to tablename=%r'
                 % (colname, coltype, tablename)
             )
@@ -1929,12 +1935,12 @@ class SQLDatabaseController(object):
             raise TypeError(f'got unexpected keyword arguments: {bad_kwargs}')
 
         if ut.DEBUG2:
-            print('[sql] schema ensuring tablename=%r' % tablename)
+            logger.info('[sql] schema ensuring tablename=%r' % tablename)
         if ut.VERBOSE:
-            print('')
+            logger.info('')
             _args = [tablename, coldef_list]
-            print(ut.func_str(self.add_table, _args, metadata_keyval))
-            print('')
+            logger.info(ut.func_str(self.add_table, _args, metadata_keyval))
+            logger.info('')
 
         # Create the main body of the CREATE TABLE statement with column definitions
         # coldef_list = [(<column-name>, <definition>,), ...]
@@ -2026,8 +2032,8 @@ class SQLDatabaseController(object):
         assert tablename is not None, 'tablename must be given'
 
         if VERBOSE_SQL or ut.VERBOSE:
-            print('[sql] schema modifying tablename=%r' % tablename)
-            print(
+            logger.info('[sql] schema modifying tablename=%r' % tablename)
+            logger.info(
                 '[sql] * colmap_list = ' + 'None'
                 if colmap_list is None
                 else ut.repr2(colmap_list)
@@ -2072,7 +2078,7 @@ class SQLDatabaseController(object):
                     coltype_list.append(type_)
                 else:
                     if insert:
-                        print(
+                        logger.info(
                             '[sql] WARNING: multiple index inserted add '
                             'columns, may cause alignment issues'
                         )
@@ -2178,7 +2184,7 @@ class SQLDatabaseController(object):
 
     def rename_table(self, tablename_old, tablename_new):
         if ut.VERBOSE:
-            print(
+            logger.info(
                 '[sql] schema renaming tablename=%r -> %r'
                 % (tablename_old, tablename_new)
             )
@@ -2203,14 +2209,14 @@ class SQLDatabaseController(object):
         id_iter = [(key,) for key in key_old_list]
         val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
-        # print('Setting metadata_key from %s to %s' % (ut.repr2(id_iter), ut.repr2(val_iter)))
+        # logger.info('Setting metadata_key from %s to %s' % (ut.repr2(id_iter), ut.repr2(val_iter)))
         self.set(
             METADATA_TABLE_NAME, colnames, val_iter, id_iter, id_colname='metadata_key'
         )
 
     def drop_table(self, tablename):
         if VERBOSE_SQL:
-            print('[sql] schema dropping tablename=%r' % tablename)
+            logger.info('[sql] schema dropping tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
@@ -2443,7 +2449,7 @@ class SQLDatabaseController(object):
                 continue
             key = tablename + '_' + suffix
             val = self.get_metadata_val(key, eval_=True, default=None)
-            print(key)
+            logger.info(key)
             if val is not None:
                 line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
         # FIXME: are we depricating dependsmap?
@@ -2674,13 +2680,13 @@ class SQLDatabaseController(object):
         rowids = ut.flatten(ibs.get_review_rowids_from_single([aid]))
         tablename = 'reviews'
         exclude_columns = 'review_user_confidence review_user_identity'.split(' ')
-        print(db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns))
+        logger.info(db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns))
 
         db = ibs.db
         rowids = ut.flatten(ibs.get_annotmatch_rowids_from_aid([aid]))
         tablename = 'annotmatch'
         exclude_columns = 'annotmatch_confidence annotmatch_posixtime_modified annotmatch_reviewer'.split(' ')
-        print(db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns))
+        logger.info(db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns))
         """
         if rowids is None:
             rowids = self.get_all_rowids(tablename)
@@ -2930,7 +2936,7 @@ class SQLDatabaseController(object):
                                 elif len(superkeys) == 1:
                                     superkey_colnames = superkeys[0]
                                 else:
-                                    print(self.get_table_csv_header(tablename_))
+                                    logger.info(self.get_table_csv_header(tablename_))
                                     self.print_table_csv(
                                         'metadata', exclude_columns=['metadata_value']
                                     )
@@ -3140,7 +3146,7 @@ class SQLDatabaseController(object):
         # old_rowids_to_new_roids
         for tablename in sorted_tablename_list:
             if verbose:
-                print('\n[sqlmerge] Merging tablename=%r' % (tablename,))
+                logger.info('\n[sqlmerge] Merging tablename=%r' % (tablename,))
             # Collect the data from the source table that will be merged in
             new_transferdata = db_src.get_table_new_transferdata(tablename)
             # FIXME: This needs to pass back sparser output
@@ -3173,12 +3179,12 @@ class SQLDatabaseController(object):
                 valid_extern_superkey_colval_list = [
                     ut.compress(col, isvalid_list) for col in extern_superkey_colval_list
                 ]
-                print(
+                logger.info(
                     ' * filtered number of rows from %d to %d.'
                     % (len(valid_rowids), len(valid_old_rowid_list))
                 )
             else:
-                print(' * no filtering requested')
+                logger.info(' * no filtering requested')
                 valid_extern_superkey_colval_list = extern_superkey_colval_list
                 valid_old_rowid_list = old_rowid_list
                 valid_column_list_ = column_list_
@@ -3191,7 +3197,7 @@ class SQLDatabaseController(object):
             # ================================
             if len(extern_colx_list) > 0:
                 if verbose:
-                    print(
+                    logger.info(
                         '[sqlmerge] %s has %d externaly dependant columns to resolve'
                         % (tablename, len(extern_colx_list))
                     )
@@ -3216,8 +3222,8 @@ class SQLDatabaseController(object):
                     source_colname = column_names_[colx - 1]
                     if veryverbose or verbose:
                         if veryverbose:
-                            print('[sqlmerge] +--')
-                            print(
+                            logger.info('[sqlmerge] +--')
+                            logger.info(
                                 (
                                     '[sqlmerge] * resolving source_colname=%r \n'
                                     '                 via extern_superkey_colname=%r ...\n'
@@ -3231,7 +3237,7 @@ class SQLDatabaseController(object):
                                 )
                             )
                         elif verbose:
-                            print(
+                            logger.info(
                                 '[sqlmerge] * resolving %r via %r -> %r'
                                 % (
                                     source_colname,
@@ -3247,7 +3253,9 @@ class SQLDatabaseController(object):
                     )
                     num_Nones = sum(ut.flag_None_items(new_extern_rowids))
                     if verbose:
-                        print('[sqlmerge] * there were %d none items' % (num_Nones,))
+                        logger.info(
+                            '[sqlmerge] * there were %d none items' % (num_Nones,)
+                        )
                     # ut.assert_all_not_None(new_extern_rowids)
                     new_extern_rowid_list.append(new_extern_rowids)
 
@@ -3297,8 +3305,8 @@ class SQLDatabaseController(object):
                 # def get_referenced_table():
                 #     # TODO use foreign keys to infer this data instead of hacks
                 #     pass
-                # print('superkey_paramxs_list = %r' % (superkey_paramxs_list, ))
-                # print('superkey_colnames_list = %r' % (superkey_colnames_list, ))
+                # logger.info('superkey_paramxs_list = %r' % (superkey_paramxs_list, ))
+                # logger.info('superkey_colnames_list = %r' % (superkey_colnames_list, ))
                 # raise ValueError('Cannot merge %r' % (tablename, ))
 
             params_iter = list(zip(*modified_column_list_))
@@ -3373,7 +3381,7 @@ class SQLDatabaseController(object):
         return csv_table
 
     def print_table_csv(self, tablename, exclude_columns=[], truncate=False):
-        print(
+        logger.info(
             self.get_table_csv(
                 tablename, exclude_columns=exclude_columns, truncate=truncate
             )
@@ -3395,7 +3403,7 @@ class SQLDatabaseController(object):
 
     def print_schema(self):
         for tablename in self.get_table_names():
-            print(self.get_table_csv_header(tablename) + '\n')
+            logger.info(self.get_table_csv_header(tablename) + '\n')
 
     def view_db_in_external_reader(self):
         known_readers = ['sqlitebrowser', 'sqliteman']
@@ -3429,11 +3437,11 @@ class SQLDatabaseController(object):
         """ Conveinience """
         self.cur.execute('SELECT sqlite_version()')
         sql_version = self.cur.fetchone()
-        print('[sql] SELECT sqlite_version = %r' % (sql_version,))
+        logger.info('[sql] SELECT sqlite_version = %r' % (sql_version,))
         # The version number sqlite3 module. NOT the version of SQLite library.
-        print('[sql] sqlite3.version = %r' % (lite.version,))
+        logger.info('[sql] sqlite3.version = %r' % (lite.version,))
         # The version of the SQLite library
-        print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
+        logger.info('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
         return sql_version
 
     def __getitem__(self, key):

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import numpy as np
 import utool as ut
 import vtool.keypoint as ktool
@@ -9,6 +10,7 @@ from wbia.other import ibsfuncs
 from wbia.control.accessor_decors import getter, getter_vector_output
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
@@ -44,7 +46,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
         chipsz_list = ibs.get_annot_chip_sizes(aid_list, ensure=ensure)
     except AssertionError as ex:
         ut.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
-        print('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))
+        logger.info('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))
         raise
     kpts_list = ibs.get_annot_kpts(aid_list, ensure=ensure, config2_=config2_)
     imgkpts_list = [
@@ -58,7 +60,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
 
 @getter_vector_output
 def get_chips(ibs, aid_list, in_image=False, config2_=None, as_fpath=False):
-    # print('config2_ = %r' % (config2_,))
+    # logger.info('config2_ = %r' % (config2_,))
     if as_fpath:
         if in_image:
             return ibs.get_annot_image_paths(aid_list)
@@ -149,9 +151,9 @@ def get_truth_color(truth, base255=False, lighten_amount=None):
     }
     color = truth_colors[truth]
     if lighten_amount is not None:
-        # print('color = %r, lighten_amount=%r' % (color, lighten_amount))
+        # logger.info('color = %r, lighten_amount=%r' % (color, lighten_amount))
         color = df2.lighten_rgb(color, lighten_amount)
-        # print('color = %r' % (color))
+        # logger.info('color = %r' % (color))
     if base255:
         color = df2.to_base255(color)
     return color

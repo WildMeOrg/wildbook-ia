@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import six
 import utool as ut
 from six.moves import builtins
 from utool._internal.meta_util_six import get_funcname
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 DEBUG_ADDERS = False
 DEBUG_SETTERS = False
@@ -38,9 +40,9 @@ else:
 if ut.VERBOSE:
     if ut.in_main_process():
         if API_CACHE:
-            print('[accessor_decors] API_CACHE IS ENABLED')
+            logger.info('[accessor_decors] API_CACHE IS ENABLED')
         else:
-            print('[accessor_decors] API_CACHE IS DISABLED')
+            logger.info('[accessor_decors] API_CACHE IS DISABLED')
 #
 # -----------------
 # IBEIS DECORATORS
@@ -157,7 +159,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
             num_miss = sum(ismiss_list)
             num_total = len(rowid_list)
             num_hit = num_total - num_miss
-            print(
+            logger.info(
                 '\n[get] %s.%s %d / %d cache hits'
                 % (tblname, colname, num_hit, num_total)
             )
@@ -189,8 +191,8 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
             except AssertionError as ex:
                 raise ex
             except Exception as ex2:
-                print(type(cache_vals_list))
-                print(type(db_vals_list))
+                logger.info(type(cache_vals_list))
+                logger.info(type(db_vals_list))
                 ut.printex(ex2)
                 ut.embed()
                 raise
@@ -230,7 +232,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
                 ismiss_list = [val is None for val in vals_list]
                 if debug or debug_:
                     debug_cache_hits(ismiss_list, rowid_list)
-                    # print('[cache_getter] "debug_cache_hits" turned off')
+                    # logger.info('[cache_getter] "debug_cache_hits" turned off')
                 # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
                 if ASSERT_API_CACHE:
                     assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
@@ -328,15 +330,15 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
             if DEBUG_API_CACHE:
                 indenter = ut.Indenter('[%s]' % (tblname,))
                 indenter.start()
-                print('+------')
-                print(
+                logger.info('+------')
+                logger.info(
                     'INVALIDATING tblname=%r, colnames=%r, rowidx=%r, force=%r'
                     % (tblname, colnames, rowidx, force)
                 )
-                print('self = %r' % (self,))
-                print('args = %r' % (args,))
-                print('kwargs = %r' % (kwargs,))
-                print('colscache_ = ' + ut.repr2(colscache_, truncate=1))
+                logger.info('self = %r' % (self,))
+                logger.info('args = %r' % (args,))
+                logger.info('kwargs = %r' % (kwargs,))
+                logger.info('colscache_ = ' + ut.repr2(colscache_, truncate=1))
 
             # Clear the cache of any specified colname
             # when the invalidator is called
@@ -357,9 +359,9 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
 
             # Preform set/delete action
             if DEBUG_API_CACHE:
-                print('After:')
-                print('colscache_ = ' + ut.repr2(colscache_, truncate=1))
-                print('L__________')
+                logger.info('After:')
+                logger.info('colscache_ = ' + ut.repr2(colscache_, truncate=1))
+                logger.info('L__________')
 
             writer_result = writer_func(self, *args, **kwargs)
 
@@ -390,13 +392,13 @@ def adder(func):
     @ut.ignores_exc_tb
     def wrp_adder(*args, **kwargs):
         if DEBUG_ADDERS or VERB_CONTROL:
-            print('+------')
-            print('[ADD]: ' + get_funcname(func))
+            logger.info('+------')
+            logger.info('[ADD]: ' + get_funcname(func))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
-            print('\n' + funccall_str + '\n')
-            print('L------')
+            logger.info('\n' + funccall_str + '\n')
+            logger.info('L------')
         if VERB_CONTROL:
-            print('[ADD]: ' + get_funcname(func))
+            logger.info('[ADD]: ' + get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
 
@@ -413,7 +415,7 @@ def deleter(func):
     @ut.ignores_exc_tb
     def wrp_deleter(*args, **kwargs):
         if VERB_CONTROL:
-            print('[DELETE]: ' + get_funcname(func))
+            logger.info('[DELETE]: ' + get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
 
@@ -429,14 +431,14 @@ def setter(func):
     @ut.ignores_exc_tb
     def wrp_setter(*args, **kwargs):
         if DEBUG_SETTERS or VERB_CONTROL:
-            print('+------')
-            print('[SET]: ' + get_funcname(func))
-            print('[SET]: called by: ' + ut.get_caller_name(range(1, 7)))
+            logger.info('+------')
+            logger.info('[SET]: ' + get_funcname(func))
+            logger.info('[SET]: called by: ' + ut.get_caller_name(range(1, 7)))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
-            print('\n' + funccall_str + '\n')
-            print('L------')
+            logger.info('\n' + funccall_str + '\n')
+            logger.info('L------')
             # builtins.print('\n' + funccall_str + '\n')
-        # print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
+        # logger.info('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
         return func(*args, **kwargs)
 
     wrp_setter = ut.preserve_sig(wrp_setter, func)
@@ -457,14 +459,14 @@ def getter(func):
     @ut.ignores_exc_tb
     def wrp_getter(*args, **kwargs):
         # if ut.DEBUG:
-        #    print('[IN GETTER] args=%r' % (args,))
-        #    print('[IN GETTER] kwargs=%r' % (kwargs,))
+        #    logger.info('[IN GETTER] args=%r' % (args,))
+        #    logger.info('[IN GETTER] kwargs=%r' % (kwargs,))
         if DEBUG_GETTERS or VERB_CONTROL:
-            print('+------')
-            print('[GET]: ' + get_funcname(func))
+            logger.info('+------')
+            logger.info('[GET]: ' + get_funcname(func))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
-            print('\n' + funccall_str + '\n')
-            print('L------')
+            logger.info('\n' + funccall_str + '\n')
+            logger.info('L------')
         return func(*args, **kwargs)
 
     wrp_getter = ut.preserve_sig(wrp_getter, func)

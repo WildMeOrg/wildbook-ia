@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import re
 import functools
 import operator as op
@@ -8,6 +9,7 @@ import copy
 import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
+logger = logging.getLogger('wbia')
 
 
 class StackedConfig(ut.DictLike, ut.HashComparable):
@@ -263,7 +265,7 @@ class Config(ut.NiceRepr, ut.DictLike):
 
     def initialize_params(cfg, **kwargs):
         """ Initializes config class attributes based on params info list """
-        # print("INIT PARAMS")
+        # logger.info("INIT PARAMS")
         for pi in cfg.get_param_info_list():
             setattr(cfg, pi.varname, pi.default)
 
@@ -309,7 +311,9 @@ class Config(ut.NiceRepr, ut.DictLike):
                 name = val.get_config_name()
                 for key, val in val.parse_items():
                     if key in seen:
-                        print('[Config] WARNING: key=%r appears more than once' % (key,))
+                        logger.info(
+                            '[Config] WARNING: key=%r appears more than once' % (key,)
+                        )
                     seen.add(key)
                     # Incorporate namespace
                     param_list.append((name, key, val))
@@ -317,7 +321,9 @@ class Config(ut.NiceRepr, ut.DictLike):
                 pass
             else:
                 if key in seen:
-                    print('[Config] WARNING: key=%r appears more than once' % (key,))
+                    logger.info(
+                        '[Config] WARNING: key=%r appears more than once' % (key,)
+                    )
                 seen.add(key)
                 # Incorporate namespace
                 name = cfg.get_config_name()
@@ -391,14 +397,14 @@ class Config(ut.NiceRepr, ut.DictLike):
 
     def assert_self_types(cfg, verbose=True):
         if verbose:
-            print('Assert self types of cfg=%r' % (cfg,))
+            logger.info('Assert self types of cfg=%r' % (cfg,))
         pi_dict = cfg.get_param_info_dict()
         for key in cfg.keys():
             pi = pi_dict[key]
             value = cfg[key]
             pi.error_if_invalid_value(value)
         if verbose:
-            print('... checks passed')
+            logger.info('... checks passed')
 
     def getinfo(cfg, key):
         pass
@@ -668,13 +674,13 @@ class IBEISRequestHacks(object):
     # def get_external_data_config2(request):
     #    # HACK
     #    #return None
-    #    #print('[d] request.params = %r' % (request.params,))
+    #    #logger.info('[d] request.params = %r' % (request.params,))
     #    return request.params
 
     # def get_external_query_config2(request):
     #    # HACK
     #    #return None
-    #    #print('[q] request.params = %r' % (request.params,))
+    #    #logger.info('[q] request.params = %r' % (request.params,))
     #    return request.params
 
 
@@ -813,7 +819,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         dependency_levels = ut.longest_levels(dependency_levels_)
 
         true_order = ut.flatten(dependency_levels)[1:-1]
-        # print('[req] Ensuring %s request dependencies: %r' % (request, true_order,))
+        # logger.info('[req] Ensuring %s request dependencies: %r' % (request, true_order,))
         ut.colorprint(
             '[req] Ensuring request %s dependencies: %r' % (request, true_order,),
             'yellow',
@@ -852,7 +858,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         # Load all results
         result_list = table.get_row_data(rowids)
         if postprocess and hasattr(request, 'postprocess_execute'):
-            print('Converting results')
+            logger.info('Converting results')
             result_list = request.postprocess_execute(parent_rowids, result_list)
             pass
         return result_list
@@ -948,7 +954,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
             # previously defined in execute subset
             # subparent_rowids = request.make_parent_rowids(
             # qaids, request.daids)
-            print('given %d specific parent_rowids' % (len(parent_rowids),))
+            logger.info('given %d specific parent_rowids' % (len(parent_rowids),))
 
         # vsone hack (i,j) same as (j,i)
         if request._symmetric:
@@ -973,7 +979,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
             result_list = ut.take(result_list, inverse_idx)
 
         if postprocess and hasattr(request, 'postprocess_execute'):
-            print('Converting results')
+            logger.info('Converting results')
             result_list = request.postprocess_execute(parent_rowids, result_list)
             pass
         return result_list

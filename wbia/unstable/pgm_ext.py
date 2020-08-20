@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six  # NOQA
 import utool as ut
 import numpy as np
@@ -16,6 +17,7 @@ except ImportError:
     pass
 # from wbia.algo.hots.pgm_viz import *  # NOQA
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def define_model(cpd_list):
@@ -245,9 +247,9 @@ class ApproximateFactor(object):
             self.weights = np.array(
                 [g.sum() for g in vt.apply_grouping(self.weights, groupxs)]
             )
-            # print('[pgm] Consolidated %r states into %r states' % (len(data_ids), len(unique_ids),))
+            # logger.info('[pgm] Consolidated %r states into %r states' % (len(data_ids), len(unique_ids),))
         # else:
-        #    print('[pgm] Cannot consolidated %r unique states' % (len(data_ids),))
+        #    logger.info('[pgm] Cannot consolidated %r unique states' % (len(data_ids),))
         if not inplace:
             return phi
 
@@ -399,7 +401,7 @@ def print_factors(model, factor_list):
     else:
         semtypes = [0] * len(factor_list)
     for type_, factors in ut.group_items(factor_list, semtypes).items():
-        print('Result Factors (%r)' % (type_,))
+        logger.info('Result Factors (%r)' % (type_,))
         factors = ut.sortedby(factors, [f.variables[0] for f in factors])
         for fs_ in ut.ichunks(factors, 4):
             ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
@@ -702,7 +704,7 @@ def map_example():
     marg_factors = infr.query(['A0', 'B0']).values()
     print_factors(model, marg_factors)
     map_res = infr.map_query()
-    print('map_res = %r' % (map_res,))
+    logger.info('map_res = %r' % (map_res,))
     return model
 
 

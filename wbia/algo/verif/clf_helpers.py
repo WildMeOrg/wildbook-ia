@@ -6,6 +6,7 @@ MAIN IDEA:
     `MultiTaskSamples` serves as a structure to contain and manipulate a set of
     samples with potentially many different types of labels and features.
 """
+import logging
 import utool as ut
 import ubelt as ub
 import numpy as np
@@ -21,6 +22,7 @@ from wbia.algo.verif import sklearn_utils
 from six.moves import range
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class XValConfig(dt.Config):
@@ -406,7 +408,7 @@ class ClfProblem(ut.NiceRepr):
         labels = pblm.samples.subtasks[task_key]
         assert np.all(labels.encoded_df.index == X_df.index)
         clf_partial = pblm._get_estimator(clf_key)
-        print(
+        logger.info(
             'Training deployment {} classifier on {} for {}'.format(
                 clf_key, data_key, task_key
             )
@@ -504,16 +506,16 @@ class ClfProblem(ut.NiceRepr):
         cvresult_df = pd.DataFrame(res).rename(columns=alias)
         cvresult_df = cvresult_df.sort_values('rank').reset_index(drop=True)
         params = pd.DataFrame.from_dict(cvresult_df['params'].values.tolist())
-        print('Varied params:')
-        print(ut.repr4(ut.map_vals(set, params.to_dict('list'))))
-        print('Ranked Params')
-        print(params)
-        print('Ranked scores on development set:')
-        print(cvresult_df)
-        print('Best parameters set found on hyperparam set:')
-        print('best_params_ = %s' % (ut.repr4(search.best_params_),))
+        logger.info('Varied params:')
+        logger.info(ut.repr4(ut.map_vals(set, params.to_dict('list'))))
+        logger.info('Ranked Params')
+        logger.info(params)
+        logger.info('Ranked scores on development set:')
+        logger.info(cvresult_df)
+        logger.info('Best parameters set found on hyperparam set:')
+        logger.info('best_params_ = %s' % (ut.repr4(search.best_params_),))
 
-        print('Fastest params')
+        logger.info('Fastest params')
         cvresult_df.loc[cvresult_df['fit_time'].idxmin()]['params']
 
     def _dev_calib(pblm):
@@ -557,11 +559,11 @@ class ClfProblem(ut.NiceRepr):
         cal_score = log_loss(y[test_idx] == 1, cal_probs)
         cal_brier = brier_score_loss(y[test_idx] == 1, cal_probs)
 
-        print('cal_brier = %r' % (cal_brier,))
-        print('uncal_brier = %r' % (uncal_brier,))
+        logger.info('cal_brier = %r' % (cal_brier,))
+        logger.info('uncal_brier = %r' % (uncal_brier,))
 
-        print('uncal_score = %r' % (uncal_score,))
-        print('cal_score = %r' % (cal_score,))
+        logger.info('uncal_score = %r' % (uncal_score,))
+        logger.info('cal_score = %r' % (cal_score,))
 
         import wbia.plottool as pt
 
@@ -870,8 +872,8 @@ class ClfResult(ut.NiceRepr):
             target_names=res.class_names,
             sample_weight=res.sample_weight,
         )
-        print('Precision/Recall Report:')
-        print(report)
+        logger.info('Precision/Recall Report:')
+        logger.info(report)
 
     def get_thresholds(res, metric='mcc', value='maximize'):
         """
@@ -887,7 +889,7 @@ class ClfResult(ut.NiceRepr):
         a = np.array(a)
         b = np.array(b)
         d = (a - b)
-        print((d.min(), d.max()))
+        logger.info((d.min(), d.max()))
         """
         threshes = {}
         for class_name in res.class_names:
@@ -988,15 +990,15 @@ class ClfResult(ut.NiceRepr):
             thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='index')
             thresh_df = thresh_df.loc[list(thresh_dict.keys())]
             if cfms.n_pos > 0 and cfms.n_neg > 0:
-                print('Raw 1vR {} Thresholds'.format(class_name))
-                print(ut.indent(thresh_df.to_string(float_format='{:.4f}'.format)))
+                logger.info('Raw 1vR {} Thresholds'.format(class_name))
+                logger.info(ut.indent(thresh_df.to_string(float_format='{:.4f}'.format)))
                 # chosen_type = class_name + '@fpr=0'
                 # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
 
         for choice_k, choice_mv in iter(choice_mv.items()):
             metric, value = choice_mv
             pos_threshes = res.get_pos_threshes(metric, value, warmup=warmup)
-            print('Choosing threshold based on %s' % (choice_k,))
+            logger.info('Choosing threshold based on %s' % (choice_k,))
             res.report_auto_thresholds(pos_threshes)
 
     def report_auto_thresholds(res, threshes, verbose=True):
@@ -1091,7 +1093,7 @@ class ClfResult(ut.NiceRepr):
             pass
         report = '\n'.join(report_lines)
         if verbose:
-            print(report)
+            logger.info(report)
         return report
 
     def confusions(res, class_name):
@@ -1345,15 +1347,15 @@ class MultiTaskSamples(ut.NiceRepr):
     def print_info(samples):
         for task_name, labels in samples.items():
             labels.print_info()
-        print('hist(all) = %s' % (ut.repr4(samples.make_histogram())))
-        print('len(all) = %s' % (len(samples)))
+        logger.info('hist(all) = %s' % (ut.repr4(samples.make_histogram())))
+        logger.info('len(all) = %s' % (len(samples)))
 
     def make_histogram(samples):
         """ label histogram """
         class_name_basis = samples.class_name_basis()
         class_idx_basis_1d = samples.class_idx_basis_1d()
-        # print('class_idx_basis_1d = %r' % (class_idx_basis_1d,))
-        # print(samples.encoded_1d())
+        # logger.info('class_idx_basis_1d = %r' % (class_idx_basis_1d,))
+        # logger.info(samples.encoded_1d())
         multi_task_idx_hist = ut.dict_hist(
             samples.encoded_1d().values, labels=class_idx_basis_1d
         )
@@ -1573,8 +1575,10 @@ class MultiClassLabels(ut.NiceRepr):
         return class_hist
 
     def print_info(labels):
-        print('hist(%s) = %s' % (labels.task_name, ut.repr4(labels.make_histogram())))
-        print('len(%s) = %s' % (labels.task_name, len(labels)))
+        logger.info(
+            'hist(%s) = %s' % (labels.task_name, ut.repr4(labels.make_histogram()))
+        )
+        logger.info('len(%s) = %s' % (labels.task_name, len(labels)))
 
 
 class IrisProblem(ClfProblem):

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import six  # NOQA
 import utool as ut
 import numpy as np
 from wbia.unstable.bayes import make_name_model, temp_model, draw_tree_model
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def trytestdata_demo_cfgs():
@@ -60,7 +62,7 @@ def demo_bayesnet(cfg={}):
         # r = randomdotorg.RandomDotOrg('ExampleCode')
         # seed = int((1 - 2 * r.random()) * sys.maxint)
         toy_data = get_toy_data_1v1(num_annots, nid_sequence=[0, 0, 1, 0, 1, 2])
-        print('toy_data = ' + ut.repr3(toy_data, nl=1))
+        logger.info('toy_data = ' + ut.repr3(toy_data, nl=1))
         (diag_scores,) = ut.dict_take(toy_data, 'diag_scores'.split(', '))
         discr_domain, discr_p_same = learn_prob_score(num_scores)[0:2]
 
@@ -112,7 +114,7 @@ def classify_k(cfg={}):
     force_evidence = 0
     (diag_scores,) = ut.dict_take(toy_data, 'diag_scores'.split(', '))
 
-    # print('diag_scores = %r' % (diag_scores,))
+    # logger.info('diag_scores = %r' % (diag_scores,))
     # diag_labels = pairwise_matches.compress(is_diag)
     # diag_pairs = ut.compress(pairwise_aidxs, is_diag)
 
@@ -139,9 +141,9 @@ def classify_k(cfg={}):
         score_basis=discr_domain,
         # verbose=True
     )
-    print(query_results['top_assignments'][0])
+    logger.info(query_results['top_assignments'][0])
     toy_data1 = toy_data
-    print('toy_data1 = ' + ut.repr3(toy_data1, nl=1))
+    logger.info('toy_data1 = ' + ut.repr3(toy_data1, nl=1))
     num_annots2 = num_annots + 1
     score_evidence1 = [None] * len(score_evidence)
     full_evidence = score_evidence.tolist()
@@ -152,7 +154,7 @@ def classify_k(cfg={}):
         soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list]
 
     for _ in range(num_iter):
-        print('\n\n ---------- \n\n')
+        logger.info('\n\n ---------- \n\n')
         # toy_data1['all_nids'].max() + 1
         num_names_gen = len(toy_data1['all_aids']) + 1
         num_names_gen = toy_data1['all_nids'].max() + 2
@@ -164,13 +166,13 @@ def classify_k(cfg={}):
             nid_sequence=nid_sequence,
         )
         (diag_scores2,) = ut.dict_take(toy_data2, 'diag_scores'.split(', '))
-        print('toy_data2 = ' + ut.repr3(toy_data2, nl=1))
+        logger.info('toy_data2 = ' + ut.repr3(toy_data2, nl=1))
 
         score_evidence2 = discretize_scores(diag_scores2).tolist()
         if force_evidence is not None:
             for x in range(len(score_evidence2)):
                 score_evidence2[x] = force_evidence
-        print('score_evidence2 = %r' % (score_evidence2,))
+        logger.info('score_evidence2 = %r' % (score_evidence2,))
 
         if using_soft:
             # Demo with soft evidence
@@ -303,7 +305,7 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
     from sklearn import svm
 
     # clf1 = svm.LinearSVC()
-    print('Learning classifiers')
+    logger.info('Learning classifiers')
 
     clf3 = svm.SVC(probability=True)
     clf3.fit(feat_list, lbl_list)
@@ -323,7 +325,7 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
     feat_list = np.vstack(ut.get_list_column(toclass_features, 1))
     lbl_list = np.array([aid2_nid[aid] == nid for aid, nid in aidnid_pairs])
 
-    print('Running tests')
+    logger.info('Running tests')
 
     score_list = feat_list.T[0:1].T
 
@@ -331,38 +333,38 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
     tn_feat_list = feat_list[~lbl_list]
     tp_lbls = lbl_list[lbl_list]
     tn_lbls = lbl_list[~lbl_list]
-    print('num tp: %d' % len(tp_lbls))
-    print('num fp: %d' % len(tn_lbls))
+    logger.info('num tp: %d' % len(tp_lbls))
+    logger.info('num fp: %d' % len(tn_lbls))
 
     tp_score_list = score_list[lbl_list]
     tn_score_list = score_list[~lbl_list]
 
-    print('tp_feat' + ut.repr3(ut.get_stats(tp_feat_list, axis=0), precision=2))
-    print('tp_feat' + ut.repr3(ut.get_stats(tn_feat_list, axis=0), precision=2))
+    logger.info('tp_feat' + ut.repr3(ut.get_stats(tp_feat_list, axis=0), precision=2))
+    logger.info('tp_feat' + ut.repr3(ut.get_stats(tn_feat_list, axis=0), precision=2))
 
-    print('tp_score' + ut.repr2(ut.get_stats(tp_score_list), precision=2))
-    print('tp_score' + ut.repr2(ut.get_stats(tn_score_list), precision=2))
+    logger.info('tp_score' + ut.repr2(ut.get_stats(tp_score_list), precision=2))
+    logger.info('tp_score' + ut.repr2(ut.get_stats(tn_score_list), precision=2))
 
     tp_pred3 = clf3.predict(tp_feat_list)
     tn_pred3 = clf3.predict(tn_feat_list)
-    print((tp_pred3.sum(), tp_pred3.shape))
-    print((tn_pred3.sum(), tn_pred3.shape))
+    logger.info((tp_pred3.sum(), tp_pred3.shape))
+    logger.info((tn_pred3.sum(), tn_pred3.shape))
 
     tp_score3 = clf3.score(tp_feat_list, tp_lbls)
     tn_score3 = clf3.score(tn_feat_list, tn_lbls)
 
     tp_pred1 = clf1.predict(tp_score_list)
     tn_pred1 = clf1.predict(tn_score_list)
-    print((tp_pred1.sum(), tp_pred1.shape))
-    print((tn_pred1.sum(), tn_pred1.shape))
+    logger.info((tp_pred1.sum(), tp_pred1.shape))
+    logger.info((tn_pred1.sum(), tn_pred1.shape))
 
     tp_score1 = clf1.score(tp_score_list, tp_lbls)
     tn_score1 = clf1.score(tn_score_list, tn_lbls)
-    print('tp score with rank    = %r' % (tp_score3,))
-    print('tn score with rank    = %r' % (tn_score3,))
+    logger.info('tp score with rank    = %r' % (tp_score3,))
+    logger.info('tn score with rank    = %r' % (tn_score3,))
 
-    print('tp score without rank = %r' % (tp_score1,))
-    print('tn score without rank = %r' % (tn_score1,))
+    logger.info('tp score without rank = %r' % (tp_score1,))
+    logger.info('tn score without rank = %r' % (tn_score1,))
     toy_data = {}
 
     return toy_data
@@ -408,7 +410,7 @@ def get_toy_annots(
 
     if num_names is None:
         num_names = num_annots
-    print('Generating toy data with num_annots=%r' % (num_annots,))
+    logger.info('Generating toy data with num_annots=%r' % (num_annots,))
     if initial_aids is None:
         assert initial_nids is None
         first_step = True
@@ -755,7 +757,7 @@ def make_bayes_notebook():
 
     cell_list = ut.flatten([format_cell(cell) for cell in cell_list_def])
     nbstr = generate_notebook.make_notebook(cell_list)
-    print('nbstr = %s' % (nbstr,))
+    logger.info('nbstr = %s' % (nbstr,))
     fpath = 'demobayes.ipynb'
     ut.writeto(fpath, nbstr)
     ut.startfile(fpath)
@@ -773,7 +775,7 @@ def show_model_templates():
         >>> ut.show_if_requested()
     """
     make_name_model(2, 2, verbose=True, mode=1)
-    print('-------------')
+    logger.info('-------------')
     make_name_model(2, 2, verbose=True, mode=2)
 
 
@@ -1021,8 +1023,8 @@ def demo_model_idependencies():
         + ', '.join(sorted(iden.event3))
         for iden in idens.independencies
     ]
-    print('general idependencies')
-    print(ut.align(ut.align('\n'.join(sorted(iden_strs)), '_'), '|'))
+    logger.info('general idependencies')
+    logger.info(ut.align(ut.align('\n'.join(sorted(iden_strs)), '_'), '|'))
     # ut.embed()
     # model.is_active_trail('Na', 'Nb', 'Sab')
 
@@ -1034,4 +1036,4 @@ def demo_model_idependencies():
 # xs = [re.sub('M..,?', '', x) for x in xs]
 # xs = [x for x in xs if not x.startswith('( _')]
 # xs = [x for x in xs if not x.endswith('| )')]
-# print('\n'.join(sorted(list(set(xs)))))
+# logger.info('\n'.join(sorted(list(set(xs)))))

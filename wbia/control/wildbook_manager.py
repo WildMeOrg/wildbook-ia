@@ -13,6 +13,7 @@ Utils:
     python -m wbia update_wildbook_install_config
 
 """
+import logging
 import utool as ut
 import subprocess
 import re
@@ -21,6 +22,7 @@ import os
 from os.path import dirname, join, basename, splitext
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # PREFERED_BROWSER = 'chrome'
@@ -91,7 +93,7 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         dpath_list, fname_list, priority_paths, required_subpaths, verbose=verbose
     )
     tomcat_dpath = return_path
-    print('tomcat_dpath = %r ' % (tomcat_dpath,))
+    logger.info('tomcat_dpath = %r ' % (tomcat_dpath,))
     return tomcat_dpath
 
 
@@ -104,7 +106,7 @@ def download_tomcat():
         # Reset
         python -c "import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir('wbia'), 'tomcat'))"
     """
-    print('Grabbing tomcat')
+    logger.info('Grabbing tomcat')
     # FIXME: need to make a stable link
     if ut.WIN32:
         tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36-windows-x86.zip'
@@ -123,7 +125,7 @@ def download_tomcat():
         for fname in scriptnames:
             fpath = join(tomcat_dpath, 'bin', fname)
             if not ut.is_file_executable(fpath):
-                print('Adding executable bits to script %r' % (fpath,))
+                logger.info('Adding executable bits to script %r' % (fpath,))
                 ut.chmod_add_executable(fpath)
     return tomcat_dpath
 
@@ -157,7 +159,7 @@ def find_installed_tomcat(check_unpacked=True, strict=True):
         if strict:
             raise ImportError(msg)
         else:
-            print(msg)
+            logger.info(msg)
             return None
     if check_unpacked:
         import wbia
@@ -265,8 +267,8 @@ def ensure_wb_mysql():
         >>> from wbia.control.wildbook_manager import *  # NOQA
         >>> result = ensure_wb_mysql()
     """
-    print('Execute the following code to install mysql')
-    print(
+    logger.info('Execute the following code to install mysql')
+    logger.info(
         ut.codeblock(
             r"""
         # STARTBLOCK bash
@@ -318,9 +320,9 @@ def ensure_local_war(verbose=ut.NOT_QUIET):
         _java_version = output.split('\n')[0]
         _java_version = _java_version.replace('java version ', '')
         java_version = _java_version.replace('"', '')
-        print('java_version = %r' % (java_version,))
+        logger.info('java_version = %r' % (java_version,))
         if not java_version.startswith('1.7'):
-            print('Warning wildbook is only supported for java 1.7')
+            logger.info('Warning wildbook is only supported for java 1.7')
     except OSError:
         output = None
     if output is None:
@@ -391,7 +393,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
             startup_fpath = join(tomcat_dpath, 'bin', 'startup.sh')
             # shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
             ut.cmd(ut.quote_single_command(startup_fpath))
-            print('It is NOT ok if the startup.sh fails\n')
+            logger.info('It is NOT ok if the startup.sh fails\n')
 
             # wait for the war to be unpacked
             for retry_count in range(0, 6):
@@ -399,15 +401,15 @@ def install_wildbook(verbose=ut.NOT_QUIET):
                 if ut.checkpath(unpacked_war_dpath, verbose=True):
                     break
                 else:
-                    print('Retrying')
+                    logger.info('Retrying')
 
             # ensure that the server is ruuning
-            print('Checking if we can ping the server')
+            logger.info('Checking if we can ping the server')
             response = requests.get('http://localhost:8080')
             if response is None or response.status_code != 200:
-                print('There may be an error starting the server')
+                logger.info('There may be an error starting the server')
             else:
-                print('Seem able to ping the server')
+                logger.info('Seem able to ping the server')
 
             # assert tht the war was unpacked
             ut.assertpath(
@@ -431,25 +433,25 @@ def install_wildbook(verbose=ut.NOT_QUIET):
         if not fresh_install:
             startup_wildbook_server()
         # web_url = startup_wildbook_server(verbose=False)
-        print('Creating asset store')
+        logger.info('Creating asset store')
         wb_url = 'http://localhost:8080/' + wb_target
         response = requests.get(wb_url + '/createAssetStore.jsp')
         if response is None or response.status_code != 200:
-            print('There may be an error starting the server')
+            logger.info('There may be an error starting the server')
             # if response.status_code == 500:
-            print(response.text)
+            logger.info(response.text)
             assert False, 'response error'
         else:
-            print('Created asset store')
+            logger.info('Created asset store')
             # Create file signaling we did this
             ut.writeto(asset_flag_fpath, 'True')
         shutdown_wildbook_server(verbose=False)
-        print('It is ok if the shutdown fails')
+        logger.info('It is ok if the shutdown fails')
     elif fresh_install:
         shutdown_wildbook_server(verbose=False)
 
     # 127.0.0.1:8080/wildbook_data_dir/test.txt
-    print('Wildbook is installed and waiting to be started')
+    logger.info('Wildbook is installed and waiting to be started')
 
 
 @ut.tracefunc_xml
@@ -506,17 +508,17 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         )
         assert new_permission_text != permission_text, 'text should have changed'
     if new_permission_text != permission_text:
-        print('Need to write new permission texts')
+        logger.info('Need to write new permission texts')
         ut.writeto(permission_fpath, new_permission_text)
     else:
-        print('Permission file seems to be ok')
+        logger.info('Permission file seems to be ok')
 
     # Make sure we are using a non-process based database
     jdoconfig_fpath = join(
         unpacked_war_dpath, 'WEB-INF/classes/bundles/jdoconfig.properties'
     )
-    print('Fixing backend database config')
-    print('jdoconfig_fpath = %r' % (jdoconfig_fpath,))
+    logger.info('Fixing backend database config')
+    logger.info('jdoconfig_fpath = %r' % (jdoconfig_fpath,))
     ut.assertpath(jdoconfig_fpath)
     jdoconfig_text = ut.readfrom(jdoconfig_fpath)
     # ut.vd(dirname(jdoconfig_fpath))
@@ -590,7 +592,7 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
     #        update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun)
     """
     wildbook_properteis_dpath = join(wildbook_tomcat_path, 'WEB-INF/classes/bundles/')
-    print(
+    logger.info(
         '[ibs.update_wildbook_ia_config()] Wildbook properties=%r'
         % (wildbook_properteis_dpath,)
     )
@@ -627,7 +629,7 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
         need_sudo = not ut.is_file_writable(wildbook_config_fpath_dst)
         if need_sudo:
             quoted_content = '"%s"' % (content,)
-            print('Attempting to gain sudo access to update wildbook config')
+            logger.info('Attempting to gain sudo access to update wildbook config')
             command = [
                 'sudo',
                 'sh',
@@ -762,23 +764,23 @@ def tryout_wildbook_login():
     if manaul_login:
         ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     else:
-        print('Grabbing Driver')
+        logger.info('Grabbing Driver')
         driver = ut.grab_selenium_driver(PREFERED_BROWSER)
-        print('Going to URL')
+        logger.info('Going to URL')
         if False:
             driver.get(wb_url)
-            print('Finding Login Button')
+            logger.info('Finding Login Button')
             # login_button = driver.find_element_by_partial_link_text('Log in')
             login_button = driver.find_element_by_partial_link_text('welcome.jps')
             login_button.click()
         else:
             driver.get(wb_url + '/login.jsp')
-        print('Finding Login Elements')
+        logger.info('Finding Login Elements')
         username_field = driver.find_element_by_name('username')
         password_field = driver.find_element_by_name('password')
         submit_login_button = driver.find_element_by_name('submit')
         rememberMe_button = driver.find_element_by_name('rememberMe')
-        print('Executing Login Elements')
+        logger.info('Executing Login Elements')
         username_field.send_keys('tomcat')
         password_field.send_keys('tomcat123')
         rememberMe_button.click()

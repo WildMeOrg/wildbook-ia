@@ -2,6 +2,7 @@
 """
 helpers for controller manual_annot_funcs
 """
+import logging
 from six.moves import zip, range, filter, map  # NOQA
 import six
 import utool as ut
@@ -9,6 +10,7 @@ import uuid
 from vtool import geometry
 
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_annot]')
+logger = logging.getLogger('wbia')
 
 
 def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
@@ -24,7 +26,7 @@ def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=
                 ), 'Bounding boxes must be tuples of ints!'
             except AssertionError as ex:
                 ut.printex(ex)
-                print('bbox_list = %r' % (bbox_list,))
+                logger.info('bbox_list = %r' % (bbox_list,))
                 raise
         annotation_uuid_list = [
             ut.augment_uuid(img_uuid, bbox, theta)
@@ -105,8 +107,8 @@ def generate_annot_properties(
 
     if len(gid_list) == 0:
         # nothing is being added
-        print('[ibs] WARNING: 0 annotations are beign added!')
-        print(ut.repr2(locals()))
+        logger.info('[ibs] WARNING: 0 annotations are beign added!')
+        logger.info(ut.repr2(locals()))
         return []
 
     # Build ~~deterministic?~~ random and unique ANNOTATION ids
@@ -134,7 +136,7 @@ def testdata_preproc_annot():
 
 def postget_annot_verts(vertstr_list):
     # TODO: Sanatize input for eval
-    # print('vertstr_list = %r' % (vertstr_list,))
+    # logger.info('vertstr_list = %r' % (vertstr_list,))
     locals_ = {}
     globals_ = {}
     vert_list = [eval(vertstr, globals_, locals_) for vertstr in vertstr_list]

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Implements ThreadActor """
+import logging
 from concurrent.futures import _base
 from concurrent.futures import thread
 from wbia.web.futures_utils import _base_actor
@@ -9,6 +10,7 @@ import weakref
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # Most of this code is duplicated from the concurrent.futures.thread and
 # concurrent.futures.process modules, writen by Brian Quinlan. The main

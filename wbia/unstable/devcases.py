@@ -8,6 +8,7 @@ TODO:
 
     Excplitict Negative Matches between chips
 """
+import logging
 from wbia.algo.hots import hstypes
 from uuid import UUID
 import utool as ut
@@ -15,6 +16,7 @@ import copy
 import numpy as np
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def fix_pz_master():
@@ -194,11 +196,11 @@ def myquery():
     # FIXME: Use other way of doing gridsearch
     grid_basis = distinctiveness_normalizer.DCVS_DEFAULT.get_grid_basis()
     gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
-    print('Begin Grid Search')
+    logger.info('Begin Grid Search')
     for cfgdict in ut.ProgressIter(gridsearch, lbl='GridSearch'):
         qres_copy, tp_score, tn_score = try_config(qreq_, qres_orig, cfgdict)
         gridsearch.append_result(tp_score, tn_score)
-    print('Finish Grid Search')
+    logger.info('Finish Grid Search')
 
     # Get best result
     best_cfgdict = gridsearch.get_rank_cfgdict()
@@ -274,7 +276,7 @@ def myquery():
     info_str_list.append('INCORRECT STATS')
     info_str_list.append(tn_stats_str)
     info_str = '\n'.join(info_str_list)
-    print(info_str)
+    logger.info(info_str)
 
     # SHOW BEST RESULT
     # qres_copy.ishow_top(ibs, fnum=pt.next_fnum())
@@ -283,10 +285,10 @@ def myquery():
     # Text Informatio
     param_lbl = 'dcvs_power'
     param_stats_str = gridsearch.get_dimension_stats_str(param_lbl)
-    print(param_stats_str)
+    logger.info(param_stats_str)
 
     csvtext = gridsearch.get_csv_results(10)
-    print(csvtext)
+    logger.info(csvtext)
 
     # Paramter visuzliation
     fnum = pt.next_fnum()
@@ -306,7 +308,7 @@ def myquery():
     pt.set_figtitle(figtitle)
     # Save Figure
     # fig_fpath = pt.save_figure(usetitle=True)
-    # print(fig_fpath)
+    # logger.info(fig_fpath)
     # Write CSV Results
     # csv_fpath = fig_fpath + '.csv.txt'
     # ut.write_to(csv_fpath, csvtext)
@@ -314,7 +316,7 @@ def myquery():
     # qres_copy.ishow_top(ibs)
     # from matplotlib import pyplot as plt
     # plt.show()
-    # print(ut.repr2()))
+    # logger.info(ut.repr2()))
     # TODO: plot max variation dims
     # import wbia.plottool as pt
     # pt.plot(p_list, diff_list)
@@ -381,7 +383,7 @@ def testdata_my_exmaples(index):
     if tn_vuuid is None:
         qaids = [aid1]
         find_close_incorrect_match(ibs, qaids)
-        print('baste the result in gf_mapping')
+        logger.info('baste the result in gf_mapping')
         return
 
     tn_aids = ibs.get_annot_aids_from_visual_uuid(tn_vuuid)
@@ -414,7 +416,7 @@ def find_close_incorrect_match(ibs, qaids):
     top_gf_vuuids = ibs.get_annot_visual_uuids(top_gf_aids)
     qvuuid = ibs.get_annot_visual_uuids(qaid)
     gf_mapping = {qvuuid: top_gf_vuuids[0:1]}
-    print('gf_mapping = ' + ut.repr2(gf_mapping))
+    logger.info('gf_mapping = ' + ut.repr2(gf_mapping))
     pass
 
 
@@ -545,7 +547,7 @@ def load_gztest(ibs):
     eval_text = ut.read_from(join(dir_, 'GZ_TESTTUP.txt'))
     testcases = eval(eval_text)
     count_dict = ut.count_dict_vals(testcases)
-    print(ut.repr2(count_dict))
+    logger.info(ut.repr2(count_dict))
 
     testtup_list = ut.flatten(
         ut.dict_take_list(

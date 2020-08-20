@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 import torch
 import torchvision
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class Siamese(torch.nn.Module):
@@ -41,7 +43,7 @@ def visualize():
 
     def make_nx(var, params):
         param_map = {id(v): k for k, v in params.items()}
-        print(param_map)
+        logger.info(param_map)
         node_attr = dict(
             style='filled',
             shape='box',

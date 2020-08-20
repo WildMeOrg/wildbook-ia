@@ -2,6 +2,7 @@
 """
 Dependencies: flask, tornado
 """
+import logging
 import random
 import math
 import simplejson as json
@@ -16,6 +17,7 @@ import numpy as np
 import os
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -283,7 +285,7 @@ def view_advanced0(**kwargs):
             imgsetid_list = ibs.get_valid_imgsetids()
             assert imgsetid in imgsetid_list
         except Exception:
-            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
+            logger.info('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
             return aid_list
         imgsetids_list = ibs.get_annot_imgsetids(aid_list)
         aid_list = [
@@ -300,7 +302,7 @@ def view_advanced0(**kwargs):
             imgsetid_list = ibs.get_valid_imgsetids()
             assert imgsetid in imgsetid_list
         except Exception:
-            print('ERROR PARSING IMAGESET ID FOR IMAGE FILTERING')
+            logger.info('ERROR PARSING IMAGESET ID FOR IMAGE FILTERING')
             return gid_list
         imgsetids_list = ibs.get_image_imgsetids(gid_list)
         gid_list = [
@@ -317,7 +319,7 @@ def view_advanced0(**kwargs):
             imgsetid_list = ibs.get_valid_imgsetids()
             assert imgsetid in imgsetid_list
         except Exception:
-            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
+            logger.info('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
             return nid_list
         aids_list = ibs.get_name_aids(nid_list)
         imgsetids_list = [
@@ -748,7 +750,7 @@ def view_advanced0(**kwargs):
         )
     ):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
-            # print('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
+            # logger.info('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
             age_ambiguous += 1
             continue
         min_age = None
@@ -759,7 +761,7 @@ def view_advanced0(**kwargs):
             max_age = max_ages[0]
         # Histogram
         if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
-            # print('[web] Unreviewded name %r: Specify the age for the name' % (nid, ))
+            # logger.info('[web] Unreviewded name %r: Specify the age for the name' % (nid, ))
             age_unreviewed += 1
             continue
         if sex not in [0, 1]:
@@ -1017,7 +1019,7 @@ def view_advanced2(**kwargs):
             imgsetid_list = ibs.get_valid_imgsetids()
             assert imgsetid in imgsetid_list
         except Exception:
-            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
+            logger.info('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
             return aid_list
         imgsetids_list = ibs.get_annot_imgsetids(aid_list)
         aid_list = [
@@ -1193,7 +1195,7 @@ def view_advanced3(**kwargs):
         bar_values_dict[dataset_tag] = values
 
     for dataset_tag in contrib_dict:
-        print(dataset_tag)
+        logger.info(dataset_tag)
         total_cars = 0
         total_letters = 0
         total_images = 0
@@ -1204,11 +1206,11 @@ def view_advanced3(**kwargs):
             for letter in contrib_dict[dataset_tag][car]:
                 total_letters += 1
                 total_images += contrib_dict[dataset_tag][car][letter]
-        print(total_cars)
-        print(total_letters)
-        print(total_images)
+        logger.info(total_cars)
+        logger.info(total_letters)
+        logger.info(total_images)
 
-    print(skipped)
+    logger.info(skipped)
 
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
@@ -1281,10 +1283,10 @@ def view_advanced4(**kwargs):
     #     nids_list = ut.unflat_map(ibs.get_annot_nids, aids_list)
     #     gid_list_filtered = []
     #     for gid, nid_list in list(zip(gid_list, nids_list)):
-    #         print(gid)
-    #         print(nid_list)
+    #         logger.info(gid)
+    #         logger.info(nid_list)
     #         aids_list_ = ibs.get_name_aids(nid_list)
-    #         print(aids_list_)
+    #         logger.info(aids_list_)
     #         single = True
     #         for nid, aid_list in list(zip(nid_list, aids_list_)):
     #             if nid == const.UNKNOWN_NAME_ROWID or nid < 0:
@@ -1292,7 +1294,7 @@ def view_advanced4(**kwargs):
     #             if len(aid_list) > 1:
     #                 single = False
     #                 break
-    #         print(single)
+    #         logger.info(single)
     #         if single:
     #             gid_list_filtered.append(gid)
     #     return gid_list_filtered
@@ -1316,8 +1318,8 @@ def view_advanced4(**kwargs):
     num_all_gzgc = len(dataset_dict['GZGC'])
     num_all_ggr = len(dataset_dict['GGR'])
 
-    print('all', num_all_gzgc)
-    print('all', num_all_ggr)
+    logger.info('all', num_all_gzgc)
+    logger.info('all', num_all_ggr)
 
     dataset_dict['GZGC'] = filter_species_of_interest(dataset_dict['GZGC'])
     dataset_dict['GGR'] = filter_species_of_interest(dataset_dict['GGR'])
@@ -1325,8 +1327,8 @@ def view_advanced4(**kwargs):
     num_species_gzgc = len(dataset_dict['GZGC'])
     num_species_ggr = len(dataset_dict['GGR'])
 
-    print('species', num_species_gzgc)
-    print('species', num_species_ggr)
+    logger.info('species', num_species_gzgc)
+    logger.info('species', num_species_ggr)
 
     allowed_viewpoint_dict = {
         'GGR': ['right', 'frontright', 'backright'],
@@ -1342,8 +1344,8 @@ def view_advanced4(**kwargs):
     num_viewpoint_gzgc = len(dataset_dict['GZGC'])
     num_viewpoint_ggr = len(dataset_dict['GGR'])
 
-    print('viewpoint', num_viewpoint_gzgc)
-    print('viewpoint', num_viewpoint_ggr)
+    logger.info('viewpoint', num_viewpoint_gzgc)
+    logger.info('viewpoint', num_viewpoint_ggr)
 
     allowed_quality_dict = {
         'GGR': ['good', 'perfect'],
@@ -1359,8 +1361,8 @@ def view_advanced4(**kwargs):
     num_quality_gzgc = len(dataset_dict['GZGC'])
     num_quality_ggr = len(dataset_dict['GGR'])
 
-    print('quality', num_quality_gzgc)
-    print('quality', num_quality_ggr)
+    logger.info('quality', num_quality_gzgc)
+    logger.info('quality', num_quality_ggr)
 
     dataset_dict['GZGC'] = filter_bad_metadata(dataset_dict['GZGC'])
     dataset_dict['GGR'] = filter_bad_metadata(dataset_dict['GGR'])
@@ -1368,8 +1370,8 @@ def view_advanced4(**kwargs):
     num_metadata_gzgc = len(dataset_dict['GZGC'])
     num_metadata_ggr = len(dataset_dict['GGR'])
 
-    print('metadata', num_metadata_gzgc)
-    print('metadata', num_metadata_ggr)
+    logger.info('metadata', num_metadata_gzgc)
+    logger.info('metadata', num_metadata_ggr)
 
     # dataset_dict['GZGC'] = filter_singletons(dataset_dict['GZGC'])
     # dataset_dict['GGR'] = filter_singletons(dataset_dict['GGR'])
@@ -1377,8 +1379,8 @@ def view_advanced4(**kwargs):
     # num_named_gzgc = len(dataset_dict['GZGC'])
     # num_named_ggr = len(dataset_dict['GGR'])
 
-    # print('named', num_named_gzgc)
-    # print('named', num_named_ggr)
+    # logger.info('named', num_named_gzgc)
+    # logger.info('named', num_named_ggr)
 
     stage_list_gzgc = [
         num_all_gzgc,
@@ -1598,7 +1600,7 @@ def view_graphs(sync=False, **kwargs):
         ibs.delete_empty_nids()
 
         nid_list = ibs.get_valid_nids()
-        print('Delete nids: %d' % (len(nid_list),))
+        logger.info('Delete nids: %d' % (len(nid_list),))
 
         species_list = ['zebra_grevys', 'giraffe_reticulated']
         for species in species_list:
@@ -1611,7 +1613,7 @@ def view_graphs(sync=False, **kwargs):
             infr = wbia.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
             infr.reset_feedback('staging', apply=True)
             num_pccs = len(list(infr.positive_components()))
-            print('\tproposing PCCs for %r: %d' % (species, num_pccs,))
+            logger.info('\tproposing PCCs for %r: %d' % (species, num_pccs,))
 
             infr.relabel_using_reviews(rectify=True)
             infr.write_wbia_staging_feedback()
@@ -1620,7 +1622,7 @@ def view_graphs(sync=False, **kwargs):
 
         ibs.delete_empty_nids()
         nid_list = ibs.get_valid_nids()
-        print('Final nids: %d' % (len(nid_list),))
+        logger.info('Final nids: %d' % (len(nid_list),))
 
         # Reset sex for new names from old names
         nid_list_ = ibs.get_annot_nids(aid_list_)
@@ -1788,7 +1790,7 @@ def view_images(**kwargs):
     page_previous = None if page_start == 0 else page - 1
     page_next = None if page_end == len(gid_list) else page + 1
     gid_list = gid_list[page_start:page_end]
-    print(
+    logger.info(
         '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
         % (page_start, page_end, len(gid_list), page_previous, page_next,)
     )
@@ -1879,7 +1881,7 @@ def view_annotations(**kwargs):
     page_previous = None if page_start == 0 else page - 1
     page_next = None if page_end == len(aid_list) else page + 1
     aid_list = aid_list[page_start:page_end]
-    print(
+    logger.info(
         '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
         % (page_start, page_end, len(aid_list), page_previous, page_next,)
     )
@@ -1954,7 +1956,7 @@ def view_parts(
     page_next = None if page_end == len(pid_list) else page + 1
 
     pid_list = pid_list[page_start:page_end]
-    print(
+    logger.info(
         '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
         % (page_start, page_end, len(pid_list), page_previous, page_next,)
     )
@@ -2041,7 +2043,7 @@ def view_names(**kwargs):
     page_previous = None if page_start == 0 else page - 1
     page_next = None if page_end == len(nid_list) else page + 1
     nid_list = nid_list[page_start:page_end]
-    print(
+    logger.info(
         '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
         % (page_start, page_end, len(nid_list), page_previous, page_next,)
     )
@@ -2541,7 +2543,7 @@ def turk_detection(
                 throw_test_aoi_turking_mode,
                 throw_test_aoi_turking_severity,
             )
-            print('throw_test_aoi_turking: %r mode with %r severity' % args)
+            logger.info('throw_test_aoi_turking: %r mode with %r severity' % args)
 
             index_list = list(range(len(annotation_list)))
             random.shuffle(index_list)
@@ -2659,7 +2661,7 @@ def turk_detection(
                     )
             else:
                 raise ValueError('Invalid throw_test_aoi_turking_mode')
-            print(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
+            logger.info(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
 
     THROW_TEST_AOI_TURKING_MANIFEST = ut.to_json(THROW_TEST_AOI_TURKING_MANIFEST)
 
@@ -2801,7 +2803,7 @@ def turk_detection_canonical(
         previous,
         previous_only_aid,
     )
-    print(
+    logger.info(
         'CANONICAL IMAGESETID: %s GID: %s AID: %s (PROG = %s, PREV GID = %s, PREV AID = %s)'
         % args
     )
@@ -3075,7 +3077,7 @@ def turk_annotation_canonical(
         reviewed_list.append(reviewed)
 
     try:
-        print('Total len(reviewed_list) = %d' % (len(reviewed_list),))
+        logger.info('Total len(reviewed_list) = %d' % (len(reviewed_list),))
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list),)
     except ZeroDivisionError:
         progress = '100.0'
@@ -3292,7 +3294,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
 
             species_rowids = previous_species_rowids
         except Exception:
-            print('Error finding previous species rowid in existing list')
+            logger.info('Error finding previous species rowid in existing list')
             previous_species_rowids = None
 
     if previous_species_rowids is None:
@@ -3308,7 +3310,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
     combined_list = list(zip(species_count, species_nice_list, species_rowids))
 
     if refresh:
-        print('REFRESHING!')
+        logger.info('REFRESHING!')
         combined_list = sorted(combined_list)
 
     species_count_list = [combined[0] for combined in combined_list]
@@ -3335,9 +3337,9 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
             species_nice,
         )
         if index >= hotkeys:
-            print('% 5d   : %s' % args)
+            logger.info('% 5d   : %s' % args)
         else:
-            print('% 5d * : %s' % args)
+            logger.info('% 5d * : %s' % args)
 
     if len(species_list) >= hotkeys:
         species_extended_list = species_list[hotkeys:]
@@ -3462,7 +3464,7 @@ def turk_part_types(
 
             all_part_types = previous_part_types
         except Exception:
-            print('Error finding previous part_type in existing list')
+            logger.info('Error finding previous part_type in existing list')
             previous_part_types = None
 
     if previous_part_types is None:
@@ -3481,7 +3483,7 @@ def turk_part_types(
     combined_list = list(zip(all_part_type_count, all_part_nices, all_part_types))
 
     if refresh:
-        print('REFRESHING!')
+        logger.info('REFRESHING!')
         combined_list = sorted(combined_list)
 
     part_type_count_list = [combined[0] for combined in combined_list]
@@ -3506,9 +3508,9 @@ def turk_part_types(
             part_nice,
         )
         if index >= hotkeys:
-            print('% 5d   : %s' % args)
+            logger.info('% 5d   : %s' % args)
         else:
-            print('% 5d * : %s' % args)
+            logger.info('% 5d * : %s' % args)
 
     if len(part_type_option_list) >= hotkeys:
         part_type_extended_list = part_type_option_list[hotkeys:]
@@ -3892,7 +3894,7 @@ def _init_identification_query_object(
     query_object.ensure_mst()
     query_object.apply_nondynamic_update()
 
-    print('Precomputing match images')
+    logger.info('Precomputing match images')
     # view_orientation = request.args.get('view_orientation', 'vertical')
     # precompute_current_review_match_images(ibs, query_object,
     #                                        global_feedback_limit=global_feedback_limit,
@@ -3929,7 +3931,7 @@ def load_identification_query_object(
     query_object = current_app.QUERY_OBJECT
     while len(current_app.QUERY_OBJECT_FEEDBACK_BUFFER) > 0:
         feedback = current_app.QUERY_OBJECT_FEEDBACK_BUFFER.pop()
-        print('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback,))
+        logger.info('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback,))
         aid1, aid2, state, tags = feedback
         query_object.add_feedback((aid1, aid2), state, tags=tags)
         query_object.GLOBAL_FEEDBACK_COUNTER += 1
@@ -3961,7 +3963,7 @@ def check_engine_identification_query_object(
         # import wbia
         # web_ibs = wbia.opendb_bg_web(dbdir=ibs.dbdir, port=6000)
         # query_object_jobid = web_ibs.send_wbia_request('/api/engine/query/graph/')
-        # print('query_object_jobid = %r' % (query_object_jobid, ))
+        # logger.info('query_object_jobid = %r' % (query_object_jobid, ))
         # current_app.QUERY_OBJECT_JOBID = query_object_jobid
 
     query_object_status_dict = ibs.get_job_status(current_app.QUERY_OBJECT_JOBID)
@@ -3969,7 +3971,7 @@ def check_engine_identification_query_object(
         current_app.QUERY_OBJECT_JOBID,
         query_object_status_dict,
     )
-    print('job id %r: %r' % args)
+    logger.info('job id %r: %r' % args)
 
     if query_object_status_dict['jobstatus'] == 'completed':
         query_object_result = ibs.get_job_result(current_app.QUERY_OBJECT_JOBID)
@@ -3977,7 +3979,7 @@ def check_engine_identification_query_object(
             current_app.QUERY_OBJECT_JOBID,
             query_object_result,
         )
-        print('job id %r: %r' % args)
+        logger.info('job id %r: %r' % args)
         assert query_object_result['json_result'] == 'precomputed'
         return True
 
@@ -4053,15 +4055,15 @@ def turk_identification(
                     status_dict['num_names_min'] = np.nan
                 # status_remaining = status_dict['num_names_max'] - status_dict['num_names_min']
                 status_remaining = status_dict['num_names_max'] - 0
-                print(
+                logger.info(
                     'Feedback counter    = %r / %r'
                     % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT,)
                 )
-                print('Status dict         = %r' % (status_dict,))
-                print('Raw list len        = %r' % (len(raw_review_list),))
-                print('len(query_aid_list) = %r' % (len(query_object.aids),))
-                print('Estimated remaining = %r' % (status_remaining,))
-                print('Reviews list len    = %r' % (len(review_aid1_list),))
+                logger.info('Status dict         = %r' % (status_dict,))
+                logger.info('Raw list len        = %r' % (len(raw_review_list),))
+                logger.info('len(query_aid_list) = %r' % (len(query_object.aids),))
+                logger.info('Estimated remaining = %r' % (status_remaining,))
+                logger.info('Reviews list len    = %r' % (len(review_aid1_list),))
                 try:
                     progress = '%0.02f' % (
                         100.0 * (1.0 - (status_remaining / len(query_object.aids))),
@@ -4081,7 +4083,7 @@ def turk_identification(
                         finished = False
                         if not choice:
                             index = random.randint(0, len(review_aid1_list) - 1)
-                            print('Picked random index = %r' % (index,))
+                            logger.info('Picked random index = %r' % (index,))
                             aid1 = review_aid1_list[index]
                             aid2 = review_aid2_list[index]
 
@@ -4157,8 +4159,8 @@ def turk_identification(
                         if previous is not None and ';' in previous:
                             previous = tuple(map(int, previous.split(';')))
                             assert len(previous) == 3
-                        # print('Previous = %r' % (previous, ))
-                        # print('replace_review_rowid  = %r' % (replace_review_rowid, ))
+                        # logger.info('Previous = %r' % (previous, ))
+                        # logger.info('replace_review_rowid  = %r' % (replace_review_rowid, ))
                 else:
                     finished = True
                     progress = 100.0
@@ -4261,7 +4263,7 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
     viewpoint_list = ibs.get_annot_viewpoints(current_aids)
     for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
         if viewpoint is None:
-            # print(aid)
+            # logger.info(aid)
             continue
         if species not in species_dict:
             species_dict[species] = []
@@ -4415,7 +4417,7 @@ def _princeton_kaia_filtering(
     # current_nids = ibs.get_annot_nids(current_aids)
 
     # x = [current_nid for current_nid in current_nids if current_nid <= 0]
-    # print(len(x))
+    # logger.info(len(x))
 
     new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
 
@@ -4478,7 +4480,7 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
     viewpoint_list = ibs.get_annot_viewpoints(current_aids)
     for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
         if viewpoint is None:
-            # print(aid)
+            # logger.info(aid)
             continue
         if species not in species_dict:
             species_dict[species] = []
@@ -4714,10 +4716,10 @@ def turk_identification_hardcase(*args, **kwargs):
     Ignore:
         import wbia
         ibs, aids = wbia.testdata_aids('PZ_Master1', a=':species=zebra_plains')
-        print(len(aids))
+        logger.info(len(aids))
         infr = wbia.AnnotInference(ibs, aids=aids, autoinit='staging')
         infr.load_published()
-        print(ut.repr4(infr.status()))
+        logger.info(ut.repr4(infr.status()))
         infr.qt_review_loop()
 
         verifiers = infr.learn_evaluation_verifiers()
@@ -4804,11 +4806,11 @@ def turk_identification_graph(
 
                 graph_uuid_list = list(current_app.GRAPH_CLIENT_DICT.keys())
                 for graph_uuid_ in graph_uuid_list:
-                    print('Processing %r' % (graph_uuid_,))
+                    logger.info('Processing %r' % (graph_uuid_,))
 
                     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid_, None)
                     if graph_client is None:
-                        print('\t ERROR: UNKNOWN graph_client')
+                        logger.info('\t ERROR: UNKNOWN graph_client')
                         continue
 
                     if hogwild_species is not None:
@@ -4827,15 +4829,15 @@ def turk_identification_graph(
                     progress_graph_uuid_list.append(graph_uuid_)
 
                     if graph_client.review_dict is None:
-                        print('\t ERROR: FINISHED')
+                        logger.info('\t ERROR: FINISHED')
                         continue
 
                     fallback_graph_uuid_list.append(graph_uuid_)
-                    print(
+                    logger.info(
                         '\t len(graph_client.futures)     = %d'
                         % (len(graph_client.futures),)
                     )
-                    print(
+                    logger.info(
                         '\t len(graph_client.review_dict) = %d'
                         % (len(graph_client.review_dict),)
                     )
@@ -4849,16 +4851,16 @@ def turk_identification_graph(
                     raise ValueError('Cannot go hogwild when all graphs are finished')
 
                 if len(candidate_graph_uuid_list) == 0:
-                    print(
+                    logger.info(
                         'WARNING: candidate_graph_uuid_list was empty, picking random from fallback_graph_uuid_list'
                     )
                     candidate_graph_uuid_list = [random.choice(fallback_graph_uuid_list)]
 
-                print(
+                logger.info(
                     'Using Hogwild fallback_graph_uuid_list  = %r'
                     % (fallback_graph_uuid_list,)
                 )
-                print(
+                logger.info(
                     'Using Hogwild candidate_graph_uuid_list = %r'
                     % (candidate_graph_uuid_list,)
                 )
@@ -4877,7 +4879,7 @@ def turk_identification_graph(
                         progress += cc_status.get('num_names_max', 0)
                 progress = int(progress)
 
-                print('Using Hogwild graph_uuid = %r' % (graph_uuid,))
+                logger.info('Using Hogwild graph_uuid = %r' % (graph_uuid,))
             except AssertionError:
                 hogwild = False
                 pass
@@ -4889,13 +4891,13 @@ def turk_identification_graph(
                 aids = wbia.testdata_aids(ibs=ibs, a=':species=primary')
                 annot_uuid_list = ibs.annots(aids).uuids
 
-            print(
+            logger.info(
                 '[routes] Starting graph turk of {} annotations'.format(
                     len(annot_uuid_list)
                 )
             )
             if hardcase:
-                print('[routes] Graph is in hardcase-mode')
+                logger.info('[routes] Graph is in hardcase-mode')
                 query_config_dict = {
                     'ranking.enabled': False,
                     'autoreview.enabled': False,
@@ -4904,7 +4906,7 @@ def turk_identification_graph(
                     'algo.hardcase': True,
                 }
             elif kaia:
-                print('[routes] Graph is in Kaia-mode')
+                logger.info('[routes] Graph is in Kaia-mode')
                 query_config_dict = {
                     'autoreview.enabled': True,
                     'autoreview.prioritize_nonpos': True,
@@ -4917,12 +4919,14 @@ def turk_identification_graph(
                     'redun.pos': 2,
                 }
             else:
-                print('[routes] Graph is not in hardcase-mode')
+                logger.info('[routes] Graph is not in hardcase-mode')
                 query_config_dict = {}
 
             query_config_dict.update(kwargs.get('query_config_dict', {}))
 
-            print('[routes] query_config_dict = {}'.format(ut.repr3(query_config_dict)))
+            logger.info(
+                '[routes] query_config_dict = {}'.format(ut.repr3(query_config_dict))
+            )
 
             graph_uuid = ibs.query_chips_graph_v2(
                 annot_uuid_list=annot_uuid_list,
@@ -4931,7 +4935,7 @@ def turk_identification_graph(
                 **kwargs,
             )
 
-            print(
+            logger.info(
                 'Calculated graph_uuid {} from all {} annotations'.format(
                     graph_uuid, len(annot_uuid_list)
                 )
@@ -5375,11 +5379,11 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
                     nid_list = ut.compress(nid_list_, flag_list)
                     nid_list_ = list(set(nid_list_))
                     nid_list = list(set(nid_list))
-                    print(
+                    logger.info(
                         'Checking %d annotations for %d names'
                         % (len(aid_list_), len(nid_list_),)
                     )
-                    print(
+                    logger.info(
                         'Found %d annotations for %d names'
                         % (len(aid_list), len(nid_list),)
                     )
@@ -5391,11 +5395,11 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list)
             aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
 
-        print('!' * 100)
-        print('Demographics Progress')
-        print('\t reviewed_list.count(True) = %d' % (reviewed_list.count(True),))
-        print('\t len(reviewed_list)        = %d' % (len(aid_list),))
-        print('!' * 100)
+        logger.info('!' * 100)
+        logger.info('Demographics Progress')
+        logger.info('\t reviewed_list.count(True) = %d' % (reviewed_list.count(True),))
+        logger.info('\t len(reviewed_list)        = %d' % (len(aid_list),))
+        logger.info('!' * 100)
 
         try:
             progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list),)
@@ -5567,7 +5571,7 @@ def api_root(**kwargs):
             if len(methods) == 0:
                 continue
             # if len(methods) > 1:
-            # print('methods = %r' % (methods,))
+            # logger.info('methods = %r' % (methods,))
             method = list(methods)[0]
             if method not in rule_dict.keys(**kwargs):
                 rule_dict[method] = []
@@ -5680,8 +5684,8 @@ def error404(exception=None):
 
     exception_str = str(exception)
     traceback_str = str(traceback.format_exc())
-    print('[web] %r' % (exception_str,))
-    print('[web] %r' % (traceback_str,))
+    logger.info('[web] %r' % (exception_str,))
+    logger.info('[web] %r' % (traceback_str,))
     return appf.template(
         None, '404', exception_str=exception_str, traceback_str=traceback_str
     )

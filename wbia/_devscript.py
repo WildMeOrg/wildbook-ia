@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import sys
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def hack_argv(arg):
@@ -136,7 +138,7 @@ DEVPRECMD_FUNCTIONS = []
 #        def func_wrapper(*args_, **kwargs_):
 #            #if ut.VERBOSE:
 #            #if ut.QUIET:
-#            print('[DEVCMD2] ' + ut.func_str(func, args_, kwargs_))
+#            logger.info('[DEVCMD2] ' + ut.func_str(func, args_, kwargs_))
 #            return func(*args_, **kwargs_)
 #        return func_wrapper
 #    if noargs:
@@ -162,7 +164,7 @@ def devcmd(*args):
         def func_wrapper(*args_, **kwargs_):
             # if ut.VERBOSE:
             # if ut.QUIET:
-            print('[DEVCMD] ' + ut.func_str(func, args_, kwargs_))
+            logger.info('[DEVCMD] ' + ut.func_str(func, args_, kwargs_))
             return func(*args_, **kwargs_)
 
         return func_wrapper
@@ -190,7 +192,7 @@ def devprecmd(*args):
         def func_wrapper(*args_, **kwargs_):
             # if ut.VERBOSE:
             # if ut.QUIET:
-            print('[DEVPRECMD] ' + ut.func_str(func, args_, kwargs_))
+            logger.info('[DEVPRECMD] ' + ut.func_str(func, args_, kwargs_))
             return func(*args_, **kwargs_)
 
         return func_wrapper

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool
 import six
 from os.path import join, realpath
@@ -9,6 +10,7 @@ from wbia.tests.helpers import get_testdata_dir
 
 
 print, rrr, profile = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def get_test_gpaths(ndata=None, names=None, **kwargs):

@@ -10,6 +10,7 @@ Different columns can be hidden / shown by modifying this file
 TODO: need to cache the total number of annotations or something about
 imagesets on disk to help startuptime.
 """
+import logging
 import six
 from six.moves import zip, map, range
 from wbia import constants as const
@@ -17,6 +18,7 @@ import utool as ut
 from functools import partial
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 IMAGESET_TABLE = const.IMAGESET_TABLE
 IMAGE_TABLE = const.IMAGE_TABLE
@@ -374,11 +376,11 @@ def make_wbia_headers_dict(ibs):
         for colname in TABLE_COLNAMES[tablename]:
             if colname not in getters[tablename]:
                 if ut.VERBOSE:
-                    print(
+                    logger.info(
                         '[guiheaders] infering getter for tablename=%r, colname=%r'
                         % (tablename, colname,)
                     )
-                    # print('[guiheaders] infering %r' % (getters[tablename][colname],))
+                    # logger.info('[guiheaders] infering %r' % (getters[tablename][colname],))
                 try:
                     getters[tablename][colname] = getattr(
                         ibs, 'get_' + shortname + '_' + colname

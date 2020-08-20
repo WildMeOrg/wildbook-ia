@@ -3,6 +3,7 @@
 This module defines the entry point into the IBEIS system
 wbia.opendb and wbia.main are the main entry points
 """
+import logging
 import sys
 import multiprocessing
 from contextlib import contextmanager
@@ -18,11 +19,12 @@ USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 
 
 (print, _, __) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def _on_ctrl_c(signal, frame):
     proc_name = multiprocessing.current_process().name
-    print('[wbia.entry_points] Caught ctrl+c in %s' % (proc_name,))
+    logger.info('[wbia.entry_points] Caught ctrl+c in %s' % (proc_name,))
     sys.exit(0)
 
 
@@ -52,7 +54,7 @@ def _init_gui(activate=True):
     from wbia import guitool
 
     if NOT_QUIET:
-        print('[main] _init_gui()')
+        logger.info('[main] _init_gui()')
     guitool.ensure_qtapp()
     from wbia.gui import guiback
 
@@ -74,11 +76,11 @@ def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     if verbose is None:
         verbose = ut.VERBOSE
     if verbose and NOT_QUIET:
-        print('[main] _init_wbia()')
+        logger.info('[main] _init_wbia()')
     # Use command line dbdir unless user specifies it
     if dbdir is None:
         ibs = None
-        print('[main!] WARNING: args.dbdir is None')
+        logger.info('[main!] WARNING: args.dbdir is None')
     else:
         kwargs = kwargs.copy()
         request_dbversion = kwargs.pop('request_dbversion', None)
@@ -107,7 +109,7 @@ def _init_parallel():
     import utool as ut
 
     if ut.VERBOSE:
-        print('_init_parallel')
+        logger.info('_init_parallel')
     from utool import util_parallel
 
     params.parse_args()
@@ -133,7 +135,7 @@ def _init_numpy():
     import numpy as np
 
     if ut.VERBOSE:
-        print('_init_numpy')
+        logger.info('_init_numpy')
     error_options = ['ignore', 'warn', 'raise', 'call', 'print', 'log']
     on_err = error_options[0]
     # np.seterr(divide='ignore', invalid='ignore')
@@ -163,7 +165,7 @@ def _init_numpy():
 def _guitool_loop(main_locals, ipy=False):
     from wbia import guitool, params
 
-    print('[main] guitool loop')
+    logger.info('[main] guitool loop')
     back = main_locals.get('back', None)
     if back is not None:
         loop_freq = params.args.loop_freq
@@ -175,7 +177,7 @@ def _guitool_loop(main_locals, ipy=False):
             back.refresh_state()
     else:
         if NOT_QUIET:
-            print('WARNING: back was not expected to be None')
+            logger.info('WARNING: back was not expected to be None')
 
 
 def set_newfile_permissions():
@@ -214,8 +216,8 @@ def set_newfile_permissions():
     mask = 0o000  # most permissive umask
     prev_mask = os.umask(mask)
     return prev_mask
-    # print('prev_mask = %o' % (prev_mask,))
-    # print('new_mask  = %o' % (mask,))
+    # logger.info('prev_mask = %o' % (prev_mask,))
+    # logger.info('new_mask  = %o' % (mask,))
 
 
 def main(
@@ -255,24 +257,24 @@ def main(
     __|__ |_____] |______ __|__ ______|
     """
     if NOT_QUIET:
-        print(msg)
+        logger.info(msg)
     # Init the only two main system api handles
     ibs = None
     back = None
     if NOT_QUIET:
-        print('[main] wbia.entry_points.main()')
+        logger.info('[main] wbia.entry_points.main()')
     DIAGNOSTICS = NOT_QUIET
     if DIAGNOSTICS:
         import os
         import utool as ut
         import wbia
 
-        print('[main] MAIN DIAGNOSTICS')
-        print('[main]  * username = %r' % (ut.get_user_name()))
-        print('[main]  * wbia.__version__ = %r' % (wbia.__version__,))
-        print('[main]  * computername = %r' % (ut.get_computer_name()))
-        print('[main]  * cwd = %r' % (os.getcwd(),))
-        print('[main]  * sys.argv = %r' % (sys.argv,))
+        logger.info('[main] MAIN DIAGNOSTICS')
+        logger.info('[main]  * username = %r' % (ut.get_user_name()))
+        logger.info('[main]  * wbia.__version__ = %r' % (wbia.__version__,))
+        logger.info('[main]  * computername = %r' % (ut.get_computer_name()))
+        logger.info('[main]  * cwd = %r' % (os.getcwd(),))
+        logger.info('[main]  * sys.argv = %r' % (sys.argv,))
     # Parse directory to be loaded from command line args
     # and explicit kwargs
     dbdir = sysres.get_args_dbdir(
@@ -288,7 +290,7 @@ def main(
 
     # limit = sys.getrecursionlimit()
     # if limit == 1000:
-    #    print('Setting Recursion Limit to 3000')
+    #    logger.info('Setting Recursion Limit to 3000')
     #    sys.setrecursionlimit(3000)
     # Execute preload commands
     main_commands.preload_commands(dbdir, **kwargs)  # PRELOAD CMDS
@@ -299,7 +301,7 @@ def main(
             back = _init_gui(activate=kwargs.get('activate', True))
             back.connect_wbia_control(ibs)
     except Exception as ex:
-        print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
+        logger.info('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
     main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
     main_locals = {'ibs': ibs, 'back': back}
@@ -316,7 +318,7 @@ def opendb_in_background(*args, **kwargs):
     sec = kwargs.pop('wait', 0)
     if sec != 0:
         raise AssertionError('wait is depricated')
-        print('waiting %s seconds for startup' % (sec,))
+        logger.info('waiting %s seconds for startup' % (sec,))
     proc = ut.spawn_background_process(opendb, *args, **kwargs)
     if sec != 0:
         raise AssertionError('wait is depricated')
@@ -363,7 +365,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
     port = kwargs.pop('port', appfuncs.DEFAULT_WEB_API_PORT)
 
     if 'wait' in kwargs:
-        print(
+        logger.info(
             'NOTE: No need to specify wait param anymore. '
             'This is automatically taken care of.'
         )
@@ -420,9 +422,9 @@ def opendb_bg_web(*args, managed=False, **kwargs):
             except ValueError:
                 raise Exception('Expected JSON string but got content=%r' % (content,))
             else:
-                # print('content = %r' % (content,))
+                # logger.info('content = %r' % (content,))
                 if content['status']['code'] != 200:
-                    print(content['status']['message'])
+                    logger.info(content['status']['message'])
                     raise Exception(content['status']['message'])
             content = content['response']
         return content
@@ -432,7 +434,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
         Waits for results from an engine
         """
         for _ in ut.delayed_retry_gen(delays):
-            print('Waiting for jobid = %s' % (jobid,))
+            logger.info('Waiting for jobid = %s' % (jobid,))
             status_response = web_ibs.send_wbia_request(
                 '/api/engine/job/status/', jobid=jobid
             )
@@ -466,7 +468,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
 
         for count in ut.delayed_retry_gen([1], timeout=15):
             if True or ut.VERBOSE:
-                print('Waiting for server to be up. count=%r' % (count,))
+                logger.info('Waiting for server to be up. count=%r' % (count,))
             try:
                 web_ibs.send_wbia_request('/api/test/heartbeat/', type_='get')
                 break
@@ -599,7 +601,7 @@ def _preload(mpl=True, par=True, logging=True):
     if multiprocessing.current_process().name != 'MainProcess':
         return
     if ut.VERBOSE:
-        print('[wbia] _preload')
+        logger.info('[wbia] _preload')
     params.parse_args()
     # mpl backends
     # if logging and not params.args.nologging:
@@ -644,11 +646,11 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     Returns:
         str: execstr
     """
-    print('[main] wbia.entry_points.main_loop()')
+    logger.info('[main] wbia.entry_points.main_loop()')
     params.parse_args()
     import utool as ut
 
-    # print('current process = %r' % (multiprocessing.current_process().name,))
+    # logger.info('current process = %r' % (multiprocessing.current_process().name,))
     # == 'MainProcess':
     if rungui and not params.args.nogui:
         try:

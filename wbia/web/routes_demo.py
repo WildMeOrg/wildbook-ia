@@ -2,11 +2,13 @@
 """
 Dependencies: flask, tornado
 """
+import logging
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 register_route = controller_inject.get_wbia_flask_route(__name__)
 

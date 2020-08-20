@@ -2,6 +2,7 @@
 ### __init__.py ###
 # flake8: noqa
 
+import logging
 import utool as ut
 
 ut.noinject(__name__, '[wbia.control.__init__]', DEBUG=False)
@@ -16,6 +17,7 @@ from wbia.control import docker_control
 import utool
 
 print, rrr, profile = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def reload_subs(verbose=True):

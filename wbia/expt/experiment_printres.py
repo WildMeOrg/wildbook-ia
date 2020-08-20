@@ -4,12 +4,14 @@ displays results from harness
 
 TODO: save a testres variable so reloading and regenration becomes easier.
 """
+import logging
 import numpy as np
 import six
 import utool as ut
 from six.moves import map, range
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def get_diffranks(rank_mat, qaids):
@@ -59,9 +61,9 @@ def print_latexsum(ibs, testres, verbose=True):
         >>> ibs, testres = main_helpers.testdata_expts()
         >>> tabular_str2 = print_latexsum(ibs, testres)
     """
-    print('==========================')
-    print('[harn] LaTeX: %s' % testres.testnameid)
-    print('==========================')
+    logger.info('==========================')
+    logger.info('[harn] LaTeX: %s' % testres.testnameid)
+    logger.info('==========================')
     # Create configuration latex table
     X_LIST = testres.get_X_LIST()
     criteria_lbls = [r'#ranks $\leq$ %d' % X for X in X_LIST]
@@ -100,7 +102,7 @@ def print_latexsum(ibs, testres, verbose=True):
         'Expmt' + ibs.get_dbname() + '_' + cmdaug + 'Table'
     )
     tabular_str2 = ut.latex_newcommand(cmdname, tabular_str)
-    print(tabular_str2)
+    logger.info(tabular_str2)
     return tabular_str2
 
 
@@ -156,8 +158,8 @@ def print_results(ibs, testres, **kwargs):
 
     # join_acfgs = kwargs.get('join_acfgs', False)
 
-    print(' --- PRINT RESULTS ---')
-    # print(' use --rank-lt-list=1,5 to specify X_LIST')
+    logger.info(' --- PRINT RESULTS ---')
+    # logger.info(' use --rank-lt-list=1,5 to specify X_LIST')
     if True:
         # Num of ranks less than to score
         X_LIST = testres.get_X_LIST()
@@ -260,22 +262,22 @@ def print_results(ibs, testres, **kwargs):
 
     # @ut.argv_flag_dec
     # def print_rowlbl():
-    #    print('=====================')
-    #    print('[harn] Row/Query Labels: %s' % testnameid)
-    #    print('=====================')
-    #    print('[harn] queries:\n%s' % '\n'.join(qx2_lbl))
+    #    logger.info('=====================')
+    #    logger.info('[harn] Row/Query Labels: %s' % testnameid)
+    #    logger.info('=====================')
+    #    logger.info('[harn] queries:\n%s' % '\n'.join(qx2_lbl))
     # print_rowlbl()
     # ------------
 
     @ut.argv_flag_dec
     def print_collbl():
-        print('=====================')
-        print('[harn] Col/Config Labels: %s' % testnameid)
-        print('=====================')
+        logger.info('=====================')
+        logger.info('[harn] Col/Config Labels: %s' % testnameid)
+        logger.info('=====================')
         enum_cfgx2_lbl = [
             '%2d) %s' % (count, cfglbl) for count, cfglbl in enumerate(cfgx2_lbl)
         ]
-        print('[harn] cfglbl:\n%s' % '\n'.join(enum_cfgx2_lbl))
+        logger.info('[harn] cfglbl:\n%s' % '\n'.join(enum_cfgx2_lbl))
 
     print_collbl()
 
@@ -283,39 +285,39 @@ def print_results(ibs, testres, **kwargs):
 
     @ut.argv_flag_dec
     def print_cfgstr():
-        print('=====================')
-        print('[harn] Config Strings: %s' % testnameid)
-        print('=====================')
+        logger.info('=====================')
+        logger.info('[harn] Config Strings: %s' % testnameid)
+        logger.info('=====================')
         cfgstr_list = [query_cfg.get_cfgstr() for query_cfg in cfg_list]
         enum_cfgstr_list = [
             '%2d) %s' % (count, cfgstr) for count, cfgstr in enumerate(cfgstr_list)
         ]
-        print('\n[harn] cfgstr:\n%s' % '\n'.join(enum_cfgstr_list))
+        logger.info('\n[harn] cfgstr:\n%s' % '\n'.join(enum_cfgstr_list))
 
     print_cfgstr(**kwargs)
 
     @ut.argv_flag_dec()
     def print_colscore():
-        print('==================')
-        print('[harn] Scores per Config: %s' % testnameid)
-        print('==================')
+        logger.info('==================')
+        logger.info('[harn] Scores per Config: %s' % testnameid)
+        logger.info('==================')
         # for cfgx in range(nConfig):
-        #    print('[score] %s' % (cfgx2_lbl[cfgx]))
+        #    logger.info('[score] %s' % (cfgx2_lbl[cfgx]))
         #    for X in X_LIST:
         #        nLessX_ = nLessX_dict[int(X)][cfgx]
-        #        print('        ' + rankscore_str(X, nLessX_, nQuery))
-        print('\n[harn] ... sorted scores')
+        #        logger.info('        ' + rankscore_str(X, nLessX_, nQuery))
+        logger.info('\n[harn] ... sorted scores')
         for X in X_LIST:
-            print('\n[harn] Sorted #ranks < %r scores' % (X))
+            logger.info('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
             # frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
-            # print('cfgx2_nQuery = %r' % (cfgx2_nQuery,))
-            # print('frac_list = %r' % (frac_list,))
-            # print('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
+            # logger.info('cfgx2_nQuery = %r' % (cfgx2_nQuery,))
+            # logger.info('frac_list = %r' % (frac_list,))
+            # logger.info('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
             for cfgx in sortx:
                 nLessX_ = nLessX_dict[int(X)][cfgx]
                 rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)
-                print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
+                logger.info('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
 
     print_colscore(**kwargs)
 
@@ -328,10 +330,10 @@ def print_results(ibs, testres, **kwargs):
     sumstrs.append(ut.joins('\n|| ', best_rankscore_summary))
     sumstrs.append('LL===========================')
     summary_str = '\n'.join(sumstrs)
-    # print(summary_str)
+    # logger.info(summary_str)
     ut.colorprint(summary_str, 'blue')
 
-    print('To enable all printouts add --print-all to the commandline')
+    logger.info('To enable all printouts add --print-all to the commandline')
 
 
 def rankscore_str(thresh, nLess, total, withlbl=True):

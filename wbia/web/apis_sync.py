@@ -5,6 +5,7 @@ Dependencies: flask, tornado
 SeeAlso:
     routes.turk_identification
 """
+import logging
 from wbia.control import controller_inject
 from flask import url_for, request, current_app  # NOQA
 import numpy as np  # NOQA
@@ -15,6 +16,7 @@ import six
 import json
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -117,13 +119,13 @@ def _detect_remote_push_images(ibs, gid_list):
     num_images = len(gid_list)
     image_path_list = ibs.get_image_paths(gid_list)
     for index, image_path in enumerate(image_path_list):
-        print('\tSending %d / %d: %r' % (index, num_images, image_path,))
+        logger.info('\tSending %d / %d: %r' % (index, num_images, image_path,))
         file_dict = {
             'image': open(image_path, 'rb'),
         }
         response = requests.post(route_url, files=file_dict)
         _verify_response(response)
-        print('\t...sent')
+        logger.info('\t...sent')
 
 
 @register_ibs_method
@@ -150,7 +152,7 @@ def _detect_remote_push_imageset(ibs, image_uuid_list):
 def _detect_remote_push_annots(ibs, aid_list):
     route_url = _construct_route_url('/api/annot/json/')
 
-    print('\tSending...')
+    logger.info('\tSending...')
     data_dict = {
         'image_uuid_list': ibs.get_annot_image_uuids(aid_list),
         'annot_uuid_list': ibs.get_annot_uuids(aid_list),
@@ -160,7 +162,7 @@ def _detect_remote_push_annots(ibs, aid_list):
         data_dict[key] = ut.to_json(data_dict[key])
     response = requests.post(route_url, data=data_dict)
     _verify_response(response)
-    print('\t...sent')
+    logger.info('\t...sent')
 
 
 @register_ibs_method
@@ -169,7 +171,7 @@ def _detect_remote_push_metadata(
 ):
     route_url = _construct_route_url(route_rule)
 
-    print('\tSetting %s metadata for %s' % (route_rule, uuid_str,))
+    logger.info('\tSetting %s metadata for %s' % (route_rule, uuid_str,))
     data_dict = {
         uuid_str: uuid_list,
         value_str: value_list,
@@ -178,7 +180,7 @@ def _detect_remote_push_metadata(
         data_dict[key] = ut.to_json(data_dict[key])
     response = requests.put(route_url, data=data_dict)
     _verify_response(response)
-    print('\t...set')
+    logger.info('\t...set')
 
 
 @register_ibs_method
@@ -253,7 +255,7 @@ def _detect_remote_push_annot_metadata(ibs, annot_uuid_list):
 def _detect_remote_push_parts(ibs, part_rowid_list):
     route_url = _construct_route_url('/api/part/json/')
 
-    print('\tSending...')
+    logger.info('\tSending...')
     data_dict = {
         'annot_uuid_list': ibs.get_part_annot_uuids(part_rowid_list),
         'part_uuid_list': ibs.get_part_uuids(part_rowid_list),
@@ -263,7 +265,7 @@ def _detect_remote_push_parts(ibs, part_rowid_list):
         data_dict[key] = ut.to_json(data_dict[key])
     response = requests.post(route_url, data=data_dict)
     _verify_response(response)
-    print('\t...sent')
+    logger.info('\t...sent')
 
 
 @register_ibs_method
@@ -318,7 +320,7 @@ def _sync_get_remote_info(ibs):
     route_url = _construct_route_url('/api/core/db/info/')
     response = requests.get(route_url)
     _verify_response(response)
-    print(response.text)
+    logger.info(response.text)
     return response
 
 
@@ -439,7 +441,7 @@ def _sync_get_names(ibs, aid_list):
 @register_ibs_method
 def _sync_get_annot_endpoint(ibs, endpoint, aid_list):
     route_url = _construct_route_url(endpoint)
-    print('\tGetting info on %d aids from %s' % (len(aid_list), route_url,))
+    logger.info('\tGetting info on %d aids from %s' % (len(aid_list), route_url,))
     data_dict = {
         'aid_list': json.dumps(aid_list),
     }
@@ -459,7 +461,7 @@ def _sync_get_auuid_endpoint(ibs, endpoint, auuid_list):
     serialized_uuids = ut.to_json(working_list)
 
     route_url = _construct_route_url(endpoint)
-    print('\tGetting info on %d auuids from %s' % (len(auuid_list), route_url,))
+    logger.info('\tGetting info on %d auuids from %s' % (len(auuid_list), route_url,))
     data_dict = {'uuid_list': serialized_uuids}
     return _get(endpoint, data=data_dict)
 
@@ -514,14 +516,14 @@ def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True)
 
     confirm_list = [ut.random_nonce()[:5] for _ in range(3)]
     confirm_str = '-'.join(confirm_list)
-    print(
+    logger.info(
         'You are about to submit %d images to a remote DETECT database at %r with UUID=%r.'
         % (len(gid_list), REMOTE_URL, REMOTE_UUID,)
     )
-    print(
+    logger.info(
         'Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.'
     )
-    print(
+    logger.info(
         'In order to continue, please type exactly the confirmation string %r'
         % (confirm_str,)
     )
@@ -548,9 +550,9 @@ def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True)
 
     num_missing = len(missing_gid_list)
     if num_missing > 0:
-        print('Need to push %d images...' % (num_missing,))
+        logger.info('Need to push %d images...' % (num_missing,))
         ibs._detect_remote_push_images(missing_gid_list)
-        print('...pushed')
+        logger.info('...pushed')
 
     # Filter only missing
     gid_list_ = missing_gid_list if only_sync_missing_images else gid_list
@@ -559,9 +561,9 @@ def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True)
     ############################################################################
 
     # Sync imageset
-    print('Setting imageset...')
+    logger.info('Setting imageset...')
     ibs._detect_remote_push_imageset(image_uuid_list_)
-    print('...set')
+    logger.info('...set')
 
     ############################################################################
 
@@ -578,17 +580,17 @@ def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True)
 
     num_missing = len(missing_aid_list)
     if num_missing > 0:
-        print('Need to push %d annots...' % (num_missing,))
+        logger.info('Need to push %d annots...' % (num_missing,))
         ibs._detect_remote_push_annots(missing_aid_list)
-        print('...pushed')
+        logger.info('...pushed')
 
     ############################################################################
 
     # Sync annotation metadata
-    print('Synching annotation metadata...')
+    logger.info('Synching annotation metadata...')
     if len(annot_uuid_list) > 0:
         ibs._detect_remote_push_annot_metadata(annot_uuid_list)
-    print('...synched')
+    logger.info('...synched')
 
     ############################################################################
 
@@ -605,14 +607,14 @@ def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True)
 
     num_missing = len(missing_part_rowid_list)
     if num_missing > 0:
-        print('Need to push %d parts...' % (num_missing,))
+        logger.info('Need to push %d parts...' % (num_missing,))
         ibs._detect_remote_push_parts(missing_part_rowid_list)
-        print('...pushed')
+        logger.info('...pushed')
 
     ############################################################################
 
     # Sync part metadata
-    print('Synching part metadata...')
+    logger.info('Synching part metadata...')
     if len(part_uuid_list) > 0:
         ibs._detect_remote_push_part_metadata(part_uuid_list)
-    print('...synched')
+    logger.info('...synched')

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from six.moves import zip, range
 from wbia import dtool
 import utool as ut
@@ -8,6 +9,7 @@ from wbia.algo.smk import smk_funcs
 from wbia.control.controller_inject import register_preprocs
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 derived_attribute = register_preprocs['annot']
@@ -93,10 +95,10 @@ class InvertedAnnotsExtras(object):
         sizes = inva.get_size_info()
         sizes = ut.sort_dict(sizes, 'vals', ut.identity)
         total_nbytes = sum(sizes.values())
-        print(
+        logger.info(
             ut.align(ut.repr3(ut.map_dict_vals(ut.byte_str2, sizes), strvals=True), ':')
         )
-        print('total_nbytes = %r' % (ut.byte_str2(total_nbytes),))
+        logger.info('total_nbytes = %r' % (ut.byte_str2(total_nbytes),))
 
     def get_nbytes(inva):
         sizes = inva.get_size_info()
@@ -108,7 +110,7 @@ class InvertedAnnotsExtras(object):
             inva._word_patches = {}
         if wx not in inva._word_patches:
             assigned_patches = inva.get_patches(wx, ibs, verbose=False)
-            # print('assigned_patches = %r' % (len(assigned_patches),))
+            # logger.info('assigned_patches = %r' % (len(assigned_patches),))
             average_patch = np.mean(assigned_patches, axis=0)
             average_patch = average_patch.astype(np.float)
             inva._word_patches[wx] = average_patch
@@ -303,7 +305,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
 
     # @classmethod
     # def from_qreq(cls, aids, qreq_, isdata=False):
-    #     print('Loading up inverted assigments')
+    #     logger.info('Loading up inverted assigments')
     #     depc = qreq_.ibs.depc
     #     vocab_aids = qreq_.daids
     #     config = qreq_.qparams
@@ -323,7 +325,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         )
         # input_tuple = (aids, [vocab_aids])
         # tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config)
-        print('Reading data')
+        logger.info('Reading data')
         inva.aids = aids
         inva.wx_lists = [
             np.array(wx_list_, dtype=np.int32)
@@ -648,7 +650,7 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         >>> fid_list = ut.take_column(input_ids, 0)
         >>> vocab_id_list = ut.take_column(input_ids, 1)
     """
-    # print('[IBEIS] ASSIGN RESIDUALS:')
+    # logger.info('[IBEIS] ASSIGN RESIDUALS:')
     assert ut.allsame(vocab_id_list)
     vocabid = vocab_id_list[0]
 
@@ -665,14 +667,14 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         if this_table._hack_chunk_cache is not None:
             this_table._hack_chunk_cache[vocabid] = vocab
 
-    print('Grab Vecs')
+    logger.info('Grab Vecs')
     vecs_list = depc.get_native('feat', fid_list, 'vecs')
     nAssign = config['nAssign']
     int_rvec = config['int_rvec']
 
     from concurrent import futures
 
-    print('Building residual args')
+    logger.info('Building residual args')
     worker = residual_worker
     args_gen = gen_residual_args(vocab, vecs_list, nAssign, int_rvec)
     args_gen = [
@@ -680,10 +682,10 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     ]
     # nprocs = ut.num_unused_cpus(thresh=10) - 1
     nprocs = ut.num_cpus()
-    print('Creating %d processes' % (nprocs,))
+    logger.info('Creating %d processes' % (nprocs,))
     executor = futures.ProcessPoolExecutor(nprocs)
     try:
-        print('Submiting workers')
+        logger.info('Submiting workers')
         fs_chunk = [
             executor.submit(worker, args)
             for args in ut.ProgIter(args_gen, lbl='submit proc')

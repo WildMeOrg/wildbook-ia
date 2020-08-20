@@ -2,6 +2,7 @@
 """
 Dependencies: flask, tornado
 """
+import logging
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
 from os.path import abspath, expanduser, join
@@ -11,6 +12,7 @@ import numpy as np
 import cv2
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -119,7 +121,7 @@ def experiments_interest(dbtag1='demo-jasonp', dbtag2='demo-chuck', **kwargs):
         gid1 = ibs1.get_image_gids_from_uuid(uuid1)
         gid2 = ibs2.get_image_gids_from_uuid(uuid2)
 
-        print('%s %s' % (index1, index2,))
+        logger.info('%s %s' % (index1, index2,))
         stats = None
         if uuid1 is not None and uuid2 is not None:
             if uuid1 == uuid2:
@@ -207,7 +209,7 @@ def voting_uuid_list(ibs, team_list):
         ibs.get_image_annot_uuids(ibs.get_image_gids_from_uuid(image_uuid_list))
     )
     for team in team_list:
-        print('Checking team %r' % (team,))
+        logger.info('Checking team %r' % (team,))
         try:
             gid_list = team.get_image_gids_from_uuid(image_uuid_list)
             assert None not in gid_list
@@ -228,7 +230,7 @@ def voting_uuid_list(ibs, team_list):
             ]
     blacklist = list(set(blacklist))
     assert None not in blacklist
-    print('Blacklisted %d / %d' % (len(blacklist), len(image_uuid_list),))
+    logger.info('Blacklisted %d / %d' % (len(blacklist), len(image_uuid_list),))
     image_uuid_list = list(set(image_uuid_list) - set(blacklist))
     annot_uuid_list = ut.flatten(
         ibs.get_image_annot_uuids(ibs.get_image_gids_from_uuid(image_uuid_list))

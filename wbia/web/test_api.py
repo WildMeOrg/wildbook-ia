@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """This is a proof of concept for connecting to an authenticated Qubica Server"""
+import logging
 from hashlib import sha1
 import utool as ut
 import hmac
@@ -8,6 +9,7 @@ import requests
 
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # System variables
 APPLICATION_PROTOCOL = 'http'
@@ -52,7 +54,7 @@ def _api_result(uri, method, user_email=None, user_enc_pass=None, **kwargs):
         headers,
         kwargs,
     )
-    print('Server request (%r): %r\n\tHeaders: %r\n\tArgs: %r' % args)
+    logger.info('Server request (%r): %r\n\tHeaders: %r\n\tArgs: %r' % args)
     try:
         if method == 'GET':
             req = requests.get(url, headers=headers, params=kwargs, verify=False)

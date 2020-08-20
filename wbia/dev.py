@@ -35,6 +35,7 @@ CommandLine:
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
 """
 # TODO: ADD COPYRIGHT TAG
+import logging
 import sys
 import numpy as np
 from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
@@ -88,6 +89,7 @@ from wbia.expt.experiment_drawing import draw_annot_scoresep
 from wbia import params  # NOQA
 
 print, rrr, profile = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # ------------------

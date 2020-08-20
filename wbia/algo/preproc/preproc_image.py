@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import os
 from os.path import splitext, basename, isabs
 import warnings
@@ -7,6 +8,7 @@ import utool as ut
 import six
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def parse_exif(pil_img):
@@ -94,7 +96,9 @@ def parse_imageinfo(gpath):
                     gpath,
                     temp_filepath,
                 )
-                print('[preproc] Caching remote %s file to temporary file %r' % args)
+                logger.info(
+                    '[preproc] Caching remote %s file to temporary file %r' % args
+                )
 
                 if isproto(gpath, s3_proto):
                     s3_dict = ut.s3_str_decode_to_dict(gpath)
@@ -144,7 +148,7 @@ def parse_imageinfo(gpath):
             Image.DecompressionBombError,
         ) as ex:
             # ut.embed()
-            print('[preproc] IOError: %s' % (str(ex),))
+            logger.info('[preproc] IOError: %s' % (str(ex),))
             return None
 
         if len(w) > 0:
@@ -153,8 +157,8 @@ def parse_imageinfo(gpath):
             #                          warn.filename, warn.lineno, warn.file,
             #                          warn.line)
             #     warnstr = warnings.formatwarning
-            #     print(warnstr)
-            print('%d warnings issued by %r' % (len(w), gpath,))
+            #     logger.info(warnstr)
+            logger.info('%d warnings issued by %r' % (len(w), gpath,))
     # Parse out the data
     width, height = pil_img.size  # Read width, height
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
@@ -184,7 +188,7 @@ def parse_imageinfo(gpath):
     if temp_filepath is not None:
         os.close(temp_file)
         os.unlink(temp_filepath)
-    # print('[ginfo] %r %r' % (image_uuid, orig_gname))
+    # logger.info('[ginfo] %r %r' % (image_uuid, orig_gname))
     return param_tup
 
 
@@ -221,4 +225,4 @@ def parse_imageinfo(gpath):
 
 
 def on_delete(ibs, featweight_rowid_list, qreq_=None):
-    print('Warning: Not Implemented')
+    logger.info('Warning: Not Implemented')

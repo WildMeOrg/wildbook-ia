@@ -2,6 +2,7 @@
 """
 TODO: separate out the tests and make this file just generate the demo data
 """
+import logging
 import itertools as it
 import numpy as np
 import utool as ut
@@ -9,6 +10,7 @@ from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def make_dummy_infr(annots_per_name):
@@ -159,7 +161,7 @@ def demo2():
         infr_.verbose = verbose
         infr_.show(pickable=True, verbose=0, **showkw)
         infr.verbose = verbose
-        # print('status ' + ut.repr4(infr_.status()))
+        # logger.info('status ' + ut.repr4(infr_.status()))
         # infr.show(**showkw)
         ax = pt.gca()
         pt.set_title(title, fontsize=20)
@@ -217,18 +219,18 @@ def demo2():
         infr.update_visual_attrs(groupby='name_label')
         infr.set_node_attrs('pin', 'true')
         node_dict = ut.nx_node_dict(infr.graph)
-        print(ut.repr4(node_dict[1]))
+        logger.info(ut.repr4(node_dict[1]))
 
     if VISUALIZE:
         infr.latest_logs()
         # Pin Nodes into the target groundtruth position
         show_graph(infr, 'target-gt')
 
-    print(ut.repr4(infr.status()))
+    logger.info(ut.repr4(infr.status()))
     infr.clear_feedback()
     infr.clear_name_labels()
     infr.clear_edges()
-    print(ut.repr4(infr.status()))
+    logger.info(ut.repr4(infr.status()))
     infr.latest_logs()
 
     if VISUALIZE:
@@ -248,7 +250,7 @@ def demo2():
     infr.refresh_candidate_edges()
 
     VIZ_ALL = VISUALIZE and TARGET_REVIEW is None and START is None
-    print('VIZ_ALL = %r' % (VIZ_ALL,))
+    logger.info('VIZ_ALL = %r' % (VIZ_ALL,))
 
     if VIZ_ALL or TARGET_REVIEW == 0:
         show_graph(infr, 'find-candidates')
@@ -263,9 +265,9 @@ def demo2():
     first = 1
     for edge, priority in infr._generate_reviews(data=True):
         msg = 'review #%d, priority=%.3f' % (count, priority)
-        print('\n----------')
+        logger.info('\n----------')
         infr.print('pop edge {} with priority={:.3f}'.format(edge, priority))
-        # print('remaining_reviews = %r' % (infr.remaining_reviews()),)
+        # logger.info('remaining_reviews = %r' % (infr.remaining_reviews()),)
         # Make the next review
 
         if START is not None:
@@ -323,9 +325,9 @@ def demo2():
     #                        enabled=False)
     #     for count, (aid1, aid2) in prog:
     #         msg = 'reviewII #%d' % (count)
-    #         print('\n----------')
-    #         print(msg)
-    #         print('remaining_reviews = %r' % (infr.remaining_reviews()),)
+    #         logger.info('\n----------')
+    #         logger.info(msg)
+    #         logger.info('remaining_reviews = %r' % (infr.remaining_reviews()),)
     #         # Make the next review evidence_decision
     #         feedback = infr.request_oracle_review(edge)
     #         if count == TARGET_REVIEW:
@@ -563,12 +565,12 @@ def demodata_infr(**kwargs):
             #     probs = probs / probs.sum()
             pcumsum = probs.cumsum()
             # Determine which mutually exclusive state each complement edge is in
-            # print('pcumsum = %r' % (pcumsum,))
+            # logger.info('pcumsum = %r' % (pcumsum,))
             states = np.searchsorted(pcumsum, rng.rand(len(complement_edges)))
 
             incon_idxs = np.where(states == 0)[0]
             if len(incon_idxs) > max_n_incon:
-                print('max_n_incon = %r' % (max_n_incon,))
+                logger.info('max_n_incon = %r' % (max_n_incon,))
                 chosen = rng.choice(incon_idxs, max_n_incon, replace=False)
                 states[np.setdiff1d(incon_idxs, chosen)] = len(probs)
 
@@ -604,7 +606,7 @@ def demodata_infr(**kwargs):
     neg_edges = []
 
     if not kwalias('ignore_pair', False):
-        print('making pairs')
+        logger.info('making pairs')
 
         pair_attrs_lookup = {
             0: {'evidence_decision': NEGTV, 'truth': NEGTV},
@@ -643,15 +645,15 @@ def demodata_infr(**kwargs):
 
             unique_states, groupxs_list = vt.group_indices(stateful_states)
             for state, groupxs in zip(unique_states, groupxs_list):
-                # print('state = %r' % (state,))
+                # logger.info('state = %r' % (state,))
                 # Add in candidate edges
                 edges = ut.take(stateful_edges, groupxs)
                 attrs = pair_attrs_lookup[state]
                 for (u, v) in edges:
                     neg_edges.append((u, v, attrs))
-        print('Made {} neg_edges between PCCS'.format(len(neg_edges)))
+        logger.info('Made {} neg_edges between PCCS'.format(len(neg_edges)))
     else:
-        print('ignoring pairs')
+        logger.info('ignoring pairs')
 
     import wbia
 
@@ -815,7 +817,7 @@ class DummyVerif(object):
         nodes = list(verif.infr.graph.nodes())
         for u in nodes:
             new_edges.extend(verif.dummy_ranker(u, K=K))
-        # print('new_edges = %r' % (ut.hash_data(new_edges),))
+        # logger.info('new_edges = %r' % (ut.hash_data(new_edges),))
         new_edges = set(new_edges)
         return new_edges
 

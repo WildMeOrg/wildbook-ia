@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 import numpy as np
 import utool as ut
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, NULL  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class RefreshCriteria(object):
@@ -375,16 +377,16 @@ def _dev_iters_until_threshold():
     poisson_thresh = poisson_i.subs({i: a})
     binom_thresh = binom_i.subs({i: a})
 
-    print('Poisson thresh')
-    print(sym.latex(sym.Eq(thresh, poisson_thresh)))
-    print(sym.latex(sym.Eq(thresh, sym.simplify(poisson_thresh))))
+    logger.info('Poisson thresh')
+    logger.info(sym.latex(sym.Eq(thresh, poisson_thresh)))
+    logger.info(sym.latex(sym.Eq(thresh, sym.simplify(poisson_thresh))))
 
     poisson_thresh.subs({a: 115, s: 30}).evalf()
 
     sym.pprint(sym.Eq(thresh, poisson_thresh))
     sym.pprint(sym.Eq(thresh, sym.simplify(poisson_thresh)))
 
-    print('Binomial thresh')
+    logger.info('Binomial thresh')
     sym.pprint(sym.simplify(binom_thresh))
 
     sym.pprint(sym.simplify(poisson_thresh.subs({s: a})))
@@ -507,9 +509,9 @@ def _dev_iters_until_threshold():
         a1 = list(fixed.values())[0]
         result = scipy.optimize.minimize(func, x0=a1, method=method, bounds=bounds)
         if not result.success:
-            print('\n')
-            print(result)
-            print('\n')
+            logger.info('\n')
+            logger.info(result)
+            logger.info('\n')
         return result
 
     # Numeric measurments of thie line
@@ -660,7 +662,9 @@ def _dev_iters_until_threshold():
         slope = np.median(np.diff(dat[1]))
         aval = int(np.ceil(sval * slope))
         thresh = float(poisson_thresh.subs({s: sval, a: aval}).evalf())
-        print('aval={}, sval={}, thresh={}, target={}'.format(aval, sval, thresh, target))
+        logger.info(
+            'aval={}, sval={}, thresh={}, target={}'.format(aval, sval, thresh, target)
+        )
 
     for target, dat in target_binom_plots.items():
         slope = np.median(np.diff(dat[1]))

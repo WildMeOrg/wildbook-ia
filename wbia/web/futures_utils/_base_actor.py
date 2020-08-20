@@ -12,10 +12,12 @@ TODO:
         in a thread. Actors must have a way of interacting with this thread.
 
 """
+import logging
 from concurrent.futures import _base
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class ActorExecutor(_base.Executor):

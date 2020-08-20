@@ -22,6 +22,7 @@ Ignore:
     python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
 """
+import logging
 from six.moves import zip
 import six
 
@@ -36,6 +37,7 @@ import utool as ut
 from six.moves import reduce
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 LARGE_GRAPH = 100
@@ -141,11 +143,11 @@ def show_nx(
     use_image = kwargs.get('use_image', True)
 
     if verbose:
-        print('Getting layout')
+        logger.info('Getting layout')
     layout_info = get_nx_layout(graph, layout, layoutkw=layoutkw, verbose=verbose)
 
     if verbose:
-        print('Drawing graph')
+        logger.info('Drawing graph')
     # zoom = kwargs.pop('zoom', .4)
     framewidth = kwargs.pop('framewidth', 1.0)
     patch_dict = draw_network2(graph, layout_info, ax, verbose=verbose, **kwargs)
@@ -181,7 +183,7 @@ def show_nx(
 
     if use_image and img_dict is not None and len(img_dict) > 0:
         if verbose:
-            print('Drawing images')
+            logger.info('Drawing images')
         node_list = sorted(img_dict.keys())
         pos_list = ut.dict_take(node_pos, node_list)
         img_list = ut.dict_take(img_dict, node_list)
@@ -202,7 +204,7 @@ def show_nx(
         layout_info['imgdat'] = imgdat
     else:
         if verbose:
-            print('Not drawing images')
+            logger.info('Not drawing images')
 
     if title is not None:
         pt.set_title(title)
@@ -307,14 +309,14 @@ def parse_html_graphviz_attrs():
     for t in {'E', 'N', 'G', 'S', 'C'}:
         flags = [t in x for x in df['Used By']]
         typed_keys[t] = df[flags]['Name'].tolist()
-    print(ut.format_single_paragraph_sentences(', '.join(typed_keys['G'])))
+    logger.info(ut.format_single_paragraph_sentences(', '.join(typed_keys['G'])))
 
     df = full_df[neato_]
     neato_keys = {}
     for t in {'E', 'N', 'G', 'S', 'C'}:
         flags = [t in x for x in df['Used By']]
         neato_keys[t] = df[flags]['Name'].tolist()
-    print(ut.format_single_paragraph_sentences(', '.join(neato_keys['G'])))
+    logger.info(ut.format_single_paragraph_sentences(', '.join(neato_keys['G'])))
 
 
 class GRAPHVIZ_KEYS(object):  # NOQA
@@ -804,7 +806,9 @@ def make_agraph(graph_):
     is_large = num_nodes > LARGE_GRAPH
 
     if is_large:
-        print('Making agraph for large graph %d nodes. ' 'May take time' % (num_nodes))
+        logger.info(
+            'Making agraph for large graph %d nodes. ' 'May take time' % (num_nodes)
+        )
 
     ut.nx_ensure_agraph_color(graph_)
     # Reduce size to be in inches not pixels
@@ -948,7 +952,7 @@ def _groupby_prelayout(graph_, layoutkw, groupby):
         return True, graph_
     else:
         return False, graph_
-        # print('WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING')
+        # logger.info('WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING')
 
 
 def nx_agraph_layout(
@@ -1069,19 +1073,19 @@ def nx_agraph_layout(
     if verbose is None:
         verbose = ut.VERBOSE
     if verbose or is_large:
-        print('[nx_agraph_layout] args = %r' % (args,))
+        logger.info('[nx_agraph_layout] args = %r' % (args,))
     # Convert to agraph format
 
     agraph = make_agraph(graph_)
 
     # Run layout
-    # print('prog = %r' % (prog,))
+    # logger.info('prog = %r' % (prog,))
 
     if verbose > 3:
-        print('BEFORE LAYOUT\n' + str(agraph))
+        logger.info('BEFORE LAYOUT\n' + str(agraph))
 
     if is_large:
-        print(
+        logger.info(
             'Preforming agraph layout on graph with %d nodes.'
             'May take time' % (num_nodes)
         )
@@ -1094,7 +1098,7 @@ def nx_agraph_layout(
     # for node in graph_.nodes():
     #    anode = pygraphviz.Node(agraph, node)
     #    ptstr_ = anode.attr['pos']
-    #    print('ptstr_ = %r' % (ptstr_,))
+    #    logger.info('ptstr_ = %r' % (ptstr_,))
 
     # FIXME; This spits out warnings on weird color input
     # import warnings
@@ -1116,14 +1120,14 @@ def nx_agraph_layout(
     #    utool.embed()
 
     if is_large:
-        print('Finished agraph layout.')
+        logger.info('Finished agraph layout.')
 
     if 0:
         test_fpath = ut.truepath('~/test_graphviz_draw.png')
         agraph.draw(test_fpath)
         ut.startfile(test_fpath)
     if verbose > 3:
-        print('AFTER LAYOUT\n' + str(agraph))
+        logger.info('AFTER LAYOUT\n' + str(agraph))
 
     # TODO: just replace with a single dict of attributes
     node_layout_attrs = ut.ddict(dict)
@@ -1164,13 +1168,13 @@ def nx_agraph_layout(
                 agraph.add_edge(*iedge, **data)
 
             if ut.VERBOSE or verbose:
-                print('BEFORE IMPLICIT LAYOUT\n' + str(agraph))
+                logger.info('BEFORE IMPLICIT LAYOUT\n' + str(agraph))
             # Route the implicit edges (must use neato)
 
             control_node = pygraphviz.Node(agraph, node)
-            # print('control_node = %r' % (control_node,))
+            # logger.info('control_node = %r' % (control_node,))
             node1_attr1 = parse_anode_layout_attrs(control_node)
-            # print('node1_attr1 = %r' % (node1_attr1,))
+            # logger.info('node1_attr1 = %r' % (node1_attr1,))
 
             implicit_kw = layoutkw.copy()
             implicit_kw['overlap'] = 'true'
@@ -1179,31 +1183,33 @@ def nx_agraph_layout(
             args = ' '.join(argparts)
 
             if is_large:
-                print(
+                logger.info(
                     '[nx_agraph_layout] About to draw implicit layout ' 'for large graph.'
                 )
 
             agraph.layout(prog='neato', args='-n ' + args)
 
             if is_large:
-                print('[nx_agraph_layout] done with implicit layout for ' 'large graph.')
+                logger.info(
+                    '[nx_agraph_layout] done with implicit layout for ' 'large graph.'
+                )
 
             if False:
                 agraph.draw(ut.truepath('~/implicit_test_graphviz_draw.png'))
             if ut.VERBOSE or verbose:
-                print('AFTER IMPLICIT LAYOUT\n' + str(agraph))
+                logger.info('AFTER IMPLICIT LAYOUT\n' + str(agraph))
 
             control_node = pygraphviz.Node(agraph, node)
-            # print('control_node = %r' % (control_node,))
+            # logger.info('control_node = %r' % (control_node,))
             node1_attr2 = parse_anode_layout_attrs(control_node)
-            # print('node1_attr2 = %r' % (node1_attr2,))
+            # logger.info('node1_attr2 = %r' % (node1_attr2,))
 
             # graph positions shifted
             # This is not the right place to divide by 72
             translation = node1_attr1['pos'] - node1_attr2['pos']
-            # print('translation = %r' % (translation,))
+            # logger.info('translation = %r' % (translation,))
             # translation = np.array([0, 0])
-            # print('translation = %r' % (translation,))
+            # logger.info('translation = %r' % (translation,))
 
             # for iedge in all_edges:
             for iedge in implicit_edges:
@@ -1271,7 +1277,7 @@ def parse_aedge_layout_attrs(aedge, translation=None):
         translation = np.array([0, 0])
     edge_attrs = {}
     apos = aedge.attr['pos']
-    # print('apos = %r' % (apos,))
+    # logger.info('apos = %r' % (apos,))
     end_pt = None
     start_pt = None
     # if '-' in apos:
@@ -1375,8 +1381,8 @@ def draw_network2(
 
     # TODO: get font properties from nodes as well
     font_prop = pt.parse_fontkw(**kwargs)
-    # print('font_prop = %r' % (font_prop,))
-    # print('font_prop.get_name() = %r' % (font_prop.get_name() ,))
+    # logger.info('font_prop = %r' % (font_prop,))
+    # logger.info('font_prop.get_name() = %r' % (font_prop.get_name() ,))
 
     node_pos = layout_info['node'].get('pos', {})
     node_size = layout_info['node'].get('size', {})
@@ -1504,7 +1510,7 @@ def draw_network2(
                 framecolor = nattrs.get('framecolor', node_color)
                 framecolor = ensure_nonhex_color(framecolor)
 
-                # print('framecolor = %r' % (framecolor,))
+                # logger.info('framecolor = %r' % (framecolor,))
                 if framecolor is None:
                     framecolor = pt.BLACK
                     framealpha = 0.0
@@ -1641,7 +1647,7 @@ def draw_network2(
                 width = graphsize / 15
                 width = ut.get_argval('--arrow-width', default=width)
                 lw = ut.get_argval('--line-width', default=lw)
-                # print('width = %r' % (width,))
+                # logger.info('width = %r' % (width,))
             else:
                 width = 0.5
                 lw = 1.0
@@ -1730,14 +1736,14 @@ def draw_network2(
                     path_effects += [patheffects.SimpleLineShadow(**shadowkw_)]
 
             # for vert, code in path.iter_segments():
-            #    print('code = %r' % (code,))
-            #    print('vert = %r' % (vert,))
+            #    logger.info('code = %r' % (code,))
+            #    logger.info('vert = %r' % (vert,))
             #    if code == MOVETO:
             #        pass
 
             # for verts, code in path.cleaned().iter_segments():
-            #    print('code = %r' % (code,))
-            #    print('verts = %r' % (verts,))
+            #    logger.info('code = %r' % (code,))
+            #    logger.info('verts = %r' % (verts,))
             #    pass
             path_effects += [patheffects.Normal()]
 
@@ -1856,9 +1862,9 @@ def draw_network2(
             # ax.add_patch(patch)
 
     if verbose:
-        print('Adding %r node patches ' % (len(patch_dict['node_patch_dict'],)))
-        print('Adding %r edge patches ' % (len(patch_dict['edge_patch_dict'],)))
-        print('n_invis_edge = %r' % (n_invis_edge,))
+        logger.info('Adding %r node patches ' % (len(patch_dict['node_patch_dict'],)))
+        logger.info('Adding %r edge patches ' % (len(patch_dict['edge_patch_dict'],)))
+        logger.info('n_invis_edge = %r' % (n_invis_edge,))
 
     for frame in patch_dict['patch_frame_dict'].values():
         ax.add_patch(frame)

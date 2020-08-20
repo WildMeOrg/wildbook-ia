@@ -9,12 +9,14 @@ TODO: need to split up into sub modules:
     then there are also convineience functions that need to be ordered at least
     within this file
 """
+import logging
 from wbia.control import controller_inject
 from os.path import join, exists
 import utool as ut
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detecttrain]')
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -467,7 +469,7 @@ def localizer_lightnet_train(
 
     # Call labels
     call_str = '%s %s' % (python_exe, labels_py_path,)
-    print(call_str)
+    logger.info(call_str)
     subprocess.call(call_str, shell=True)
 
     # Call training
@@ -481,7 +483,7 @@ def localizer_lightnet_train(
         weights_path,
     )
     call_str = '%s%s %s -c -n %s -b %s %s' % args
-    print(call_str)
+    logger.info(call_str)
     subprocess.call(call_str, shell=True)
     assert exists(backup_path)
 
@@ -524,7 +526,7 @@ def localizer_lightnet_train(
         backup_path,
     )
     call_str = '%s%s %s -c -n %s --results %s %s/*' % args
-    print(call_str)
+    logger.info(call_str)
     subprocess.call(call_str, shell=True)
     assert exists(results_path)
 
@@ -533,12 +535,12 @@ def localizer_lightnet_train(
         line_list = results_file.readlines()
 
     if len(line_list) < 10:
-        print('VALIDATION ERROR!')
+        logger.info('VALIDATION ERROR!')
         ut.embed()
 
     result_list = []
     for line in line_list:
-        # print(line)
+        # logger.info(line)
         line = line.strip().split(',')
         if len(line) != 3:
             continue
@@ -554,7 +556,7 @@ def localizer_lightnet_train(
         else:
             assert not math.isnan(loss)
             result = (loss, miss_rate, model_path)
-        print('\t%r' % (result,))
+        logger.info('\t%r' % (result,))
         result_list.append(result)
     result_list = sorted(result_list)
 
@@ -649,7 +651,7 @@ def validate_model(
         backup_path,
     )
     call_str = '%s%s %s -c -n %s --results %s %s/*' % args
-    print(call_str)
+    logger.info(call_str)
     subprocess.call(call_str, shell=True)
     assert exists(results_path)
 
@@ -658,12 +660,12 @@ def validate_model(
         line_list = results_file.readlines()
 
     if len(line_list) < 10:
-        print('VALIDATION ERROR!')
+        logger.info('VALIDATION ERROR!')
         ut.embed()
 
     result_list = []
     for line in line_list:
-        print(line)
+        logger.info(line)
         line = line.strip().split(',')
         if len(line) != 3:
             continue
@@ -675,7 +677,7 @@ def validate_model(
             result = (miss_rate, loss, model_path)
         else:
             result = (loss, miss_rate, model_path)
-        print('\t%r' % (result,))
+        logger.info('\t%r' % (result,))
         result_list.append(result)
     result_list = sorted(result_list)
 

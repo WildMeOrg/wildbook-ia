@@ -2,6 +2,7 @@
 """
 Dependencies: flask, tornado
 """
+import logging
 from os.path import join, exists
 import zipfile
 import time
@@ -17,6 +18,7 @@ import six
 from wbia.web.app import PROMETHEUS
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -313,7 +315,7 @@ def image_upload(cleanup=True, **kwargs):
         URL:    /api/upload/image/
     """
     ibs = current_app.ibs
-    print('request.files = %s' % (request.files,))
+    logger.info('request.files = %s' % (request.files,))
 
     filestore = request.files.get('image', None)
     if filestore is None:
@@ -453,15 +455,15 @@ def hello_world(*args, **kwargs):
         ...     resp = requests.post(url, data=payload)
         ...     print(resp)
     """
-    print('+------------ HELLO WORLD ------------')
-    print('Args: %r' % (args,))
-    print('Kwargs: %r' % (kwargs,))
-    print('request.args: %r' % (request.args,))
-    print('request.form: %r' % (request.form,))
-    print('request.url; %r' % (request.url,))
-    print('request.environ: %s' % (ut.repr3(request.environ),))
-    print('request: %s' % (ut.repr3(request.__dict__),))
-    print('L____________ HELLO WORLD ____________')
+    logger.info('+------------ HELLO WORLD ------------')
+    logger.info('Args: %r' % (args,))
+    logger.info('Kwargs: %r' % (kwargs,))
+    logger.info('request.args: %r' % (request.args,))
+    logger.info('request.form: %r' % (request.form,))
+    logger.info('request.url; %r' % (request.url,))
+    logger.info('request.environ: %s' % (ut.repr3(request.environ),))
+    logger.info('request: %s' % (ut.repr3(request.__dict__),))
+    logger.info('L____________ HELLO WORLD ____________')
 
 
 @register_ibs_method

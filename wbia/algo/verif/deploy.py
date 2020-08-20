@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 from os.path import join, exists, basename
 from wbia.algo.verif import sklearn_utils
 from wbia.algo.verif import verifier
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 @ut.reloadable_class
@@ -213,12 +215,12 @@ class Deployer(object):
 
     def load_published(self, ibs, species):
         task_fnames = self.published[species]
-        print('loading published: %r' % (task_fnames,))
+        logger.info('loading published: %r' % (task_fnames,))
         classifiers = {
             task_key: self._load_published(ibs, species, task_key)
             for task_key in task_fnames.keys()
         }
-        print('loaded classifiers: %r' % (classifiers,))
+        logger.info('loaded classifiers: %r' % (classifiers,))
         return classifiers
 
     def find_pretrained(self):
@@ -318,7 +320,7 @@ class Deployer(object):
             fname = df.loc[idxs[max_idx]]['Name']
             task_clf_fnames[species][task_key] = fname
 
-        print('published = ' + ut.repr2(task_clf_fnames, nl=2))
+        logger.info('published = ' + ut.repr2(task_clf_fnames, nl=2))
         return task_clf_fnames
 
     def find_latest_local(self):

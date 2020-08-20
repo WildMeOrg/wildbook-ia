@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import six
 from . import draw_func2 as df2
@@ -9,6 +10,7 @@ from wbia.plottool.viz_keypoints import show_keypoints
 from wbia.plottool import abstract_interaction
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class KeypointInteraction(abstract_interaction.AbstractInteraction):
@@ -50,7 +52,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
             pt.set_figtitle(self.figtitle)
 
     def _select_ith_kpt(self, fx):
-        print('[interact] viewing ith=%r keypoint' % fx)
+        logger.info('[interact] viewing ith=%r keypoint' % fx)
         # Get the fx-th keypiont
         kp, sift = self.kpts[fx], self.vecs[fx]
         # Draw the image with keypoint fx highlighted
@@ -63,7 +65,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
         self.mode = (self.mode + 1) % 3
         ell = self.mode == 1
         pts = self.mode == 2
-        print('... default kpts view mode=%r' % self.mode)
+        logger.info('... default kpts view mode=%r' % self.mode)
         self.plot(self.fnum, ell=ell, pts=pts)
         self.draw()
 
@@ -71,15 +73,15 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
         import wbia.plottool as pt
 
         viztype = ph.get_plotdat(ax, 'viztype', None)
-        print('[ik] viztype=%r' % viztype)
+        logger.info('[ik] viztype=%r' % viztype)
         if viztype is None:
             pass
         elif viztype == 'keypoints':
             kpts = ph.get_plotdat(ax, 'kpts', [])
             if len(kpts) == 0:
-                print('...nokpts')
+                logger.info('...nokpts')
             else:
-                print('...nearest')
+                logger.info('...nearest')
                 x, y = event.xdata, event.ydata
                 import vtool as vt
 
@@ -97,7 +99,7 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
         elif viztype.startswith('colorbar'):
             pass
         else:
-            print('...unhandled')
+            logger.info('...unhandled')
         self.draw()
 
 
@@ -136,7 +138,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
     self.vecs = vecs
 
     def _select_ith_kpt(fx):
-        print('[interact] viewing ith=%r keypoint' % fx)
+        logger.info('[interact] viewing ith=%r keypoint' % fx)
         # Get the fx-th keypiont
         kp, sift = kpts[fx], vecs[fx]
         # Draw the image with keypoint fx highlighted
@@ -152,24 +154,24 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
             df2.set_figtitle(figtitle)
 
     def _on_keypoints_click(event):
-        print('[viz] clicked keypoint view')
+        logger.info('[viz] clicked keypoint view')
         if event is None or event.xdata is None or event.inaxes is None:
             annote_ptr[0] = (annote_ptr[0] + 1) % 3
             mode = annote_ptr[0]
             ell = mode == 1
             pts = mode == 2
-            print('... default kpts view mode=%r' % mode)
+            logger.info('... default kpts view mode=%r' % mode)
             _viz_keypoints(fnum, ell=ell, pts=pts, **kwargs)  # MAYBE: remove kwargs
         else:
             ax = event.inaxes
             viztype = ph.get_plotdat(ax, 'viztype', None)
-            print('[ik] viztype=%r' % viztype)
+            logger.info('[ik] viztype=%r' % viztype)
             if viztype == 'keypoints':
                 kpts = ph.get_plotdat(ax, 'kpts', [])
                 if len(kpts) == 0:
-                    print('...nokpts')
+                    logger.info('...nokpts')
                 else:
-                    print('...nearest')
+                    logger.info('...nearest')
                     x, y = event.xdata, event.ydata
                     import vtool as vt
 
@@ -193,13 +195,13 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                 # mx = sortx[idx]
                 # (fx1, fx2) = self.fm[mx]
                 # (fx1, fx2) = self.fm[mx]
-                # print('... selected score at rank idx=%r' % (idx,))
-                # print('... selected score with fs=%r' % (self.fs[mx],))
-                # print('... resolved to mx=%r' % mx)
-                # print('... fx1, fx2 = %r, %r' % (fx1, fx2,))
+                # logger.info('... selected score at rank idx=%r' % (idx,))
+                # logger.info('... selected score with fs=%r' % (self.fs[mx],))
+                # logger.info('... resolved to mx=%r' % mx)
+                # logger.info('... fx1, fx2 = %r, %r' % (fx1, fx2,))
                 # self.select_ith_match(mx)
             else:
-                print('...unhandled')
+                logger.info('...unhandled')
         ph.draw()
 
     # Draw without keypoints the first time

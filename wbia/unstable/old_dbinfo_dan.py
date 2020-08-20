@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # TODO: ADD COPYRIGHT TAG
+import logging
 import utool as ut
 import numpy as np
 from wbia.algo.graph.state import POSTV, NEGTV
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
@@ -34,7 +36,7 @@ def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
             diff = np.sum(func(x_blk), axis=axis)
             total += diff
             # error = abs(np.linalg.norm(diff))
-            # print('error = %r' % (error,))
+            # logger.info('error = %r' % (error,))
             if np.sqrt(diff.ravel().dot(diff.ravel())) <= eps:
                 # Converged
                 break
@@ -328,13 +330,13 @@ def dans_splits(ibs):
     ]
     num_needs_tag = sum(needs_tag)
     num_had_split = len(needs_tag) - num_needs_tag
-    print('num_had_split = %r' % (num_had_split,))
-    print('num_needs_tag = %r' % (num_needs_tag,))
+    logger.info('num_had_split = %r' % (num_had_split,))
+    logger.info('num_needs_tag = %r' % (num_needs_tag,))
 
     # all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
     # all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.match_tags]
     # num_nondan = sum(all_has_split) - num_had_split
-    # print('num_nondan = %r' % (num_nondan,))
+    # logger.info('num_nondan = %r' % (num_nondan,))
 
     from wbia.algo.graph import graph_iden
     from wbia.viz import viz_graph2
@@ -346,7 +348,7 @@ def dans_splits(ibs):
 
     aids_list = ut.compress(grouped_aids, needs_tag)
     aids_list = [a for a in aids_list if len(a) > 1]
-    print('len(aids_list) = %r' % (len(aids_list),))
+    logger.info('len(aids_list) = %r' % (len(aids_list),))
 
     for aids in aids_list:
         infr = graph_iden.AnnotInference(ibs, aids)
@@ -393,7 +395,7 @@ def fix_splits_interaction(ibs):
     ]
     if ut.get_argflag('--reverse'):
         tosplit_annots = tosplit_annots[::-1]
-    print('len(tosplit_annots) = %r' % (len(tosplit_annots),))
+    logger.info('len(tosplit_annots) = %r' % (len(tosplit_annots),))
     aids_list = [a.aids for a in tosplit_annots]
 
     from wbia.algo.graph import graph_iden
@@ -478,10 +480,10 @@ def split_analysis(ibs):
     )
     all_aids = aids1 + aids2
     all_annots = ibs.annots(all_aids)
-    print('%d annots on day 1' % (len(aids1)))
-    print('%d annots on day 2' % (len(aids2)))
-    print('%d annots overall' % (len(all_annots)))
-    print('%d names overall' % (len(ut.unique(all_annots.nids))))
+    logger.info('%d annots on day 1' % (len(aids1)))
+    logger.info('%d annots on day 2' % (len(aids2)))
+    logger.info('%d annots overall' % (len(all_annots)))
+    logger.info('%d names overall' % (len(ut.unique(all_annots.nids))))
 
     nid_list, annots_list = all_annots.group(all_annots.nids)
 
@@ -504,9 +506,9 @@ def split_analysis(ibs):
     bad_idx = sorted(ut.unique(ut.flatten([inf_idx, nan_idx])))
     ok_idx = ut.index_complement(bad_idx, len(max_speeds))
 
-    print('#nan_idx = %r' % (len(nan_idx),))
-    print('#inf_idx = %r' % (len(inf_idx),))
-    print('#ok_idx = %r' % (len(ok_idx),))
+    logger.info('#nan_idx = %r' % (len(nan_idx),))
+    logger.info('#inf_idx = %r' % (len(inf_idx),))
+    logger.info('#ok_idx = %r' % (len(ok_idx),))
 
     ok_speeds = max_speeds[ok_idx]
     ok_nids = ut.take(nid_list, ok_idx)
@@ -538,10 +540,10 @@ def split_analysis(ibs):
     inf_annots = ut.take(annots_list, inf_idx)
     flagged_annots = inf_annots + flagged_ok_annots
 
-    print('MAX_SPEED = %r km/h' % (MAX_SPEED,))
-    print('%d annots with infinite speed' % (len(inf_annots),))
-    print('%d annots with large speed' % (len(flagged_ok_annots),))
-    print('Marking all pairs of annots above the threshold as non-matching')
+    logger.info('MAX_SPEED = %r km/h' % (MAX_SPEED,))
+    logger.info('%d annots with infinite speed' % (len(inf_annots),))
+    logger.info('%d annots with large speed' % (len(flagged_ok_annots),))
+    logger.info('Marking all pairs of annots above the threshold as non-matching')
 
     from wbia.algo.graph import graph_iden
     import networkx as nx
@@ -560,8 +562,8 @@ def split_analysis(ibs):
         good_edges_list.append(good_edges)
     all_bad_edges = ut.flatten(bad_edges_list)
     good_edges_list = ut.flatten(good_edges_list)
-    print('num_bad_edges = %r' % (len(ut.flatten(bad_edges_list)),))
-    print('num_bad_edges = %r' % (len(ut.flatten(good_edges_list)),))
+    logger.info('num_bad_edges = %r' % (len(ut.flatten(bad_edges_list)),))
+    logger.info('num_bad_edges = %r' % (len(ut.flatten(good_edges_list)),))
 
     if 1:
         from wbia.viz import viz_graph2
@@ -570,10 +572,10 @@ def split_analysis(ibs):
         gt.ensure_qtapp()
 
         if ut.get_argflag('--good'):
-            print('Looking at GOOD (no speed problems) edges')
+            logger.info('Looking at GOOD (no speed problems) edges')
             aid_pairs = good_edges_list
         else:
-            print('Looking at BAD (speed problems) edges')
+            logger.info('Looking at BAD (speed problems) edges')
             aid_pairs = all_bad_edges
         aids = sorted(list(set(ut.flatten(aid_pairs))))
         infr = graph_iden.AnnotInference(ibs, aids, verbose=False)
@@ -600,7 +602,7 @@ def split_analysis(ibs):
                 ut.replace_nones(ibs.get_annotmatch_prop(tag, am_rowids), 0)
                 for tag in positive_tags
             ]
-            print(
+            logger.info(
                 'edge_case_hist: '
                 + ut.repr3(
                     [
@@ -614,16 +616,16 @@ def split_analysis(ibs):
                 ut.lmap(any, ut.group_items(is_positive, sorted_nids).values())
             )
             pop = len(pop_nids)
-            print(
+            logger.info(
                 'A positive is any edge flagged as a %s'
                 % (ut.conj_phrase(positive_tags, 'or'),)
             )
-            print('--- Sampling wrt edges ---')
-            print('edge_sample_size  = %r' % (edge_sample_size,))
-            print('edge_population_size = %r' % (len(aid_pairs),))
-            print('num_positive_edges = %r' % (sum(is_positive)))
-            print('--- Sampling wrt names ---')
-            print('name_population_size = %r' % (pop,))
+            logger.info('--- Sampling wrt edges ---')
+            logger.info('edge_sample_size  = %r' % (edge_sample_size,))
+            logger.info('edge_population_size = %r' % (len(aid_pairs),))
+            logger.info('num_positive_edges = %r' % (sum(is_positive)))
+            logger.info('--- Sampling wrt names ---')
+            logger.info('name_population_size = %r' % (pop,))
             vt.calc_error_bars_from_sample(
                 sample_size, num_positive, pop, conf_level=0.95
             )
@@ -653,9 +655,9 @@ def split_analysis(ibs):
     # for infr in infr_list:
     #    flag = np.any(infr.get_feedback_probs()[0] == 0)
     #    num_positive += flag
-    # print('num_positive = %r' % (num_positive,))
+    # logger.info('num_positive = %r' % (num_positive,))
     # pop = len(infr_list)
-    # print('pop = %r' % (pop,))
+    # logger.info('pop = %r' % (pop,))
 
     iter_ = list(zip(infr_list, bad_edges_list))
     for infr, bad_edges in ut.ProgIter(iter_, lbl='adding speed edges', **progkw):
@@ -717,7 +719,7 @@ def split_analysis(ibs):
 
     relabel_stats = inference_stats(infr_list)
 
-    print('\nAll Split Info:')
+    logger.info('\nAll Split Info:')
     lines = []
     for key in relabel_stats[0].keys():
         data = ut.take_column(relabel_stats, key)
@@ -727,17 +729,19 @@ def split_analysis(ibs):
             'stats(%s) = %s'
             % (key, ut.repr2(ut.get_stats(data, use_median=True), precision=2))
         )
-    print('\n'.join(ut.align_lines(lines, '=')))
+    logger.info('\n'.join(ut.align_lines(lines, '=')))
 
     num_incon_list = np.array(ut.take_column(relabel_stats, 'num_inconsistent'))
     can_split_flags = num_incon_list == 0
-    print('Can trivially split %d / %d' % (sum(can_split_flags), len(can_split_flags)))
+    logger.info(
+        'Can trivially split %d / %d' % (sum(can_split_flags), len(can_split_flags))
+    )
 
     splittable_infrs = ut.compress(infr_list, can_split_flags)
 
     relabel_stats = inference_stats(splittable_infrs)
 
-    print('\nTrival Split Info:')
+    logger.info('\nTrival Split Info:')
     lines = []
     for key in relabel_stats[0].keys():
         if key in ['num_inconsistent']:
@@ -749,7 +753,7 @@ def split_analysis(ibs):
             'stats(%s) = %s'
             % (key, ut.repr2(ut.get_stats(data, use_median=True), precision=2))
         )
-    print('\n'.join(ut.align_lines(lines, '=')))
+    logger.info('\n'.join(ut.align_lines(lines, '=')))
 
     num_match_edges = np.array(ut.take_column(relabel_stats, 'num_match_edges'))
     num_nonmatch_edges = np.array(ut.take_column(relabel_stats, 'num_nonmatch_edges'))
@@ -762,12 +766,12 @@ def split_analysis(ibs):
         for sizes in new_sizes_list
     ]
     reasonable_infr = ut.compress(splittable_infrs, flags2)
-    print('#reasonable_infr = %r' % (len(reasonable_infr),))
+    logger.info('#reasonable_infr = %r' % (len(reasonable_infr),))
 
     for infr in ut.InteractiveIter(reasonable_infr):
         annots = ibs.annots(infr.aids)
         edge_to_speeds = annots.get_speeds()
-        print('max_speed = %r' % (max(edge_to_speeds.values())),)
+        logger.info('max_speed = %r' % (max(edge_to_speeds.values())),)
         infr.initialize_visual_node_attrs()
         infr.show_graph(use_image=True, only_reviewed=True)
 
@@ -779,7 +783,7 @@ def split_analysis(ibs):
     for infr in ut.InteractiveIter(random_infr):
         annots = ibs.annots(infr.aids)
         edge_to_speeds = annots.get_speeds()
-        print('max_speed = %r' % (max(edge_to_speeds.values())),)
+        logger.info('max_speed = %r' % (max(edge_to_speeds.values())),)
         infr.initialize_visual_node_attrs()
         infr.show_graph(use_image=True, only_reviewed=True)
 
@@ -801,11 +805,11 @@ def split_analysis(ibs):
     conf_level = 0.95
     # conf_level = .99
     vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level)
-    print('---')
+    logger.info('---')
     vt.calc_error_bars_from_sample(sample_size + 38, num_positive, pop, conf_level)
-    print('---')
+    logger.info('---')
     vt.calc_error_bars_from_sample(sample_size + 38 / 3, num_positive, pop, conf_level)
-    print('---')
+    logger.info('---')
 
     vt.calc_error_bars_from_sample(15 + 38, num_positive=3, pop=675, conf_level=0.95)
     vt.calc_error_bars_from_sample(15, num_positive=3, pop=675, conf_level=0.95)
@@ -859,15 +863,15 @@ def estimate_ggr_count(ibs):
         'min_pername': 1,
         'view': ['right'],
     }
-    print('\nOnly Single-Animal-In-Annotation:')
+    logger.info('\nOnly Single-Animal-In-Annotation:')
     filter_kw['multiple'] = False
     estimate_twoday_count(ibs, day1, day2, filter_kw)
 
-    print('\nOnly Multi-Animal-In-Annotation:')
+    logger.info('\nOnly Multi-Animal-In-Annotation:')
     filter_kw['multiple'] = True
     estimate_twoday_count(ibs, day1, day2, filter_kw)
 
-    print('\nUsing Both:')
+    logger.info('\nUsing Both:')
     filter_kw['multiple'] = None
     return estimate_twoday_count(ibs, day1, day2, filter_kw)
 
@@ -879,7 +883,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
     date_to_images = all_images.group_items(dates)
     date_to_images = ut.sort_dict(date_to_images)
     # date_hist = ut.map_dict_vals(len, date2_gids)
-    # print('date_hist = %s' % (ut.repr2(date_hist, nl=2),))
+    # logger.info('date_hist = %s' % (ut.repr2(date_hist, nl=2),))
     verbose = 0
 
     visit_dates = [day1, day2]
@@ -903,7 +907,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
             flags = []
             for nid, timedeltas in zip(unique_nids, timedeltas_list):
                 flags.append(timedeltas.max() > marked_thresh)
-            print('Unmarking %d names' % (len(flags) - sum(flags)))
+            logger.info('Unmarking %d names' % (len(flags) - sum(flags)))
             unique_nids = ut.compress(unique_nids, flags)
             grouped_aids = ut.dict_subset(grouped_aids, unique_nids)
 
@@ -929,19 +933,19 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
     if False:
         from wbia.other import dbinfo
 
-        print('DAY 1 STATS:')
+        logger.info('DAY 1 STATS:')
         _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day1)  # NOQA
-        print('DAY 2 STATS:')
+        logger.info('DAY 2 STATS:')
         _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day2)  # NOQA
-        print('COMBINED STATS:')
+        logger.info('COMBINED STATS:')
         _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day1 + aids_day2)  # NOQA
 
-    print('%d annots on day 1' % (len(aids_day1)))
-    print('%d annots on day 2' % (len(aids_day2)))
-    print('%d names on day 1' % (nsight1,))
-    print('%d names on day 2' % (nsight2,))
-    print('resight = %r' % (resight,))
-    print('lp_index = %r ± %r' % (lp_index, lp_error))
+    logger.info('%d annots on day 1' % (len(aids_day1)))
+    logger.info('%d annots on day 2' % (len(aids_day2)))
+    logger.info('%d names on day 1' % (nsight1,))
+    logger.info('%d names on day 2' % (nsight2,))
+    logger.info('resight = %r' % (resight,))
+    logger.info('lp_index = %r ± %r' % (lp_index, lp_error))
     return nsight1, nsight2, resight, lp_index, lp_error
 
 
@@ -981,12 +985,12 @@ def draw_twoday_count(ibs, visit_info_list_):
             ):
                 edge_nodes = set(aids1 + aids2)
                 # #if len(edge_nodes) != len(set(aids)):
-                #    #print('--')
-                #    #print('aids = %r' % (aids,))
-                #    #print('edge_nodes = %r' % (edge_nodes,))
+                #    #logger.info('--')
+                #    #logger.info('aids = %r' % (aids,))
+                #    #logger.info('edge_nodes = %r' % (edge_nodes,))
                 bad_aids = edge_nodes - set(aids)
                 if len(bad_aids) > 0:
-                    print('bad_aids = %r' % (bad_aids,))
+                    logger.info('bad_aids = %r' % (bad_aids,))
                 unlinked_aids = set(aids) - edge_nodes
                 mst_links = list(ut.itertwo(list(unlinked_aids) + list(edge_nodes)[:1]))
                 bad_aids.add(None)
@@ -1050,7 +1054,7 @@ def draw_twoday_count(ibs, visit_info_list_):
 
         # pt.qt4ensure()
         # len(list(nx.connected_components(graph1)))
-        # print(ut.graph_info(graph1))
+        # logger.info(ut.graph_info(graph1))
 
         # Layout graph
         layoutkw = dict(
@@ -1161,7 +1165,9 @@ def draw_twoday_count(ibs, visit_info_list_):
         if debug:
             ut.nx_delete_None_edge_attr(twoday_graph)
             ut.nx_delete_None_node_attr(twoday_graph)
-            print('twoday_graph(pre) info' + ut.repr3(ut.graph_info(twoday_graph), nl=2))
+            logger.info(
+                'twoday_graph(pre) info' + ut.repr3(ut.graph_info(twoday_graph), nl=2)
+            )
 
         # Hack, no idea why there are nodes that dont exist here
         between_edges_ = [
@@ -1186,7 +1192,7 @@ def draw_twoday_count(ibs, visit_info_list_):
             ut.startfile(fpath)
 
         if debug:
-            print('twoday_graph(post) info' + ut.repr3(ut.graph_info(twoday_graph)))
+            logger.info('twoday_graph(post) info' + ut.repr3(ut.graph_info(twoday_graph)))
 
         pt.show_nx(twoday_graph, layout='custom', node_labels=False, as_directed=False)
 
@@ -1221,12 +1227,12 @@ def cheetah_stats(ibs):
             hist[bin_mapper(num)] += 1
         hist = ut.sort_dict(hist)
 
-        print('------------')
-        print('filters = %s' % ut.repr4(filtkw))
-        print('num_annots = %r' % (len(annots)))
-        print('num_names = %r' % (len(unique_nids)))
-        print('annots_per_name_freq = %s' % (ut.repr4(annots_per_name_freq)))
-        print('annots_per_name_freq (ranges) = %s' % (ut.repr4(hist)))
+        logger.info('------------')
+        logger.info('filters = %s' % ut.repr4(filtkw))
+        logger.info('num_annots = %r' % (len(annots)))
+        logger.info('num_names = %r' % (len(unique_nids)))
+        logger.info('annots_per_name_freq = %s' % (ut.repr4(annots_per_name_freq)))
+        logger.info('annots_per_name_freq (ranges) = %s' % (ut.repr4(hist)))
         assert sum(hist.values()) == len(unique_nids)
 
 
@@ -1259,19 +1265,19 @@ def print_feature_info(testres):
     # ibs = testres.ibs
     def print_feat_stats(kpts, vecs):
         assert len(vecs) == len(kpts), 'disagreement'
-        print('keypoints and vecs agree')
+        logger.info('keypoints and vecs agree')
         flat_kpts = np.vstack(kpts)
         num_kpts = list(map(len, kpts))
         kpt_scale = vt.get_scales(flat_kpts)
         num_kpts_stats = ut.get_stats(num_kpts)
         scale_kpts_stats = ut.get_stats(kpt_scale)
-        print(
+        logger.info(
             'Number of '
             + prefix
             + ' keypoints: '
             + ut.repr3(num_kpts_stats, nl=0, precision=2)
         )
-        print(
+        logger.info(
             'Scale of '
             + prefix
             + ' keypoints: '
@@ -1279,7 +1285,7 @@ def print_feature_info(testres):
         )
 
     for cfgx in range(testres.nConfig):
-        print('------------------')
+        logger.info('------------------')
         ut.colorprint(testres.cfgx2_lbl[cfgx], 'yellow')
         qreq_ = testres.cfgx2_qreq_[cfgx]
         depc = qreq_.ibs.depc_annot
@@ -1297,18 +1303,18 @@ def print_feature_info(testres):
             print_feat_stats(kpts, vecs)
 
     # kpts = np.vstack(cx2_kpts)
-    # print('[dbinfo] --- LaTeX --- ')
+    # logger.info('[dbinfo] --- LaTeX --- ')
     # # _printopts = np.get_printoptions()
     # # np.set_printoptions(precision=3)
     # scales = np.array(sorted(scales))
     # tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
     # tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
     # tex_kpts_stats  = util_latex.latex_get_stats(r'\# kpts/chip', cx2_nFeats)
-    # print(tex_nKpts)
-    # print(tex_kpts_stats)
-    # print(tex_scale_stats)
+    # logger.info(tex_nKpts)
+    # logger.info(tex_kpts_stats)
+    # logger.info(tex_scale_stats)
     # # np.set_printoptions(**_printopts)
-    # print('[dbinfo] ---/LaTeX --- ')
+    # logger.info('[dbinfo] ---/LaTeX --- ')
     # return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
 
 
@@ -1332,14 +1338,14 @@ def tst_name_consistency(ibs):
     ax2_nid = ibs.get_annot_name_rowids(valid_aids)
     nx2_aids = ibs.get_name_aids(valid_nids)
 
-    print('len(valid_aids) = %r' % (len(valid_aids),))
-    print('len(valid_nids) = %r' % (len(valid_nids),))
-    print('len(ax2_nid) = %r' % (len(ax2_nid),))
-    print('len(nx2_aids) = %r' % (len(nx2_aids),))
+    logger.info('len(valid_aids) = %r' % (len(valid_aids),))
+    logger.info('len(valid_nids) = %r' % (len(valid_nids),))
+    logger.info('len(ax2_nid) = %r' % (len(ax2_nid),))
+    logger.info('len(nx2_aids) = %r' % (len(nx2_aids),))
 
     # annots are grouped by names, so mapping aid back to nid should
     # result in each list having the same value
     _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
-    print(_nids_list[-20:])
-    print(nx2_aids[-20:])
+    logger.info(_nids_list[-20:])
+    logger.info(nx2_aids[-20:])
     assert all(map(ut.allsame, _nids_list))

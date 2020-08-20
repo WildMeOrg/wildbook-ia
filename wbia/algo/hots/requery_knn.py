@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -6,6 +7,7 @@ import itertools as it
 from six.moves import range, zip, map  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # DEBUG_REQUERY = True
@@ -199,14 +201,14 @@ def requery_knn(
     at_limit = False
 
     for count in it.count():
-        # print('count = %r' % (count,))
+        # logger.info('count = %r' % (count,))
         cand = query.neighbors(temp_K)
         # Find which query features have found enough neighbors
         done_flags = cand.done_flags(num_neighbs)
         if DEBUG_REQUERY:
-            print('count = %r' % (count,))
+            logger.info('count = %r' % (count,))
             assert np.all(np.diff(cand.dists, axis=1) >= 0)
-            print('done_flags = %r' % (done_flags,))
+            logger.info('done_flags = %r' % (done_flags,))
         # Move any done queries into results and compress the query
         if np.any(done_flags):
             # Get the valid part of the results
@@ -220,8 +222,8 @@ def requery_knn(
                 nanrow_flags = np.any(nanelem_flags, axis=1)
                 assert np.all(nanelem_flags.sum(axis=1)[nanrow_flags] == num_neighbs)
                 assert np.all(np.diff(blocks[~nanrow_flags], axis=1) >= 0)
-                print('final.qfx2_dist')
-                print(final.qfx2_dist)
+                logger.info('final.qfx2_dist')
+                logger.info(final.qfx2_dist)
             if np.all(done_flags):
                 # If everything was found then we are done
                 break
@@ -238,7 +240,7 @@ def requery_knn(
                 import utool
 
                 utool.embed()
-            print(
+            logger.info(
                 '[knn] Hit limit=%r and found %d/%d'
                 % (limit, sum(done_flags), len(done_flags))
             )
@@ -248,13 +250,13 @@ def requery_knn(
         # If over the limit, then we need to do the best with what we have
         # otherwise we would just return nan
         best = cand.compress(~done_flags)
-        print('[knn] Recover for %d features' % (len(best.index)))
+        logger.info('[knn] Recover for %d features' % (len(best.index)))
         # Simply override the last indices to be valid and use those
         best.validflags[:, -num_neighbs:] = True
         # Now we can find a valid part
         idxs, dists, trueks = best.done_part(num_neighbs)
         final.assign(best.index, idxs, dists, trueks)
         if DEBUG_REQUERY:
-            print('final.qfx2_dist')
-            print(final.qfx2_dist)
+            logger.info('final.qfx2_dist')
+            logger.info(final.qfx2_dist)
     return final.qfx2_idx, final.qfx2_dist

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import numpy as np
 import pandas as pd
 import vtool as vt  # NOQA
@@ -8,6 +9,7 @@ import wbia.plottool as pt  # NOQA
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # pd.set_option('display.float_format', lambda x: '%.4f' % x)
 # pd.options.display.precision = 4
@@ -357,8 +359,8 @@ def build_factor_graph(
                 """
                 python -m wbia.plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
                 """
-                print('valueNotEqual = %r' % (valueNotEqual,))
-                print('p_same = %r' % (p_same,))
+                logger.info('valueNotEqual = %r' % (valueNotEqual,))
+                logger.info('p_same = %r' % (p_same,))
                 raise ValueError('valueNotEqual')
         else:
             valueEqual = p_same
@@ -412,8 +414,8 @@ def cut_step(
         infr = opengm.inference.Bruteforce(gm, accumulator='minimizer')
         infr.infer()
         labels = rectify_labels(G, infr.arg())
-        print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        print('value = %r' % (infr.value(),))
+        logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
+        logger.info('value = %r' % (infr.value(),))
 
         mc_params = opengm.InfParam(
             maximalNumberOfConstraintsPerRound=1000000,
@@ -435,8 +437,8 @@ def cut_step(
         labels = rectify_labels(G, infr.arg())
 
         ut.cprint('Multicut Labels: (energy minimization)', 'blue')
-        print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        print('value = %r' % (infr.value(),))
+        logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
+        logger.info('value = %r' % (infr.value(),))
 
         if pass_values is not None:
             gotany = False
@@ -446,7 +448,7 @@ def cut_step(
                     break
             if not gotany:
                 ut.cprint('INCORRECT DID NOT GET PASS VALUES', 'red')
-                print('pass_values = %r' % (pass_values,))
+                logger.info('pass_values = %r' % (pass_values,))
 
         if fail_values is not None:
             for fail in fail_values:
@@ -457,8 +459,8 @@ def cut_step(
     # infr = opengm.inference.AlphaExpansion(gm, parameter=ae_params, accumulator='minimizer')
     # infr.infer()
     # labels = infr.arg()
-    # print('AlphaExpansion labels:')
-    # print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
+    # logger.info('AlphaExpansion labels:')
+    # logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
 
 
 def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
@@ -479,8 +481,8 @@ def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
         infr = opengm.inference.Bruteforce(gm, accumulator='maximizer')
         infr.infer()
         labels = rectify_labels(G, infr.arg())
-        print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        print('value = %r' % (infr.value(),))
+        logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
+        logger.info('value = %r' % (infr.value(),))
 
         lpb_parmas = opengm.InfParam(
             damping=0.00,
@@ -502,7 +504,7 @@ def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
         labels = rectify_labels(G, infr.arg())
         pairwise_factor_idxs = gm.pairwise_factor_idxs
         factor_marginals = infr.factorMarginals(pairwise_factor_idxs)
-        # print('factor_marginals =\n%r' % (factor_marginals,))
+        # logger.info('factor_marginals =\n%r' % (factor_marginals,))
         edge_marginals_same_diff_ = [
             (np.diag(f).sum(), f[~np.eye(f.shape[0], dtype=bool)].sum())
             for f in factor_marginals
@@ -510,19 +512,19 @@ def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
         edge_marginals_same_diff_ = np.array(edge_marginals_same_diff_)
         edge_marginals_same_diff = edge_marginals_same_diff_.copy()
         edge_marginals_same_diff /= edge_marginals_same_diff.sum(axis=1, keepdims=True)
-        print('Unnormalized Edge Marginals:')
-        print(
+        logger.info('Unnormalized Edge Marginals:')
+        logger.info(
             pd.DataFrame(
                 edge_marginals_same_diff,
                 columns=['same', 'diff'],
                 index=pd.Series(edges),
             )
         )
-        # print('Edge marginals after Belief Propogation')
-        # print(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
-        print('Labels:')
-        print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        print('value = %r' % (infr.value(),))
+        # logger.info('Edge marginals after Belief Propogation')
+        # logger.info(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
+        logger.info('Labels:')
+        logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
+        logger.info('value = %r' % (infr.value(),))
 
         ut.cprint('Belief Propogation (marginalization)', 'blue')
         infr = LBP_algorithm(gm, parameter=lpb_parmas, accumulator='integrator')
@@ -530,7 +532,7 @@ def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
         labels = rectify_labels(G, infr.arg())
         pairwise_factor_idxs = gm.pairwise_factor_idxs
         factor_marginals = infr.factorMarginals(pairwise_factor_idxs)
-        # print('factor_marginals =\n%r' % (factor_marginals,))
+        # logger.info('factor_marginals =\n%r' % (factor_marginals,))
         edge_marginals_same_diff_ = [
             (np.diag(f).sum(), f[~np.eye(f.shape[0], dtype=bool)].sum())
             for f in factor_marginals
@@ -538,29 +540,29 @@ def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
         edge_marginals_same_diff_ = np.array(edge_marginals_same_diff_)
         edge_marginals_same_diff = edge_marginals_same_diff_.copy()
         edge_marginals_same_diff /= edge_marginals_same_diff.sum(axis=1, keepdims=True)
-        print('Unnormalized Edge Marginals:')
-        print(
+        logger.info('Unnormalized Edge Marginals:')
+        logger.info(
             pd.DataFrame(
                 edge_marginals_same_diff,
                 columns=['same', 'diff'],
                 index=pd.Series(edges),
             )
         )
-        # print('Edge marginals after Belief Propogation')
-        # print(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
-        print('Labels:')
-        print(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        print('value = %r' % (infr.value(),))
+        # logger.info('Edge marginals after Belief Propogation')
+        # logger.info(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
+        logger.info('Labels:')
+        logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
+        logger.info('value = %r' % (infr.value(),))
 
     # import wbia.plottool as pt
     # viz_factor_graph(gm)
     # # _ = pt.show_nx(G)
-    # print("SHOW")
+    # logger.info("SHOW")
     # pt.plt.show()
 
     # marginals = infr.marginals(annot_idxs)
-    # print('node marginals are')
-    # print(pd.DataFrame(marginals, index=pd.Series(nodes)))
+    # logger.info('node marginals are')
+    # logger.info(pd.DataFrame(marginals, index=pd.Series(nodes)))
     return edge_marginals_same_diff
 
 
@@ -595,8 +597,8 @@ def viz_factor_graph(gm):
     # # infr = opengm.inference.Bruteforce(gm, accumulator='maximizer')
     # # infr = opengm.inference.Bruteforce(gm, accumulator='integrator')
     # infr.infer()
-    # print(infr.arg())
-    # print(infr.value())
+    # logger.info(infr.arg())
+    # logger.info(infr.value())
 
 
 def build_graph(uvw_list):
@@ -620,7 +622,7 @@ def main():
     tests_ = ut.dict_subset(tests, subset)
 
     for name, func in tests_.items():
-        print('\n==============')
+        logger.info('\n==============')
         ut.cprint('name = %r' % (name,), 'yellow')
         uvw_list, pass_values, fail_values = func()
         G = build_graph(uvw_list)
@@ -640,10 +642,12 @@ def main():
             [get_edge_id_probs(G, aid1, aid2, n_names) for aid1, aid2 in edges]
         )
 
-        print('nodes = %r' % (nodes,))
-        # print('edges = %r' % (edges,))
-        print('Noisy Observations')
-        print(pd.DataFrame(edge_probs, columns=['same', 'diff'], index=pd.Series(edges)))
+        logger.info('nodes = %r' % (nodes,))
+        # logger.info('edges = %r' % (edges,))
+        logger.info('Noisy Observations')
+        logger.info(
+            pd.DataFrame(edge_probs, columns=['same', 'diff'], index=pd.Series(edges))
+        )
         edge_probs = None
 
         cut_step(

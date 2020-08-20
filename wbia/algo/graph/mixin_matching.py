@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six
 import numpy as np
 import utool as ut
@@ -12,6 +13,7 @@ from wbia.algo.graph.nx_utils import e_
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

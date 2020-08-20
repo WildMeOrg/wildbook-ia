@@ -10,6 +10,7 @@ ToRegenerate:
     python -m wbia.templates.template_generator --key party --Tcfg with_api_cache=False with_web_api=False with_deleters=False --diff
     python -m wbia.templates.template_generator --key party --Tcfg with_api_cache=False with_web_api=False with_deleters=False --write
 """
+import logging
 import functools  # NOQA
 import six  # NOQA
 from six.moves import map, range, zip  # NOQA
@@ -19,6 +20,7 @@ from wbia.control import controller_inject
 from wbia.control import accessor_decors  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(

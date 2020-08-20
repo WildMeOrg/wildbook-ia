@@ -16,6 +16,7 @@ CommandLine:
     image_timedelta_posix
 
 """
+import logging
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.control.controller_inject import make_ibs_register_decorator
@@ -29,6 +30,7 @@ from wbia.web import routes_ajax
 import six
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 DEBUG_THUMB = False
@@ -247,7 +249,7 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
     from wbia.algo.preproc import preproc_image
     from wbia.other import ibsfuncs
 
-    # print('[ibs] gpath_list = %r' % (gpath_list,))
+    # logger.info('[ibs] gpath_list = %r' % (gpath_list,))
     # Processing an image might fail, yeilding a None instead of a tup
     if sanitize:
         gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
@@ -271,10 +273,12 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
         gpath for (gpath, params_) in zip(gpath_list, params_list) if not params_
     ]
 
-    print('\n'.join([' ! Failed reading gpath=%r' % (gpath,) for gpath in failed_list]))
+    logger.info(
+        '\n'.join([' ! Failed reading gpath=%r' % (gpath,) for gpath in failed_list])
+    )
 
     if ensure and len(failed_list) > 0:
-        print('Importing %d files failed: %r' % (len(failed_list), failed_list,))
+        logger.info('Importing %d files failed: %r' % (len(failed_list), failed_list,))
 
     return params_list
 
@@ -363,8 +367,8 @@ def add_images(
         >>> # Clean things up
         >>> ibs.delete_images(new_gids1)
     """
-    print('[ibs] add_images')
-    print('[ibs] len(gpath_list) = %d' % len(gpath_list))
+    logger.info('[ibs] add_images')
+    logger.info('[ibs] len(gpath_list) = %d' % len(gpath_list))
     if auto_localize is None:
         # grab value from config
         auto_localize = ibs.cfg.other_cfg.auto_localize
@@ -387,8 +391,8 @@ def add_images(
         gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
         valid_gids = ibs.get_valid_gids()
         valid_uuids = ibs.get_image_uuids(valid_gids)
-        print('[preadd] uuid / gid_ = ' + ut.indentjoin(zip(uuid_list, gid_list_)))
-        print(
+        logger.info('[preadd] uuid / gid_ = ' + ut.indentjoin(zip(uuid_list, gid_list_)))
+        logger.info(
             '[preadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids))
         )
     # </DEBUG>
@@ -437,10 +441,14 @@ def add_images(
         delete_gid_set = set([])
         for valid_gid, valid_gpath in zip(all_valid_gid_list, valid_gpath_list):
             if ensure_loadable and valid_gid in bad_load_set:
-                print('Loadable Image Validation: Failed to load %r' % (valid_gpath,))
+                logger.info(
+                    'Loadable Image Validation: Failed to load %r' % (valid_gpath,)
+                )
                 delete_gid_set.add(valid_gid)
             if ensure_exif and valid_gid in bad_exif_set:
-                print('Loadable EXIF Validation:  Failed to load %r' % (valid_gpath,))
+                logger.info(
+                    'Loadable EXIF Validation:  Failed to load %r' % (valid_gpath,)
+                )
                 delete_gid_set.add(valid_gid)
 
         delete_gid_list = list(delete_gid_set)
@@ -458,7 +466,7 @@ def add_images(
     if as_annots:
         # Add succesfull imports as annotations
         aid_list = ibs.use_images_as_annotations(all_valid_gid_list)
-        print('[ibs] added %d annotations' % (len(aid_list),))
+        logger.info('[ibs] added %d annotations' % (len(aid_list),))
 
     # None out any gids that didn't pass the validity check
     assert None not in all_valid_gid_set
@@ -542,7 +550,7 @@ def localize_images(ibs, gid_list_=None):
         urlunquote = urllib.parse.unquote
 
     if gid_list_ is None:
-        print('WARNING: you are localizing all gids')
+        logger.info('WARNING: you are localizing all gids')
         gid_list_ = ibs.get_valid_gids()
     isvalid_list = [gid is not None for gid in gid_list_]
     gid_list = ut.unique(ut.compress(gid_list_, isvalid_list))
@@ -569,14 +577,14 @@ def localize_images(ibs, gid_list_=None):
 
     # Copy any s3/http images first
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
-        print('Localizing %r -> %r' % (uri, loc_gpath,))
+        logger.info('Localizing %r -> %r' % (uri, loc_gpath,))
         if isproto(uri, valid_protos):
             if isproto(uri, s3_proto):
-                print('\tAWS S3 Fetch')
+                logger.info('\tAWS S3 Fetch')
                 s3_dict = ut.s3_str_decode_to_dict(uri)
                 ut.grab_s3_contents(loc_gpath, **s3_dict)
             elif isproto(uri, url_protos):
-                print('\tURL Download')
+                logger.info('\tURL Download')
                 # Ensure that the Unicode string is properly encoded for web requests
                 uri_ = urlunquote(uri)
                 uri_ = urlsplit(uri_, allow_fragments=False)
@@ -607,12 +615,12 @@ def localize_images(ibs, gid_list_=None):
                 raise ValueError('Sanity check failed')
         else:
             if not exists(loc_gpath):
-                print('\tIO Copy')
+                logger.info('\tIO Copy')
                 # Copy images to local directory
                 uri if islocal(uri) else join(ibs.imgdir, uri)
                 ut.copy_list([uri], [loc_gpath])
             else:
-                print('\tSkipping (already localized)')
+                logger.info('\tSkipping (already localized)')
     # Update database uris
     ibs.set_image_uris(gid_list, loc_gname_list)
     assert all(map(exists, loc_gpath_list)), 'not all images copied'
@@ -667,7 +675,9 @@ def set_image_uris_original(ibs, gid_list, new_gpath_list, overwrite=False):
         invalid_flags = ut.not_list(valid_flags)
         nInvalid = sum(invalid_flags)
         if nInvalid > 0:
-            print('[ibs] WARNING: Preventing overwrite of %d original uris' % (nInvalid,))
+            logger.info(
+                '[ibs] WARNING: Preventing overwrite of %d original uris' % (nInvalid,)
+            )
         new_gpath_list_ = ut.compress(new_gpath_list, valid_flags)
         gid_list_ = ut.compress(gid_list, valid_flags)
     # new_gpath_list_ = [
@@ -933,7 +943,7 @@ def set_image_imagesettext(ibs, gid_list, imagesettext_list):
     """
     # FIXME: Slow and weird
     if ut.VERBOSE:
-        print('[ibs] setting %r image imageset ids (from text)' % len(gid_list))
+        logger.info('[ibs] setting %r image imageset ids (from text)' % len(gid_list))
     imgsetid_list = ibs.add_imagesets(imagesettext_list)
     ibs.set_image_imgsetids(gid_list, imgsetid_list)
 
@@ -950,7 +960,7 @@ def set_image_imgsetids(ibs, gid_list, imgsetid_list):
         URL:    /api/image/imageset/rowid/
     """
     if ut.VERBOSE:
-        print('[ibs] setting %r image imageset ids' % len(gid_list))
+        logger.info('[ibs] setting %r image imageset ids' % len(gid_list))
     ibs.add_image_relationship(gid_list, imgsetid_list)
 
 
@@ -1106,7 +1116,7 @@ def update_image_rotate_90(ibs, gid_list, direction):
         new_orient = ORIENTATION_ORDER_LIST[new_index]
         new_orient_list.append(new_orient)
 
-    print('Rotating images %r -> %r' % (orient_list, new_orient_list,))
+    logger.info('Rotating images %r -> %r' % (orient_list, new_orient_list,))
     ibs._set_image_orientation(gid_list, new_orient_list)
 
     # We've just rotated, invert the width, height values in the database for each image
@@ -1223,8 +1233,8 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
     """
     if DEBUG_THUMB:
-        print('{TUPPLE} get thumbtup kwargs = %r' % (kwargs,))
-    # print('gid_list = %r' % (gid_list,))
+        logger.info('{TUPPLE} get thumbtup kwargs = %r' % (kwargs,))
+    # logger.info('gid_list = %r' % (gid_list,))
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = ibs.unflat_map(ibs.get_annot_thetas, aids_list)
@@ -1244,7 +1254,7 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
         )
     ]
     # if DEBUG_THUMB:
-    #     print('{TUPPLE} get thumbtup_list = %r' % (thumbtup_list,))
+    #     logger.info('{TUPPLE} get thumbtup_list = %r' % (thumbtup_list,))
     return thumbtup_list
 
 
@@ -1257,9 +1267,9 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
         list_ (list): the thumbnail path of each gid
     """
     if DEBUG_THUMB:
-        print('[GET} get_image_thumbpath for %d gids' % (len(gid_list)))
-        print('[GET} get thumbtup config = %r' % (config,))
-        print('[GET} get thumbtup ensure_paths = %r' % (ensure_paths,))
+        logger.info('[GET} get_image_thumbpath for %d gids' % (len(gid_list)))
+        logger.info('[GET} get thumbtup config = %r' % (config,))
+        logger.info('[GET} get thumbtup ensure_paths = %r' % (ensure_paths,))
     # raise Exception("FOOBAR")
     depc = ibs.depc_image
     # Do not force computation just ask where the thumbs will go
@@ -1286,7 +1296,7 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     #    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
     #                               read_extern=False)
     if DEBUG_THUMB:
-        print('[GET} thumbpath_list = %r' % (thumbpath_list,))
+        logger.info('[GET} thumbpath_list = %r' % (thumbpath_list,))
     return thumbpath_list
 
 
@@ -1660,7 +1670,7 @@ def get_image_detectpaths(ibs, gid_list):
         thumbpath_list = depc.get(
             'thumbnails', gid_list, 'img', config=config, read_extern=False
         )
-    # print(thumbpath_list)
+    # logger.info(thumbpath_list)
     return thumbpath_list
 
 
@@ -2248,17 +2258,17 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
 
 
     Ignore:
-        print('len(gid_list) = %r' % (len(gid_list),))
-        print('len(input_list) = %r' % (len(input_list),))
-        print('len(pair_list) = %r' % (len(pair_list),))
-        print('len(aidscol) = %r' % (len(aidscol),))
-        print('len(gidscol) = %r' % (len(gidscol),))
-        print('len(unique_gids) = %r' % (len(unique_gids),))
+        logger.info('len(gid_list) = %r' % (len(gid_list),))
+        logger.info('len(input_list) = %r' % (len(input_list),))
+        logger.info('len(pair_list) = %r' % (len(pair_list),))
+        logger.info('len(aidscol) = %r' % (len(aidscol),))
+        logger.info('len(gidscol) = %r' % (len(gidscol),))
+        logger.info('len(unique_gids) = %r' % (len(unique_gids),))
     """
     from wbia.control.manual_annot_funcs import ANNOT_STAGED_FLAG
 
     # FIXME: SLOW JUST LIKE GET_NAME_AIDS
-    # print('gid_list = %r' % (gid_list,))
+    # logger.info('gid_list = %r' % (gid_list,))
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     NEW_INDEX_HACK = True
     USE_GROUPING_HACK = False
@@ -2384,7 +2394,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
 
         %timeit [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid = ?''', (gid,)).fetchall()] for gid in gid_list_]
         """
-    # print('aids_list = %r' % (aids_list,))
+    # logger.info('aids_list = %r' % (aids_list,))
 
     # aids_list = [
     #     ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
@@ -2430,7 +2440,7 @@ def get_image_aids_of_species(ibs, gid_list, species=None):
     aids_list = ibs.get_image_aids(gid_list)
     if species is None:
         # We do this so that the species flag behaves nicely with the getter_1toM
-        print('[get_image_aids_of_species] WARNING! Use get_image_aids() instead.')
+        logger.info('[get_image_aids_of_species] WARNING! Use get_image_aids() instead.')
         return aids_list
     aids_list = [_filter(aid_list) for aid_list in aids_list]
     return aids_list
@@ -2511,7 +2521,7 @@ def delete_images(ibs, gid_list, trash_images=True):
         >>> assert not utool.checkpath(athumbpath), "ANNOTATION Thumbnail still exists"
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d images' % len(gid_list))
+        logger.info('[ibs] deleting %d images' % len(gid_list))
     # Move images to trash before deleting them. #
     # TODO: only move localized images
     # TODO: ensure there are no name conflicts when using the original names
@@ -2580,9 +2590,9 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
     ibs.depc_image.delete_property_all('web_src', gid_list)
 
     # if ut.VERBOSE:
-    #     print('[ibs] deleting %d image thumbnails' % len(gid_list))
+    #     logger.info('[ibs] deleting %d image thumbnails' % len(gid_list))
     #     if DEBUG_THUMB:
-    #         print('{THUMB DELETE} config2_ = %r' % (config2_,))
+    #         logger.info('{THUMB DELETE} config2_ = %r' % (config2_,))
 
     # # TODO: delete all configs?
     # gid_list = list(set(gid_list))
@@ -2591,14 +2601,14 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
 
     # # HACK: Remove paths computed by QT and not the depcache.
     # thumbpath_list = ibs.get_image_thumbpath(gid_list, **config2_)
-    # #print('thumbpath_list = %r' % (thumbpath_list,))
+    # #logger.info('thumbpath_list = %r' % (thumbpath_list,))
     # #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
     # ut.remove_existing_fpaths(thumbpath_list, quiet=True,
     #                           lbl='image_thumbs')
 
     # if DEBUG_THUMB:
-    #     print('num_deleted = %r' % (num_deleted,))
-    #     print('{THUMB DELETE} DONE DELETE')
+    #     logger.info('num_deleted = %r' % (num_deleted,))
+    #     logger.info('{THUMB DELETE} DONE DELETE')
 
 
 @register_ibs_method

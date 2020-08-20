@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import uuid
 import six  # NOQA
 from six.moves import range
@@ -14,6 +15,7 @@ import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -169,7 +171,7 @@ def get_lblimage_gids(ibs, lblimage_rowid_list):
     # TODO: Optimize IF POSSIBLE
     # FIXME: SLOW
     # if verbose:
-    #    print(ut.get_caller_name(N=list(range(0, 20))))
+    #    logger.info(ut.get_caller_name(N=list(range(0, 20))))
     where_clause = 'lblimage_rowid=?'
     params_iter = [(lblimage_rowid,) for lblimage_rowid in lblimage_rowid_list]
     gids_list = ibs.db.get_where(

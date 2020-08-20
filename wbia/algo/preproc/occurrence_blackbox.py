@@ -24,6 +24,7 @@ print('thresh_km = %r' % (thresh_km,))
 thresh_sec = thresh_km / km_per_sec
 print('thresh_sec = %r' % (thresh_sec,))
 """
+import logging
 import functools
 import numpy as np
 import utool as ut
@@ -31,6 +32,7 @@ import scipy.cluster.hierarchy
 from scipy.spatial import distance
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 KM_PER_SEC = 0.002
@@ -450,7 +452,7 @@ def _cluster_part(X_part, dist_func, columns, thresh_sec, km_per_sec):
         chunk_labels = []
         chunk_idxs = list(_chunk_time(X_part, thresh_sec))
         for idxs in chunk_idxs:
-            # print('Doing occurrence chunk {}'.format(len(idxs)))
+            # logger.info('Doing occurrence chunk {}'.format(len(idxs)))
             X_chunk = X_part.take(idxs, axis=0)
             labels = _cluster_chunk(X_chunk, dist_func, thresh_sec)
             chunk_labels.append((labels, idxs))
@@ -493,7 +495,7 @@ def _chunk_time(X_part, thresh_sec):
     for start, stop in iter_window:
         idxs = time_sortx[start:stop]
         # chunk = X_time[idxs]
-        # print((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
+        # logger.info((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
         yield idxs
 
 
@@ -526,7 +528,7 @@ def _chunk_time(X_part, thresh_sec):
 #     for start, stop in iter_window:
 #         idxs = lat_sortx[start:stop]
 #         # chunk = X_time[idxs]
-#         # print((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
+#         # logger.info((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
 #         yield idxs
 
 
@@ -559,7 +561,7 @@ def _chunk_time(X_part, thresh_sec):
 #     for start, stop in iter_window:
 #         idxs = lon_sortx[start:stop]
 #         # chunk = X_time[idxs]
-#         # print((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
+#         # logger.info((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
 #         yield idxs
 
 
@@ -594,7 +596,7 @@ def main():
     sec = [0] * len(args.lat) if args.sec is None else args.sec
     latlons = np.vstack([args.lat, args.lon]).T
     X_labels = cluster_timespace_km(sec, latlons, args.thresh, km_per_sec=args.km_per_sec)
-    print('X_labels = %r' % (X_labels.tolist(),))
+    logger.info('X_labels = %r' % (X_labels.tolist(),))
 
 
 if __name__ == '__main__':

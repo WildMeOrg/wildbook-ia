@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # developer convenience functions for ibs
+import logging
 import utool as ut
 from six.moves import zip
 from wbia import constants as const
 
 (print, rrr, profile) = ut.inject2(__name__, '[duct_tape]')
+logger = logging.getLogger('wbia')
 
 
 def fix_compname_configs(ibs):
@@ -22,7 +24,7 @@ def fix_compname_configs(ibs):
     for rowid, suffix in filter(
         lambda tup: tup[1].startswith('_MANUAL_'), zip(configid_list, cfgsuffix_list)
     ):
-        print('EVALUATING: %r, %r' % (rowid, suffix))
+        logger.info('EVALUATING: %r, %r' % (rowid, suffix))
         # Fix the tables with bad config_rowids
         ibs.db.executeone(
             """
@@ -192,5 +194,5 @@ def fix_nulled_yaws(ibs):
     yaw_list = ibs.get_annot_yaws(aid_list)
     valid_list = [yaw == 0.0 for yaw in yaw_list]
     dirty_aid_list = ut.filter_items(aid_list, valid_list)
-    print('[duct_tape] Nulling %d annotation yaws' % len(dirty_aid_list))
+    logger.info('[duct_tape] Nulling %d annotation yaws' % len(dirty_aid_list))
     ibs.set_annot_viewpoints(dirty_aid_list, [None] * len(dirty_aid_list))

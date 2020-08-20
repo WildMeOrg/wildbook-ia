@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import vtool as vt
 import numpy as np
@@ -10,6 +11,7 @@ from wbia.algo.graph import nx_utils as nxu
 from wbia.core_annots import ChipConfig
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class PairFeatureConfig(dt.Config):
@@ -189,7 +191,7 @@ class PairwiseFeatureExtractor(object):
             >>> ut.show_if_requested()
         """
         if extr.verbose:
-            print('[extr] executing pairwise one-vs-one matching')
+            logger.info('[extr] executing pairwise one-vs-one matching')
         ibs = extr.ibs
         match_config = extr.match_config
         edges = ut.lmap(tuple, ut.aslist(edges))
@@ -318,7 +320,7 @@ class PairwiseFeatureExtractor(object):
             >>> print('match1.global_measures = {!r}'.format(match1.global_measures))
             >>> assert len(match1.global_measures) == 3, 'global measures'
         """
-        # print('extr.global_keys = {!r}'.format(extr.global_keys))
+        # logger.info('extr.global_keys = {!r}'.format(extr.global_keys))
         if extr.global_keys is None:
             raise ValueError('specify global keys')
             # global_keys = ['view_int', 'qual', 'gps', 'time']
@@ -327,7 +329,7 @@ class PairwiseFeatureExtractor(object):
         if extr.need_lnbnn:
             extr._enrich_matches_lnbnn(matches, inplace=True)
         if extr.verbose:
-            print('[extr] enriching match attributes')
+            logger.info('[extr] enriching match attributes')
         # Ensure matches know about relavent metadata
         for match in matches:
             vt.matching.ensure_metadata_normxy(match.annot1)
@@ -390,7 +392,7 @@ class PairwiseFeatureExtractor(object):
         matches = extr._enriched_pairwise_matches(edges)
         # ---------------
         # Try different feature constructions
-        print('[extr] building pairwise features')
+        logger.info('[extr] building pairwise features')
         pairfeat_cfg = extr.pairfeat_cfg.copy()
         use_na = pairfeat_cfg.pop('use_na')
         pairfeat_cfg['summary_ops'] = set(pairfeat_cfg['summary_ops'])
@@ -453,12 +455,12 @@ class PairwiseFeatureExtractor(object):
         if extr.feat_dims is not None:
             missing = set(extr.feat_dims).difference(feats.columns)
             if any(missing):
-                # print('We have: ' + ut.repr4(feats.columns))
+                # logger.info('We have: ' + ut.repr4(feats.columns))
                 alt = feats.columns.difference(extr.feat_dims)
                 mis_msg = 'Missing feature dims: ' + ut.repr4(missing)
                 alt_msg = 'Did you mean? ' + ut.repr4(alt)
-                print(mis_msg)
-                print(alt_msg)
+                logger.info(mis_msg)
+                logger.info(alt_msg)
                 raise KeyError(mis_msg)
             feats = feats[extr.feat_dims]
         return feats
@@ -486,7 +488,9 @@ class PairwiseFeatureExtractor(object):
         """
         edges = list(edges)
         if extr.verbose:
-            print('[pairfeat] Requesting {} cached pairwise features'.format(len(edges)))
+            logger.info(
+                '[pairfeat] Requesting {} cached pairwise features'.format(len(edges))
+            )
 
         # TODO: use object properties
         if len(edges) == 0:
@@ -508,7 +512,7 @@ class PairwiseFeatureExtractor(object):
 
             # if cacher.exists() and extr.verbose > 3:
             #     fpath = cacher.get_fpath()
-            #     print('Load match cache size: {}'.format(
+            #     logger.info('Load match cache size: {}'.format(
             #         ut.get_file_nBytes_str(fpath)))
 
             data = cacher.tryload()
@@ -518,7 +522,7 @@ class PairwiseFeatureExtractor(object):
 
                 # if cacher.enabled and extr.verbose > 3:
                 #     fpath = cacher.get_fpath()
-                #     print('Save match cache size: {}'.format(
+                #     logger.info('Save match cache size: {}'.format(
                 #         ut.get_file_nBytes_str(fpath)))
 
             matches, feats = data

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from vtool._pyflann_backend import pyflann as pyflann
 import utool as ut
 import uuid
@@ -7,6 +8,7 @@ from os.path import exists, join
 import lockfile
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class Win32CompatTempFile(object):

@@ -9,6 +9,7 @@ TODO: need to split up into sub modules:
     then there are also convineience functions that need to be ordered at least
     within this file
 """
+import logging
 from six.moves import zip, range
 from os.path import exists, expanduser, join, abspath
 import numpy as np
@@ -30,6 +31,7 @@ from wbia.other.detectcore import (
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectgrave]')
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -69,7 +71,7 @@ def bootstrap_pca_train(
             total += len(feature_list)
             index_list += [(gid, offset,) for offset in range(len(feature_list))]
             features_list.append(feature_list)
-        print('\nUsed %d images to mine %d features' % (len(features_list), total,))
+        logger.info('\nUsed %d images to mine %d features' % (len(features_list), total,))
         data_list = np.vstack(features_list)
         if len(data_list) > limit:
             data_list = data_list[:limit]
@@ -85,21 +87,21 @@ def bootstrap_pca_train(
     # Get data
     depc = ibs.depc_image
     total, data_list, index_list = _get_data(depc, gid_list, pca_limit, True)
-    print(data_list.shape)
+    logger.info(data_list.shape)
 
     # Normalize data
-    print('Fit Scaler')
+    logger.info('Fit Scaler')
     scaler = StandardScaler()
     scaler.fit(data_list)
     data_list = scaler.transform(data_list)
 
     # Fit PCA
-    print('Fit PCA')
+    logger.info('Fit PCA')
     pca_model = IncrementalPCA(n_components=dims)
     pca_model.fit(data_list)
 
     pca_quality = pca_model.explained_variance_ratio_.sum() * 100.0
-    print('PCA Variance Quality: %0.04f %%' % (pca_quality,))
+    logger.info('PCA Variance Quality: %0.04f %%' % (pca_quality,))
 
     # Fit ANN for PCA's vectors
     index = 0
@@ -111,7 +113,7 @@ def bootstrap_pca_train(
         stop_index = (ann_round + 1) * ann_batch
         assert start_index < len(gid_list)
         stop_index = min(stop_index, len(gid_list))
-        print('Slicing index range: [%r, %r)' % (start_index, stop_index,))
+        logger.info('Slicing index range: [%r, %r)' % (start_index, stop_index,))
 
         # Slice gids and get feature data
         gid_list_ = gid_list[start_index:stop_index]
@@ -135,7 +137,7 @@ def bootstrap_pca_train(
 
     # Build forest
     trees = index // 100000
-    print('Build ANN model using %d feature vectors and %d trees' % (index, trees,))
+    logger.info('Build ANN model using %d feature vectors and %d trees' % (index, trees,))
     ann_model.build(trees)
 
     # Save forest
@@ -144,7 +146,7 @@ def bootstrap_pca_train(
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(output_path, scaler_filename)
-    print('Saving scaler model to: %r' % (scaler_filepath,))
+    logger.info('Saving scaler model to: %r' % (scaler_filepath,))
     model_tup = (
         pca_model,
         scaler,
@@ -154,7 +156,7 @@ def bootstrap_pca_train(
 
     forest_filename = 'forest.ann'
     forest_filepath = join(output_path, forest_filename)
-    print('Saving ANN model to: %r' % (forest_filepath,))
+    logger.info('Saving ANN model to: %r' % (forest_filepath,))
     ann_model.save(forest_filepath)
 
     # ibs.bootstrap_pca_test(model_path=output_path)
@@ -192,13 +194,13 @@ def bootstrap_pca_test(
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(model_path, scaler_filename)
-    print('Loading scaler model from: %r' % (scaler_filepath,))
+    logger.info('Loading scaler model from: %r' % (scaler_filepath,))
     model_tup = ut.load_cPkl(scaler_filepath)
     pca_model, scaler, manifest_dict = model_tup
 
     forest_filename = 'forest.ann'
     forest_filepath = join(model_path, forest_filename)
-    print('Loading ANN model from: %r' % (forest_filepath,))
+    logger.info('Loading ANN model from: %r' % (forest_filepath,))
     ann_model = AnnoyIndex(dims)
     ann_model.load(forest_filepath)
 
@@ -211,10 +213,10 @@ def bootstrap_pca_test(
         'classifier_weight_filepath': '/home/jason/code/wbia/models-bootstrap/classifier.svm.image.zebra.pkl',
     }
 
-    print('\tGather Ground-Truth')
+    logger.info('\tGather Ground-Truth')
     gt_dict = general_parse_gt(ibs, test_gid_list=gid_list, **config)
 
-    print('\tGather Predictions')
+    logger.info('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=gid_list, **config)
 
     for image_uuid in gt_dict:
@@ -233,8 +235,8 @@ def bootstrap_pca_test(
         worst_idx_list = index_list[:example_limit]
         best_idx_list = index_list[-1 * example_limit :]
 
-        print('Worst ovelap: %r' % (overlap[:, worst_idx_list],))
-        print('Best ovelap:  %r' % (overlap[:, best_idx_list],))
+        logger.info('Worst ovelap: %r' % (overlap[:, worst_idx_list],))
+        logger.info('Best ovelap:  %r' % (overlap[:, best_idx_list],))
 
         for idx_list in [best_idx_list, worst_idx_list]:
             example_list = ut.take(pred_list, idx_list)
@@ -395,7 +397,7 @@ def bootstrap(
         # output_path_ = 'models-bootstrap-%s-%s-%s-%s' % args
         output_path_ = 'models-bootstrap'
         output_path = abspath(expanduser(join('~', 'code', 'wbia', output_path_)))
-    print('Using output_path = %r' % (output_path,))
+    logger.info('Using output_path = %r' % (output_path,))
     if recompute:
         ut.delete(output_path)
     ut.ensuredir(output_path)
@@ -477,8 +479,8 @@ def bootstrap(
 
     reviewed_gid_dict = {}
     for current_round in range(rounds):
-        print('------------------------------------------------------')
-        print('Current Round %r' % (current_round,))
+        logger.info('------------------------------------------------------')
+        logger.info('Current Round %r' % (current_round,))
 
         ##################################################################################
         # Step 4: gather the (unreviewed) images to review for this round
@@ -494,7 +496,7 @@ def bootstrap(
             len(round_gid_list),
             round_gid_list,
         )
-        print('Found %d unreviewed gids: %r' % args)
+        logger.info('Found %d unreviewed gids: %r' % args)
 
         ##################################################################################
         # Step 5: add any images reviewed from a previous round
@@ -504,7 +506,7 @@ def bootstrap(
             len(reviewed_gid_list),
             reviewed_gid_list,
         )
-        print('Adding %d previously reviewed gids: %r' % args)
+        logger.info('Adding %d previously reviewed gids: %r' % args)
 
         # All gids that have been reviewed
         round_gid_list = reviewed_gid_list + round_gid_list
@@ -526,19 +528,19 @@ def bootstrap(
         ##################################################################################
         # Step 6: gather gt (simulate user interaction)
 
-        print('\tGather Ground-Truth')
+        logger.info('\tGather Ground-Truth')
         gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
 
         ##################################################################################
         # Step 7: gather predictions from all algorithms combined
 
         if not is_svm_model_trained:
-            print('\tDelete Old Classifications')
+            logger.info('\tDelete Old Classifications')
             depc.delete_property(
                 'localizations_classifier', round_gid_list, config=config
             )
 
-        print('\tGather Predictions')
+        logger.info('\tGather Predictions')
         pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
 
         ##################################################################################
@@ -578,7 +580,7 @@ def bootstrap(
                 np.std(pos_conf_list),
                 np.max(pos_conf_list),
             )
-            print(
+            logger.info(
                 'Positive Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max'
                 % args
             )
@@ -589,7 +591,7 @@ def bootstrap(
                 np.std(neg_conf_list),
                 np.max(neg_conf_list),
             )
-            print(
+            logger.info(
                 'Negative Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max'
                 % args
             )
@@ -609,7 +611,7 @@ def bootstrap(
                 data_list = np.array(data_list)
                 label_list = np.array(label_list)
 
-                print('Train Ensemble SVM (%d)' % (current_ensemble,))
+                logger.info('Train Ensemble SVM (%d)' % (current_ensemble,))
                 # Train scaler
                 scaler = preprocessing.StandardScaler().fit(data_list)
                 data_list = scaler.transform(data_list)
@@ -688,7 +690,7 @@ def bootstrap2(
     if output_path is None:
         output_path_ = 'models-bootstrap'
         output_path = abspath(expanduser(join('~', 'code', 'wbia', output_path_)))
-    print('Using output_path = %r' % (output_path,))
+    logger.info('Using output_path = %r' % (output_path,))
 
     if recompute:
         ut.delete(output_path)
@@ -705,11 +707,11 @@ def bootstrap2(
     if not is_ann_model_trained:
         ibs.bootstrap_pca_train(dims=dims, pca_limit=pca_limit, output_path=output_path)
 
-    print('Loading scaler model from: %r' % (scaler_filepath,))
+    logger.info('Loading scaler model from: %r' % (scaler_filepath,))
     model_tup = ut.load_cPkl(scaler_filepath)
     pca_model, scaler, manifest_dict = model_tup
 
-    print('Loading ANN model from: %r' % (forest_filepath,))
+    logger.info('Loading ANN model from: %r' % (forest_filepath,))
     ann_model = AnnoyIndex(dims)
     ann_model.load(forest_filepath)
 
@@ -787,8 +789,8 @@ def bootstrap2(
     sorted_gid_list_ = sorted_gid_list[:]
     reviewed_gid_list = []
     for current_round in range(rounds):
-        print('------------------------------------------------------')
-        print('Current Round %r' % (current_round,))
+        logger.info('------------------------------------------------------')
+        logger.info('Current Round %r' % (current_round,))
 
         ##################################################################################
         # Step 4: gather the (unreviewed) images to review for this round
@@ -804,7 +806,7 @@ def bootstrap2(
             len(round_gid_list),
             round_gid_list,
         )
-        print('Found %d unreviewed gids: %r' % args)
+        logger.info('Found %d unreviewed gids: %r' % args)
 
         ##################################################################################
         # Step 5: add any images reviewed from a previous round
@@ -813,7 +815,7 @@ def bootstrap2(
             len(reviewed_gid_list),
             reviewed_gid_list,
         )
-        print('Adding %d previously reviewed gids: %r' % args)
+        logger.info('Adding %d previously reviewed gids: %r' % args)
 
         # All gids that have been reviewed
         round_gid_list = reviewed_gid_list + round_gid_list
@@ -836,18 +838,18 @@ def bootstrap2(
             ##################################################################################
             # Step 6: gather gt (simulate user interaction)
 
-            print('\tGather Ground-Truth')
+            logger.info('\tGather Ground-Truth')
             gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
 
             ##################################################################################
             # Step 7: gather predictions from all algorithms combined
             if recompute_classifications:
-                print('\tDelete Old Classifications')
+                logger.info('\tDelete Old Classifications')
                 depc.delete_property(
                     'localizations_classifier', round_gid_list, config=config
                 )
 
-            print('\tGather Predictions')
+            logger.info('\tGather Predictions')
             pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
 
             category_dict = {}
@@ -859,7 +861,7 @@ def bootstrap2(
                     image_index + 1,
                     len(round_gid_list),
                 )
-                print('Processing neighbors for image %r, %r (%d / %d)' % args)
+                logger.info('Processing neighbors for image %r, %r (%d / %d)' % args)
 
                 # Get the gt and prediction list
                 gt_list = gt_dict[image_uuid]
@@ -896,7 +898,7 @@ def bootstrap2(
                         cat_tag,
                         len(cat_pred_list),
                     )
-                    print('\t Working on category %r with %d predictions' % args)
+                    logger.info('\t Working on category %r with %d predictions' % args)
 
                     # Add raw predictions
                     if image_gid not in category_dict[cat_tag]:
@@ -913,7 +915,7 @@ def bootstrap2(
                             feature = cat_pred.get('feature', None)
                             if feature is None:
                                 feature_func = cat_pred.get('feature_lazy', None)
-                                # print('Lazy loading neighbor feature with %r' % (feature_func, ))
+                                # logger.info('Lazy loading neighbor feature with %r' % (feature_func, ))
                                 assert feature_func is not None
                                 feature = feature_func()
                                 # cat_pred['feature'] = feature
@@ -945,7 +947,7 @@ def bootstrap2(
                             len(neighbor_gid_set_),
                             len(neighbor_manifest_list),
                         )
-                        print('\t\tGetting %d images for %d neighbors' % args)
+                        logger.info('\t\tGetting %d images for %d neighbors' % args)
                         neighbor_pred_dict = localizer_parse_pred(
                             ibs, test_gid_list=list(neighbor_gid_set_), **config
                         )
@@ -1001,7 +1003,7 @@ def bootstrap2(
                         if index in keep_indices_set
                     ]
                     cat_pred_list += pred_list_
-                print(
+                logger.info(
                     'NMS Proposals (start) for category %r: %d'
                     % (cat_tag, cat_pred_total,)
                 )
@@ -1017,14 +1019,16 @@ def bootstrap2(
                     np.std(conf_list),
                     np.max(conf_list),
                 )
-                print(
+                logger.info(
                     'Category %r Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max'
                     % args
                 )
                 # Overwrite GID dictionary with a list of predictions
                 category_dict[cat_tag] = cat_pred_list
                 cat_total = len(cat_pred_list)
-                print('NMS Proposals (end) for category %r: %d' % (cat_tag, cat_total,))
+                logger.info(
+                    'NMS Proposals (end) for category %r: %d' % (cat_tag, cat_total,)
+                )
 
             ##################################################################################
             # Step 8: train SVM ensemble using fresh mined data for each ensemble
@@ -1040,15 +1044,15 @@ def bootstrap2(
 
                 num_pos = len(mined_pos_list)
                 num_target = int(num_pos / theta)
-                print('Mining %d target negatives' % (num_target,))
+                logger.info('Mining %d target negatives' % (num_target,))
 
                 if len(mined_hard_list) > num_target:
-                    print('Sampling Hard')
+                    logger.info('Sampling Hard')
                     np.random.shuffle(mined_hard_list)
                     mined_hard_list = mined_hard_list[:num_target]
 
                 if len(mined_neg_list) > num_target:
-                    print('Sampling Negatives')
+                    logger.info('Sampling Negatives')
                     np.random.shuffle(mined_neg_list)
                     mined_neg_list = mined_neg_list[:num_target]
 
@@ -1063,7 +1067,7 @@ def bootstrap2(
                     num_neg,
                     num_pos / num_total,
                 )
-                print(
+                logger.info(
                     'Training with %d positives and %d (%d + %d) negatives (%0.02f split)'
                     % args
                 )
@@ -1085,7 +1089,7 @@ def bootstrap2(
                         feature = data.get('feature', None)
                         if feature is None:
                             feature_func = data.get('feature_lazy', None)
-                            # print('Lazy loading ensemble feature with %r' % (feature_func, ))
+                            # logger.info('Lazy loading ensemble feature with %r' % (feature_func, ))
                             assert feature_func is not None
                             feature = feature_func()
                             # data['feature'] = feature
@@ -1105,7 +1109,7 @@ def bootstrap2(
                 # data_list = np.array(data_list)
                 label_list = np.array(label_list)
 
-                print('Train Ensemble SVM (%d)' % (current_ensemble,))
+                logger.info('Train Ensemble SVM (%d)' % (current_ensemble,))
                 # Train scaler
                 scaler = preprocessing.StandardScaler().fit(data_list)
                 data_list = scaler.transform(data_list)
@@ -1132,7 +1136,7 @@ def bootstrap2(
             ]
             vals_list = sorted(vals_list, reverse=True)
             vals_list = vals_list[:alpha]
-            print('Reference Histogram: %r' % (vals_list,))
+            logger.info('Reference Histogram: %r' % (vals_list,))
             top_referenced_neighbor_gid_list = [_[1] for _ in vals_list]
             round_neighbor_gid_set = set(top_referenced_neighbor_gid_list)
 
@@ -1157,9 +1161,9 @@ def bootstrap2(
                 len(higher_sorted_gid_list),
                 len(lower_sorted_gid_list),
             )
-            print('Round Sorted Image Re-index: %d Above + %d Below' % args)
+            logger.info('Round Sorted Image Re-index: %d Above + %d Below' % args)
         else:
-            print('NO IMAGE RE-INDEXING: NOT ENOUGH NEIGHBOR IMAGES SEEN')
+            logger.info('NO IMAGE RE-INDEXING: NOT ENOUGH NEIGHBOR IMAGES SEEN')
 
         ##################################################################################
         # Step 9: update the bootstrapping algorithm to use the new ensemble during
@@ -1231,7 +1235,7 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
             break
 
         candidate = random.choice(candidate_list)
-        # print('Purging %d' % (candidate, ))
+        # logger.info('Purging %d' % (candidate, ))
 
         aid_list_ = ibs.get_image_aids(candidate)
         species_list_ = ibs.get_annot_species_texts(aid_list_)
@@ -1261,10 +1265,10 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
         if species in recover_dict:
             while len(gid_list) < target and len(recover_dict[species]) > 0:
                 recover = recover_dict[species].pop(0)
-                # print('Recovering %d' % (recover, ))
+                # logger.info('Recovering %d' % (recover, ))
                 gid_list.append(recover)
 
-        print('%r: %d' % (species, len(gid_list),))
+        logger.info('%r: %d' % (species, len(gid_list),))
 
     redo = input('Redo? [enter to continue] ')
     redo = redo.strip()
@@ -1288,7 +1292,7 @@ def get_classifier2_rf_data_labels(ibs, dataset_tag, category_list):
     data_list = depc.get_property('features', train_gid_set, 'vector', config=config)
     data_list = np.array(data_list)
 
-    print('Loading labels for images')
+    logger.info('Loading labels for images')
     # Load targets
     aids_list = ibs.get_image_aids(train_gid_set)
     species_set_list = [
@@ -1313,7 +1317,7 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
     data_list = depc.get_property('features', train_gid_set, 'vector', config=config)
     data_list = np.array(data_list)
 
-    print('Loading labels for images')
+    logger.info('Loading labels for images')
     # Load targets
     aids_list = ibs.get_image_aids(train_gid_set)
     category_set = set(species_list)
@@ -1336,7 +1340,7 @@ def classifier_train_image_svm(
     from sklearn import svm, preprocessing
 
     # Load data
-    print('Loading pre-trained features for images')
+    logger.info('Loading pre-trained features for images')
 
     # Save model pickle
     if output_path is None:
@@ -1357,11 +1361,11 @@ def classifier_train_image_svm(
         vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
         train_gid_set, data_list, label_list = vals
 
-        print('Train SVM scaler using features')
+        logger.info('Train SVM scaler using features')
         # Train new scaler and model using data and labels
         scaler = preprocessing.StandardScaler().fit(data_list)
         data_list = scaler.transform(data_list)
-        print('Train SVM model using features and target labels')
+        logger.info('Train SVM model using features and target labels')
         model = svm.SVC(C=C, kernel=kernel, probability=True)
         model.fit(data_list, label_list)
 
@@ -1400,11 +1404,11 @@ def classifier_train_image_svm(
         correct = tp + tn
         total = tp + tn + fp + fn
         accuracy = correct / total
-        print('Accuracy: %0.02f' % (accuracy,))
-        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos,))
-        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg,))
-        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg,))
-        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos,))
+        logger.info('Accuracy: %0.02f' % (accuracy,))
+        logger.info('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos,))
+        logger.info('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg,))
+        logger.info('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg,))
+        logger.info('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos,))
 
     return output_filepath
 
@@ -1458,7 +1462,7 @@ def classifier2_train_image_rf(
     from sklearn import ensemble, preprocessing
 
     # Load data
-    print('Loading pre-trained features for images')
+    logger.info('Loading pre-trained features for images')
 
     # Save model pickle
     if output_path is None:
@@ -1477,11 +1481,11 @@ def classifier2_train_image_rf(
         vals = get_classifier2_rf_data_labels(ibs, 'TRAIN_SET', species_list)
         train_gid_set, data_list, label_list = vals
 
-        print('Train data scaler using features')
+        logger.info('Train data scaler using features')
         # Train new scaler and model using data and labels
         scaler = preprocessing.StandardScaler().fit(data_list)
         data_list = scaler.transform(data_list)
-        print('Train RF model using features and target labels')
+        logger.info('Train RF model using features and target labels')
         model = ensemble.RandomForestClassifier(
             n_estimators=n_estimators, max_features=None
         )
@@ -1522,11 +1526,11 @@ def classifier2_train_image_rf(
         correct = tp + tn
         total = tp + tn + fp + fn
         accuracy = correct / total
-        print('Accuracy: %0.02f' % (accuracy,))
-        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos,))
-        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg,))
-        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg,))
-        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos,))
+        logger.info('Accuracy: %0.02f' % (accuracy,))
+        logger.info('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos,))
+        logger.info('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg,))
+        logger.info('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg,))
+        logger.info('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos,))
 
     return output_filepath
 

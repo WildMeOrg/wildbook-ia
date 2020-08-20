@@ -334,6 +334,7 @@ def testdata_expts(*args, **kwargs):
 # }
 # )
 
+import logging
 from wbia.init import main_helpers
 
 testdata_cm = main_helpers.testdata_cm
@@ -347,6 +348,7 @@ testdata_aids = main_helpers.testdata_aids
 
 # Utool generated init makeinit.py
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def reload_subs(verbose=True):

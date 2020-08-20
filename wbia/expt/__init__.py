@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 ### __init__.py ###
 # flake8: noqa
+import logging
 from wbia.expt import experiment_configs
 from wbia.expt import experiment_drawing
 from wbia.expt import test_result
@@ -10,6 +11,7 @@ from wbia.expt import experiment_printres
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__, '[wbia.expt]')
+logger = logging.getLogger('wbia')
 
 
 def reassign_submodule_attributes(verbose=True):
@@ -19,7 +21,7 @@ def reassign_submodule_attributes(verbose=True):
     import sys
 
     if verbose and '--quiet' not in sys.argv:
-        print('dev reimport')
+        logger.info('dev reimport')
     # Self import
     import wbia.expt
 
@@ -62,7 +64,7 @@ def reload_subs(verbose=True):
         # hackish way of propogating up the new reloaded submodule attributes
         reassign_submodule_attributes(verbose=verbose)
     except Exception as ex:
-        print(ex)
+        logger.info(ex)
 
 
 rrrr = reload_subs

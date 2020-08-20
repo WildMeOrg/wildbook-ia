@@ -29,10 +29,12 @@ Issues:
 * errors when there is a word without any database vectors.
 currently a weight of zero is hacked in
 """
+import logging
 import numpy as np
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # INTEGER_TYPE = np.int32

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # DEPRICATE?
+import logging
 from wbia.guitool.__PYQT__ import QtCore, QtGui
 from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.__PYQT__.QtCore import Qt
@@ -9,6 +10,7 @@ from six.moves import range, map
 import utool
 
 (print, rrr, profile) = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class ColumnListTableView(QtWidgets.QTableView):

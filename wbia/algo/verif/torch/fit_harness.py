@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import torch
 from collections import defaultdict
 from os.path import join
@@ -10,6 +11,7 @@ import utool as ut
 # from wbia.algo.verif.torch import gpu_util
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class FitHarness(object):
@@ -59,11 +61,11 @@ class FitHarness(object):
         harn.epoch = 0
 
     def log(harn, msg):
-        print(msg)
+        logger.info(msg)
 
     def log_value(harn, key, value, n_iter):
         if False:
-            print('{}={} @ {}'.format(key, value, n_iter))
+            logger.info('{}={} @ {}'.format(key, value, n_iter))
         if tensorboard_logger:
             tensorboard_logger.log_value(key, value, n_iter)
 
@@ -131,7 +133,7 @@ class FitHarness(object):
         for batch_idx, input_batch in enumerate(harn.train_loader):
             input_batch = harn._to_xpu(*input_batch)
 
-            # print('Begin batch {}'.format(batch_idx))
+            # logger.info('Begin batch {}'.format(batch_idx))
             t_cur_metrics = harn.train_batch(input_batch)
 
             for k, v in t_cur_metrics.items():
@@ -172,7 +174,7 @@ class FitHarness(object):
         for vali_idx, input_batch in enumerate(harn.vali_loader):
             input_batch = harn._to_xpu(*input_batch)
 
-            # print('Begin batch {}'.format(vali_idx))
+            # logger.info('Begin batch {}'.format(vali_idx))
             v_cur_metrics = harn.validation_batch(input_batch)
 
             for k, v in v_cur_metrics.items():

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six
 from six.moves import zip, map
 import numpy as np
@@ -7,6 +8,7 @@ import utool as ut
 from wbia.control import controller_inject
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # Create dectorator to inject functions in this module into the IBEISController
@@ -714,7 +716,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     """
     hacky setter for dynamic properties of annotmatches using notes table
     """
-    print(
+    logger.info(
         '[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids))
     )
     # if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:

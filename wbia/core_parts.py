@@ -3,12 +3,14 @@
 """
 Extracts parts chips from image and applies optional image normalizations.
 """
+import logging
 import utool as ut
 import numpy as np
 from wbia.control.controller_inject import register_preprocs, register_subprops
 from wbia import core_annots
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 derived_attribute = register_preprocs['part']
@@ -65,8 +67,8 @@ def compute_part_chip(depc, part_rowid_list, config=None):
         >>>     assert chip.shape == (h, w, 3)
         >>> ibs.delete_parts(part_rowid_list)
     """
-    print('Preprocess Part Chips')
-    print('config = %r' % (config,))
+    logger.info('Preprocess Part Chips')
+    logger.info('config = %r' % (config,))
 
     ibs = depc.controller
 
@@ -80,4 +82,4 @@ def compute_part_chip(depc, part_rowid_list, config=None):
     )
     for result in result_list:
         yield result
-    print('Done Preprocessing Part Chips')
+    logger.info('Done Preprocessing Part Chips')

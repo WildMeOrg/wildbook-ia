@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python  # NOQA
 """Converts a GGR-style raw data to IBEIS database."""
+import logging
 from wbia.detecttools.directory import Directory
 from os.path import join, exists
 import utool as ut
 import wbia
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def _fix_ggr2018_directory_structure(ggr_path):
@@ -350,7 +352,7 @@ def convert_ggr2018_to_wbia(
             assert filepath in blacklist_filepath_set
             ut.delete(filepath)
         except AssertionError:
-            print('Unresolved root file found in %r' % (filepath,))
+            logger.info('Unresolved root file found in %r' % (filepath,))
             continue
 
     ################################################################################
@@ -368,19 +370,19 @@ def convert_ggr2018_to_wbia(
     direct1_list.sort(key=lambda x: int(x.base()), reverse=False)
     for direct1 in direct1_list:
         if not dry_run:
-            print('Processing directory: %r' % (direct1,))
+            logger.info('Processing directory: %r' % (direct1,))
         base1 = direct1.base()
 
         try:
             int(base1)
         except ValueError:
-            print('Error found in %r' % (direct1,))
+            logger.info('Error found in %r' % (direct1,))
             continue
 
         try:
             assert len(direct1.files(recursive=False)) == 0
         except AssertionError:
-            print('Files found in %r' % (direct1,))
+            logger.info('Files found in %r' % (direct1,))
             continue
 
         seen_letter_list = []
@@ -393,7 +395,9 @@ def convert_ggr2018_to_wbia(
             try:
                 assert base2.startswith(base1)
             except AssertionError:
-                print('Folder name heredity conflict %r with %r' % (direct2, direct1,))
+                logger.info(
+                    'Folder name heredity conflict %r with %r' % (direct2, direct1,)
+                )
                 continue
 
             try:
@@ -407,10 +411,10 @@ def convert_ggr2018_to_wbia(
                 assert letter in ALLOWED_LETTERS
                 seen_letter_list.append(letter)
             except ValueError:
-                print('Error found in %r' % (direct2,))
+                logger.info('Error found in %r' % (direct2,))
                 continue
             except AssertionError:
-                print('Folder name format error found in %r' % (direct2,))
+                logger.info('Folder name format error found in %r' % (direct2,))
                 continue
 
             direct2_ = Directory(
@@ -419,7 +423,7 @@ def convert_ggr2018_to_wbia(
             try:
                 assert len(direct2_.directories()) == 0
             except AssertionError:
-                print('Folders exist in file only level %r' % (direct2,))
+                logger.info('Folders exist in file only level %r' % (direct2,))
                 continue
 
             filepath_list = sorted(direct2_.files())
@@ -444,7 +448,7 @@ def convert_ggr2018_to_wbia(
         try:
             assert len(seen_letter_set) == len(seen_letter_list)
         except AssertionError:
-            print(
+            logger.info(
                 'Duplicate letters in %r with letters %r' % (direct1, seen_letter_list,)
             )
             continue
@@ -452,7 +456,7 @@ def convert_ggr2018_to_wbia(
         try:
             assert 'A' in seen_letter_set
         except AssertionError:
-            print('WARNING: A camera not found in %r' % (direct1,))
+            logger.info('WARNING: A camera not found in %r' % (direct1,))
             continue
 
     return ibs

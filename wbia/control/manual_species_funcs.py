@@ -5,6 +5,7 @@ sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --
 
 # TODO: Fix this name it is too special case
 """
+import logging
 import uuid
 import functools
 import six  # NOQA
@@ -19,6 +20,7 @@ import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -306,7 +308,7 @@ def delete_species(ibs, species_rowid_list):
         URL:    /api/species/
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d speciess' % len(species_rowid_list))
+        logger.info('[ibs] deleting %d speciess' % len(species_rowid_list))
     ibs.db.delete_rowids(const.SPECIES_TABLE, species_rowid_list)
     # ibs.delete_lblannots(species_rowid_list)
 
@@ -323,7 +325,7 @@ def delete_empty_species(ibs):
     unused_species_text_set = species_text_set - used_species_text_set
     unused_species_text_list = list(unused_species_text_set)
     unused_species_rowid_list = ibs.get_species_rowids_from_text(unused_species_text_list)
-    print('Deleting unused species: %r' % (unused_species_text_list,))
+    logger.info('Deleting unused species: %r' % (unused_species_text_list,))
     ibs.delete_species(unused_species_rowid_list)
 
 

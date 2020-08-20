@@ -2,6 +2,7 @@
 """
 Dependencies: flask, tornado
 """
+import logging
 from flask import request, make_response, current_app
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
@@ -9,6 +10,7 @@ import utool as ut
 import vtool as vt
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
@@ -17,7 +19,9 @@ register_route = controller_inject.get_wbia_flask_route(__name__)
 def set_cookie(**kwargs):
     response = make_response('true')
     response.set_cookie(request.args['name'], request.args['value'])
-    print('[web] Set Cookie: %r -> %r' % (request.args['name'], request.args['value'],))
+    logger.info(
+        '[web] Set Cookie: %r -> %r' % (request.args['name'], request.args['value'],)
+    )
     return response
 
 

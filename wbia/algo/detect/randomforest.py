@@ -2,6 +2,7 @@
 """
 Interface to pyrf random forest object detection.
 """
+import logging
 from os.path import exists, join
 from wbia.algo.detect import grabmodels
 import utool as ut
@@ -11,12 +12,15 @@ import cv2
 import random
 
 (print, rrr, profile) = ut.inject2(__name__, '[randomforest]')
+logger = logging.getLogger('wbia')
 
 if not ut.get_argflag('--no-pyrf'):
     try:
         import pyrf
     except ImportError:
-        print('WARNING Failed to import pyrf. ' 'Randomforest detection is unavailable')
+        logger.info(
+            'WARNING Failed to import pyrf. ' 'Randomforest detection is unavailable'
+        )
         if ut.SUPER_STRICT:
             raise
 
@@ -40,7 +44,7 @@ def train_gid_list(
     Returns:
         None
     """
-    print(
+    logger.info(
         '[randomforest.train()] training with %d gids and species=%r'
         % (len(gid_list), species,)
     )
@@ -81,7 +85,7 @@ def train_gid_list(
             ut.remove_dirs(negatives_cache)
         ut.ensuredir(negatives_cache)
         # Get negative chip paths
-        print(
+        logger.info(
             '[randomforest.train()] Mining %d negative patches'
             % (len(train_pos_cpath_list),)
         )
@@ -104,7 +108,7 @@ def train_gid_list(
             ymax = ymin + square
             if _valid_candidate((xmin, xmax, ymin, ymax), annot_bbox_list):
                 if VERBOSE_RF:
-                    print(
+                    logger.info(
                         '[%d / %d] MINING NEGATIVE PATCH (%04d, %04d, %04d, %04d) FROM GID %d'
                         % (
                             len(train_neg_cpath_list),
@@ -292,7 +296,7 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
 
     verbose = kwargs.get('verbose', ut.VERBOSE)
     if verbose:
-        print(
+        logger.info(
             '[randomforest.detect()] Detecting with %d trees with scale_list=%r'
             % (len(tree_path_list), kwargs['scale_list'],)
         )

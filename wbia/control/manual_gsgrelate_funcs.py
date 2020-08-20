@@ -6,12 +6,14 @@ CommandLine:
     # the write flag makes a file, but dont use that
     python -m wbia.templates.template_generator --key imageset_image_relationship --onlyfn
 """
+import logging
 from wbia import constants as const
 from wbia.control import accessor_decors
 from wbia.control.controller_inject import make_ibs_register_decorator
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -154,7 +156,7 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
     """
     # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
     if ut.VERBOSE:
-        print("[ibs] deleting %r image's imageset ids" % len(gid_list))
+        logger.info("[ibs] deleting %r image's imageset ids" % len(gid_list))
     gsgrid_list = ut.flatten(
         ibs.get_imageset_gsgrids(imgsetid_list=imgsetid_list, gid_list=gid_list)
     )

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 from wbia.algo.graph import demo
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # FIXME failing-test (22-Jul-2020) This test is failing and it's not clear how to fix it
@@ -34,7 +36,7 @@ def _test_incomp_inference():
     infr.add_feedback((12, 21), NEGTV)
     # -----
     # Incomparable within CCs
-    print('==========================')
+    logger.info('==========================')
     infr.add_feedback((1, 3), INCMP)
     infr.add_feedback((1, 4), INCMP)
     infr.add_feedback((1, 2), INCMP)
@@ -46,8 +48,8 @@ def _test_incomp_inference():
     infr.add_feedback((12, 21), INCMP)
     infr.add_feedback((23, 21), INCMP)
     infr.add_feedback((12, 14), INCMP)
-    print('Final state:')
-    print(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))
+    logger.info('Final state:')
+    logger.info(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))
 
 
 # FIXME failing-test (22-Jul-2020) This test is failing and it's not clear how to fix it
@@ -77,7 +79,7 @@ def _test_unrev_inference():
     infr.add_feedback((12, 21), NEGTV)
     # -----
     # Incomparable within CCs
-    print('==========================')
+    logger.info('==========================')
     infr.add_feedback((1, 3), UNREV)
     infr.add_feedback((1, 4), UNREV)
     infr.add_feedback((1, 2), UNREV)
@@ -89,8 +91,8 @@ def _test_unrev_inference():
     infr.add_feedback((12, 21), UNREV)
     infr.add_feedback((23, 21), UNREV)
     infr.add_feedback((12, 14), UNREV)
-    print('Final state:')
-    print(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))
+    logger.info('Final state:')
+    logger.info(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))
 
 
 # FIXME failing-test (22-Jul-2020) This test is failing and it's not clear how to fix it
@@ -134,5 +136,5 @@ def _test_pos_neg():
     infr.add_feedback((13, 11), POSTV)
     infr.add_feedback((23, 21), POSTV)
     infr.add_feedback((1, 11), NEGTV)
-    print('Final state:')
-    print(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))
+    logger.info('Final state:')
+    logger.info(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))

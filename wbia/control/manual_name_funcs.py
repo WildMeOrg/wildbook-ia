@@ -7,6 +7,7 @@ sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modf
 """
 
 # TODO: Fix this name it is too special case
+import logging
 import uuid
 import functools
 import six  # NOQA
@@ -22,6 +23,7 @@ from wbia.control.controller_inject import make_ibs_register_decorator
 import os
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -187,7 +189,7 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
 
     """
     if verbose:
-        print('[ibs] deleting %d names' % len(name_rowid_list))
+        logger.info('[ibs] deleting %d names' % len(name_rowid_list))
     if safe:
         aids_list = ibs.get_name_aids(name_rowid_list)
         aid_list = ut.flatten(aids_list)
@@ -197,7 +199,7 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
             ), 'should not be any annots belonging to a deleted name'
         else:
             if verbose:
-                print(
+                logger.info(
                     '[ibs] deleting %d annots that belonged to those names'
                     % len(aid_list)
                 )
@@ -246,9 +248,9 @@ def get_empty_nids(ibs, _nid_list=None):
         return []
     args = (len(_nid_list),)
     if recursive:
-        print('\tCHECKING %d NIDS FOR EMPTY (RECURSIVE)' % args)
+        logger.info('\tCHECKING %d NIDS FOR EMPTY (RECURSIVE)' % args)
     else:
-        print('CHECKING %d NIDS FOR EMPTY' % args)
+        logger.info('CHECKING %d NIDS FOR EMPTY' % args)
     nRois_list = ibs.get_name_num_annotations(_nid_list)
     # Filter names with rois
     isempty_list = (nRois <= 0 for nRois in nRois_list)
@@ -263,10 +265,12 @@ def get_empty_nids(ibs, _nid_list=None):
     alias_text_list = ibs.get_name_alias_texts(alias_nid_list)
     alias_nid_list = ibs.get_name_rowids_from_text(alias_text_list)
     # Find the empty aliases, recursively
-    print('%sFound %d empty NIDs' % (recstr, len(empty_nid_list),))
-    print('%sFound %d empty NIDs without an alias' % (recstr, len(no_alias_nid_list),))
+    logger.info('%sFound %d empty NIDs' % (recstr, len(empty_nid_list),))
+    logger.info(
+        '%sFound %d empty NIDs without an alias' % (recstr, len(no_alias_nid_list),)
+    )
     message = ' checking these recursively' if len(alias_nid_list) > 0 else ''
-    print(
+    logger.info(
         '%sFound %d empty NIDs with an alias...%s'
         % (recstr, len(alias_nid_list), message,)
     )
@@ -274,7 +278,7 @@ def get_empty_nids(ibs, _nid_list=None):
     # Compile the full list of nids without any associated annotations
     empty_nid_list = empty_nid_list + no_alias_nid_list + empty_alias_nid_list
     if not recursive:
-        print(
+        logger.info(
             '\tFound %d empty NIDs with an alias that is recursively empty'
             % (len(empty_alias_nid_list),)
         )
@@ -292,9 +296,9 @@ def delete_empty_nids(ibs):
     r"""
     Removes names that have no Rois from the database
     """
-    print('[ibs] deleting empty nids')
+    logger.info('[ibs] deleting empty nids')
     invalid_nids = ibs.get_empty_nids()
-    print('[ibs] ... %d empty nids' % (len(invalid_nids),))
+    logger.info('[ibs] ... %d empty nids' % (len(invalid_nids),))
     ibs.delete_names(invalid_nids)
 
 
@@ -364,9 +368,9 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
 
         for aids1, aids5 in zip(aids_list1, aids_list5):
             if (aids1) != (aids5):
-                print(aids1)
-                print(aids5)
-                print('-----')
+                logger.info(aids1)
+                logger.info(aids5)
+                logger.info('-----')
 
         ut.assert_lists_eq(list(map(tuple, aids_list5)), list(map(tuple, aids_list1)))
 
@@ -484,7 +488,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
     if NEW_INDEX_HACK:
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
-        # print(len(nid_list_))
+        # logger.info(len(nid_list_))
         ibs.db.connection.execute(
             """
             CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
@@ -1228,9 +1232,9 @@ def set_name_texts(
     import wbia
 
     if verbose:
-        print('[ibs] setting %d name texts' % (len(name_rowid_list),))
+        logger.info('[ibs] setting %d name texts' % (len(name_rowid_list),))
     if notify_wildbook and wbia.ENABLE_WILDBOOK_SIGNAL:
-        print('[ibs] notifying WildBook of name text changes')
+        logger.info('[ibs] notifying WildBook of name text changes')
         status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
 
         wb_signaled = status_list is not None
@@ -1257,7 +1261,7 @@ def set_name_texts(
         json_log_path = ibs.get_logdir_local()
         json_log_filename = 'names.updates.json'
         json_log_filepath = os.path.join(json_log_path, json_log_filename)
-        print('Logging name changes to: %r' % (json_log_filepath,))
+        logger.info('Logging name changes to: %r' % (json_log_filepath,))
         # Log has never been made, create one
         if not os.path.exists(json_log_filepath):
             json_dict = {

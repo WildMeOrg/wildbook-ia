@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def reasign_names1(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
@@ -295,11 +297,11 @@ def simple_munkres(part_oldnames):
         import pandas as pd
 
         columns = unique_old_names + ['_%r' % x for x in range(num_pad)]
-        print('Profit Matrix')
-        print(pd.DataFrame(profit_matrix, columns=columns))
+        logger.info('Profit Matrix')
+        logger.info(pd.DataFrame(profit_matrix, columns=columns))
 
-        print('Cost Matrix')
-        print(pd.DataFrame(cost_matrix, columns=columns))
+        logger.info('Cost Matrix')
+        logger.info(pd.DataFrame(cost_matrix, columns=columns))
 
     assignment_ = [cx2_name.get(rx2_cx[rx], None) for rx in range(num_new_names)]
     return assignment_
@@ -423,9 +425,9 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbo
     assignment = [None for _ in range(n_new_names)]
 
     if verbose:
-        print('finding maximally consistent labeling')
-        print('n_old_names = %r' % (n_old_names,))
-        print('n_new_names = %r' % (n_new_names,))
+        logger.info('finding maximally consistent labeling')
+        logger.info('n_old_names = %r' % (n_old_names,))
+        logger.info('n_new_names = %r' % (n_new_names,))
 
     # For each old_name, determine now many new_names use it.
     oldname_sets = list(map(set, grouped_oldnames))
@@ -474,11 +476,11 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbo
     if verbose:
         n_trivial = len(trivial_oldnames)
         n_nontrivial = len(nontrivial_oldnames)
-        print('rectify %d trivial groups' % (n_trivial,))
-        print('  * n_trivial_unchanged = %r' % (n_trivial_unchanged,))
-        print('  * n_trivial_merges = %r' % (n_trivial_merges,))
-        print('  * n_trivial_ignored = %r' % (n_trivial_ignored,))
-        print('rectify %d non-trivial groups' % (n_nontrivial,))
+        logger.info('rectify %d trivial groups' % (n_trivial,))
+        logger.info('  * n_trivial_unchanged = %r' % (n_trivial_unchanged,))
+        logger.info('  * n_trivial_merges = %r' % (n_trivial_merges,))
+        logger.info('  * n_trivial_ignored = %r' % (n_trivial_ignored,))
+        logger.info('rectify %d non-trivial groups' % (n_nontrivial,))
 
     # Partition nontrivial_oldnames into smaller disjoint sets
     nontrivial_oldnames_sets = list(map(set, nontrivial_oldnames))
@@ -493,12 +495,12 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbo
                 g.add_edge(u, v)
     nontrivial_partition = list(nx.connected_components(g))
     if verbose:
-        print(
+        logger.info(
             '  * partitioned non-trivial into %d subgroups' % (len(nontrivial_partition))
         )
         part_size_stats = ut.get_stats(map(len, nontrivial_partition))
         stats_str = ut.repr2(part_size_stats, precision=2, strkeys=True)
-        print('  * partition size stats = %s' % (stats_str,))
+        logger.info('  * partition size stats = %s' % (stats_str,))
 
     # Rectify nontrivial cases
     for part_idxs in ut.ProgIter(
@@ -558,8 +560,8 @@ def find_consistent_labeling_old(
                 assignment[idx] = None
 
     if verbose:
-        print('rectify %d non-trivial groups' % (len(conflict_groups),))
-        print('rectify %d trivial groups' % (ntrivial,))
+        logger.info('rectify %d non-trivial groups' % (len(conflict_groups),))
+        logger.info('rectify %d trivial groups' % (ntrivial,))
 
     num_extra = 0
 

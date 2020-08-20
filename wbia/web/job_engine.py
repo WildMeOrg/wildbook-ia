@@ -54,6 +54,7 @@ Notes:
 # if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
+import logging
 import utool as ut
 import time
 import zmq
@@ -71,6 +72,7 @@ import threading
 import six
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -102,15 +104,15 @@ def update_proctitle(procname, dbname=None):
     try:
         import setproctitle
 
-        print('CHANGING PROCESS TITLE')
+        logger.info('CHANGING PROCESS TITLE')
         old_title = setproctitle.getproctitle()
-        print('old_title = %r' % (old_title,))
+        logger.info('old_title = %r' % (old_title,))
         hostname = ut.get_computer_name()
         new_title = 'WBIA_%s_%s_%s' % (dbname, hostname, procname,)
-        print('new_title = %r' % (new_title,))
+        logger.info('new_title = %r' % (new_title,))
         setproctitle.setproctitle(new_title)
     except ImportError:
-        print('pip install setproctitle')
+        logger.info('pip install setproctitle')
 
 
 def _get_engine_job_paths(ibs):
@@ -208,7 +210,7 @@ def initialize_job_manager(ibs):
 
     # Delete any leftover locks from before
     lock_filepath_list = _get_engine_lock_paths(ibs)
-    print('Deleting %d leftover engine locks' % (len(lock_filepath_list),))
+    logger.info('Deleting %d leftover engine locks' % (len(lock_filepath_list),))
     for lock_filepath in lock_filepath_list:
         ut.delete(lock_filepath)
 
@@ -219,7 +221,7 @@ def initialize_job_manager(ibs):
     # Wait until the collector becomes live
     while 0 and True:
         result = ibs.get_job_status(-1)
-        print('result = %r' % (result,))
+        logger.info('result = %r' % (result,))
         if result['status'] == 'ok':
             break
 
@@ -405,7 +407,7 @@ def job_engine_tester():
             defaultdb='cache', allow_newdir=False, db=None, dbdir=None
         )
         reciever.initialize_background_processes(dbdir)
-        print('[testzmq] parent process is looping forever')
+        logger.info('[testzmq] parent process is looping forever')
         while True:
             time.sleep(1)
     elif ut.get_argflag('--fg'):
@@ -418,12 +420,12 @@ def job_engine_tester():
         jobiface.initialize_client_thread()
 
     # Foreground test script
-    print('... waiting for jobs')
+    logger.info('... waiting for jobs')
     if ut.get_argflag('--cmd'):
         ut.embed()
         # jobiface.queue_job()
     else:
-        print('[test] ... emit test1')
+        logger.info('[test] ... emit test1')
         callback_url = None
         callback_method = None
         args = (1,)
@@ -440,7 +442,7 @@ def job_engine_tester():
             jobiface.wait_for_job_result(jobid)
 
         jobiface.wait_for_job_result(identify_jobid)
-    print('FINISHED TEST SCRIPT')
+    logger.info('FINISHED TEST SCRIPT')
 
 
 class JobBackend(object):
@@ -460,12 +462,12 @@ class JobBackend(object):
         # Find ports
         self.port_dict = None
         self._initialize_job_ports(**kwargs)
-        print('JobBackend ports:')
+        logger.info('JobBackend ports:')
         ut.print_dict(self.port_dict)
 
     def __del__(self):
         if VERBOSE_JOBS:
-            print('Cleaning up job backend')
+            logger.info('Cleaning up job backend')
         if self.engine_procs is not None:
             for i in self.engine_procs:
                 i.terminate()
@@ -476,7 +478,7 @@ class JobBackend(object):
         if self.collect_queue_proc is not None:
             self.collect_queue_proc.terminate()
         if VERBOSE_JOBS:
-            print('Killed external procs')
+            logger.info('Killed external procs')
 
     def _initialize_job_ports(self, use_static_ports=False, static_root=51381):
         # _portgen = functools.partial(six.next, itertools.count(51381))
@@ -506,9 +508,8 @@ class JobBackend(object):
     def initialize_background_processes(
         self, dbdir=None, containerized=False, thread=True
     ):
-        print = partial(ut.colorprint, color='fuchsia')
         # if VERBOSE_JOBS:
-        print('Initialize Background Processes')
+        logger.info('Initialize Background Processes')
 
         def _spawner(func, *args, **kwargs):
 
@@ -533,7 +534,7 @@ class JobBackend(object):
 
         if self.spawn_engine:
             if self.fg_engine:
-                print('ENGINE IS IN DEBUG FOREGROUND MODE')
+                logger.info('ENGINE IS IN DEBUG FOREGROUND MODE')
                 # Spawn engine in foreground process
                 assert self.num_engines == 1, 'fg engine only works with one engine'
                 engine_loop(0, self.port_dict, dbdir)
@@ -588,7 +589,7 @@ def wait_for_shelve_lock_file(shelve_filepath, timeout=600):
             return False
         time.sleep(1)
         if int(elapsed) % 5 == 0:
-            print('Waiting for %0.02f seconds for lock so far' % (elapsed,))
+            logger.info('Waiting for %0.02f seconds for lock so far' % (elapsed,))
     return True
 
 
@@ -636,7 +637,7 @@ class JobInterface(object):
         jobiface.ibs = ibs
         jobiface.verbose = 2 if VERBOSE_JOBS else 1
         jobiface.port_dict = port_dict
-        print('JobInterface ports:')
+        logger.info('JobInterface ports:')
         ut.print_dict(jobiface.port_dict)
 
     # def init(jobiface):
@@ -649,16 +650,15 @@ class JobInterface(object):
         """
         Creates a ZMQ object in this thread. This talks to background processes.
         """
-        print = partial(ut.colorprint, color='blue')
         if jobiface.verbose:
-            print('Initializing JobInterface')
+            logger.info('Initializing JobInterface')
         jobiface.engine_deal_sock = ctx.socket(zmq.DEALER)
         jobiface.engine_deal_sock.setsockopt_string(
             zmq.IDENTITY, 'client%s.engine.DEALER' % (jobiface.id_,)
         )
         jobiface.engine_deal_sock.connect(jobiface.port_dict['engine_url1'])
         if jobiface.verbose:
-            print('connect engine_url1 = %r' % (jobiface.port_dict['engine_url1'],))
+            logger.info('connect engine_url1 = %r' % (jobiface.port_dict['engine_url1'],))
 
         jobiface.collect_deal_sock = ctx.socket(zmq.DEALER)
         jobiface.collect_deal_sock.setsockopt_string(
@@ -666,7 +666,9 @@ class JobInterface(object):
         )
         jobiface.collect_deal_sock.connect(jobiface.port_dict['collect_url1'])
         if jobiface.verbose:
-            print('connect collect_url1 = %r' % (jobiface.port_dict['collect_url1'],))
+            logger.info(
+                'connect collect_url1 = %r' % (jobiface.port_dict['collect_url1'],)
+            )
 
     def queue_interrupted_jobs(jobiface):
         import tqdm
@@ -701,7 +703,7 @@ class JobInterface(object):
 
             completed_jobcounter = 0
             num_registered, num_archived, num_suppressed, num_corrupted = 0, 0, 0, 0
-            print('Reloading %d engine jobs...' % (len(record_filepath_list),))
+            logger.info('Reloading %d engine jobs...' % (len(record_filepath_list),))
             for record_filepath in tqdm.tqdm(record_filepath_list):
                 jobid = splitext(basename(record_filepath))[0]
 
@@ -724,7 +726,7 @@ class JobInterface(object):
                 metadata = get_shelve_value(shelve_input_filepath, 'metadata')
 
                 if metadata is None:
-                    print('Missing metadata...corrupted')
+                    logger.info('Missing metadata...corrupted')
                     corrupted = True
 
                 archive_flag = False
@@ -733,7 +735,7 @@ class JobInterface(object):
                     times = metadata.get('times', {})
 
                     if jobcounter is None:
-                        print('Missing jobcounter...corrupted')
+                        logger.info('Missing jobcounter...corrupted')
                         corrupted = True
 
                     job_age = None
@@ -751,7 +753,7 @@ class JobInterface(object):
                                     completed_timestamp,
                                     archive_timestamp,
                                 )
-                                print(
+                                logger.info(
                                     '[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r'
                                     % args
                                 )
@@ -828,22 +830,22 @@ class JobInterface(object):
                         completed_jobcounter = max(completed_jobcounter, jobcounter)
                     num_registered += 1
 
-            print('Registered %d jobs...' % (num_registered,))
-            print('\t %d suppressed jobs' % (num_suppressed,))
-            print('\t %d corrupted jobs' % (num_corrupted,))
-            print('Archived %d jobs...' % (num_archived,))
+            logger.info('Registered %d jobs...' % (num_registered,))
+            logger.info('\t %d suppressed jobs' % (num_suppressed,))
+            logger.info('\t %d corrupted jobs' % (num_corrupted,))
+            logger.info('Archived %d jobs...' % (num_archived,))
 
             # Update the jobcounter to be up to date
             update_notify = {
                 '__set_jobcounter__': completed_jobcounter,
             }
-            print('Updating completed job counter: %r' % (update_notify,))
+            logger.info('Updating completed job counter: %r' % (update_notify,))
             jobiface.engine_deal_sock.send_json(update_notify)
             reply = jobiface.engine_deal_sock.recv_json()
             jobcounter_ = reply['jobcounter']
             assert jobcounter_ == completed_jobcounter
 
-            print('Re-sending %d engine jobs...' % (len(restart_jobcounter_list),))
+            logger.info('Re-sending %d engine jobs...' % (len(restart_jobcounter_list),))
 
             index_list = np.argsort(restart_jobcounter_list)
             zipped = list(
@@ -878,9 +880,8 @@ class JobInterface(object):
         """
         # NAME: job_client
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
-            print = partial(ut.colorprint, color='blue')
             if jobiface.verbose >= 1:
-                print('----')
+                logger.info('----')
 
             request = {}
             try:
@@ -905,7 +906,7 @@ class JobInterface(object):
                 'restart_received': None,
             }
             if jobiface.verbose >= 2:
-                print('Queue job: %s' % (engine_request))
+                logger.info('Queue job: %s' % (engine_request))
 
             # Send request to job
             jobiface.engine_deal_sock.send_json(engine_request)
@@ -939,10 +940,9 @@ class JobInterface(object):
 
     def get_job_id_list(jobiface):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
-            print = partial(ut.colorprint, color='teal')
             if False:  # jobiface.verbose >= 1:
-                print('----')
-                print('Request list of job ids')
+                logger.info('----')
+                logger.info('Request list of job ids')
             pair_msg = dict(action='job_id_list')
             # CALLS: collector_request_status
             jobiface.collect_deal_sock.send_json(pair_msg)
@@ -951,10 +951,9 @@ class JobInterface(object):
 
     def get_job_status(jobiface, jobid):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
-            print = partial(ut.colorprint, color='teal')
             if jobiface.verbose >= 1:
-                print('----')
-                print('Request status of jobid=%r' % (jobid,))
+                logger.info('----')
+                logger.info('Request status of jobid=%r' % (jobid,))
             pair_msg = dict(action='job_status', jobid=jobid)
             # CALLS: collector_request_status
             jobiface.collect_deal_sock.send_json(pair_msg)
@@ -963,10 +962,9 @@ class JobInterface(object):
 
     def get_job_status_dict(jobiface):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
-            print = partial(ut.colorprint, color='teal')
             if False:  # jobiface.verbose >= 1:
-                print('----')
-                print('Request list of job ids')
+                logger.info('----')
+                logger.info('Request list of job ids')
             pair_msg = dict(action='job_status_dict')
             # CALLS: collector_request_status
             jobiface.collect_deal_sock.send_json(pair_msg)
@@ -975,10 +973,9 @@ class JobInterface(object):
 
     def get_job_metadata(jobiface, jobid):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
-            print = partial(ut.colorprint, color='teal')
             if jobiface.verbose >= 1:
-                print('----')
-                print('Request metadata of jobid=%r' % (jobid,))
+                logger.info('----')
+                logger.info('Request metadata of jobid=%r' % (jobid,))
             pair_msg = dict(action='job_input', jobid=jobid)
             # CALLS: collector_request_metadata
             jobiface.collect_deal_sock.send_json(pair_msg)
@@ -988,9 +985,8 @@ class JobInterface(object):
     def get_job_result(jobiface, jobid):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
             if jobiface.verbose >= 1:
-                print = partial(ut.colorprint, color='teal')
-                print('----')
-                print('Request result of jobid=%r' % (jobid,))
+                logger.info('----')
+                logger.info('Request result of jobid=%r' % (jobid,))
             pair_msg = dict(action='job_result', jobid=jobid)
             # CALLER: collector_request_result
             jobiface.collect_deal_sock.send_json(pair_msg)
@@ -1022,7 +1018,7 @@ class JobInterface(object):
             elif reply['jobstatus'] == 'exception':
                 result = jobiface.get_unpacked_result(jobid)
                 # raise Exception(result)
-                print('Exception occured in engine')
+                logger.info('Exception occured in engine')
                 return result
             elif reply['jobstatus'] == 'working':
                 pass
@@ -1049,24 +1045,23 @@ def make_queue_loop(name='collect'):
 
     def queue_loop(port_dict):
         iface1, iface2 = port_dict['collect_url1'], port_dict['collect_url2']
-        print = partial(ut.colorprint, color='green')
         update_proctitle(queue_name)
 
         with ut.Indenter('[%s] ' % (queue_name,)):
             if VERBOSE_JOBS:
-                print('Init make_queue_loop: name=%r' % (name,))
+                logger.info('Init make_queue_loop: name=%r' % (name,))
             # bind the client dealer to the queue router
             rout_sock = ctx.socket(zmq.ROUTER)
             rout_sock.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'ROUTER')
             rout_sock.bind(iface1)
             if VERBOSE_JOBS:
-                print('bind %s_url1 = %r' % (name, iface1,))
+                logger.info('bind %s_url1 = %r' % (name, iface1,))
             # bind the server router to the queue dealer
             deal_sock = ctx.socket(zmq.DEALER)
             deal_sock.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'DEALER')
             deal_sock.bind(iface2)
             if VERBOSE_JOBS:
-                print('bind %s_url2 = %r' % (name, iface2,))
+                logger.info('bind %s_url2 = %r' % (name, iface2,))
             try:
                 if 1:
                     # the remainder of this function can be entirely replaced with
@@ -1085,19 +1080,19 @@ def make_queue_loop(name='collect'):
                             # ROUTER sockets prepend the identity of the jobiface,
                             # for routing replies
                             if VERBOSE_JOBS:
-                                print('ROUTER relayed %r via DEALER' % (msg,))
+                                logger.info('ROUTER relayed %r via DEALER' % (msg,))
                             deal_sock.send_multipart(msg)
                             msg = None
                         if deal_sock in evts:
                             msg = deal_sock.recv_multipart()
                             if VERBOSE_JOBS:
-                                print('DEALER relayed %r via ROUTER' % (msg,))
+                                logger.info('DEALER relayed %r via ROUTER' % (msg,))
                             rout_sock.send_multipart(msg)
                             msg = None
             except KeyboardInterrupt:
-                print('Caught ctrl+c in collector loop. Gracefully exiting')
+                logger.info('Caught ctrl+c in collector loop. Gracefully exiting')
             if VERBOSE_JOBS:
-                print('Exiting %s' % (loop_name,))
+                logger.info('Exiting %s' % (loop_name,))
 
     ut.set_funcname(queue_loop, loop_name)
     return queue_loop
@@ -1122,7 +1117,7 @@ def engine_queue_loop(port_dict):
     print = partial(ut.colorprint, color='red')
 
     with ut.Indenter('[%s] ' % (queue_name,)):
-        print('Init specialized make_queue_loop: name=%r' % (name,))
+        logger.info('Init specialized make_queue_loop: name=%r' % (name,))
 
         # bind the client dealer to the queue router
         rout_sock = ctx.socket(zmq.ROUTER)
@@ -1131,7 +1126,7 @@ def engine_queue_loop(port_dict):
         )
         rout_sock.bind(iface1)
         if VERBOSE_JOBS:
-            print('bind %s_url2 = %r' % (name, iface1,))
+            logger.info('bind %s_url2 = %r' % (name, iface1,))
 
         # bind the server router to the queue dealer
         deal_sock = ctx.socket(zmq.DEALER)
@@ -1140,13 +1135,13 @@ def engine_queue_loop(port_dict):
         )
         deal_sock.bind(iface2)
         if VERBOSE_JOBS:
-            print('bind %s_url2 = %r' % (name, iface2,))
+            logger.info('bind %s_url2 = %r' % (name, iface2,))
 
         collect_deal_sock = ctx.socket(zmq.DEALER)
         collect_deal_sock.setsockopt_string(zmq.IDENTITY, queue_name + '.collect.DEALER')
         collect_deal_sock.connect(port_dict['collect_url1'])
         if VERBOSE_JOBS:
-            print('connect collect_url1 = %r' % (port_dict['collect_url1'],))
+            logger.info('connect collect_url1 = %r' % (port_dict['collect_url1'],))
 
         # but this shows what is really going on:
         poller = zmq.Poller()
@@ -1171,7 +1166,7 @@ def engine_queue_loop(port_dict):
                         reply_notify = {
                             'jobcounter': global_jobcounter,
                         }
-                        print(
+                        logger.info(
                             '... notifying client that jobcounter was updated to %d'
                             % (global_jobcounter,)
                         )
@@ -1208,7 +1203,7 @@ def engine_queue_loop(port_dict):
                         )
                         jobcounter = restart_jobcounter
 
-                    print('Creating jobid %r (counter %d)' % (jobid, jobcounter,))
+                    logger.info('Creating jobid %r (counter %d)' % (jobid, jobcounter,))
 
                     if restart_received is not None:
                         received = restart_received
@@ -1224,14 +1219,14 @@ def engine_queue_loop(port_dict):
                     }
 
                     if VERBOSE_JOBS:
-                        print('...notifying collector about new job')
+                        logger.info('...notifying collector about new job')
                     # CALLS: collector_notify
                     collect_deal_sock.send_json(reply_notify)
 
                     ######################################################################
                     # Status: Received (Notify Client)
                     if VERBOSE_JOBS:
-                        print('... notifying client that job was accepted')
+                        logger.info('... notifying client that job was accepted')
                     # RETURNS: job_client_return
                     send_multipart_json(rout_sock, idents, reply_notify)
 
@@ -1264,7 +1259,7 @@ def engine_queue_loop(port_dict):
                     }
 
                     if VERBOSE_JOBS:
-                        print('...notifying collector about job metadata')
+                        logger.info('...notifying collector about job metadata')
                     # CALLS: collector_notify
                     collect_deal_sock.send_json(metadata_notify)
 
@@ -1282,7 +1277,7 @@ def engine_queue_loop(port_dict):
                     }
 
                     if VERBOSE_JOBS:
-                        print('...notifying collector about new job')
+                        logger.info('...notifying collector about new job')
                     # CALLS: collector_notify
                     collect_deal_sock.send_json(reply_notify)
 
@@ -1292,7 +1287,7 @@ def engine_queue_loop(port_dict):
                     engine_request['jobid'] = jobid
 
                     if VERBOSE_JOBS:
-                        print('... notifying backend engine to start')
+                        logger.info('... notifying backend engine to start')
                     # CALL: engine_
                     send_multipart_json(deal_sock, idents, engine_request)
 
@@ -1309,16 +1304,16 @@ def engine_queue_loop(port_dict):
                     }
 
                     if VERBOSE_JOBS:
-                        print('...notifying collector that job was queued')
+                        logger.info('...notifying collector that job was queued')
                     # CALLS: collector_notify
                     collect_deal_sock.send_json(queued_notify)
                 if deal_sock in evts:
                     pass
         except KeyboardInterrupt:
-            print('Caught ctrl+c in %s queue. Gracefully exiting' % (loop_name,))
+            logger.info('Caught ctrl+c in %s queue. Gracefully exiting' % (loop_name,))
 
         if VERBOSE_JOBS:
-            print('Exiting %s queue' % (loop_name,))
+            logger.info('Exiting %s queue' % (loop_name,))
 
 
 def engine_loop(id_, port_dict, dbdir, containerized):
@@ -1340,8 +1335,8 @@ def engine_loop(id_, port_dict, dbdir, containerized):
     print = partial(ut.colorprint, color='darkred')
     with ut.Indenter('[engine %d] ' % (id_)):
         if VERBOSE_JOBS:
-            print('Initializing engine')
-            print('connect engine_url2 = %r' % (port_dict['engine_url2'],))
+            logger.info('Initializing engine')
+            logger.info('connect engine_url2 = %r' % (port_dict['engine_url2'],))
         assert dbdir is not None
 
         engine_rout_sock = ctx.socket(zmq.ROUTER)
@@ -1352,8 +1347,8 @@ def engine_loop(id_, port_dict, dbdir, containerized):
         collect_deal_sock.connect(port_dict['collect_url1'])
 
         if VERBOSE_JOBS:
-            print('connect collect_url1 = %r' % (port_dict['collect_url1'],))
-            print('engine is initialized')
+            logger.info('connect collect_url1 = %r' % (port_dict['collect_url1'],))
+            logger.info('engine is initialized')
 
         try:
             while True:
@@ -1399,7 +1394,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                     callback_method=callback_method,
                 )
                 # if VERBOSE_JOBS:
-                print(
+                logger.info(
                     '...done working. pushing result to collector for jobid %s' % (jobid,)
                 )
 
@@ -1439,17 +1434,17 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                     pass
 
         except KeyboardInterrupt:
-            print('Caught ctrl+c in engine loop. Gracefully exiting')
+            logger.info('Caught ctrl+c in engine loop. Gracefully exiting')
         # ----
         if VERBOSE_JOBS:
-            print('Exiting engine loop')
+            logger.info('Exiting engine loop')
 
 
 def on_engine_request(ibs, jobid, action, args, kwargs):
     """ Run whenever the engine recieves a message """
     # Start working
     if VERBOSE_JOBS:
-        print('starting job=%r' % (jobid,))
+        logger.info('starting job=%r' % (jobid,))
     # Map actions to IBEISController calls here
     if action == 'helloworld':
 
@@ -1463,7 +1458,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
         # check for ibs func
         action_func = getattr(ibs, action)
         if VERBOSE_JOBS:
-            print('resolving action=%r to wbia function=%r' % (action, action_func))
+            logger.info('resolving action=%r to wbia function=%r' % (action, action_func))
 
     key = '__jobid__'
     kwargs[key] = jobid
@@ -1500,7 +1495,7 @@ def collector_loop(port_dict, dbdir, containerized):
         collect_rout_sock.setsockopt_string(zmq.IDENTITY, 'collect.ROUTER')
         collect_rout_sock.connect(port_dict['collect_url2'])
         if VERBOSE_JOBS:
-            print('connect collect_url2  = %r' % (port_dict['collect_url2'],))
+            logger.info('connect collect_url2  = %r' % (port_dict['collect_url2'],))
 
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
         update_proctitle('collector_loop', dbname=ibs.dbname)
@@ -1532,9 +1527,9 @@ def collector_loop(port_dict, dbdir, containerized):
                 except Exception as ex:
                     import traceback
 
-                    print(ut.repr3(collect_request))
+                    logger.info(ut.repr3(collect_request))
                     ut.printex(ex, 'ERROR in collection')
-                    print(traceback.format_exc())
+                    logger.info(traceback.format_exc())
                     reply = {}
                 send_multipart_json(collect_rout_sock, idents, reply)
 
@@ -1549,9 +1544,9 @@ def collector_loop(port_dict, dbdir, containerized):
                 except Exception:
                     pass
         except KeyboardInterrupt:
-            print('Caught ctrl+c in collector loop. Gracefully exiting')
+            logger.info('Caught ctrl+c in collector loop. Gracefully exiting')
         if VERBOSE_JOBS:
-            print('Exiting collector')
+            logger.info('Exiting collector')
 
 
 def _timestamp():
@@ -1633,7 +1628,7 @@ def on_collect_request(
 
         collector_data[jobid]['status'] = status
 
-        print('Notify %s' % ut.repr3(collector_data[jobid]))
+        logger.info('Notify %s' % ut.repr3(collector_data[jobid]))
         invalidate_global_cache(jobid)
 
         if status == 'received':
@@ -1720,7 +1715,7 @@ def on_collect_request(
             'input': shelve_input_filepath,
             'output': shelve_output_filepath,
         }
-        print('Register %s' % ut.repr3(collector_data[jobid]))
+        logger.info('Register %s' % ut.repr3(collector_data[jobid]))
 
         metadata, engine_result = None, None  # Release memory
 
@@ -1735,7 +1730,7 @@ def on_collect_request(
 
         set_shelve_value(shelve_input_filepath, 'metadata', metadata)
 
-        print('Stored Metadata %s' % ut.repr3(collector_data[jobid]))
+        logger.info('Stored Metadata %s' % ut.repr3(collector_data[jobid]))
 
         metadata = None  # Release memory
 
@@ -1756,7 +1751,7 @@ def on_collect_request(
 
         set_shelve_value(shelve_output_filepath, 'result', engine_result)
 
-        print('Stored Result %s' % ut.repr3(collector_data[jobid]))
+        logger.info('Stored Result %s' % ut.repr3(collector_data[jobid]))
 
         engine_result = None  # Release memory
 
@@ -1778,7 +1773,7 @@ def on_collect_request(
                     callback_method,
                     data_dict,
                 )
-                print(
+                logger.info(
                     'Attempting job completion callback to %r\n\tHTTP Method: %r\n\tData Payload: %r'
                     % args
                 )
@@ -1806,9 +1801,9 @@ def on_collect_request(
                     response,
                     text,
                 )
-                print('Callback completed...\n\tResponse: %r\n\tText: %r' % args)
+                logger.info('Callback completed...\n\tResponse: %r\n\tText: %r' % args)
             except Exception:
-                print('Callback FAILED!')
+                logger.info('Callback FAILED!')
 
     elif action == 'job_status':
         reply['jobstatus'] = collector_data.get(jobid, {}).get('status', 'unknown')
@@ -1922,7 +1917,7 @@ def on_collect_request(
         engine_result = None  # Release memory
     else:
         # Other
-        print('...error unknown action=%r' % (action,))
+        logger.info('...error unknown action=%r' % (action,))
         reply['status'] = 'error'
 
     return reply
@@ -1942,8 +1937,8 @@ def rcv_multipart_json(sock, num=2, print=print):
     # these are needed for the reply to propagate up to the right client
     multi_msg = sock.recv_multipart()
     if VERBOSE_JOBS:
-        print('----')
-        print('RCV Json: %s' % (ut.repr2(multi_msg, truncate=True),))
+        logger.info('----')
+        logger.info('RCV Json: %s' % (ut.repr2(multi_msg, truncate=True),))
     idents = multi_msg[:num]
     request_json = multi_msg[num]
     request = ut.from_json(request_json)
@@ -1953,8 +1948,8 @@ def rcv_multipart_json(sock, num=2, print=print):
 
 
 def _on_ctrl_c(signal, frame):
-    print('[wbia.zmq] Caught ctrl+c')
-    print('[wbia.zmq] sys.exit(0)')
+    logger.info('[wbia.zmq] Caught ctrl+c')
+    logger.info('[wbia.zmq] sys.exit(0)')
     import sys
 
     sys.exit(0)

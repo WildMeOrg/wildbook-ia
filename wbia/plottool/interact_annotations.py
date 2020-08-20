@@ -28,6 +28,7 @@ References:
 CommandLine:
     python -m wbia.plottool.interact_annotations --test-test_interact_annots --show
 """
+import logging
 import six
 import re
 import numpy as np
@@ -44,6 +45,7 @@ from . import draw_func2 as df2
 from wbia.plottool import abstract_interaction
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 DEFAULT_SPECIES_TAG = '____'
@@ -356,9 +358,9 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         poly.metadata_tag.set_position((tag_pos[0] + 5, tag_pos[1] + 50))
 
     def print_info(poly):
-        print('poly = %r' % (poly,))
-        print('poly.tag_text = %r' % (poly.species_tag.get_text(),))
-        print('poly.metadata = %r' % (poly.metadata,))
+        logger.info('poly = %r' % (poly,))
+        logger.info('poly.tag_text = %r' % (poly.species_tag.get_text(),))
+        logger.info('poly.metadata = %r' % (poly.metadata,))
 
     def get_poly_mask(poly, shape):
         h, w = shape[0:2]
@@ -501,7 +503,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         # self.fig.cla()
         # ut.qflag()
         self.fnum = fnum
-        # print(self.fnum)
+        # logger.info(self.fnum)
         ax = df2.gca()
         # self.fig.ax = ax
         self.ax = ax
@@ -603,7 +605,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.draw()
         self.connect_mpl_callbacks(self.fig.canvas)
         self.update_callbacks(next_callback, prev_callback)
-        print('[interact_annot] drawing')
+        logger.info('[interact_annot] drawing')
         self.draw()
         self.update_UI()
 
@@ -807,9 +809,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         Removes an annotation
         """
         if self._selected_poly is None:
-            print('[interact_annot] No polygon selected to delete')
+            logger.info('[interact_annot] No polygon selected to delete')
         else:
-            print('[interact_annot] delete annot')
+            logger.info('[interact_annot] delete annot')
             poly = self._selected_poly
             # self.polys.pop(poly.num)
             del self.editable_polys[poly.num]
@@ -825,11 +827,11 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     def edit_poly_parts(self, poly):
         if poly is None and self.parent_poly is not None:
             self._selected_poly = self.parent_poly
-        print('self.parent_poly = %r' % (self.parent_poly,))
+        logger.info('self.parent_poly = %r' % (self.parent_poly,))
         self.parent_poly = poly
         if poly is not None:
             self._selected_poly = self.get_most_recently_added_poly()
-        print('self._selected_poly = %r' % (self._selected_poly,))
+        logger.info('self._selected_poly = %r' % (self._selected_poly,))
         if poly is None:
             self.ax.imshow(vt.convert_colorspace(self.img, 'RGB'))
         else:
@@ -844,7 +846,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         return self.parent_poly is not None
 
     def toggle_species_label(self):
-        print('[interact_annot] toggle_species_label()')
+        logger.info('[interact_annot] toggle_species_label()')
         self.show_species_tags = not self.show_species_tags
         self.update_UI()
 
@@ -854,7 +856,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
         write a callback to redraw viz for bbox_list
         """
-        print('[interact_annot] Pressed Accept Button')
+        logger.info('[interact_annot] Pressed Accept Button')
 
         def _get_annottup_list():
             annottup_list = []
@@ -872,7 +874,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             return indices_list, annottup_list
 
         def _send_back_annotations():
-            print('[interact_annot] _send_back_annotations')
+            logger.info('[interact_annot] _send_back_annotations')
             indices_list, annottup_list = _get_annottup_list()
             # Delete if index is in original_indices but no in indices_list
             deleted_indices = list(set(self.original_indices) - set(indices_list))
@@ -915,7 +917,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
                 poly.get_poly_mask(self.img.shape) for poly in six.itervalues(self.polys)
             ]
             if len(mask_list) == 0:
-                print('[interact_annot] No polygons to make mask out of')
+                logger.info('[interact_annot] No polygons to make mask out of')
                 return 0
             mask = mask_list[0]
             for mask_ in mask_list:
@@ -931,7 +933,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             ax.figure.show()
             return
 
-        print('[interact_annot] Accept Over')
+        logger.info('[interact_annot] Accept Over')
         if do_close:
             df2.close_figure(self.fig)
 
@@ -989,10 +991,10 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     def on_pick(self, event):
         """ Makes selected polygon translucent """
         if self.debug > 0 or True:
-            print('[interact_annot] on_pick')
+            logger.info('[interact_annot] on_pick')
         if not self._poly_held:
             artist = event.artist
-            print('[interact_annot] picked artist = %r' % (artist,))
+            logger.info('[interact_annot] picked artist = %r' % (artist,))
             self._selected_poly = artist
             self._poly_held = True
             if event.dblclick and not self.in_edit_parts_mode:
@@ -1015,7 +1017,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             return
 
         if len(self.editable_polys) == 0:
-            print('[interact_annot] No polygons on screen')
+            logger.info('[interact_annot] No polygons on screen')
             return
 
         # Right click - context menu
@@ -1025,7 +1027,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         if event.button == self.LEFT_BUTTON:
             # if event.dblclick and not self.in_edit_parts_mode:
             #    # On double click enter a single annotation to annotation parts
-            #    #print("DOUBLECLICK")
+            #    #logger.info("DOUBLECLICK")
             #    #self.edit_poly_parts(self._selected_poly)
             if event.key == 'shift':
                 self._current_rotate_poly = self._selected_poly
@@ -1064,7 +1066,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         if self.background is not None:
             self.fig.canvas.restore_region(self.background)
         else:
-            print('[interact_annot] error: self.background is none.' ' Trying refresh.')
+            logger.info(
+                '[interact_annot] error: self.background is none.' ' Trying refresh.'
+            )
             self.fig.canvas.restore_region(self.background)
             self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
 
@@ -1074,8 +1078,8 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
     def on_motion(self, event):
         if ut.VERBOSE:
-            print('[interact_annot] on_motion')
-            print('[interact_annot] Got key: %r' % event.key)
+            logger.info('[interact_annot] on_motion')
+            logger.info('[interact_annot] Got key: %r' % event.key)
         super(AnnotationInteraction, self).on_motion(event)
         # uses boolean punning for terseness
         lastX = self.mouseX or None
@@ -1157,11 +1161,13 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             return
 
         if len(self.editable_polys) == 0:
-            print('[interact_annot] No polygons on screen')
+            logger.info('[interact_annot] No polygons on screen')
             return
 
         if self._selected_poly is None:
-            print('[interact_annot] WARNING: Polygon unknown.' ' Using default. (2)')
+            logger.info(
+                '[interact_annot] WARNING: Polygon unknown.' ' Using default. (2)'
+            )
             self._selected_poly = self.get_most_recently_added_poly()
 
         curr_xy = self._selected_poly.xy[self._ind]
@@ -1177,7 +1183,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
     def on_figure_leave(self, event):
         if self.debug > 0:
-            print('[interact_annot] figure leave')
+            logger.info('[interact_annot] figure leave')
         # self.print_status()
         # self.on_click_release(event)
         self._poly_held = False
@@ -1187,9 +1193,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
     def on_key_press(self, event):
         if self.debug > 0:
-            print('[interact_annot] on_key_press')
-            print('[interact_annot] Got key: %r' % event.key)
-        print('[interact_annot] Got key: %r' % event.key)
+            logger.info('[interact_annot] on_key_press')
+            logger.info('[interact_annot] Got key: %r' % event.key)
+        logger.info('[interact_annot] Got key: %r' % event.key)
         if not event.inaxes:
             return
 
@@ -1228,7 +1234,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
     # def poly_changed(self, poly):
     #    """ this method is called whenever the polygon object is called """
-    #    print('poly_changed poly=%r' % (poly,))
+    #    logger.info('poly_changed poly=%r' % (poly,))
     #    # only copy the artist props to the line (except visibility)
     #    #vis = poly.lines.get_visible()
     #    #vis = poly.handle.get_visible()
@@ -1323,7 +1329,7 @@ def check_min_wh(coords):
     assert np.isclose(w1, w2), 'w1: %r, w2: %r' % (w1, w2)
     assert np.isclose(h1, h2), 'h1: %r, h2: %r' % (h1, h2)
     w, h = w1, h1
-    # print('w, h = (%r, %r)' % (w1, h1))
+    # logger.info('w, h = (%r, %r)' % (w1, h1))
     return (MIN_W < w) and (MIN_H < h)
 
 
@@ -1417,7 +1423,7 @@ def test_interact_annots():
         >>> print(self)
         >>> pt.show_if_requested()
     """
-    print('[interact_annot] *** START DEMO ***')
+    logger.info('[interact_annot] *** START DEMO ***')
     verts_list = [
         ((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
         ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700)),
@@ -1428,7 +1434,7 @@ def test_interact_annots():
         img_fpath = ut.grab_file_url(img_url)
         img = vt.imread(img_fpath)
     except Exception as ex:
-        print('[interact_annot] cant read zebra: %r' % ex)
+        logger.info('[interact_annot] cant read zebra: %r' % ex)
         img = np.random.uniform(0, 255, size=(100, 100))
     valid_species = ['species1', 'species2']
     metadata_list = [{'name': 'foo'}, None]

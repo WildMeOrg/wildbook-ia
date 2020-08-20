@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Dependencies: flask, tornado."""
+import logging
 from wbia.control import controller_inject
 from flask_swagger import swagger
 import wbia.constants as const
@@ -11,6 +12,7 @@ import traceback
 import uuid
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -286,7 +288,7 @@ def microsoft_core_specification_swagger(*args, **kwargs):
     try:
         swag = swagger(current_app)
     except Exception:
-        print(str(traceback.format_exc()))
+        logger.info(str(traceback.format_exc()))
         # ut.embed()
 
     swag['info']['title'] = 'Wild Me - IA (Image Analysis)'
@@ -524,7 +526,7 @@ def microsoft_annotation_add(
     aid = aid_list[0]
 
     response = _annotation(ibs, aid)
-    print(response)
+    logger.info(response)
     return response
 
 
@@ -762,7 +764,7 @@ def microsoft_detect(
         #     # Do not commit results, return them outright
         #     aids_list = ibs.commit_localization_results(gid_list, results_list)
     except Exception:
-        print(str(traceback.format_exc()))
+        logger.info(str(traceback.format_exc()))
         raise controller_inject.WebException(
             'Detection process failed for an unknown reason'
         )
@@ -863,7 +865,7 @@ def microsoft_detect_upload(
             ibs, images, model, score_threshold, use_nms, nms_threshold
         )
     except Exception:
-        print(str(traceback.format_exc()))
+        logger.info(str(traceback.format_exc()))
         raise controller_inject.WebException(
             'Detection process failed for an unknown reason'
         )
@@ -872,7 +874,7 @@ def microsoft_detect_upload(
     assert len(detections_list) == 1
     detections = detections_list[0]
 
-    print(detections)
+    logger.info(detections)
     return detections
 
 

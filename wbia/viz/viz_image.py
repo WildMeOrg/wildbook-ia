@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from six.moves import zip
 import utool as ut
 import wbia.plottool as pt
@@ -8,6 +9,7 @@ import numpy as np
 from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__, '[viz_img]')
+logger = logging.getLogger('wbia')
 
 
 def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
@@ -77,18 +79,20 @@ def drive_test_script(ibs):
     import wbia
 
     aid_list = wbia.testdata_aids(a='default:pername=1')
-    print('Running with (annot) aid_list = %r' % (aid_list))
+    logger.info('Running with (annot) aid_list = %r' % (aid_list))
     gid_list = ibs.get_annot_gids(aid_list)
-    print('Running with (image) gid_list = %r' % (gid_list))
+    logger.info('Running with (image) gid_list = %r' % (gid_list))
     avuuid_list = ibs.get_annot_visual_uuids(aid_list)
     guuid_list = ibs.get_image_uuids(gid_list)
-    print(
+    logger.info(
         'Running with annot_visual_uuid_list = %s'
         % (ut.repr2(zip(aid_list, avuuid_list)))
     )
-    print('Running with image_uuid_list = %s' % (ut.repr2(zip(gid_list, guuid_list))))
+    logger.info(
+        'Running with image_uuid_list = %s' % (ut.repr2(zip(gid_list, guuid_list)))
+    )
     for gid, aid in ut.ProgressIter(zip(gid_list, aid_list), lbl='progress '):
-        print('\ngid, aid, nid = %r, %r, %r' % (gid, aid, ibs.get_annot_nids(aid),))
+        logger.info('\ngid, aid, nid = %r, %r, %r' % (gid, aid, ibs.get_annot_nids(aid),))
         show_image(ibs, gid, annote=False, rich_title=True)
         pt.show_if_requested()
 
@@ -142,13 +146,13 @@ def show_multi_images(ibs, gid_list, fnum=None, **kwargs):
     # notitle = ut.get_argflag('--notitle')
     # draw_lbls = not ut.get_argflag('--no-draw_lbls')
     # show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls)
-    # print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
+    # logger.info('[viz_name] * r=%r, c=%r' % (nRows, nCols))
     # gs2 = gridspec.GridSpec(nRows, nCols)
     pnum_ = pt.get_pnum_func(nRows, nCols)
     fig = pt.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
     fig.clf()
     for px, gid in enumerate(gid_list):
-        print(pnum_(px))
+        logger.info(pnum_(px))
         _fig, _ax1 = show_image(ibs, gid, fnum=fnum, pnum=pnum_(px), **kwargs)
         # ax = pt.gca()
         # if aid in sel_aids:

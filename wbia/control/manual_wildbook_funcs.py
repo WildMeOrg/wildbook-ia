@@ -40,6 +40,7 @@ CommandLine;
     # Change annotations names back to normal
     python -m wbia wildbook_signal_annot_name_changes:2
 """
+import logging
 import utool as ut
 import requests
 from wbia.control import controller_inject
@@ -47,6 +48,7 @@ from wbia.control import wildbook_manager as wb_man  # NOQA
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 DISABLE_WILDBOOK_SIGNAL = ut.get_argflag('--no-wb-signal')
@@ -69,7 +71,7 @@ if ut.get_computer_name() == 'hyrule':
 def get_wildbook_base_url(ibs, wb_target=None):
     if DISABLE_WILDBOOK_SIGNAL:
         message = 'Wildbook signals are turned off via the command line'
-        print(message)
+        logger.info(message)
         raise IOError(message)
 
     wb_port = 8080
@@ -88,7 +90,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
     wildbook_base_url = 'http://%s:%s/%s/' % (wb_hostname, wb_port, wb_target,)
     wildbook_base_url = wildbook_base_url.strip('/')
 
-    print('USING WB BASEURL: %r' % (wildbook_base_url,))
+    logger.info('USING WB BASEURL: %r' % (wildbook_base_url,))
     return wildbook_base_url
 
 
@@ -100,10 +102,10 @@ def assert_ia_available_for_wb(ibs, wb_target=None):
 
         if ia_url is None:
             message = 'Wildbook signals are turned off via the command line'
-            print(message)
+            logger.info(message)
             raise IOError(message)
     except IOError:
-        print('[ibs.assert_ia_available_for_wb] Caught IOError, returning None')
+        logger.info('[ibs.assert_ia_available_for_wb] Caught IOError, returning None')
         return None
     except Exception as ex:
         ut.printex(ex, 'Could not get IA url. BLINDLY CHARCHING FORWARD!', iswarning=True)
@@ -142,7 +144,7 @@ def get_wildbook_ia_url(ibs, wb_target=None):
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.get_wildbook_ia_url] Caught IOError, returning None')
+        logger.info('[ibs.get_wildbook_ia_url] Caught IOError, returning None')
         return None
 
     response = requests.get(wb_url + '/ia?status')
@@ -151,7 +153,7 @@ def get_wildbook_ia_url(ibs, wb_target=None):
         raise Exception('Could not get IA status from wildbook')
     json_response = response.json()
     ia_url = json_response.get('iaURL')
-    # print('response = %r' % (response,))
+    # logger.info('response = %r' % (response,))
     return ia_url
 
 
@@ -222,13 +224,15 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None, dryru
         >>> # Signal what currently exists (should put them back to normal)
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)
     """
-    print(
+    logger.info(
         '[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook'
     )
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.wildbook_signal_annot_name_changes] Caught IOError, returning None')
+        logger.info(
+            '[ibs.wildbook_signal_annot_name_changes] Caught IOError, returning None'
+        )
         return None
 
     try:
@@ -255,15 +259,15 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None, dryru
     ]
     status_list = []
     for json_payload in ut.ProgressIter(payloads, lbl='submitting URL', freq=1):
-        print('[_send] URL=%r with json_payload=%r' % (url, json_payload))
+        logger.info('[_send] URL=%r with json_payload=%r' % (url, json_payload))
         if dryrun:
             status = False
         else:
             response = requests.post(url, json=json_payload)
             status = response.status_code == 200
             if not status:
-                print('Failed to push new names')
-                # print(response.text)
+                logger.info('Failed to push new names')
+                # logger.info(response.text)
         status_list.append(status)
     return status_list
 
@@ -290,11 +294,11 @@ def wildbook_signal_name_changes(
         >>> wb_target = None
         >>> dryrun = ut.get_argflag('--dryrun')
     """
-    print('[ibs.wildbook_signal_name_changes] signaling name changes to wildbook')
+    logger.info('[ibs.wildbook_signal_name_changes] signaling name changes to wildbook')
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.wildbook_signal_name_changes] Caught IOError, returning None')
+        logger.info('[ibs.wildbook_signal_name_changes] Caught IOError, returning None')
         return None
 
     try:
@@ -313,7 +317,7 @@ def wildbook_signal_name_changes(
         }
     }
     status_list = []
-    print('[_send] URL=%r with json_payload=%r' % (url, json_payload))
+    logger.info('[_send] URL=%r with json_payload=%r' % (url, json_payload))
     if dryrun:
         status = False
     else:
@@ -322,8 +326,8 @@ def wildbook_signal_name_changes(
         status = response.status_code == 200 and response_json['success']
         if not status:
             status_list = False
-            print('Failed to update names')
-            # print(response.text)
+            logger.info('Failed to update names')
+            # logger.info(response.text)
         else:
             for name_response in response_json['results']:
                 status = name_response['success']
@@ -336,11 +340,13 @@ def wildbook_signal_name_changes(
 
 @register_ibs_method
 def wildbook_get_existing_names(ibs, wb_target=None):
-    print('[ibs.wildbook_get_existing_names] getting existing names out of wildbook')
+    logger.info(
+        '[ibs.wildbook_get_existing_names] getting existing names out of wildbook'
+    )
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.wildbook_get_existing_names] Caught IOError, returning None')
+        logger.info('[ibs.wildbook_get_existing_names] Caught IOError, returning None')
         return None
 
     try:
@@ -453,7 +459,7 @@ def wildbook_signal_imgsetid_list(
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.wildbook_signal_imgsetid_list] Caught IOError, returning None')
+        logger.info('[ibs.wildbook_signal_imgsetid_list] Caught IOError, returning None')
         return None
 
     try:
@@ -482,12 +488,12 @@ def wildbook_signal_imgsetid_list(
         ) % (imgsetid, unnamed_ok_aid_list,)
 
     # Call Wildbook url to signal update
-    print(
+    logger.info(
         '[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook'
         % (imgsetid_list,)
     )
     imageset_uuid_list = ibs.get_imageset_uuid(imgsetid_list)
-    print(
+    logger.info(
         '[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = %r to wildbook'
         % (imageset_uuid_list,)
     )
@@ -500,14 +506,14 @@ def wildbook_signal_imgsetid_list(
     # Check and push 'done' imagesets
     status_list = []
     for imgsetid, imageset_uuid in zip(imgsetid_list, imageset_uuid_list):
-        print('[_send] URL=%r' % (url,))
+        logger.info('[_send] URL=%r' % (url,))
         json_payload = {'resolver': {'fromIAImageSet': str(imageset_uuid)}}
         if dryrun:
             status = False
         else:
             response = requests.post(url, json=json_payload)
             status = response.status_code == 200
-            print('response = %r' % (response,))
+            logger.info('response = %r' % (response,))
             if set_shipped_flag:
                 ibs.set_imageset_shipped_flags([imgsetid], [status])
                 if status and open_url_on_complete:
@@ -545,7 +551,7 @@ def get_flukebook_image_uuids(ibs):
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    print('Loaded %d Image ACM string UUIDs from Flukebook' % (len(file_json),))
+    logger.info('Loaded %d Image ACM string UUIDs from Flukebook' % (len(file_json),))
 
     uuid_list = []
     for uuid_str in file_json:
@@ -555,9 +561,11 @@ def get_flukebook_image_uuids(ibs):
         except ValueError:
             continue
 
-    print('Validated %d Image UUIDs from Flukebook' % (len(uuid_list),))
+    logger.info('Validated %d Image UUIDs from Flukebook' % (len(uuid_list),))
     flukebook_image_uuid_list = list(set(uuid_list))
-    print('Validated %d de-duplicated Image UUIDs from Flukebook' % (len(uuid_list),))
+    logger.info(
+        'Validated %d de-duplicated Image UUIDs from Flukebook' % (len(uuid_list),)
+    )
 
     return flukebook_image_uuid_list
 
@@ -574,11 +582,11 @@ def delete_flukebook_orphaned_image_uuids(ibs, auto_delete=True):
         set(local_image_uuid_list) - set(flukebook_image_uuid_list)
     )
 
-    print(
+    logger.info(
         'There are %d Image UUIDs in Flukebook that are not here'
         % (len(unknown_uuid_list),)
     )
-    print(
+    logger.info(
         'There are %d Image UUIDs in here that are not in Flukebook'
         % (len(candidate_uuid_list),)
     )
@@ -609,7 +617,7 @@ def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    print('Loaded %d Annot ACM string UUIDs from Flukebook' % (len(file_json),))
+    logger.info('Loaded %d Annot ACM string UUIDs from Flukebook' % (len(file_json),))
 
     uuid_list = []
     species_list = []
@@ -648,11 +656,11 @@ def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
                 uuid_list.append(uuid_)
                 species_list.append(species)
         else:
-            print(match, species)
+            logger.info(match, species)
 
     assert len(uuid_list) == len(species_list)
     assert len(uuid_list) == len(set(uuid_list))
-    print('Validated %d Annotation UUIDs from Flukebook' % (len(uuid_list),))
+    logger.info('Validated %d Annotation UUIDs from Flukebook' % (len(uuid_list),))
 
     flukebook_annot_uuid_list = uuid_list
     flukebook_annot_species_list = species_list
@@ -677,11 +685,11 @@ def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
         set(local_annot_uuid_list) - set(flukebook_annot_uuid_list)
     )
 
-    print(
+    logger.info(
         'There are %d Annot UUIDs in Flukebook that are not here'
         % (len(unknown_uuid_list),)
     )
-    print(
+    logger.info(
         'There are %d Annot UUIDs in here that are not in Flukebook'
         % (len(candidate_uuid_list),)
     )
@@ -740,7 +748,7 @@ def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
             update_dict[known_species][flukebook_species] += 1
 
     assert len(update_aid_list) == len(update_species_list)
-    print(ut.repr3(update_dict))
+    logger.info(ut.repr3(update_dict))
 
     ibs.set_annot_species(update_aid_list, update_species_list)
 

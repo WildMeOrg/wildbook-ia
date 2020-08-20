@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
@@ -8,6 +9,7 @@ import utool as ut
 import uuid
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 IMAGESET_OCCURRENCE_FLAG = 'imageset_occurrence_flag'
@@ -130,7 +132,7 @@ def add_imagesets(
         URL:    /api/imageset/
     """
     if ut.VERBOSE:
-        print('[ibs] adding %d imagesets' % len(imagesettext_list))
+        logger.info('[ibs] adding %d imagesets' % len(imagesettext_list))
     # Add imageset text names to database
     if notes_list is None:
         notes_list = [''] * len(imagesettext_list)
@@ -478,11 +480,11 @@ def get_imageset_aids(ibs, imgsetid_list):
     gids_list = ibs.get_imageset_gids(imgsetid_list)
     aids_list_ = ibs.unflat_map(ibs.get_image_aids, gids_list)
     aids_list = list(map(ut.flatten, aids_list_))
-    # print('get_imageset_aids')
-    # print('imgsetid_list = %r' % (imgsetid_list,))
-    # print('gids_list = %r' % (gids_list,))
-    # print('aids_list_ = %r' % (aids_list_,))
-    # print('aids_list = %r' % (aids_list,))
+    # logger.info('get_imageset_aids')
+    # logger.info('imgsetid_list = %r' % (imgsetid_list,))
+    # logger.info('gids_list = %r' % (gids_list,))
+    # logger.info('aids_list_ = %r' % (aids_list_,))
+    # logger.info('aids_list = %r' % (aids_list,))
     return aids_list
 
 
@@ -555,9 +557,9 @@ def get_imageset_gids(ibs, imgsetid_list):
         id_colname='imageset_rowid',
         unpack_scalars=False,
     )
-    # print('get_imageset_gids')
-    # print('imgsetid_list = %r' % (imgsetid_list,))
-    # print('gids_list = %r' % (gids_list,))
+    # logger.info('get_imageset_gids')
+    # logger.info('imgsetid_list = %r' % (imgsetid_list,))
+    # logger.info('gids_list = %r' % (gids_list,))
     return gids_list
 
 
@@ -664,11 +666,11 @@ def get_imageset_nids(ibs, imgsetid_list):
     nids_list = [[nid for nid in nids if nid > 0] for nids in nids_list]
 
     nids_list = list(map(ut.unique_ordered, nids_list))
-    # print('get_imageset_nids')
-    # print('imgsetid_list = %r' % (imgsetid_list,))
-    # print('aids_list = %r' % (aids_list,))
-    # print('nids_list_ = %r' % (nids_list_,))
-    # print('nids_list = %r' % (nids_list,))
+    # logger.info('get_imageset_nids')
+    # logger.info('imgsetid_list = %r' % (imgsetid_list,))
+    # logger.info('aids_list = %r' % (aids_list,))
+    # logger.info('nids_list_ = %r' % (nids_list_,))
+    # logger.info('nids_list = %r' % (nids_list,))
     return nids_list
 
 
@@ -834,7 +836,7 @@ def delete_imagesets(ibs, imgsetid_list):
     # ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)
     # ibs.db.delete(const.GSG_RELATION_TABLE, imgsetid_list, id_colname='imageset_rowid')
     if ut.VERBOSE:
-        print('[ibs] deleting %d imagesets' % len(imgsetid_list))
+        logger.info('[ibs] deleting %d imagesets' % len(imgsetid_list))
     ibs.delete_gsgr_imageset_relations(imgsetid_list)
     ibs.db.delete_rowids(const.IMAGESET_TABLE, imgsetid_list)
 

@@ -58,12 +58,14 @@ References:
     Orientation covariant aggregation of local descriptors with embeddings
     https://arxiv.org/pdf/1407.2170.pdf
 """
+import logging
 from six.moves import zip
 import utool as ut
 import vtool as vt
 import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def cast_residual_integer(rvecs):
@@ -227,7 +229,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         all_agg_vecs[offsets, :] = agg_rvecs_
 
     assert not np.any(np.isnan(all_agg_vecs))
-    print('Apply normalization')
+    logger.info('Apply normalization')
     vt.normalize(all_agg_vecs, axis=1, out=all_agg_vecs)
     all_error_flags = np.all(np.isnan(all_agg_vecs), axis=1)
     all_agg_vecs[all_error_flags, :] = 0
@@ -422,10 +424,10 @@ def weight_multi_assigns(
         invalid = np.greater_equal(_idx_to_wdist, ma_thresh)
         if ut.VERBOSE:
             nInvalid = (invalid.size - invalid.sum(), invalid.size)
-            print('[maw] + massign_alpha = %r' % (massign_alpha,))
-            print('[maw] + massign_sigma = %r' % (massign_sigma,))
-            print('[maw] + massign_equal_weights = %r' % (massign_equal_weights,))
-            print('[maw] * Marked %d/%d assignments as invalid' % nInvalid)
+            logger.info('[maw] + massign_alpha = %r' % (massign_alpha,))
+            logger.info('[maw] + massign_sigma = %r' % (massign_sigma,))
+            logger.info('[maw] + massign_equal_weights = %r' % (massign_equal_weights,))
+            logger.info('[maw] * Marked %d/%d assignments as invalid' % nInvalid)
 
         if massign_equal_weights:
             # Performance hack from jegou paper: just give everyone equal weight
@@ -512,9 +514,11 @@ def assign_to_words(
     if verbose is None:
         verbose = ut.VERBOSE
     if verbose:
-        print('[vocab.assign] +--- Start Assign vecs to words.')
-        print('[vocab.assign] * nAssign=%r' % nAssign)
-        print('[vocab.assign] assign_to_words_. len(idx_to_vec) = %r' % len(idx_to_vec))
+        logger.info('[vocab.assign] +--- Start Assign vecs to words.')
+        logger.info('[vocab.assign] * nAssign=%r' % nAssign)
+        logger.info(
+            '[vocab.assign] assign_to_words_. len(idx_to_vec) = %r' % len(idx_to_vec)
+        )
     _idx_to_wx, _idx_to_wdist = vocab.nn_index(idx_to_vec, nAssign)
     if nAssign > 1:
         idx_to_wxs, idx_to_maws = weight_multi_assigns(
@@ -576,7 +580,7 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
     maws_list = [np.array(maws, dtype=np.float32) for maws in maws_list]
     wx_to_maws = dict(zip(wx_keys, maws_list))
     if verbose:
-        print('[vocab] L___ End Assign vecs to words.')
+        logger.info('[vocab] L___ End Assign vecs to words.')
     return (wx_to_idxs, wx_to_maws)
 
 
@@ -643,7 +647,7 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
     wx_to_maws = dict(zip(wx_keys, maws_list))
 
     if verbose:
-        print('[vocab] L___ End Assign vecs to words.')
+        logger.info('[vocab] L___ End Assign vecs to words.')
     return (wx_to_idxs, wx_to_maws)
 
 

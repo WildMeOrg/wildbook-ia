@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def test_scoremech():
@@ -63,13 +65,13 @@ def test_scoremech():
     ai2 = cm2.pandas_annot_info().set_index(['daid', 'dnid'], drop=True)
     ai1 = ai1.rename(columns={c: c + '1' for c in ai2.columns})
     ai2 = ai2.rename(columns={c: c + '2' for c in ai2.columns})
-    # print(ai1.join(ai2))
+    # logger.info(ai1.join(ai2))
 
     ni1 = cm1.pandas_name_info().set_index(['dnid'], drop=True)
     ni2 = cm2.pandas_name_info().set_index(['dnid'], drop=True)
     ni1 = ni1.rename(columns={c: c + '1' for c in ni2.columns})
     ni2 = ni2.rename(columns={c: c + '2' for c in ni2.columns})
-    print(ni1.join(ni2))
+    logger.info(ni1.join(ni2))
 
     cm1 == cm2
 

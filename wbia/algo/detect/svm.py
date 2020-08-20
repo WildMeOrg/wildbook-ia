@@ -2,11 +2,13 @@
 """
 Interface to Darknet object proposals.
 """
+import logging
 import utool as ut
 from os import listdir
 from os.path import join, isfile, isdir
 
 (print, rrr, profile) = ut.inject2(__name__, '[svm]')
+logger = logging.getLogger('wbia')
 
 
 VERBOSE_SVM = ut.get_argflag('--verbsvm') or ut.VERBOSE
@@ -101,7 +103,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
         vectors_list = [vector_list for _ in range(num_weights)]
         args_list = zip(weight_filepath_list, vectors_list)
         nTasks = num_weights
-        print('Processing ensembles in parallel using %d ensembles' % (num_weights,))
+        logger.info(
+            'Processing ensembles in parallel using %d ensembles' % (num_weights,)
+        )
     else:
         num_cpus = multiprocessing.cpu_count()
         vector_batch = int(np.ceil(float(num_vectors) / num_cpus))
@@ -113,7 +117,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
             stop_index = (vector_round + 1) * vector_batch
             assert start_index < num_vectors
             stop_index = min(stop_index, num_vectors)
-            # print('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
+            # logger.info('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
 
             # Slice gids and get feature data
             index_list_ = list(range(start_index, stop_index))
@@ -124,7 +128,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
                 args_list.append(args)
 
         nTasks = len(args_list)
-        print('Processing vectors in parallel using vector_batch = %r' % (vector_batch,))
+        logger.info(
+            'Processing vectors in parallel using vector_batch = %r' % (vector_batch,)
+        )
 
     # Perform inference
     classify_iter = ut.generate2(

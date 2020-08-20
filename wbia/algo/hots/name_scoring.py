@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from six.moves import zip, range, map  # NOQA
 import numpy as np
 import vtool as vt
@@ -9,6 +10,7 @@ from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 
 (print, rrr, profile) = ut.inject2(__name__, '[nscoring]')
+logger = logging.getLogger('wbia')
 
 NameScoreTup = namedtuple(
     'NameScoreTup', ('sorted_nids', 'sorted_nscore', 'sorted_aids', 'sorted_scores')

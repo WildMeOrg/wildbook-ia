@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
+import logging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def load_multiclass_scores(self):
@@ -1184,31 +1186,31 @@ def vsone_(
                             C2 = quick_cm(y_true, 1 - y_pred, classes_, sample_weight)
                             mcc1 = quick_mcc(C2)
                         mcc = max(mcc1, mcc)
-                    # print('mcc = %r' % (mcc,))
+                    # logger.info('mcc = %r' % (mcc,))
                     task_mccs[sublabels.task_name][scoretype] = mcc
         return task_mccs
 
     if 0:
         with ut.Timer('mcc'):
             task_mccs = mcc_hack()
-            print('\nMCC of simple scoring measures:')
+            logger.info('\nMCC of simple scoring measures:')
             df = pd.DataFrame.from_dict(task_mccs, orient='index')
             from utool.experimental.pandas_highlight import to_string_monkey
 
-            print(to_string_monkey(df, highlight_cols=np.arange(len(df.columns))))
+            logger.info(to_string_monkey(df, highlight_cols=np.arange(len(df.columns))))
 
         # _all_dfs.append(df_rf)
         # df_all = pd.concat(_all_dfs, axis=1)
 
         # # Add in the simple scores
         # from utool.experimental.pandas_highlight import to_string_monkey
-        # print(to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
+        # logger.info(to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
 
         # best_name = df_all.columns[df_all.values.argmax()]
         # pt.show_if_requested()
         # import utool
         # utool.embed()
-        # print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
+        # logger.info('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
         # columns = ['Method', 'AUC']
         # data = [
         #     ['1vM-LNBNN',       vsmany_lnbnn_auc],
@@ -1226,4 +1228,4 @@ def vsone_(
         #     'percent_error_decrease': '% error decrease',
         # }
         # header = [col_to_nice.get(c, c) for c in table.columns]
-        # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
+        # logger.info(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from os.path import join  # NOQA
 import cv2
 import numpy as np
@@ -8,6 +9,7 @@ import utool as ut
 import torchvision
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class LRSchedule(object):
@@ -20,7 +22,7 @@ class LRSchedule(object):
             lr *= 0.1
 
         if epoch % lr_decay_epoch == 0:
-            print('LR is set to {}'.format(lr))
+            logger.info('LR is set to {}'.format(lr))
 
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
@@ -75,9 +77,9 @@ def siam_vsone_train():
     vali_dataset = load_dataset(val_idx)
     test_dataset = load_dataset(test_idx)
 
-    print('* len(train_dataset) = {}'.format(len(train_dataset)))
-    print('* len(vali_dataset) = {}'.format(len(vali_dataset)))
-    print('* len(test_dataset) = {}'.format(len(test_dataset)))
+    logger.info('* len(train_dataset) = {}'.format(len(train_dataset)))
+    logger.info('* len(vali_dataset) = {}'.format(len(vali_dataset)))
+    logger.info('* len(test_dataset) = {}'.format(len(test_dataset)))
 
     from wbia.algo.verif.torch import gpu_util
 
@@ -110,7 +112,7 @@ def siam_vsone_train():
     optimizer_cls = netmath.Optimizers.Adam
 
     class_weights = train_dataset.class_weights()
-    print('class_weights = {!r}'.format(class_weights))
+    logger.info('class_weights = {!r}'.format(class_weights))
 
     harn = fit_harness.FitHarness(
         model=model,

@@ -24,11 +24,13 @@ nnkj/enerate this module automagically from
 
     print(parse_codeblock)
 """
+import logging
 from utool import util_arg
 import utool as ut
 
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # Global command line arguments
@@ -43,7 +45,7 @@ def parse_args():
     if args is not None:
         # Only parse arguments once
         if util_arg.VERBOSE:
-            print('[!params] ALREADY INITIALIZED ARGS')
+            logger.info('[!params] ALREADY INITIALIZED ARGS')
         return
     program_name = 'IBEIS - Lite (WARNING THESE ARGS ARE MOSTLY DEPRICATED)'
     description = 'Image Based Ecological Information System'

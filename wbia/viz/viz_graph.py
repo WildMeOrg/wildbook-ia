@@ -9,6 +9,7 @@ WindowsDepends:
     wget http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
     graphviz-2.38.msi
 """
+import logging
 import six
 import utool as ut
 import vtool as vt
@@ -27,6 +28,7 @@ except ImportError as ex:
     ut.printex(ex, 'Cannot import networkx. pip install networkx', iswarning=True)
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def get_name_rowid_edges_from_nids(ibs, nids):
@@ -361,14 +363,14 @@ def viz_netx_chipgraph(
     """
     import wbia.plottool as pt
 
-    print('[viz_graph] drawing chip graph')
+    logger.info('[viz_graph] drawing chip graph')
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=(1, 1, 1))
     ax = pt.gca()
 
     if layout is None:
         layout = 'agraph'
-    print('layout = %r' % (layout,))
+    logger.info('layout = %r' % (layout,))
 
     if use_image:
         ensure_node_images(ibs, graph)
@@ -515,7 +517,7 @@ class AnnotGraphInteraction(AbstractInteraction):
     def print_weights(self, event=None):
         scalars = self.infr.get_scalars()
         for px, (key, vals) in enumerate(scalars.items()):
-            print(key + ' = ' + ut.get_stats_str(vals, use_nan=True))
+            logger.info(key + ' = ' + ut.get_stats_str(vals, use_nan=True))
 
     def plot_weights(self, event=None):
         scalars = self.infr.get_scalars()
@@ -523,7 +525,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
         inter = pt.ExpandableInteraction(fnum=1)
         for px, (key, vals) in enumerate(scalars.items()):
-            print(key + ' = ' + ut.get_stats_str(vals, use_nan=True))
+            logger.info(key + ' = ' + ut.get_stats_str(vals, use_nan=True))
             args = (np.arange(len(vals)), sorted(vals))
             kw = dict(title=key, y_label=key, marker='-o', equal_aspect=False)
             inter.append_partial(pt.plot2, *args, **kw)
@@ -546,10 +548,10 @@ class AnnotGraphInteraction(AbstractInteraction):
         # dlg.resize(700, 500)
         # self = dlg.widget
         # dlg.exec_()
-        # print('self.config = %r' % (self.config,))
+        # logger.info('self.config = %r' % (self.config,))
         # updated_config = dlg.widget.config  # NOQA
-        # print('updated_config = %r' % (updated_config,))
-        # print('self.config = %r' % (self.config,))
+        # logger.info('updated_config = %r' % (updated_config,))
+        # logger.info('self.config = %r' % (self.config,))
 
     def cut(self, event):
         keys = ['min_labels', 'max_labels']
@@ -562,7 +564,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def mark_nomatch(self, event):
-        print('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
+        logger.info('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
 
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
@@ -570,7 +572,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def mark_match(self, event):
-        print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
+        logger.info('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
 
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
@@ -578,7 +580,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def mark_notcomp(self, event):
-        print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
+        logger.info('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
 
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
@@ -586,13 +588,13 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def unselect_all(self, event):
-        print('self.selected_aids = %r' % (self.selected_aids,))
+        logger.info('self.selected_aids = %r' % (self.selected_aids,))
         for aid in self.selected_aids[:]:
             self.toggle_selected_aid(aid)
 
     def confirm(self, event):
-        print('Not done yet')
-        # print(self.infr.current_name_labels)
+        logger.info('Not done yet')
+        # logger.info(self.infr.current_name_labels)
 
     def toggle_imgs(self, event=None):
         self.use_image = not self.use_image
@@ -601,11 +603,11 @@ class AnnotGraphInteraction(AbstractInteraction):
     def show_selected(self, event):
         import wbia.plottool as pt
 
-        print('show_selected')
+        logger.info('show_selected')
         from wbia.viz import viz_chip
 
         fnum = pt.ensure_fnum(10)
-        print('fnum = %r' % (fnum,))
+        logger.info('fnum = %r' % (fnum,))
         pt.figure(fnum=fnum)
         pt.update()
         viz_chip.show_many_chips(self.infr.ibs, self.selected_aids)
@@ -656,8 +658,8 @@ class AnnotGraphInteraction(AbstractInteraction):
             self.highlight_aid(aid, pt.ORANGE)
         # self.static_plot(fnum, pnum)
         self.make_hud()
-        # print(ut.repr2(self.infr.graph.edges, nl=2))
-        print('Finished Plot')
+        # logger.info(ut.repr2(self.infr.graph.edges, nl=2))
+        logger.info('Finished Plot')
 
     def highlight_aid(self, aid, color=None):
         import wbia.plottool as pt
@@ -691,7 +693,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.draw()
 
     def on_key_press(self, event):
-        print(event)
+        logger.info(event)
         infr = self.infr  # NOQA
 
         if event.key == 'r':
@@ -718,9 +720,9 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.ax = ax
         self.event = event
         event = self.event
-        # print(ax)
-        # print(event.x)
-        # print(event.y)
+        # logger.info(ax)
+        # logger.info(event.x)
+        # logger.info(event.y)
         pos = self.plotinfo['node']['pos']
         nodes = list(pos.keys())
         pos_list = ut.dict_take(pos, nodes)
@@ -734,7 +736,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         point = np.array([x, y])
         pos_list = np.array(pos_list)
         index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
-        # print('dist = %r' % (dist,))
+        # logger.info('dist = %r' % (dist,))
         node = nodes[index]
         aid = self.node2_aid[node]
         context_shown = False
@@ -743,7 +745,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         if CHECK_PAIR:
             if self.event.button == 3 and not context_shown:
                 if len(self.selected_aids) != 2:
-                    print('This funciton only work if exactly 2 are selected')
+                    logger.info('This funciton only work if exactly 2 are selected')
                 else:
                     from wbia.gui import inspect_gui
 
@@ -763,7 +765,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         # SELECT_ANNOT = dist < 35
 
         if SELECT_ANNOT:
-            # print(ut.obj_str(ibs.get_annot_info(aid, default=True,
+            # logger.info(ut.obj_str(ibs.get_annot_info(aid, default=True,
             #                                    name=False, gname=False)))
 
             if self.event.button == 1:
@@ -859,7 +861,7 @@ def make_name_graph_interaction(
 
     # import wbia.guitool as gt
     # gt.ensure_qtapp()
-    # print('infr = %r' % (infr,))
+    # logger.info('infr = %r' % (infr,))
     # win = test_qt_graphs(infr=infr, use_image=use_image)
     # self = win
     # gt.qtapp_loop(qwin=win, freq=10)
@@ -917,7 +919,7 @@ def tryout_with_qt():
         def _result_available(self, ok):
             pass
             # frame = self.page().mainFrame()
-            # print(unicode(frame.toHtml()).encode('utf-8'))
+            # logger.info(unicode(frame.toHtml()).encode('utf-8'))
 
     app = QtWidgets.QApplication(sys.argv)
 

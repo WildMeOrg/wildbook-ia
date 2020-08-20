@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import six
 import numpy as np
 import utool as ut
@@ -10,6 +11,7 @@ from wbia.algo.graph.state import POSTV, NEGTV, INCMP, NULL
 from wbia.algo.graph.refresh import RefreshCriteria
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 PRINCETON_KAIA_EDGE_LIST = None
@@ -71,7 +73,7 @@ class InfrLoops(object):
                 max_loops = np.inf
 
         if infr.test_mode:
-            print('------------------ {} -------------------'.format(infr.name))
+            logger.info('------------------ {} -------------------'.format(infr.name))
 
         # Initialize a refresh criteria
         infr.init_refresh()
@@ -132,8 +134,8 @@ class InfrLoops(object):
                     for _ in infr.pos_redun_gen():
                         yield _
 
-                print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
-                print(
+                logger.info('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
+                logger.info(
                     'infr.refresh.num_meaningful = {!r}'.format(
                         infr.refresh.num_meaningful
                     )
@@ -309,7 +311,7 @@ class InfrLoops(object):
 
             include_filter_set = None
             if PRINCETON_KAIA_EDGE_LIST is not None:
-                # print('[mixin_loops] FILTERING EDGES FOR KAIA')
+                # logger.info('[mixin_loops] FILTERING EDGES FOR KAIA')
                 # Sanity check, make sure that one of the edges is in the tier 1 dataset
                 include_filter_set = set(PRINCETON_KAIA_EDGE_LIST)
 
@@ -348,7 +350,7 @@ class InfrLoops(object):
                 for value in gen:
                     yield value
 
-            # print('found_any = {!r}'.format(found_any))
+            # logger.info('found_any = {!r}'.format(found_any))
             if not found_any:
                 break
 
@@ -537,7 +539,7 @@ class InfrReviewers(object):
                 pb_thresh = infr.task_thresh['photobomb_state']['pb']
                 confounded = pb_probs['pb'] > pb_thresh
             except KeyError:
-                print('Warning: confounding task probs not set (i.e. photobombs)')
+                logger.info('Warning: confounding task probs not set (i.e. photobombs)')
                 confounded = False
             if not confounded:
                 # decision = decision_flags.argmax()
@@ -719,8 +721,8 @@ if False:
 
         def run(self):
             # for edges in ub.chunks(self._source, 5):
-            #     print('edges = {!r}'.format(edges))
-            #     # print('put item = {!r}'.format(item))
+            #     logger.info('edges = {!r}'.format(edges))
+            #     # logger.info('put item = {!r}'.format(item))
             #     # probably not thread safe
             #     infr = self.infr
             #     infr.add_candidate_edges(edges)
@@ -729,11 +731,11 @@ if False:
             for _, item in enumerate(self._source):
                 # import threading
                 # import multiprocessing
-                # print('multiproc = ' + str(multiprocessing.current_process()))
-                # print('thread = ' + str(threading.current_thread()))
-                # print('_ = {!r}'.format(_))
-                # print('item = {!r}'.format(item))
-                # print('put item = {!r}'.format(item))
+                # logger.info('multiproc = ' + str(multiprocessing.current_process()))
+                # logger.info('thread = ' + str(threading.current_thread()))
+                # logger.info('_ = {!r}'.format(_))
+                # logger.info('item = {!r}'.format(item))
+                # logger.info('put item = {!r}'.format(item))
                 # probably not thread safe
                 infr = self.infr
                 infr.add_candidate_edges([item])

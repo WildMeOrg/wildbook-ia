@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from os.path import basename, join, splitext, exists, isdir, islink, abspath
 import pandas as pd
 import re
@@ -9,6 +10,7 @@ import matplotlib as mpl
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 DPI = 300
 
@@ -177,7 +179,7 @@ class DBInputs(object):
                     self._precollect()
                 ut.cprint('Checking new fpath', 'yellow')
                 fpath = join(str(self.dpath), expt_name + '.pkl')
-                print('fpath = %r' % (fpath,))
+                logger.info('fpath = %r' % (fpath,))
                 if not exists(fpath):
                     ut.cprint('Results still missing need to re-measure', 'red')
                     # assert False
@@ -186,7 +188,7 @@ class DBInputs(object):
                 else:
                     ut.cprint('Re-setup fixed it', 'green')
             else:
-                print('Experiment results {} exist'.format(expt_name))
+                logger.info('Experiment results {} exist'.format(expt_name))
             self.expt_results[expt_name] = ut.load_data(fpath)
             return self.expt_results[expt_name]
 
@@ -207,9 +209,9 @@ class DBInputs(object):
         #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
         #     >>> ChapX.measure(expt_name, dbnames)
         """
-        print('expt_name = %r' % (expt_name,))
-        print('dbnames = %r' % (dbnames,))
-        print('args = %r' % (args,))
+        logger.info('expt_name = %r' % (expt_name,))
+        logger.info('dbnames = %r' % (dbnames,))
+        logger.info('args = %r' % (args,))
         dbnames = ut.smart_cast(dbnames, list)
         for dbname in dbnames:
             self = ChapX(dbname)
@@ -243,9 +245,9 @@ class DBInputs(object):
         #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
         #     >>> Chap3.draw(expt_name, dbnames)
         """
-        print('expt_name = %r' % (expt_name,))
-        print('dbnames = %r' % (dbnames,))
-        print('args = %r' % (args,))
+        logger.info('expt_name = %r' % (expt_name,))
+        logger.info('dbnames = %r' % (dbnames,))
+        logger.info('args = %r' % (args,))
         dbnames = ut.smart_cast(dbnames, list)
 
         if len(dbnames) > 1:
@@ -262,7 +264,7 @@ class DBInputs(object):
                         ]
                     )
                 )
-            print('\n\n Completed multiple tasks')
+            logger.info('\n\n Completed multiple tasks')
         else:
             ChapX.draw_serial(expt_name, dbnames, *args)
 
@@ -373,7 +375,7 @@ class DBInputs(object):
 
         # ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
-        print('post monkey patch')
+        logger.info('post monkey patch')
         # if False:
         #     ibs.print_annot_stats(aids, prefix='P')
         self.ibs = ibs
@@ -387,8 +389,8 @@ class DBInputs(object):
         #     nid_to_enc = ut.group_items(encounters, nids)
         #     nenc_list = ut.lmap(len, nid_to_enc.values())
         #     hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])
-        #     print('enc per name hist:')
-        #     print(ut.repr2(hist))
+        #     logger.info('enc per name hist:')
+        #     logger.info(ut.repr2(hist))
 
         #     # singletons = [a for a in encounters if len(a) == 1]
         #     multitons = [a for a in encounters if len(a) > 1]
@@ -533,10 +535,10 @@ class ExpandingSample(ut.NiceRepr):
 
         verbose = 0
         if verbose:
-            print(pd.DataFrame.from_records(info_list))
-            print('#qaids = %r' % (len(sample.qaids),))
-            print('num_need = %r' % (n_need,))
-            print('max_dsize = %r' % (max_dsize,))
+            logger.info(pd.DataFrame.from_records(info_list))
+            logger.info('#qaids = %r' % (len(sample.qaids),))
+            logger.info('num_need = %r' % (n_need,))
+            logger.info('max_dsize = %r' % (max_dsize,))
         return sample.qaids, daids_list, info_list
 
 
@@ -555,10 +557,10 @@ def split_tabular(text):
     header = header.strip('\n')
     mid = [b.strip('\n') for b in body1 + body2]
     bot = bot.strip('\n')
-    # print(top)
-    # print(header)
-    # print(body)
-    # print(bot)
+    # logger.info(top)
+    # logger.info(header)
+    # logger.info(body)
+    # logger.info(bot)
     parts = (top, header, mid, bot)
     return parts
 

@@ -2,6 +2,7 @@
 """
 NEEDS CLEANUP
 """
+import logging
 from os.path import join
 import six
 import utool as ut
@@ -10,6 +11,7 @@ from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from wbia.algo.hots.neighbor_index import NeighborIndex, get_support_data
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
@@ -82,7 +84,7 @@ class UUIDMapHyrbridCache(object):
 
     # @profile
     # def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-    #    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
+    #    logger.info('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
     #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
     #        with ut.shelf_open(uuid_map_fpath) as uuid_map:
     #            uuid_map[daids_hashid] = visual_uuid_list
@@ -108,7 +110,7 @@ class UUIDMapHyrbridCache(object):
     #    Also lets nnindexer know about other prebuilt indexers so it can attempt to
     #    just add points to them as to avoid a rebuild.
     #    """
-    #    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
+    #    logger.info('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
     #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
     #        try:
     #            uuid_map = ut.load_cPkl(uuid_map_fpath)
@@ -138,7 +140,7 @@ class UUIDMapHyrbridCache(object):
         just add points to them as to avoid a rebuild.
         """
         if NOCACHE_UUIDS:
-            print('uuid cache is off')
+            logger.info('uuid cache is off')
             return
         # with ut.EmbedOnException():
         uuid_map = self.uuid_maps[uuid_map_fpath]
@@ -251,11 +253,11 @@ def clear_uuid_cache(qreq_):
         >>> result = str(fgws_list)
         >>> print(result)
     """
-    print('[nnindex] clearing uuid cache')
+    logger.info('[nnindex] clearing uuid cache')
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
     ut.delete(uuid_map_fpath)
     ut.delete(uuid_map_fpath + '.lock')
-    print('[nnindex] finished uuid cache clear')
+    logger.info('[nnindex] finished uuid cache clear')
 
 
 def print_uuid_cache(qreq_):
@@ -272,10 +274,10 @@ def print_uuid_cache(qreq_):
         >>> result = str(nnindexer)
         >>> print(result)
     """
-    print('[nnindex] clearing uuid cache')
+    logger.info('[nnindex] clearing uuid cache')
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
     candidate_uuids = UUID_MAP_CACHE.read_uuid_map_dict(uuid_map_fpath, 0)
-    print(candidate_uuids)
+    logger.info(candidate_uuids)
 
 
 def request_wbia_nnindexer(qreq_, verbose=True, **kwargs):
@@ -373,11 +375,11 @@ def request_augmented_wbia_nnindexer(
     else:
         can_augment = False
     if verbose:
-        print('[aug] Requesting augmented nnindexer')
+        logger.info('[aug] Requesting augmented nnindexer')
     if can_augment:
         covered_aids = covered_aids_list[0]
         if verbose:
-            print(
+            logger.info(
                 '[aug] Augmenting index %r old daids with %d new daids'
                 % (len(covered_aids), len(new_daid_list))
             )
@@ -390,7 +392,7 @@ def request_augmented_wbia_nnindexer(
         if NEIGHBOR_CACHE.has_key(  # NOQA (has_key is for a lru cache)
             base_nnindexer.cfgstr
         ):
-            print('Removing key from memcache')
+            logger.info('Removing key from memcache')
             NEIGHBOR_CACHE[base_nnindexer.cfgstr] = None
             del NEIGHBOR_CACHE[base_nnindexer.cfgstr]
 
@@ -416,13 +418,13 @@ def request_augmented_wbia_nnindexer(
             )
         # Write to memcache
         if ut.VERBOSE:
-            print('[aug] Wrote to memcache=%r' % (nnindex_cfgstr,))
+            logger.info('[aug] Wrote to memcache=%r' % (nnindex_cfgstr,))
         NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
         return nnindexer
     else:
         # if ut.VERBOSE:
         if verbose:
-            print('[aug] Nothing to augment, fallback to memcache')
+            logger.info('[aug] Nothing to augment, fallback to memcache')
         # Fallback
         nnindexer = request_memcached_wbia_nnindexer(
             qreq_,
@@ -473,9 +475,11 @@ def request_memcached_wbia_nnindexer(
     global NEIGHBOR_CACHE
     # try:
     if veryverbose:
-        print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %r' % (len(NEIGHBOR_CACHE),))
+        logger.info(
+            '[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %r' % (len(NEIGHBOR_CACHE),)
+        )
         # the lru cache wont be recognized by get_object_size_str, cast to pure python objects
-        print(
+        logger.info(
             '[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s'
             % (ut.get_object_size_str(NEIGHBOR_CACHE.items()),)
         )
@@ -489,11 +493,11 @@ def request_memcached_wbia_nnindexer(
         and NEIGHBOR_CACHE.has_key(nnindex_cfgstr)  # NOQA (has_key is for a lru cache)
     ):
         if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
-            print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
+            logger.info('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
         nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
     else:
         if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
-            print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
+            logger.info('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
         # Write to inverse uuid
         nnindexer = request_diskcached_wbia_nnindexer(
             qreq_,
@@ -508,11 +512,11 @@ def request_memcached_wbia_nnindexer(
         if NEIGHBOR_CACHE_WRITE:
             # Write to memcache
             if ut.VERBOSE or ut.VERYVERBOSE:
-                print('[disk] Write to memcache=%r' % (nnindex_cfgstr,))
+                logger.info('[disk] Write to memcache=%r' % (nnindex_cfgstr,))
             NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
         else:
             if ut.VERBOSE or ut.VERYVERBOSE:
-                print('[disk] Did not write to memcache=%r' % (nnindex_cfgstr,))
+                logger.info('[disk] Did not write to memcache=%r' % (nnindex_cfgstr,))
     return nnindexer
 
 
@@ -568,7 +572,7 @@ def request_diskcached_wbia_nnindexer(
     # Get annot descriptors to index
     if prog_hook is not None:
         prog_hook.set_progress(1, 3, 'Loading support data for indexer')
-    print('[nnindex] Loading support data for indexer')
+    logger.info('[nnindex] Loading support data for indexer')
     vecs_list, fgws_list, fxs_list = get_support_data(qreq_, daid_list)
     if memtrack is not None:
         memtrack.report('[AFTER GET SUPPORT DATA]')
@@ -784,7 +788,7 @@ def check_background_process():
     """
     global CURRENT_THREAD
     if CURRENT_THREAD is None or CURRENT_THREAD.is_alive():
-        print('[FG] background thread is not ready yet')
+        logger.info('[FG] background thread is not ready yet')
         return False
     # Get info set in background process
     finishtup = CURRENT_THREAD.finishtup
@@ -827,12 +831,12 @@ def request_background_nnindexer(qreq_, daid_list):
         >>> print(result)
     """
     global CURRENT_THREAD
-    print('Requesting background reindex')
+    logger.info('Requesting background reindex')
     if not can_request_background_nnindexer():
         # Make sure this function doesn't run if it is already running
-        print('REQUEST DENIED')
+        logger.info('REQUEST DENIED')
         return False
-    print('REQUEST ACCPETED')
+    logger.info('REQUEST ACCPETED')
     daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
     cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
     cachedir = qreq_.ibs.get_flann_cachedir()
@@ -878,7 +882,7 @@ def background_flann_func(
     min_reindex_thresh,
 ):
     r""" FIXME: Duplicate code """
-    print('[BG] Starting Background FLANN')
+    logger.info('[BG] Starting Background FLANN')
     # FIXME. dont use flann cache
     nnindexer = NeighborIndex(flann_params, cfgstr)
     # Initialize neighbor with unindexed data
@@ -887,4 +891,4 @@ def background_flann_func(
     nnindexer.ensure_indexer(cachedir, verbose=True)
     if len(visual_uuid_list) > min_reindex_thresh:
         UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
-    print('[BG] Finished Background FLANN')
+    logger.info('[BG] Finished Background FLANN')

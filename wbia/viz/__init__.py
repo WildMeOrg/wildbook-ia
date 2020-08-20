@@ -3,6 +3,7 @@
 ### __init__.py ###
 # flake8: noqa
 
+import logging
 import utool as ut
 
 ut.noinject(__name__, '[wbia.viz.__init__]', DEBUG=False)
@@ -33,6 +34,7 @@ from wbia.viz.viz_other import chip_montage
 import utool
 
 print, rrr, profile = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 __LOADED__ = False

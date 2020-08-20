@@ -5,6 +5,7 @@ DEPRICATE
 module which uses multiple flann indexes as a way of working around adding
 points to a single flann structure which seems to cause crashes.
 """
+import logging
 import six
 from six.moves import zip, map, range
 import numpy as np
@@ -14,6 +15,7 @@ from wbia.algo.hots import neighbor_index_cache
 from wbia.algo.hots import hstypes
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 USE_FORGROUND_REINDEX = ut.get_argflag(('--use-foreground-reindex', '--fg-reindex'))
@@ -41,9 +43,9 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8, verbose=Tru
     largest_groupsize = max(map(len, aidgroup_list))
     num_bins = min(largest_groupsize, num_indexers)
     if verbose or ut.VERYVERBOSE:
-        print('[mindex] num_indexers = %d ' % (num_indexers,))
-        print('[mindex] largest_groupsize = %d ' % (largest_groupsize,))
-        print('[mindex] num_bins = %d ' % (num_bins,))
+        logger.info('[mindex] num_indexers = %d ' % (num_indexers,))
+        logger.info('[mindex] largest_groupsize = %d ' % (largest_groupsize,))
+        logger.info('[mindex] num_bins = %d ' % (num_bins,))
     # Group annotations for indexing according to the split criteria
     aids_list, overflow_aids = ut.sample_zip(
         aidgroup_list, num_bins, allow_overflow=True, per_bin=1
@@ -141,8 +143,8 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
     max_subindexers = qreq_.qparams.max_subindexers
 
     daid_list = qreq_.get_internal_daids()
-    print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
-    print('[mindex] index_method=%r' % index_method)
+    logger.info('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
+    logger.info('[mindex] index_method=%r' % index_method)
 
     # Split annotations into groups accorindg to index_method
     ibs = qreq_.ibs
@@ -163,7 +165,7 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
         # in the background
         num_subindexers = len(covered_aids_list) + (len(uncovered_aids) > 1)
         if num_subindexers > max_subindexers:
-            print('need to reindex something')
+            logger.info('need to reindex something')
             if USE_FORGROUND_REINDEX:
                 aids_list = [sorted(ut.flatten(covered_aids_list))]
                 # ut.embed()
@@ -182,7 +184,7 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
     nn_indexer_list = []
     # extra_indexes = []
     for tx, aids in enumerate(aids_list):
-        print(
+        logger.info(
             '[mindex] building forest %d/%d with %d aids' % (tx + 1, num_bins, len(aids))
         )
         if len(aids) > 0:
@@ -191,11 +193,11 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
             nnindexer = neighbor_index_cache.request_memcached_wbia_nnindexer(qreq_, aids)
             nn_indexer_list.append(nnindexer)
     # if len(unknown_aids) > 0:
-    #    print('[mindex] building unknown forest')
+    #    logger.info('[mindex] building unknown forest')
     #    unknown_vecs_list = ibs.get_annot_vecs(overflow_aids, config2_=qreq_.get_internal_data_config2())
     #    unknown_index = NeighborIndex(overflow_aids, unknown_vecs_list)
     #    extra_indexes.append(unknown_index)
-    # # print('[mindex] building normalizer forest')  # TODO
+    # # logger.info('[mindex] building normalizer forest')  # TODO
     # mxer.nn_indexer_list = nn_indexer_list
     # mxer.extra_indexes = extra_indexes
     # mxer.overflow_index = overflow_index
@@ -405,7 +407,7 @@ class MultiNeighborIndex(object):
         """
         Chooses indexer with smallest number of annotations and reindexes it.
         """
-        print('adding multi-indexer support')
+        logger.info('adding multi-indexer support')
         raise NotImplementedError()
 
     def add_wbia_support(mxer, qreq_, new_aid_list):
@@ -429,7 +431,7 @@ class MultiNeighborIndex(object):
             >>> # verify results
             >>> print(result)
         """
-        print('adding multi-indexer support')
+        logger.info('adding multi-indexer support')
         # Assert that the aids are indeed new
         mxer.assert_can_add_aids(new_aid_list)
         # Find the indexer to add to

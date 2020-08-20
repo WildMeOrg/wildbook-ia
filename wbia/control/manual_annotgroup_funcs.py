@@ -10,6 +10,7 @@ ToRegenerate:
     python -m wbia.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --diff
     python -m wbia.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
+import logging
 from six.moves import zip
 from wbia import constants as const
 import utool as ut
@@ -17,6 +18,7 @@ from wbia.control import controller_inject
 from wbia.control import accessor_decors  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -131,7 +133,7 @@ def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
     # from wbia.algo.preproc import preproc_annotgroup
     # NO EXTERN IMPORT
     if ut.VERBOSE:
-        print('[ibs] deleting %d annotgroup rows' % len(annotgroup_rowid_list))
+        logger.info('[ibs] deleting %d annotgroup rows' % len(annotgroup_rowid_list))
     # Prepare: Delete externally stored data (if any)
     # preproc_annotgroup.on_delete(ibs, annotgroup_rowid_list, config2_=config2_)
     # NO EXTERN DELETE

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # TODO: Rename api_item_model
+import logging
 from wbia.guitool.__PYQT__ import QtCore  # NOQA
 from types import GeneratorType
 from six.moves import zip, range
@@ -7,6 +8,7 @@ import utool
 import utool as ut
 
 (print, print_, rrr) = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 TREE_NODE_BASE = QtCore.QObject

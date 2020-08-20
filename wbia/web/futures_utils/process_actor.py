@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Implements ProcessActor """
+import logging
 from concurrent.futures import _base
 from concurrent.futures import process
 from multiprocessing.connection import wait
@@ -12,6 +13,7 @@ import multiprocessing
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 # Most of this code is duplicated from the concurrent.futures.thread and
 # concurrent.futures.process modules, writen by Brian Quinlan. The main
@@ -215,8 +217,8 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
         if args or kwargs:
             # If given actor initialization args we must start the Actor
             # immediately. Otherwise just wait until we get a message
-            print('Init with args')
-            print('args = %r' % (args,))
+            logger.info('Init with args')
+            logger.info('args = %r' % (args,))
             self._initialize_actor(*args, **kwargs)
 
     def post(self, message):

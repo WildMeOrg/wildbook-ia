@@ -8,6 +8,7 @@ TODO:
 
 python -c "import wbia"
 """
+import logging
 import utool as ut
 import six
 import sys
@@ -82,6 +83,7 @@ except Exception:
 
 # </flask>
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 # INJECTED_MODULES = []
@@ -128,7 +130,7 @@ def get_flask_app(templates_auto_reload=True):
     global GLOBAL_CAS
     global HAS_FLASK
     if not HAS_FLASK:
-        print('flask is not installed')
+        logger.info('flask is not installed')
         return None
     if GLOBAL_APP is None:
         if hasattr(sys, '_MEIPASS'):
@@ -139,16 +141,18 @@ def get_flask_app(templates_auto_reload=True):
         tempalte_dpath = join(root_dpath, 'web', 'templates')
         static_dpath = join(root_dpath, 'web', 'static')
         if ut.VERBOSE:
-            print('[get_flask_app] root_dpath = %r' % (root_dpath,))
-            print('[get_flask_app] tempalte_dpath = %r' % (tempalte_dpath,))
-            print('[get_flask_app] static_dpath = %r' % (static_dpath,))
-            print('[get_flask_app] GLOBAL_APP_NAME = %r' % (GLOBAL_APP_NAME,))
+            logger.info('[get_flask_app] root_dpath = %r' % (root_dpath,))
+            logger.info('[get_flask_app] tempalte_dpath = %r' % (tempalte_dpath,))
+            logger.info('[get_flask_app] static_dpath = %r' % (static_dpath,))
+            logger.info('[get_flask_app] GLOBAL_APP_NAME = %r' % (GLOBAL_APP_NAME,))
         GLOBAL_APP = flask.Flask(
             GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath
         )
 
         if ut.VERBOSE:
-            print('[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET,))
+            logger.info(
+                '[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET,)
+            )
         GLOBAL_APP.secret_key = GLOBAL_APP_SECRET
 
         if templates_auto_reload:
@@ -178,7 +182,7 @@ try:
         get_flask_app()
 except AttributeError:
     if six.PY3:
-        print('Warning flask is broken in python-3.4.0')
+        logger.info('Warning flask is broken in python-3.4.0')
         GLOBAL_APP_ENABLED = False
         HAS_FLASK = False
     else:
@@ -415,7 +419,7 @@ def translate_wbia_webreturn(
     response = ut.to_json(template)
 
     if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
-        print('[web] Including jQuery callback function: %r' % (jQuery_callback,))
+        logger.info('[web] Including jQuery callback function: %r' % (jQuery_callback,))
         response = '%s(%s)' % (jQuery_callback, response)
     return response
 
@@ -451,8 +455,8 @@ def _process_input(multidict=None):
                 value_ = '"%s"' % (value,)
                 converted = ut.from_json(value_)
             except Exception as ex:
-                print('FAILED TO JSON CONVERT: %s' % (ex,))
-                print(ut.repr3(value))
+                logger.info('FAILED TO JSON CONVERT: %s' % (ex,))
+                logger.info(ut.repr3(value))
                 converted = value
         if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
             if isinstance(converted, str) and ',' in converted:
@@ -517,7 +521,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
     """
     assert len(args) == 0, 'There should not be any args=%r' % (args,)
 
-    # print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+    # logger.info('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
     funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs, truncate=True)
     if 'heartbeat' in funcstr:
@@ -525,7 +529,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
     elif 'metrics' in funcstr:
         pass
     else:
-        print('[TRANSLATE] Calling: %s' % (funcstr,))
+        logger.info('[TRANSLATE] Calling: %s' % (funcstr,))
 
     try:
         key_list = sorted(list(kwargs.keys()))
@@ -575,11 +579,11 @@ def translate_wbia_webcall(func, *args, **kwargs):
                 key_ = key_.rjust(length1)
                 type_ = type_.ljust(length2)
                 try:
-                    print('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_,))
+                    logger.info('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_,))
                 except UnicodeEncodeError:
-                    print('[TRANSLATE] \t %s (%s) : UNICODE ERROR')
+                    logger.info('[TRANSLATE] \t %s (%s) : UNICODE ERROR')
     except Exception:
-        print('[TRANSLATE] ERROR IN KWARGS PARSING')
+        logger.info('[TRANSLATE] ERROR IN KWARGS PARSING')
 
     try:
         # TODO, have better way to differentiate ibs funcs from other funcs
@@ -619,9 +623,9 @@ def translate_wbia_webcall(func, *args, **kwargs):
                     trace = str(traceback.format_exc())
                     msg_list.append(trace)
                 msg = '\n'.join(msg_list)
-            print(msg)
+            logger.info(msg)
             # error_msg = ut.formatex(ex2, msg, tb=True)
-            # print(error_msg)
+            # logger.info(error_msg)
             # error_msg = ut.strip_ansi(error_msg)
             # raise Exception(error_msg)
             raise Exception(msg)
@@ -784,8 +788,8 @@ def crossdomain(
 
     def decorator(f):
         def wrapped_function(*args, **kwargs):
-            print(origin)
-            print(flask.request.method)
+            logger.info(origin)
+            logger.info(flask.request.method)
 
             if automatic_options and flask.request.method == 'OPTIONS':
                 resp = flask.current_app.make_default_options_response()
@@ -796,7 +800,7 @@ def crossdomain(
 
             h = resp.headers
 
-            print(origin)
+            logger.info(origin)
             h['Access-Control-Allow-Origin'] = origin
             h['Access-Control-Allow-Origin'] = '*'
             h['Access-Control-Allow-Methods'] = get_methods()
@@ -859,7 +863,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     # warnings.warn(msg)
                     return ut.identity
                 else:
-                    print('Registering API rule=%r' % (rule_,))
+                    logger.info('Registering API rule=%r' % (rule_,))
 
             try:
                 if not MICROSOFT_API_ENABLED:
@@ -920,7 +924,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     __format__ = False  # Default __format__ value
                     ignore_cookie_set = False
                     try:
-                        # print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+                        # logger.info('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
                         kwargs3 = _process_input(flask.request.form)
@@ -941,8 +945,8 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             jQuery_callback = str(kwargs.pop('callback', None))
                             kwargs.pop('_', None)
 
-                        # print('KWARGS:  %s' % (kwargs, ))
-                        # print('COOKIES: %s' % (request.cookies, ))
+                        # logger.info('KWARGS:  %s' % (kwargs, ))
+                        # logger.info('COOKIES: %s' % (request.cookies, ))
                         __format__ = request.cookies.get('__format__', None)
                         __format__ = kwargs.pop('__format__', __format__)
                         if __format__ is not None:
@@ -967,7 +971,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         rawreturn, success, code, message = resp_tup
                     except WebException as webex:
                         # ut.printex(webex)
-                        print('CAUGHT2: %r' % (webex,))
+                        logger.info('CAUGHT2: %r' % (webex,))
                         rawreturn = webex.get_rawreturn(
                             DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE
                         )
@@ -976,7 +980,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         message = webex.message
                         jQuery_callback = None
                     except Exception as ex:
-                        print('CAUGHT2: %r' % (ex,))
+                        logger.info('CAUGHT2: %r' % (ex,))
                         # ut.printex(ex)
                         rawreturn = None
                         if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
@@ -993,7 +997,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                             """
                         jQuery_callback = None
 
-                    # print('RECEIVED FORMAT: %r' % (__format__, ))
+                    # logger.info('RECEIVED FORMAT: %r' % (__format__, ))
 
                     if __format__:
                         # Hack for readable error messages
@@ -1145,7 +1149,7 @@ def get_wbia_flask_route(__name__):
                     # warnings.warn(msg)
                     return ut.identity
                 else:
-                    print('Registering Route rule=%r' % (rule,))
+                    logger.info('Registering Route rule=%r' % (rule,))
 
             if __route_prefix_check__:
                 assert not rule.startswith(
@@ -1160,7 +1164,7 @@ def get_wbia_flask_route(__name__):
             ), 'A route should always have a specified methods list'
 
             # if '_' in rule:
-            #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
+            #     logger.info('CONSIDER RENAMING RULE: %r' % (rule, ))
             # accpet args to flask.route
             def regsiter_closure(func):
                 # make translation function in closure scope
@@ -1198,7 +1202,7 @@ def get_wbia_flask_route(__name__):
                             kwargs.pop('_', None)
 
                         args = ()
-                        print(
+                        logger.info(
                             'Processing: %r with args: %r and kwargs: %r'
                             % (func, args, kwargs,)
                         )
@@ -1264,12 +1268,12 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001, **k
             value = str(list(value))
         kwargs[key] = value
 
-    print('[REMOTE] %s' % ('-' * 80,))
-    print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url,))
-    print('[REMOTE] \tMethod:  %r' % (remote_api_method,))
+    logger.info('[REMOTE] %s' % ('-' * 80,))
+    logger.info('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url,))
+    logger.info('[REMOTE] \tMethod:  %r' % (remote_api_method,))
     if ut.DEBUG2 or ut.VERBOSE:
-        print('[REMOTE] \tHeaders: %s' % (ut.repr2(headers),))
-        print('[REMOTE] \tKWArgs:  %s' % (ut.repr2(kwargs),))
+        logger.info('[REMOTE] \tHeaders: %s' % (ut.repr2(headers),))
+        logger.info('[REMOTE] \tKWArgs:  %s' % (ut.repr2(kwargs),))
 
     # Make request to server
     try:
@@ -1294,9 +1298,9 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001, **k
     response = req.text
     converted = ut.from_json(value)
     response = converted.get('response', None)
-    print('[REMOTE] got response')
+    logger.info('[REMOTE] got response')
     if ut.DEBUG2:
-        print('response = %s' % (response,))
+        logger.info('response = %s' % (response,))
     return response
 
 
@@ -1316,7 +1320,7 @@ def dev_autogen_explicit_imports():
     import wbia  # NOQA
 
     classname = CONTROLLER_CLASSNAME
-    print(ut.autogen_import_list(classname))
+    logger.info(ut.autogen_import_list(classname))
 
 
 def dev_autogen_explicit_injects():
@@ -1350,7 +1354,7 @@ def dev_autogen_explicit_injects():
 def make_ibs_register_decorator(modname):
     """builds variables and functions that controller injectable modules need."""
     if __name__ == '__main__':
-        print('WARNING: cannot register controller functions as main')
+        logger.info('WARNING: cannot register controller functions as main')
     CLASS_INJECT_KEY = (CONTROLLER_CLASSNAME, modname)
     # Create dectorator to inject these functions into the IBEISController
     register_ibs_unaliased_method = ut.make_class_method_decorator(

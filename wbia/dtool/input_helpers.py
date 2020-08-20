@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import numpy as np
 import six
 import networkx as nx  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__, '[depc_input_helpers]')
+logger = logging.getLogger('wbia')
 
 
 class BranchId(ut.HashComparable):
@@ -211,7 +213,7 @@ def make_expanded_input_graph(graph, target):
         return accum_ids
 
     sources = list(ut.nx_source_nodes(graph))
-    print(sources)
+    logger.info(sources)
     # assert len(sources) == 1, 'expected a unique source'
     source = sources[0]
 
@@ -437,7 +439,7 @@ def sort_rmi_list(rmi_list):
     """
     # Order the input rmis via declaration
     reverse_compute_branches = [rmi.compute_order()[::-1] for rmi in rmi_list]
-    # print('rmi_list = %r' % (rmi_list,))
+    # logger.info('rmi_list = %r' % (rmi_list,))
     # rmi = rmi_list[0]  # hack
     # reverse_compute_branches = [path[::-1] for path in nx.all_simple_paths(rmi.exi_graph, rmi.node, rmi.sink)]
     sort_keys = [

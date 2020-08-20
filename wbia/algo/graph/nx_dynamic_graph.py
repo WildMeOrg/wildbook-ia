@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import networkx as nx
 import itertools as it
 from wbia.algo.graph.nx_utils import edges_inside, e_
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class GraphHelperMixin(ut.NiceRepr):
@@ -252,7 +254,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
 
     def _union(self, u, v):
         """ Incremental connectivity (fast) """
-        # print('Union ({})'.format((u, v)))
+        # logger.info('Union ({})'.format((u, v)))
         self._add_node(u)
         self._add_node(v)
         old_nid1 = self._union_find[u]
@@ -268,7 +270,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
 
     def _add_node(self, n):
         if self._union_find.add_element(n):
-            # print('Add ({})'.format((n)))
+            # logger.info('Add ({})'.format((n)))
             self._ccs[n] = {n}
 
     def _remove_node(self, n):
@@ -293,7 +295,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
 
     def add_edges_from(self, ebunch, **attr):
         ebunch = list(ebunch)
-        # print('add_edges_from %r' % (ebunch,))
+        # logger.info('add_edges_from %r' % (ebunch,))
         for e in ebunch:
             self._union(*e)
         super(DynConnGraph, self).add_edges_from(ebunch, **attr)

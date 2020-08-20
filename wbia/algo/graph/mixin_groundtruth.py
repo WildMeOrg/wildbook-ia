@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import utool as ut
 import numpy as np
 import vtool as vt
@@ -7,6 +8,7 @@ from wbia.algo.graph.nx_utils import ensure_multi_index
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP
 
 print, rrr, profile = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 class Groundtruth(object):

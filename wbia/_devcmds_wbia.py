@@ -3,6 +3,7 @@
 """
 DEPRICATE MOST OF THIS FILE IN FAVOR OF DOCTEST SCRIPTS
 """
+import logging
 import six  # NOQA
 from wbia._devscript import devcmd, devprecmd
 from six.moves import zip
@@ -16,6 +17,7 @@ from wbia.other import ibsfuncs
 from wbia.dbio import ingest_hsdb
 
 (print, rrr, profile) = utool.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def openworkdirs_test():

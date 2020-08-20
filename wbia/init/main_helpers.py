@@ -6,11 +6,13 @@ select subsets of annotations, pipeline configurations, and other filters.
 
 TODO: standardize function signatures
 """
+import logging
 import utool as ut
 import six
 
 # from wbia.init import old_main_helpers
 (print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
+logger = logging.getLogger('wbia')
 
 
 # DEPRICATE
@@ -25,7 +27,7 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 def testdata_filtcfg(default=None):
     from wbia.expt import cfghelpers
 
-    print('[main_helpers] testdata_filtcfg')
+    logger.info('[main_helpers] testdata_filtcfg')
     if default is None:
         default = ['']
     filt_cfg = cfghelpers.parse_argv_cfg(('--filt', '-f'), default=default)[0]
@@ -68,7 +70,7 @@ def testdata_expts(
         >>> print('testres = %r' % (testres,))
     """
     if ut.VERBOSE:
-        print('[main_helpers] testdata_expts')
+        logger.info('[main_helpers] testdata_expts')
     import wbia
     from wbia.expt import harness
 
@@ -132,7 +134,7 @@ def testdata_expts(
     # testres = test_result.combine_testres_list(ibs, testres_list)
 
     if ut.VERBOSE:
-        print(testres)
+        logger.info(testres)
     return ibs, testres
 
 
@@ -176,7 +178,7 @@ def testdata_aids(
     from wbia.expt import cfghelpers
 
     if verbose is None or verbose >= 1:
-        print('[main_helpers] testdata_aids')
+        logger.info('[main_helpers] testdata_aids')
     if a is None:
         a = adefault
     a, _specified_a = ut.get_argval(
@@ -256,10 +258,10 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
         >>> print(result)
     """
     if verbose is None or verbose >= 1:
-        print('[main_helpers] testdata_pipecfg')
+        logger.info('[main_helpers] testdata_pipecfg')
     if t is not None and p is None:
         p = t
-        print('WARNING DO NOT USE t. Use p instead')
+        logger.info('WARNING DO NOT USE t. Use p instead')
     if p is None:
         p = ['default']
 
@@ -325,7 +327,7 @@ def testdata_expanded_aids(
         verbose = 1
 
     if verbose:
-        print('[main_helpers] testdata_expanded_aids')
+        logger.info('[main_helpers] testdata_expanded_aids')
 
     default_qaids = ut.get_argval(
         ('--qaid', '--qaid-override'), type_=list, default=default_qaids
@@ -435,7 +437,7 @@ def testdata_qreq_(
         >>> result = ('qreq_ = %s' % (str(qreq_),))
     """
     if verbose is None or verbose >= 1:
-        print('[main_helpers] testdata_qreq_')
+        logger.info('[main_helpers] testdata_qreq_')
     if t is not None and p is None:
         p = t
     if p is None:
@@ -483,7 +485,7 @@ def testdata_cmlist(
         list, wbia.QueryRequest: cm_list, qreq_
     """
     if verbose is None or verbose >= 1:
-        print('[main_helpers] testdata_cmlist')
+        logger.info('[main_helpers] testdata_cmlist')
     qreq_ = testdata_qreq_(
         defaultdb=defaultdb,
         default_qaids=default_qaids,
@@ -513,7 +515,7 @@ def testdata_cm(
         >>> cm.show_single_annotmatch(qreq_, 2)
         >>> ut.show_if_requested()
     """
-    print('[main_helpers] testdata_cm')
+    logger.info('[main_helpers] testdata_cm')
     cm_list, qreq_ = testdata_cmlist(
         defaultdb=defaultdb,
         default_daids=default_daids,
@@ -523,7 +525,7 @@ def testdata_cm(
         a=a,
     )
     qaids = qreq_.qaids
-    print('qaids = %r' % (qaids,))
+    logger.info('qaids = %r' % (qaids,))
     assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
     cm = cm_list[0]
     return cm, qreq_
@@ -544,7 +546,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
                       for t1, t2 in ut.combinations(times, 2)]
             if deltas:
                 name_mindeltas.append(min(deltas))
-        print(ut.repr3(ut.lmap(ut.get_timedelta_str,
+        logger.info(ut.repr3(ut.lmap(ut.get_timedelta_str,
                                sorted(name_mindeltas))))
     """
     from wbia.algo.preproc.occurrence_blackbox import cluster_timespace_sec
@@ -564,7 +566,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr, enabled=cache)
     data = cacher.tryload()
     if data is None:
-        print('Computing occurrences for monkey patch for %d aids' % (len(aids)))
+        logger.info('Computing occurrences for monkey patch for %d aids' % (len(aids)))
         posixtimes = annots.image_unixtimes_asfloat
         latlons = annots.gps
         data = cluster_timespace_sec(
@@ -591,8 +593,8 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     # enc_names = ut.take_column(encounters.nids, 0)
     # name_to_encounters = ut.group_items(encounters, enc_names)
 
-    # print('name_to_encounters = %s' % (ut.repr3(name_to_encounters)),)
-    # print('Names to num encounters')
+    # logger.info('name_to_encounters = %s' % (ut.repr3(name_to_encounters)),)
+    # logger.info('Names to num encounters')
     # name_to_num_enc = ut.dict_hist(
     #     ut.map_dict_vals(len, name_to_encounters).values())
 

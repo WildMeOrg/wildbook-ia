@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 from wbia.guitool.__PYQT__.QtCore import Qt
 import utool as ut
 import collections
 
 (print, rrr, profile) = ut.inject2(__name__)
+logger = logging.getLogger('wbia')
 
 
 def define_qt_enum(block):
@@ -107,8 +109,8 @@ def parse_window_type_and_flags(self):
     for key, val in WindowTypes.items():
         if bin(val).count('1') == 1:
             pass
-        # print('{:<16s}: 0x{:08b}'.format(key, val))
-        print('{:<16s}: 0x{:08x}'.format(key, val))
+        # logger.info('{:<16s}: 0x{:08b}'.format(key, val))
+        logger.info('{:<16s}: 0x{:08x}'.format(key, val))
 
     has = []
     missing = []
@@ -118,6 +120,6 @@ def parse_window_type_and_flags(self):
             has.append(key)
         else:
             missing.append(key)
-    print('has = %s' % (ut.repr4(has),))
-    print('missing = %s' % (ut.repr4(missing),))
+    logger.info('has = %s' % (ut.repr4(has),))
+    logger.info('missing = %s' % (ut.repr4(missing),))
     pass
