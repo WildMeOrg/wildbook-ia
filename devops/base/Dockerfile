@@ -6,7 +6,7 @@ ARG AZURE_DEVOPS_CACHEBUSTER=0
 
 RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
 
-# Install apt packages
+# Install requirements
 RUN apt-get update \
  && apt-get install -y \
         ca-certificates \
@@ -15,19 +15,12 @@ RUN apt-get update \
         libtbb2 \
         libtbb-dev \
         git \
-        tmux \
-        locate \
-        htop \
-        ipython \
-        ipython3 \
         python \
         python-dev \
         python-pip \
         python3 \
         python3-dev \
         python3-pip \
-        python3-gdbm \
-        graphviz \
         libeigen3-dev \
         libgraphviz-dev \
         libfreetype6-dev \
@@ -42,13 +35,11 @@ RUN apt-get update \
         libopenblas-dev \
         libtbb-dev \
         libtesseract-dev \
-        vim \
         libv4l-dev \
         libavcodec-dev \
         libavformat-dev \
         libswscale-dev \
         libavresample-dev \
-        ffmpeg \
         libpng-dev \
         libjpeg-dev \
         libopenjp2-7-dev \
@@ -56,7 +47,6 @@ RUN apt-get update \
         libtiff-dev \
         libwebp-dev \
         libdc1394-22-dev \
-        unzip \
         libxvidcore-dev \
         libx264-dev \
         libgtk-3-dev \
@@ -66,6 +56,20 @@ RUN apt-get update \
         tesseract-ocr-eng \
         liblz4-dev \
         libhdf5-serial-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install developer tools
+RUN apt-get update \
+ && apt-get install -y \
+        git \
+        tmux \
+        htop \
+        ipython \
+        ipython3 \
+        python3-gdbm \
+        graphviz \
+        vim \
+        unzip \
         xvfb \
  && rm -rf /var/lib/apt/lists/*
 
