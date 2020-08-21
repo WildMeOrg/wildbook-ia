@@ -31,6 +31,13 @@ COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
 
+RUN apt-get update \
+    && apt-get install -y \
+        libgtk-3-dev \
+        libtbb-dev \
+        libdc1394-22-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN ln -s /virtualenv/env3/lib/libgpuarray.so     /usr/lib/libgpuarray.so \
  && ln -s /virtualenv/env3/lib/libgpuarray.so.3   /usr/lib/libgpuarray.so.3 \
  && ln -s /virtualenv/env3/lib/libgpuarray.so.3.0 /usr/lib/libgpuarray.so.3.0
