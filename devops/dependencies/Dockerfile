@@ -6,61 +6,32 @@ RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
 
 # Install OpenCV requirements
 RUN apt-get update \
- && apt-get install -y \
-        ca-certificates \
+    && apt-get install -y \
         build-essential \
+        cmake \
+        git \
         pkg-config \
+        libgtk-3-dev \
+        # libavcodec-dev \
+        # libavformat-dev \
+        libswscale-dev \
+        # libv4l-dev \
+        # libxvidcore-dev \
+        # libx264-dev \
+        libjpeg-dev \
+        libpng-dev \
+        libtiff-dev \
+        gfortran \
+        openexr \
+        libatlas-base-dev \
+        python3-dev \
         libtbb2 \
         libtbb-dev \
-        git \
-        python \
-        python-dev \
-        python-pip \
-        python3 \
-        python3-dev \
-        python3-pip \
-        libeigen3-dev \
-        libgraphviz-dev \
-        libfreetype6-dev \
-        libgdal-dev \
-        libgl1-mesa-glx \
-        libgoogle-glog-dev \
-        libharfbuzz-dev \
-        libhdf5-dev \
-        liblapack-dev \
-        liblapacke-dev \
-        libleptonica-dev \
-        libopenblas-dev \
-        libtbb-dev \
-        libtesseract-dev \
-        libv4l-dev \
-        libavcodec-dev \
-        libavformat-dev \
-        libswscale-dev \
-        libavresample-dev \
-        libpng-dev \
-        libjpeg-dev \
-        libopenjp2-7-dev \
-        libopenexr22 \
-        libtiff-dev \
-        libwebp-dev \
         libdc1394-22-dev \
-        libxvidcore-dev \
-        libx264-dev \
-        libgtk-3-dev \
-        libatlas-base-dev \
-        gfortran \
-        tesseract-ocr \
-        tesseract-ocr-eng \
-        liblz4-dev \
-        libhdf5-serial-dev \
- && rm -rf /var/lib/apt/lists/*
-
+    && rm -rf /var/lib/apt/lists/*
 
 # Clone other Github repositories
-RUN git clone https://github.com/opencv/opencv.git                        /wbia/opencv \
- && git clone https://github.com/opencv/opencv_contrib.git                /wbia/opencv_contrib \
- && git clone https://github.com/Theano/libgpuarray.git                   /wbia/libgpuarray \
+RUN git clone https://github.com/Theano/libgpuarray.git                   /wbia/libgpuarray \
  && git clone https://github.com/Theano/Theano.git                        /wbia/Theano \
  && git clone https://github.com/networkx/networkx.git                    /wbia/networkx
 
@@ -72,29 +43,40 @@ RUN /virtualenv/env3/bin/pip install \
 ARG OPENCV_VERSION=3.4.10
 
 # Install OpenCV
-RUN . /virtualenv/env3/bin/activate \
- && cd /wbia/opencv \
- && git checkout $OPENCV_VERSION \
- && cd /wbia/opencv_contrib \
- && git checkout $OPENCV_VERSION \
- && rm -rf /wbia/opencv/build \
- && mkdir -p /wbia/opencv/build \
- && cd /wbia/opencv/build \
- && cmake \
+RUN set -ex \
+    && cd /tmp \
+    && git clone https://github.com/opencv/opencv.git \
+    && git clone https://github.com/opencv/opencv_contrib.git \
+    && cd /tmp/opencv \
+    && git checkout $OPENCV_VERSION \
+    && cd /tmp/opencv_contrib \
+    && git checkout $OPENCV_VERSION \
+    && rm -rf /tmp/opencv/build \
+    && mkdir -p /tmp/opencv/build \
+    && cd /tmp/opencv/build \
+    && cmake -G "Unix Makefiles" \
      -D CMAKE_C_COMPILER=gcc \
      -D CMAKE_CXX_COMPILER=g++ \
      -D CMAKE_BUILD_TYPE=RELEASE \
      -D CMAKE_INSTALL_PREFIX=/virtualenv/env3 \
+     ############################################################
+     -D OPENCV_GENERATE_PKGCONFIG=ON \
      -D ENABLE_PRECOMPILED_HEADERS=OFF \
+     -D BUILD_opencv_apps=OFF \
+     -D BUILD_SHARED_LIBS=OFF \
+     -D BUILD_TESTS=OFF \
+     -D BUILD_PERF_TESTS=OFF \
      -D BUILD_DOCS=OFF \
-     -D BUILD_EXAMPLES=ON \
+     -D BUILD_EXAMPLES=OFF \
      -D BUILD_opencv_java=OFF \
      -D BUILD_opencv_python3=ON \
      -D BUILD_NEW_PYTHON_SUPPORT=ON \
      -D INSTALL_C_EXAMPLES=OFF \
-     -D INSTALL_PYTHON_EXAMPLES=ON \
+     -D INSTALL_PYTHON_EXAMPLES=OFF \
+     -D INSTALL_CREATE_DISTRIB=ON \
      -D BUILD_JPEG=ON \
      -D BUILD_HDR=ON \
+     -D BUILD_TIFF=ON \
      -D WITH_MATLAB=OFF \
      -D WITH_TBB=ON \
      -D WITH_CUDA=ON \
@@ -103,8 +85,15 @@ RUN . /virtualenv/env3/bin/activate \
      -D WITH_AVFOUNDATION=ON \
      -D WITH_JPEG=ON \
      -D WITH_HDR=ON \
-     -D WITH_V4L=ON \
+     -D WITH_V4L=OFF \
      -D WITH_GDAL=ON \
+     -D WITH_WIN32UI=OFF \
+     -D WITH_QT=OFF \
+     -D ENABLE_FAST_MATH=1 \
+     -D CUDA_FAST_MATH=1 \
+     -D OPENCV_ENABLE_NONFREE=ON \
+     -D OPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib/modules \
+     ############################################################
      -D PYTHON_EXECUTABLE=/virtualenv/env3/bin/python \
      -D PYTHON_INCLUDE_DIR=/virtualenv/env3/include/python3.6m \
      -D PYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.6m.so \
@@ -115,16 +104,13 @@ RUN . /virtualenv/env3/bin/activate \
      -D PYTHON3_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.6m.so \
      -D PYTHON3_PACKAGES_PATH=/virtualenv/env3/lib/python3.6/site-packages \
      -D PYTHON3_NUMPY_INCLUDE_DIRS=/virtualenv/env3/lib/python3.6/site-packages/numpy/core/include \
-     -D ENABLE_FAST_MATH=1 \
-     -D CUDA_FAST_MATH=1 \
-     -D OPENCV_ENABLE_NONFREE=ON \
-     -D OPENCV_EXTRA_MODULES_PATH=/wbia/opencv_contrib/modules \
+     ############################################################
      .. \
- && make -j2 \
- && make install \
- && ldconfig \
- && cd .. \
- && rm -rf /wbia/opencv/build
+    && make -j9 \
+    && make install \
+    && ldconfig \
+    && cd .. \
+    && rm -rf /tmp/*
 
 RUN ln -s /virtualenv/env3/lib/python3.6/site-packages/cv2/python-3.6/cv2.cpython-36m-x86_64-linux-gnu.so /virtualenv/env3/lib/python3.6/site-packages/cv2.so
 
@@ -132,7 +118,8 @@ RUN /virtualenv/env3/bin/pip install \
     cython==0.28.1
 
 # Install libgpuarray (pygpu)
-RUN cd /wbia/libgpuarray \
+RUN set -ex \
+ && cd /wbia/libgpuarray \
  && git checkout 04c2892 \
  && mkdir -p /wbia/libgpuarray/build \
  && cd /wbia/libgpuarray/build \
@@ -147,8 +134,12 @@ RUN cd /wbia/libgpuarray \
  && /virtualenv/env3/bin/pip install -e . \
  && rm -rf /wbia/libgpuarray/build
 
+
 # Install basic Python3 dependencies (and ones that were missing in IBEIS install)
-RUN /virtualenv/env3/bin/pip install \
+RUN set -ex \
+    && apt-get update \
+    && apt-get install -y libgraphviz-dev \
+    && /virtualenv/env3/bin/pip install \
     ipython==6.2.1 \
     pyqt5==5.10.1 \
     Pillow==6.2.1 \
@@ -173,7 +164,8 @@ RUN /virtualenv/env3/bin/pip install \
     line-profiler==2.1.2 \
     gdm==0.8.2 \
     prometheus-client==0.5.0 \
-    docker==4.0.2
+    docker==4.0.2 \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN /virtualenv/env3/bin/pip install git+https://github.com/aleju/imgaug \
  && /virtualenv/env3/bin/pip install git+https://github.com/cameronbwhite/Flask-CAS.git@10ee70466ac9e71cec3602c1cd46f0566618f67e \
