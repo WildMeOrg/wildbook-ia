@@ -4,6 +4,59 @@ ARG AZURE_DEVOPS_CACHEBUSTER=0
 
 RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
 
+# Install OpenCV requirements
+RUN apt-get update \
+ && apt-get install -y \
+        ca-certificates \
+        build-essential \
+        pkg-config \
+        libtbb2 \
+        libtbb-dev \
+        git \
+        python \
+        python-dev \
+        python-pip \
+        python3 \
+        python3-dev \
+        python3-pip \
+        libeigen3-dev \
+        libgraphviz-dev \
+        libfreetype6-dev \
+        libgdal-dev \
+        libgl1-mesa-glx \
+        libgoogle-glog-dev \
+        libharfbuzz-dev \
+        libhdf5-dev \
+        liblapack-dev \
+        liblapacke-dev \
+        libleptonica-dev \
+        libopenblas-dev \
+        libtbb-dev \
+        libtesseract-dev \
+        libv4l-dev \
+        libavcodec-dev \
+        libavformat-dev \
+        libswscale-dev \
+        libavresample-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libopenjp2-7-dev \
+        libopenexr22 \
+        libtiff-dev \
+        libwebp-dev \
+        libdc1394-22-dev \
+        libxvidcore-dev \
+        libx264-dev \
+        libgtk-3-dev \
+        libatlas-base-dev \
+        gfortran \
+        tesseract-ocr \
+        tesseract-ocr-eng \
+        liblz4-dev \
+        libhdf5-serial-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+
 # Clone other Github repositories
 RUN git clone https://github.com/opencv/opencv.git                        /wbia/opencv \
  && git clone https://github.com/opencv/opencv_contrib.git                /wbia/opencv_contrib \
