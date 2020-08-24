@@ -114,6 +114,8 @@ RUN set -ex \
 
 RUN ln -s /virtualenv/env3/lib/python3.6/site-packages/cv2/python-3.6/cv2.cpython-36m-x86_64-linux-gnu.so /virtualenv/env3/lib/python3.6/site-packages/cv2.so
 
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate && python3 -c "import cv2; print(cv2.getBuildInformation())"'
+
 RUN /virtualenv/env3/bin/pip install \
     cython==0.28.1
 
