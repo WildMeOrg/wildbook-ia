@@ -136,38 +136,8 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install -e . \
  && rm -rf /wbia/libgpuarray/build
 
-
-# Install basic Python3 dependencies (and ones that were missing in IBEIS install)
 RUN set -ex \
-    && /virtualenv/env3/bin/pip install \
-    ipython==6.2.1 \
-    pyqt5==5.10.1 \
-    Pillow==6.2.1 \
-    futures_actors==0.0.5 \
-    scikit-image==0.15.0 \
-    mako==1.0.7 \
-    boto==2.49.0 \
-    colorama==0.3.9 \
-    jupyter==1.0.0 \
-    ansi2html==1.5.2 \
-    shapely==1.6.4.post2 \
-    pyshp==2.1.0 \
-    setproctitle==1.1.10 \
-    matplotlib==3.0.2 \
-    torch==1.0.1.post2 \
-    torchvision==0.2.1 \
-    flask_swagger==0.2.13 \
-    PyQt5-sip==4.19.13 \
-    sip==4.19.8 \
-    tqdm==4.26.0 \
-    pytesseract==0.2.6 \
-    line-profiler==2.1.2 \
-    gdm==0.8.2 \
-    prometheus-client==0.5.0 \
-    docker==4.0.2
-
-RUN /virtualenv/env3/bin/pip install git+https://github.com/aleju/imgaug \
- && /virtualenv/env3/bin/pip install git+https://github.com/cameronbwhite/Flask-CAS.git@10ee70466ac9e71cec3602c1cd46f0566618f67e \
+ && /virtualenv/env3/bin/pip install git+https://github.com/aleju/imgaug \
  && /virtualenv/env3/bin/pip install git+https://github.com/pwaller/pyfiglet.git@6dabdb0e720b5a61d81ff819faf0ad86127275fc
 
 # Install pygraphviz (for developer use)
