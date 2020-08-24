@@ -1,4 +1,4 @@
-cmake
+cmake!=3.18.2
 ninja
 scikit-build
 setuptools>=42
