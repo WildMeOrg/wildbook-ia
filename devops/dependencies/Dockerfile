@@ -139,8 +139,6 @@ RUN set -ex \
 
 # Install basic Python3 dependencies (and ones that were missing in IBEIS install)
 RUN set -ex \
-    && apt-get update \
-    && apt-get install -y libgraphviz-dev \
     && /virtualenv/env3/bin/pip install \
     ipython==6.2.1 \
     pyqt5==5.10.1 \
@@ -166,13 +164,18 @@ RUN set -ex \
     line-profiler==2.1.2 \
     gdm==0.8.2 \
     prometheus-client==0.5.0 \
-    docker==4.0.2 \
- && rm -rf /var/lib/apt/lists/*
+    docker==4.0.2
 
 RUN /virtualenv/env3/bin/pip install git+https://github.com/aleju/imgaug \
  && /virtualenv/env3/bin/pip install git+https://github.com/cameronbwhite/Flask-CAS.git@10ee70466ac9e71cec3602c1cd46f0566618f67e \
- && /virtualenv/env3/bin/pip install git+https://github.com/pwaller/pyfiglet.git@6dabdb0e720b5a61d81ff819faf0ad86127275fc \
- && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
+ && /virtualenv/env3/bin/pip install git+https://github.com/pwaller/pyfiglet.git@6dabdb0e720b5a61d81ff819faf0ad86127275fc
+
+# Install pygraphviz (for developer use)
+RUN set -ex \
+    && apt-get update \
+    && apt-get install -y libgraphviz-dev \
+    && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/" \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 RUN cd /wbia/Theano \
