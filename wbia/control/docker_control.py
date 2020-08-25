@@ -10,9 +10,12 @@ logger = logging.getLogger('wbia')
 
 try:
     import docker
+    import wbia_deepsense  # noqa
 
     DOCKER_CLIENT = docker.from_env()
     assert DOCKER_CLIENT is not None
+except ModuleNotFoundError:
+    logger.info('Docker or wbia_deepsense not available')
 except Exception:
     logger.info('Local docker client is not available')
     DOCKER_CLIENT = None
