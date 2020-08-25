@@ -68,6 +68,44 @@ def docker_register_config(
     }
 
 
+def is_local_port_open(port):
+    """
+    Args:
+        port (int):
+
+    Returns:
+        bool:
+
+    References:
+        http://stackoverflow.com/questions/7436801/identifying-listening-ports-using-python
+
+    CommandLine:
+        python -m utool.util_web is_local_port_open --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_web import *  # NOQA
+        >>> port = 32183
+        >>> assert is_local_port_open(80) is False, 'port 80 should always be closed'
+        >>> assert is_local_port_open(port) is True, 'maybe this port is actually used?'
+    """
+    import socket
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result1 = s.connect_ex(('localhost', port))
+    result2 = s.connect_ex(('127.0.0.1', port))
+    result3 = s.connect_ex(('0.0.0.0', port))  # Support for Docker networking
+    s.close()
+    return (result1 != 0 and result2 != 0) or (result3 != 0)
+
+
+def find_open_port(base=5000, blacklist=[]):
+    port = base
+    while port in blacklist or not is_local_port_open(port):
+        port += 1
+    return port
+
+
 @register_ibs_method
 # runs an image, returns url to container
 def docker_run(
@@ -78,8 +116,23 @@ def docker_run(
     assert '_external_suggested_port' in override_run_args
     assert '_internal_port' in override_run_args
 
-    ext_port = ut.find_open_port(override_run_args['_external_suggested_port'])
-    port_key = '%d/tcp' % (override_run_args['_internal_port'],)
+    blacklist_ports = []
+    container_dict = ibs.docker_container_status_dict()
+    for status in container_dict:
+        for container_name in container_dict[status]:
+            container = ibs.docker_get_container(container_name)
+            option_list = ibs.docker_container_IP_port_options(container)
+            print(container_name, option_list)
+            for option in option_list:
+                url, port = option
+                if port is not None:
+                    port = int(port)
+                    blacklist_ports.append(port)
+    blacklist_ports = sorted(list(set(blacklist_ports)))
+
+    ext_port = find_open_port(override_run_args['_external_suggested_port'], blacklist_ports)
+    port_key = '%d/tcp' % (override_run_args['_internal_port'], )
+
     # remove underscore args from run_args
     key_list = list(override_run_args.keys())
     for key in key_list:
