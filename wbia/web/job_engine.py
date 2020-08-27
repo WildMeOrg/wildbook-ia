@@ -50,7 +50,7 @@ Notes:
     And then running the forground process
         python -m wbia.web.job_engine job_engine_tester --fg
 """
-
+from __future__ import absolute_import, division, print_function, unicode_literals
 # if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
@@ -68,8 +68,8 @@ import flask
 from os.path import join, exists, abspath, splitext, basename
 from functools import partial
 from wbia.control import controller_inject
-import threading
-import six
+import multiprocessing
+
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -84,13 +84,12 @@ ctx = zmq.Context.instance()
 
 # FIXME: needs to use correct number of ports
 URL = 'tcp://127.0.0.1'
-NUM_ENGINES = 1
+NUM_ENGINES = 3
 VERBOSE_JOBS = (
     ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
 )
 
-
-GLOBAL_SHELVE_LOCK = threading.Lock()
+GLOBAL_SHELVE_LOCK = multiprocessing.Lock()
 
 
 TIMESTAMP_FMTSTR = '%Y-%m-%d %H:%M:%S %Z'
@@ -132,11 +131,7 @@ def _get_engine_lock_paths(ibs):
 @register_ibs_method
 def retry_job(ibs, jobid):
     shelve_path = ibs.get_shelves_path()
-<<<<<<< HEAD:wbia/web/job_engine.py
     job_record_filename = '%s.pkl' % (jobid,)
-=======
-    job_record_filename = '%s.pkl' % (jobid, )
->>>>>>> f993b3a10... Updates for API and query calls:ibeis/web/job_engine.py
     job_record_filepath = join(shelve_path, job_record_filename)
     assert exists(job_record_filepath)
 
@@ -510,7 +505,7 @@ class JobBackend(object):
         }
 
     def initialize_background_processes(
-        self, dbdir=None, containerized=False, thread=True
+        self, dbdir=None, containerized=False, thread=False
     ):
         # if VERBOSE_JOBS:
         logger.info('Initialize Background Processes')
@@ -1794,14 +1789,7 @@ def on_collect_request(
 
                 # Check response
                 try:
-<<<<<<< HEAD:wbia/web/job_engine.py
-                    if six.PY2:
-                        text = unicode(response.text).encode('utf-8')  # NOQA
-                    else:
-                        text = response.text.encode('utf-8')
-=======
                     text = unicode(response.text).encode('utf-8')  # NOQA
->>>>>>> f993b3a10... Updates for API and query calls:ibeis/web/job_engine.py
                 except Exception:
                     text = None
 
@@ -1965,10 +1953,8 @@ def _on_ctrl_c(signal, frame):
 
 def _init_signals():
     import signal
-
-<<<<<<< HEAD:wbia/web/job_engine.py
     signal.signal(signal.SIGINT, _on_ctrl_c)
-=======
+
 
 if __name__ == '__main__':
     """
@@ -1981,4 +1967,3 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()
->>>>>>> f993b3a10... Updates for API and query calls:ibeis/web/job_engine.py

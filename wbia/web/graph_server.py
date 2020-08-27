@@ -1,16 +1,72 @@
 # -*- coding: utf-8 -*-
-import logging
+from __future__ import absolute_import, division, print_function, unicode_literals
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from wbia.control import controller_inject
+import logging
 import utool as ut
 import concurrent
 import random
 import time
 
-# from wbia.web import futures_utils as futures_actors
-import futures_actors
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
+
+
+(print, rrr, profile) = ut.inject2(__name__)
+
+
+class ProcessActorExecutor(ProcessPoolExecutor):
+    def __init__(self, actor_class, *args, **kwargs):
+        """Initializes a new ThreadPoolExecutor instance.
+        """
+        super(ProcessActorExecutor, self).__init__(*args, **kwargs)
+        self.actor_instance = actor_class()
+
+    def post(self, payload):
+        self.submit(self.actor_instance.handle, payload)
+
+
+class ThreadedActorExecutor(ThreadPoolExecutor):
+    def __init__(self, actor_class, *args, **kwargs):
+        """Initializes a new ThreadPoolExecutor instance.
+        """
+        super(ThreadedActorExecutor, self).__init__(*args, **kwargs)
+        self.actor_instance = actor_class()
+
+    def post(self, payload):
+        self.submit(self.actor_instance.handle, payload)
+
+
+class Actor(object):
+    @classmethod
+    def executor(cls):
+        """
+        Creates an asychronous instance of this Actor and returns the executor
+        to manage it.
+        """
+        raise NotImplementedError('use ProcessActor or ThreadActor')
+
+    def handle(self, message):
+        """
+        This method recieves, handles, and responds to the messages sent from
+        the executor. This function can return arbitrary values. These values
+        can be accessed from the main thread using the Future object returned
+        when the message was posted to this actor by the executor.
+        """
+        raise NotImplementedError('must implement message handler')
+
+
+class ProcessActor(Actor):
+    @classmethod
+    def executor(cls, *args, **kwargs):
+        return ProcessActorExecutor(cls, *args, **kwargs)
+
+
+class ThreadActor(Actor):
+    @classmethod
+    def executor(cls, *args, **kwargs):
+        return ThreadedActorExecutor(cls, *args, **kwargs)
 
 
 def double_review_test():
@@ -99,7 +155,8 @@ def _test_foo(future):
     logger.info('FOO %r' % (future,))
 
 
-GRAPH_ACTOR_CLASS = futures_actors.ProcessActor
+# GRAPH_ACTOR_CLASS = ProcessActor if ut.LINUX or ut.WIN32 else ThreadActor
+GRAPH_ACTOR_CLASS = ProcessActor
 
 
 class GraphActor(GRAPH_ACTOR_CLASS):

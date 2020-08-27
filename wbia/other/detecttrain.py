@@ -861,6 +861,19 @@ def detector_train(ibs):
 
 @register_ibs_method
 def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kwargs):
+    """
+    Example:
+    >>> values = output_path, X_file, y_file
+    >>> print(values)
+    >>> output_path, X_file, y_file = values
+    >>> from ibeis_cnn.models.background import train_background
+    >>> values = (
+    >>>     '/data/ibeis/IMS_Master/_ibsdb/_ibeis_cache/training/background',
+    >>>     '/data/ibeis/IMS_Master/_ibsdb/_ibeis_cache/extracted/background/raw/X.npy',
+    >>>     '/data/ibeis/IMS_Master/_ibsdb/_ibeis_cache/extracted/background/labels/y.npy'
+    >>> )
+    >>> output_path, X_file, y_file = values
+    """
     from wbia_cnn.ingest_wbia import get_background_training_patches2
     from wbia_cnn.process import numpy_processed_directory2
     from wbia_cnn.models.background import train_background
