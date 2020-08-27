@@ -594,7 +594,7 @@ class Chap5(DBInputs):
                 df = df.reindex(neworder, axis=1)
 
                 df_str = df.to_string()
-                cols = ['blue', 'red', 'green', 'teal']
+                cols = ['blue', 'red', 'green', 'cyan']
                 df_str = ut.highlight_multi_regex(
                     df_str,
                     {

@@ -167,7 +167,11 @@ def start_tornado(
                 )
 
         # Add more verbose logging
-        utool_logfile_handler = ut.util_logging.__CURRENT_LOGFILE_HANDLER__
+        try:
+            utool_logfile_handler = ut.util_logging.__UTOOL_ROOT_LOGGER__
+        except Exception:
+            utool_logfile_handler = None
+
         if utool_logfile_handler is not None:
             logger_list = []
             try:

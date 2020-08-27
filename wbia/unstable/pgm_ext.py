@@ -54,9 +54,9 @@ def customize_model(model):
         ut.colorprint('\n --- CPD Templates ---', 'blue')
         for temp_cpd in templates:
             if temp_cpd.ttype not in ignore_ttypes:
-                ut.colorprint(temp_cpd._cpdstr('psql'), 'turquoise')
+                ut.colorprint(temp_cpd._cpdstr('psql'), 'brightcyan')
 
-    def print_priors(model, ignore_ttypes=[], title='Priors', color='darkblue'):
+    def print_priors(model, ignore_ttypes=[], title='Priors', color='blue'):
         ut.colorprint('\n --- %s ---' % (title,), color=color)
         for ttype, cpds in model.ttype2_cpds.items():
             if ttype not in ignore_ttypes:

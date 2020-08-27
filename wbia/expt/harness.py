@@ -122,7 +122,7 @@ def run_expt(
         assert len(daids) != 0, '[harness] No database annotas specified'
         acfg = acfg_list[acfgx]
         if ut.NOT_QUIET:
-            ut.colorprint('\n---Annot config testnameid=%r' % (testnameid,), 'turquoise')
+            ut.colorprint('\n---Annot config testnameid=%r' % (testnameid,), 'brightcyan')
         subindexer_partial = ut.ProgPartial(
             parent_index=acfgx, parent_length=nAcfg, enabled=ut.NOT_QUIET
         )
@@ -200,7 +200,7 @@ def make_single_testres(
             pass
         else:
             if ut.NOT_QUIET:
-                ut.colorprint('[harn] single testres cache hit... returning', 'turquoise')
+                ut.colorprint('[harn] single testres cache hit... returning', 'brightcyan')
             return testres
 
     if ibs.table_cache:
@@ -220,8 +220,8 @@ def make_single_testres(
             'annot_cfgstr = %s' % (qreq_.get_cfgstr(with_input=True, with_pipe=False),),
             'yellow',
         )
-        cprint('pipe_cfgstr= %s' % (qreq_.get_cfgstr(with_data=False),), 'turquoise')
-        cprint('pipe_hashstr = %s' % (qreq_.get_pipe_hashid(),), 'teal')
+        cprint('pipe_cfgstr= %s' % (qreq_.get_cfgstr(with_data=False),), 'brightcyan')
+        cprint('pipe_hashstr = %s' % (qreq_.get_pipe_hashid(),), 'cyan')
         if DRY_RUN:
             continue
 

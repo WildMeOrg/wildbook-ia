@@ -4,6 +4,13 @@
 dev.py was moved to wbia/dev.py
 Now runnable via python -m wbia.dev
 """
+from __future__ import absolute_import, division, print_function
+
+try:
+    import torch.multiprocessing as mp
+    mp.set_start_method('spawn')
+except RuntimeError:
+    pass
 
 # try:
 #     from os.path import abspath, exists

@@ -676,7 +676,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         model.print_templates()
         # ut.colorprint('\n --- CPD Templates ---', 'blue')
         # for temp_cpd in templates:
-        #    ut.colorprint(temp_cpd._cpdstr('psql'), 'turquoise')
+        #    ut.colorprint(temp_cpd._cpdstr('psql'), 'cyan')
     # print_ascii_graph(model)
     return model
 

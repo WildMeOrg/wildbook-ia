@@ -60,6 +60,8 @@ class Actor(object):
 class ProcessActor(Actor):
     @classmethod
     def executor(cls, *args, **kwargs):
+        # assert 'mp_context' not in kwargs
+        # kwargs['mp_context'] = multiprocessing.get_context('spawn')
         return ProcessActorExecutor(cls, *args, **kwargs)
 
 
@@ -156,7 +158,7 @@ def _test_foo(future):
 
 
 # GRAPH_ACTOR_CLASS = ProcessActor if ut.LINUX or ut.WIN32 else ThreadActor
-GRAPH_ACTOR_CLASS = ProcessActor
+GRAPH_ACTOR_CLASS = ThreadActor
 
 
 class GraphActor(GRAPH_ACTOR_CLASS):

@@ -323,13 +323,13 @@ class SimulationHelpers(object):
                 if not was_gt_pos:
                     infr.test_gt_pos_graph.add_edge(*edge)
         elif was_gt_pos:
-            test_print('UNDID GOOD POSITIVE EDGE', color='darkred')
+            test_print('UNDID GOOD POSITIVE EDGE', color='red')
             infr.test_gt_pos_graph.remove_edge(*edge)
             is_within_gt = infr.test_gt_pos_graph.are_nodes_connected(*edge)
 
         split_gt = is_within_gt != was_within_gt
         if split_gt:
-            test_print('SPLIT A GOOD MERGE', color='darkred')
+            test_print('SPLIT A GOOD MERGE', color='red')
             infr.test_state['n_true_merges'] -= 1
 
         confusion = infr.test_state['confusion']
@@ -363,30 +363,30 @@ class SimulationHelpers(object):
                 else:
                     infr.mistake_edges.remove(edge)
                     test_action = 'correction'
-                    action_color = 'darkgreen'
+                    action_color = 'green'
                     if decision == POSTV:
                         if not was_within_gt:
                             test_action = 'correction redid merge'
-                            action_color = 'darkgreen'
+                            action_color = 'green'
                             infr.test_state['n_true_merges'] += 1
             else:
                 if decision == POSTV:
                     if not was_within_gt:
                         test_action = 'correct merge'
-                        action_color = 'darkgreen'
+                        action_color = 'green'
                         infr.test_state['n_true_merges'] += 1
                     else:
                         test_action = 'correct redundant positive'
-                        action_color = 'darkblue'
+                        action_color = 'blue'
                 else:
                     if decision == NEGTV:
                         test_action = 'correct negative'
-                        action_color = 'teal'
+                        action_color = 'cyan'
                     else:
                         test_action = 'correct uninferrable'
-                        action_color = 'teal'
+                        action_color = 'cyan'
         else:
-            action_color = 'darkred'
+            action_color = 'red'
             # INCORRECT DECISION
             infr.mistake_edges.add(edge)
             if was_reviewed:

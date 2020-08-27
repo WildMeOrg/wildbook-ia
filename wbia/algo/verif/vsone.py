@@ -927,7 +927,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         clf_keys = pblm.eval_clf_keys
         data_keys = pblm.eval_data_keys
         logger.info('data_keys = %r' % (data_keys,))
-        ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'turquoise')
+        ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'brightcyan')
         labels = pblm.samples.subtasks[task_key]
         if getattr(pblm, 'simple_aucs', None) is not None:
             pblm.report_simple_scores(task_key)
@@ -977,7 +977,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # selected_data_keys[task_key].append(best_data_key)
 
             combo_res = data_combo_res[best_data_key]
-            ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,), 'darkgreen')
+            ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,), 'green')
             with ut.Indenter('[%s] ' % (best_data_key,)):
                 combo_res.extended_clf_report()
             res = combo_res

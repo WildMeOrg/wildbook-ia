@@ -409,7 +409,7 @@ class InfrLoops(object):
                 infr.print(
                     'Still recovering after %d iterations' % (count,),
                     3,
-                    color='turquoise',
+                    color='brightcyan',
                 )
             else:
                 # Do not check for refresh if we are recovering
@@ -552,7 +552,7 @@ class InfrReviewers(object):
                             edge, truth, review['evidence_decision'], decision_probs
                         ),
                         2,
-                        color='darkred',
+                        color='red',
                     )
                 auto_flag = True
         if auto_flag and infr.verbose > 1:
