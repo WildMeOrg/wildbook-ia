@@ -14,3 +14,5 @@ services:
     build: .
     command: ["sleep", "infinity"]
     env_file: ./.dockerfiles/docker-compose.env
+    ports:
+      - "5000:5000"
