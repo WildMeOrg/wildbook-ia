@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # See also conftest.py documentation at https://docs.pytest.org/en/stable/fixture.html#conftest-py-sharing-fixture-functions
 """This module is implicitly used by ``pytest`` to load testing configuration and fixtures."""
+import os
+from functools import wraps
 from pathlib import Path
 
 import pytest
@@ -25,6 +27,64 @@ TEST_DBNAMES = (
     'testdb_guiall',
     'wd_peter2',
 )
+
+
+# Global marker for determining the availablity of postgres
+# set by db_uri fixture and used by requires_postgresql decorator
+_POSTGRES_AVAILABLE = None
+
+
+#
+# Decorators
+#
+
+
+def requires_postgresql(func):
+    """Test decorator to mark a test that requires postgresql
+
+    Usage:
+
+        @requires_postgresql
+        def test_postgres_thing():
+            # testing logic that requires postgres...
+            assert True
+
+    """
+    # Firstly, skip if psycopg2 is not installed
+    try:
+        import psycopg2  # noqa:
+    except ImportError:
+        pytest.mark.skip('psycopg2 is not installed')(func)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # We'll only know if we can connect to postgres during execution.
+        if not _POSTGRES_AVAILABLE:  # see db_uri fixture for value definition
+            pytest.skip('requires a postgresql connection URI')
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+#
+#  Fixtures
+#
+
+
+@pytest.fixture(scope='session', autouse=True)
+def db_uri():
+    """The DB URI to use with the tests.
+    This value comes from ``WBIA_TESTING_BASE_DB_URI``.
+    """
+    # TODO (28-Aug-12020) Should we depend on the user supplying this value?
+    #      Perhaps not at this level? Fail if not specified?
+    uri = os.getenv('WBIA_TESTING_BASE_DB_URI', '')
+
+    # Set postgres availablity marker
+    global _POSTGRES_AVAILABLE
+    _POSTGRES_AVAILABLE = uri.startswith('postgres')
+
+    return uri
 
 
 @pytest.fixture
