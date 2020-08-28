@@ -457,8 +457,17 @@ def spawn_background_process(func, *args, **kwargs):
 class JobBackend(object):
     def __init__(self, **kwargs):
         # self.num_engines = 3
-        self.num_engines = NUM_ENGINES
         self.engine_queue_proc = None
+        self.engine_lanes = ['fast', 'slow']
+
+        for lane in self.engine_lanes:
+            self.engine_lanes[lane] = lane.lower()
+        assert 'slow' in self.engine_lanes
+
+        self.num_engines = {
+            lane: NUM_ENGINES
+            for lane in self.engine_lanes
+        }
         self.engine_procs = None
         self.collect_queue_proc = None
         self.collect_proc = None
@@ -478,8 +487,9 @@ class JobBackend(object):
         if VERBOSE_JOBS:
             logger.info('Cleaning up job backend')
         if self.engine_procs is not None:
-            for i in self.engine_procs:
-                i.terminate()
+            for lane in self.engine_procs:
+                for i in self.engine_procs[lane]:
+                    i.terminate()
         if self.engine_queue_proc is not None:
             self.engine_queue_proc.terminate()
         if self.collect_proc is not None:
@@ -495,12 +505,11 @@ class JobBackend(object):
             'collect_pull_url',
             'collect_push_url',
             'engine_pull_url',
-            'engine_push_url',
+            # 'engine_push_url',
             # 'collect_pushpull_url',
         ]
-        # for index in range(self.num_engines):
-        #     key_list.append('worker_url1.%d' % (index, ))
-        #     key_list.append('worker_url2.%d' % (index, ))
+        for lane in range(self.engine_lanes):
+            key_list.append('engine_%s_push_url' % (lane, ))
 
         # Get ports
         if use_static_ports:
@@ -537,7 +546,7 @@ class JobBackend(object):
             return proc
 
         if self.spawn_queue:
-            self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict)
+            self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict, self.engine_lanes)
             self.collect_queue_proc = _spawner(collect_queue_loop, self.port_dict)
 
         if self.spawn_collector:
@@ -554,10 +563,12 @@ class JobBackend(object):
                 assert False, 'should never see this'
             else:
                 # Normal case
-                self.engine_procs = [
-                    _spawner(engine_loop, i, self.port_dict, dbdir, containerized)
-                    for i in range(self.num_engines)
-                ]
+                for lane in self.engine_lanes:
+                    if lane not in self.engine_procs:
+                        self.engine_procs[lane] = []
+                    for i in range(self.num_engines[lane]):
+                        proc = _spawner(engine_loop, i, self.port_dict, dbdir, containerized, lane)
+                        self.engine_procs[lane].append(proc)
 
         # Check if online
         # wait for processes to spin up
@@ -569,8 +580,10 @@ class JobBackend(object):
             assert self.collect_proc.is_alive(), 'collector died too soon'
 
         if self.spawn_engine:
-            for engine in self.engine_procs:
-                assert engine.is_alive(), 'engine died too soon'
+            for engine in self.engine_fast_procs:
+                assert engine.is_alive(), 'fast engine died too soon'
+            for engine in self.engine_slow_procs:
+                assert engine.is_alive(), 'slow engine died too soon'
 
 
 def get_shelve_lock_filepath(shelve_filepath):
@@ -750,6 +763,8 @@ class JobInterface(object):
                     if jobcounter is None:
                         logger.info('Missing jobcounter...corrupted')
                         corrupted = True
+                    else:
+                        completed_jobcounter = max(completed_jobcounter, jobcounter)
 
                     job_age = None
                     if not corrupted and completed:
@@ -839,8 +854,6 @@ class JobInterface(object):
                     jobid_ = reply['jobid']
                     # assert jobcounter_ == jobcounter
                     assert jobid_ == jobid
-                    if not corrupted and jobcounter is not None:
-                        completed_jobcounter = max(completed_jobcounter, jobcounter)
                     num_registered += 1
 
             logger.info('Registered %d jobs...' % (num_registered,))
@@ -1081,7 +1094,7 @@ def collect_queue_loop(port_dict):
             logger.info('Exiting %s' % (loop_name,))
 
 
-def engine_queue_loop(port_dict):
+def engine_queue_loop(port_dict, engine_lanes):
     """
     Specialized queue loop
     """
@@ -1095,7 +1108,10 @@ def engine_queue_loop(port_dict):
     print = partial(ut.colorprint, color='red')
 
     interface_engine_pull = port_dict['engine_pull_url']
-    interface_engine_push = port_dict['engine_push_url']
+    interface_engine_push_dict = {
+        lane: port_dict['engine_%s_push_url' % (lane, )]
+        for lane in engine_lanes
+    }
     interface_collect_pull = port_dict['collect_pull_url']
 
     with ut.Indenter('[%s] ' % (queue_name,)):
@@ -1109,11 +1125,14 @@ def engine_queue_loop(port_dict):
             logger.info('bind %s_url2 = %r' % (name, interface_engine_pull,))
 
         # bind the server router to the queue dealer
-        engine_send_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
-        engine_send_socket.setsockopt_string(zmq.IDENTITY, 'special_queue.' + name + '.' + 'DEALER')
-        engine_send_socket.bind(interface_engine_push)
-        if VERBOSE_JOBS:
-            logger.info('bind %s_url2 = %r' % (name, interface_engine_push,))
+        engine_send_socket_dict = {}
+        for lane in interface_engine_push_dict:
+            engine_send_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
+            engine_send_socket.setsockopt_string(zmq.IDENTITY, 'special_queue.' + lane + '.' + name + '.' + 'DEALER')
+            engine_send_socket.bind(interface_engine_push_dict[lane])
+            if VERBOSE_JOBS:
+                logger.info('bind %s %s_url2 = %r' % (name, lane, interface_engine_push_dict[lane],))
+            engine_send_socket_dict[lane] = engine_send_socket
 
         collect_recieve_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
         collect_recieve_socket.setsockopt_string(zmq.IDENTITY, queue_name + '.collect.DEALER')
@@ -1124,7 +1143,9 @@ def engine_queue_loop(port_dict):
         # but this shows what is really going on:
         poller = zmq.Poller()
         poller.register(engine_receive_socket, zmq.POLLIN)
-        poller.register(engine_send_socket, zmq.POLLIN)
+        for lane in engine_send_socket_dict:
+            engine_send_socket = engine_send_socket_dict[lane]
+            poller.register(engine_send_socket, zmq.POLLIN)
 
         # always start at 0
         global_jobcounter = 0
@@ -1164,6 +1185,14 @@ def engine_queue_loop(port_dict):
                     restart_jobid = engine_request.get('restart_jobid', None)
                     restart_jobcounter = engine_request.get('restart_jobcounter', None)
                     restart_received = engine_request.get('restart_received', None)
+                    lane = engine_request.get('lane', 'slow')
+
+                    if lane not in engine_lanes:
+                        print('WARNING: did not recognize desired lane %r from %r' % (lane, engine_lanes, ))
+                        print('WARNING: Defaulting to slow lane')
+                        lane = 'slow'
+
+                    engine_request[lane] = lane
 
                     if restart_jobid is not None:
                         '[RESTARTING] Replacing jobid=%s with previous restart_jobid=%s' % (
@@ -1265,6 +1294,7 @@ def engine_queue_loop(port_dict):
                     if VERBOSE_JOBS:
                         logger.info('... notifying backend engine to start')
                     # CALL: engine_
+                    engine_send_socket = engine_send_socket_dict[lane]
                     send_multipart_json(engine_send_socket, idents, engine_request)
 
                     # Release
@@ -1283,9 +1313,6 @@ def engine_queue_loop(port_dict):
                         logger.info('...notifying collector that job was queued')
                     # CALLS: collector_notify
                     collect_recieve_socket.send_json(queued_notify)
-
-                if engine_send_socket in evts:
-                    print('engine_send_socket PASS')
         except KeyboardInterrupt:
             logger.info('Caught ctrl+c in %s queue. Gracefully exiting' % (loop_name,))
 
@@ -1293,7 +1320,7 @@ def engine_queue_loop(port_dict):
             logger.info('Exiting %s queue' % (loop_name,))
 
 
-def engine_loop(id_, port_dict, dbdir, containerized):
+def engine_loop(id_, port_dict, dbdir, containerized, lane):
     r"""
     IBEIS:
         This will be part of a worker process with its own IBEISController
@@ -1311,17 +1338,19 @@ def engine_loop(id_, port_dict, dbdir, containerized):
     #base_print = print  # NOQA
     print = partial(ut.colorprint, color='brightgreen')
     with ut.Indenter('[engine %d] ' % (id_)):
+        interface_engine_push = port_dict['engine_%s_push_url' % (lane, )]
+
         if VERBOSE_JOBS:
             logger.info('Initializing engine')
-            logger.info('connect engine_push_url = %r' % (port_dict['engine_push_url'],))
+            logger.info('connect engine_lane_push_url = %r' % (interface_engine_push,))
         assert dbdir is not None
 
         engine_send_sock = ctx.socket(zmq.ROUTER)  # CHECKED - ROUTER
-        engine_send_sock.setsockopt_string(zmq.IDENTITY, 'engine.%s' % (id_, ))
-        engine_send_sock.connect(port_dict['engine_push_url'])
+        engine_send_sock.setsockopt_string(zmq.IDENTITY, 'engine.%s.%s' % (lane, id_, ))
+        engine_send_sock.connect(interface_engine_push)
 
         collect_recieve_socket = ctx.socket(zmq.DEALER)
-        collect_recieve_socket.setsockopt_string(zmq.IDENTITY, 'engine.%s.collect.DEALER' % (id_, ))
+        collect_recieve_socket.setsockopt_string(zmq.IDENTITY, 'engine.%s.%s.collect.DEALER' % (lane, id_, ))
         collect_recieve_socket.connect(port_dict['collect_pull_url'])
 
         if VERBOSE_JOBS:
@@ -1334,8 +1363,6 @@ def engine_loop(id_, port_dict, dbdir, containerized):
         try:
             while True:
                 idents, engine_request = rcv_multipart_json(engine_send_sock, print=print)
-                print('%r' % (idents, ))
-                print('%r' % (engine_request, ))
 
                 action = engine_request['action']
                 jobid = engine_request['jobid']
@@ -1343,12 +1370,15 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                 kwargs = engine_request['kwargs']
                 callback_url = engine_request['callback_url']
                 callback_method = engine_request['callback_method']
+                lane_ = engine_request['lane']
 
                 if VERBOSE_JOBS:
                     print('\tjobid = %r' % (jobid,))
                     print('\taction = %r' % (action,))
                     print('\targs = %r' % (args,))
                     print('\tkwargs = %r' % (kwargs,))
+                    print('\tlane = %r' % (lane,))
+                    print('\tlane_ = %r' % (lane_,))
 
                 # Notify start working
                 reply_notify = {
@@ -1357,14 +1387,6 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                     'status': 'working',
                     'action': 'notification',
                 }
-                print('\tjobid = %r, notify: working' % (jobid, ))
-                reply_notify['version'] = 1
-                reply_notify['id_'] = id_
-                send_multipart_json(collect_recieve_socket, [], reply_notify)
-                # reply_notify['version'] = 2
-                # send_multipart_json(collect_recieve_socket, idents, reply_notify)
-                reply_notify['version'] = 3
-                reply_notify['id_'] = id_
                 collect_recieve_socket.send_json(reply_notify)
 
                 engine_result = on_engine_request(ibs, jobid, action, args, kwargs)
@@ -1377,8 +1399,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                     'status': 'publishing',
                     'action': 'notification',
                 }
-                send_multipart_json(collect_recieve_socket, [], reply_notify)
-                # collect_recieve_socket.send_json(reply_notify)
+                collect_recieve_socket.send_json(reply_notify)
 
                 # Store results in the collector
                 collect_request = {
@@ -1395,8 +1416,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                 )
 
                 # CALLS: collector_store
-                send_multipart_json(collect_recieve_socket, [], collect_request)
-                # collect_recieve_socket.send_json(collect_request)
+                collect_recieve_socket.send_json(collect_request)
 
                 # Notify start working
                 reply_notify = {
@@ -1405,8 +1425,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                     'status': exec_status,
                     'action': 'notification',
                 }
-                send_multipart_json(collect_recieve_socket, [], reply_notify)
-                # collect_recieve_socket.send_json(reply_notify)
+                collect_recieve_socket.send_json(reply_notify)
 
                 # We no longer need the engine result, and can clear it's memory
                 engine_request = None
