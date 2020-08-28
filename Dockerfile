@@ -117,5 +117,7 @@ EXPOSE 5000
 WORKDIR /data
 USER wbia
 
-# FIXME (4-Jun-12020) Use entrypoint script so that it'll be versatile and capable of running different ways.
-ENTRYPOINT ["python3", "-m", "wbia.dev", "--dbdir", "/data/db", "--logdir", "/data/logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
+COPY .dockerfiles/docker-entrypoint.sh /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["python3", "-m", "wbia.dev", "--dbdir", "/data/db", "--logdir", "/data/logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
