@@ -84,7 +84,7 @@ ctx = zmq.Context.instance()
 
 # FIXME: needs to use correct number of ports
 URL = 'tcp://127.0.0.1'
-NUM_ENGINES = 3
+NUM_ENGINES = 1 if ut.get_argflag('--serial-job-lanes') else 3
 VERBOSE_JOBS = (
     ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
 )
@@ -320,6 +320,16 @@ def get_job_status(ibs, jobid=None):
     return status
 
 
+# @register_ibs_method
+# @register_api('/api/engine/job/terminate/', methods=['GET', 'POST'])
+# def send_job_terminate(ibs, jobid):
+#     """
+#     Web call that terminates a job
+#     """
+#     success = ibs.job_manager.jobiface.terminate_job(jobid)
+#     return success
+
+
 @register_ibs_method
 @register_api(
     '/api/engine/job/metadata/', methods=['GET', 'POST'], __api_plural_check__=False
@@ -460,8 +470,7 @@ class JobBackend(object):
         self.engine_queue_proc = None
         self.engine_lanes = ['fast', 'slow']
 
-        for lane in self.engine_lanes:
-            self.engine_lanes[lane] = lane.lower()
+        self.engine_lanes = [lane.lower() for lane in self.engine_lanes]
         assert 'slow' in self.engine_lanes
 
         self.num_engines = {
@@ -488,14 +497,26 @@ class JobBackend(object):
             logger.info('Cleaning up job backend')
         if self.engine_procs is not None:
             for lane in self.engine_procs:
-                for i in self.engine_procs[lane]:
-                    i.terminate()
+                for engine in self.engine_procs[lane]:
+                    try:
+                        engine.terminate()
+                    except Exception:
+                        pass
         if self.engine_queue_proc is not None:
-            self.engine_queue_proc.terminate()
+            try:
+                self.engine_queue_proc.terminate()
+            except Exception:
+                pass
         if self.collect_proc is not None:
-            self.collect_proc.terminate()
+            try:
+                self.collect_proc.terminate()
+            except Exception:
+                pass
         if self.collect_queue_proc is not None:
-            self.collect_queue_proc.terminate()
+            try:
+                self.collect_queue_proc.terminate()
+            except Exception:
+                pass
         if VERBOSE_JOBS:
             logger.info('Killed external procs')
 
@@ -508,7 +529,7 @@ class JobBackend(object):
             # 'engine_push_url',
             # 'collect_pushpull_url',
         ]
-        for lane in range(self.engine_lanes):
+        for lane in self.engine_lanes:
             key_list.append('engine_%s_push_url' % (lane, ))
 
         # Get ports
@@ -563,6 +584,9 @@ class JobBackend(object):
                 assert False, 'should never see this'
             else:
                 # Normal case
+                if self.engine_procs is None:
+                    self.engine_procs = {}
+
                 for lane in self.engine_lanes:
                     if lane not in self.engine_procs:
                         self.engine_procs[lane] = []
@@ -580,10 +604,9 @@ class JobBackend(object):
             assert self.collect_proc.is_alive(), 'collector died too soon'
 
         if self.spawn_engine:
-            for engine in self.engine_fast_procs:
-                assert engine.is_alive(), 'fast engine died too soon'
-            for engine in self.engine_slow_procs:
-                assert engine.is_alive(), 'slow engine died too soon'
+            for lane in self.engine_procs:
+                for engine in self.engine_procs[lane]:
+                    assert engine.is_alive(), 'engine died too soon'
 
 
 def get_shelve_lock_filepath(shelve_filepath):
@@ -657,6 +680,133 @@ def get_shelve_filepaths(ibs, jobid):
     return shelve_input_filepath, shelve_output_filepath
 
 
+def initialize_process_record(record_filepath,
+                              shelve_input_filepath, shelve_output_filepath,
+                              shelve_path, shelve_archive_path,
+                              collect_pull_interface, jobiface_id):
+
+    collect_recieve_socket = ctx.socket(zmq.DEALER)
+    collect_recieve_socket.connect(collect_pull_interface)
+
+    MAX_ATTEMPTS = 20
+    ARCHIVE_DAYS = 14
+
+    timezone = pytz.timezone(TIMESTAMP_TIMEZONE)
+    now = datetime.now(timezone)
+    now = now.replace(microsecond=0)
+    now = now.replace(second=0)
+    now = now.replace(minute=0)
+    now = now.replace(hour=0)
+
+    archive_delta = timedelta(days=ARCHIVE_DAYS)
+    archive_date = now - archive_delta
+    archive_timestamp = archive_date.strftime(TIMESTAMP_FMTSTR)
+
+    jobid = splitext(basename(record_filepath))[0]
+    jobcounter = None
+
+    # Load the engine record
+    record = ut.load_cPkl(record_filepath, verbose=False)
+
+    # Load the record info
+    engine_request = record.get('request', None)
+    attempts = record.get('attempts', 0)
+    completed = record.get('completed', False)
+
+    # Check status
+    suppressed = attempts >= MAX_ATTEMPTS
+    corrupted = engine_request is None
+
+    # Load metadata
+    metadata = get_shelve_value(shelve_input_filepath, 'metadata')
+
+    if metadata is None:
+        print('Missing metadata...corrupted')
+        corrupted = True
+
+    archived = False
+    if not corrupted:
+        jobcounter = metadata.get('jobcounter', None)
+        times = metadata.get('times', {})
+
+        if jobcounter is None:
+            print('Missing jobcounter...corrupted')
+            corrupted = True
+
+        job_age = None
+        if not corrupted and completed:
+            completed_timestamp = times.get('completed', None)
+            if completed_timestamp is not None:
+                try:
+                    archive_elapsed = calculate_timedelta(completed_timestamp, archive_timestamp)
+                    job_age = archive_elapsed[-1]
+                    archived = job_age > 0
+                except Exception:
+                    args = (completed_timestamp, archive_timestamp, )
+                    print('[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r' % args)
+
+            if archived:
+                with ut.Indenter('[client %d] ' % (jobiface_id)):
+                    color = 'brightmagenta'
+                    print_ = partial(ut.colorprint, color=color)
+                    print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age, ))
+                    job_scr_filepath_list = list(ut.iglob(join(shelve_path, '%s*' % (jobid, ))))
+                    for job_scr_filepath in job_scr_filepath_list:
+                        job_dst_filepath = job_scr_filepath.replace(shelve_path, shelve_archive_path)
+                        ut.copy(job_scr_filepath, job_dst_filepath, overwrite=True)  # ut.copy allows for overwrite, ut.move does not
+                        ut.delete(job_scr_filepath)
+
+    if archived:
+        # We have archived the job, don't bother registering it
+        engine_request = None
+    else:
+        if completed or suppressed or corrupted:
+            # Register the job, pass the jobcounter and jobid only
+            engine_request = None
+
+            if completed:
+                status = 'completed'
+            elif suppressed:
+                status = 'suppressed'
+            else:
+                status = 'corrupted'
+
+            reply_notify = {
+                'jobid': jobid,
+                'status': status,
+                'action': 'register',
+            }
+            collect_recieve_socket.send_json(reply_notify)
+            # reply = jobiface.collect_recieve_socket.recv_json()
+            # jobid_ = reply['jobid']
+            # assert jobid_ == jobid
+        else:
+            # We have a pending job, restart with the original request
+            with ut.Indenter('[client %d] ' % (jobiface_id)):
+                color = 'brightblue' if attempts == 0 else 'brightred'
+                print_ = partial(ut.colorprint, color=color)
+
+                print_('RESTARTING FAILED JOB FROM RESTART (ATTEMPT %d)' % (attempts + 1, ))
+                print_(ut.repr3(record_filepath))
+                # print_(ut.repr3(record))
+
+                times = metadata.get('times', {})
+                received = times['received']
+
+                engine_request['restart_jobid'] = jobid
+                engine_request['restart_jobcounter'] = jobcounter
+                engine_request['restart_received'] = received
+                record['attempts'] = attempts + 1
+
+                ut.save_cPkl(record_filepath, record, verbose=False)
+
+    collect_recieve_socket.disconnect(collect_pull_interface)
+    collect_recieve_socket.close()
+
+    values = jobcounter, jobid, engine_request, archived, completed, suppressed, corrupted
+    return values
+
+
 class JobInterface(object):
     def __init__(jobiface, id_, port_dict, ibs=None):
         jobiface.id_ = id_
@@ -665,6 +815,16 @@ class JobInterface(object):
         jobiface.port_dict = port_dict
         logger.info('JobInterface ports:')
         ut.print_dict(jobiface.port_dict)
+
+    def __del__(jobiface):
+        if VERBOSE_JOBS:
+            print('Cleaning up job frontend')
+        if jobiface.engine_recieve_socket is not None:
+            jobiface.engine_recieve_socket.disconnect(jobiface.port_dict['engine_pull_url'])
+            jobiface.engine_recieve_socket.close()
+        if jobiface.collect_recieve_socket is not None:
+            jobiface.collect_recieve_socket.disconnect(jobiface.port_dict['collect_pull_url'])
+            jobiface.collect_recieve_socket.close()
 
     # def init(jobiface):
     #     # Starts several new processes
@@ -702,20 +862,6 @@ class JobInterface(object):
         ibs = jobiface.ibs
 
         if ibs is not None:
-            MAX_ATTEMPTS = 20
-            ARCHIVE_DAYS = 14
-
-            timezone = pytz.timezone(TIMESTAMP_TIMEZONE)
-            now = datetime.now(timezone)
-            now = now.replace(microsecond=0)
-            now = now.replace(second=0)
-            now = now.replace(minute=0)
-            now = now.replace(hour=0)
-
-            archive_delta = timedelta(days=ARCHIVE_DAYS)
-            archive_date = now - archive_delta
-            archive_timestamp = archive_date.strftime(TIMESTAMP_FMTSTR)
-
             shelve_path = ibs.get_shelves_path()
             shelve_path = shelve_path.rstrip('/')
             shelve_archive_path = '%s_ARCHIVE' % (shelve_path,)
@@ -723,153 +869,87 @@ class JobInterface(object):
 
             record_filepath_list = _get_engine_job_paths(ibs)
 
+            num_records = len(record_filepath_list)
+            logger.info('Reloading %d engine jobs...' % (num_records, ))
+
+            shelve_input_filepath_list = []
+            shelve_output_filepath_list = []
+            for record_filepath in record_filepath_list:
+                jobid = splitext(basename(record_filepath))[0]
+                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+                shelve_input_filepath_list.append(shelve_input_filepath)
+                shelve_output_filepath_list.append(shelve_output_filepath)
+
+            collect_pull_interface = jobiface.port_dict['collect_pull_url']
+
+            arg_iter = list(zip(
+                record_filepath_list,
+                shelve_input_filepath_list,
+                shelve_output_filepath_list,
+                [shelve_path] * num_records,
+                [shelve_archive_path] * num_records,
+                [collect_pull_interface] * num_records,
+                [jobiface.id_] * num_records,
+            ))
+            values_list = ut.util_parallel.generate2(
+                initialize_process_record,
+                arg_iter,
+            )
+            values_list = list(values_list)
+
             restart_jobcounter_list = []
             restart_jobid_list = []
             restart_request_list = []
 
-            completed_jobcounter = 0
-            num_registered, num_archived, num_suppressed, num_corrupted = 0, 0, 0, 0
-            logger.info('Reloading %d engine jobs...' % (len(record_filepath_list),))
-            for record_filepath in tqdm.tqdm(record_filepath_list):
-                jobid = splitext(basename(record_filepath))[0]
+            global_jobcounter = 0
+            num_registered, num_restarted = 0, 0
+            num_completed, num_archived, num_suppressed, num_corrupted = 0, 0, 0, 0
 
-                # Load the engine record
-                record = ut.load_cPkl(record_filepath, verbose=False)
+            for values in values_list:
+                jobcounter, jobid, engine_request, archived, completed, suppressed, corrupted = values
 
-                # Load the record info
-                engine_request = record.get('request', None)
-                attempts = record.get('attempts', 0)
-                completed = record.get('completed', False)
+                if archived:
+                    assert engine_request is None
+                    num_archived += 1
+                    continue
 
-                # Check status
-                suppressed = attempts >= MAX_ATTEMPTS
-                corrupted = engine_request is None
+                if jobcounter is not None:
+                    global_jobcounter = max(global_jobcounter, jobcounter)
 
-                # Load metadata
-                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(
-                    ibs, jobid
-                )
-                metadata = get_shelve_value(shelve_input_filepath, 'metadata')
-
-                if metadata is None:
-                    logger.info('Missing metadata...corrupted')
-                    corrupted = True
-
-                archive_flag = False
-                if not corrupted:
-                    jobcounter = metadata.get('jobcounter', None)
-                    times = metadata.get('times', {})
-
-                    if jobcounter is None:
-                        logger.info('Missing jobcounter...corrupted')
-                        corrupted = True
-                    else:
-                        completed_jobcounter = max(completed_jobcounter, jobcounter)
-
-                    job_age = None
-                    if not corrupted and completed:
-                        completed_timestamp = times.get('completed', None)
-                        if completed_timestamp is not None:
-                            try:
-                                archive_elapsed = calculate_timedelta(
-                                    completed_timestamp, archive_timestamp
-                                )
-                                job_age = archive_elapsed[-1]
-                                archive_flag = job_age > 0
-                            except Exception:
-                                args = (
-                                    completed_timestamp,
-                                    archive_timestamp,
-                                )
-                                logger.info(
-                                    '[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r'
-                                    % args
-                                )
-
-                        if archive_flag:
-                            with ut.Indenter('[client %d] ' % (jobiface.id_)):
-                                color = 'brightmagenta'
-                                print_ = partial(ut.colorprint, color=color)
-                                print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age,))
-                                job_scr_filepath_list = list(
-                                    ut.iglob(join(shelve_path, '%s*' % (jobid,)))
-                                )
-                                for job_scr_filepath in job_scr_filepath_list:
-                                    job_dst_filepath = job_scr_filepath.replace(
-                                        shelve_path, shelve_archive_path
-                                    )
-                                    ut.copy(
-                                        job_scr_filepath,
-                                        job_dst_filepath,
-                                        overwrite=True,
-                                    )  # ut.copy allows for overwrite, ut.move does not
-                                    ut.delete(job_scr_filepath)
-                            num_archived += 1
-
-                if not archive_flag and True not in [completed, suppressed, corrupted]:
-                    with ut.Indenter('[client %d] ' % (jobiface.id_)):
-                        color = 'brightblue' if attempts == 0 else 'brightred'
-                        print_ = partial(ut.colorprint, color=color)
-
-                        print_(
-                            'RESTARTING FAILED JOB FROM RESTART (ATTEMPT %d)'
-                            % (attempts + 1,)
-                        )
-                        print_(ut.repr3(record_filepath))
-                        # print_(ut.repr3(record))
-
-                        times = metadata.get('times', {})
-                        received = times['received']
-
-                        engine_request['restart_jobid'] = jobid
-                        engine_request['restart_jobcounter'] = jobcounter
-                        engine_request['restart_received'] = received
-
-                        restart_jobcounter_list.append(jobcounter)
-                        restart_jobid_list.append(jobid)
-                        restart_request_list.append(engine_request)
-                        record['attempts'] = attempts + 1
-
-                        ut.save_cPkl(record_filepath, record, verbose=False)
-
-                # We may have suppressed this for being corrupted
-                if not archive_flag and True in [completed, suppressed, corrupted]:
+                if engine_request is None:
+                    assert not archived
                     if completed:
-                        status = 'completed'
+                        num_completed += 1
                     elif suppressed:
-                        status = 'suppressed'
                         num_suppressed += 1
                     else:
-                        status = 'corrupted'
                         num_corrupted += 1
+                else:
+                    num_restarted += 1
+                    restart_jobcounter_list.append(jobcounter)
+                    restart_jobid_list.append(jobid)
+                    restart_request_list.append(engine_request)
 
-                    reply_notify = {
-                        'jobid': jobid,
-                        'status': status,
-                        'action': 'register',
-                    }
-                    jobiface.collect_recieve_socket.send_json(reply_notify)
-                    reply = jobiface.collect_recieve_socket.recv_json()
-                    # jobcounter_ = reply['jobcounter']
-                    jobid_ = reply['jobid']
-                    # assert jobcounter_ == jobcounter
-                    assert jobid_ == jobid
-                    num_registered += 1
+                num_registered += 1
 
-            logger.info('Registered %d jobs...' % (num_registered,))
-            logger.info('\t %d suppressed jobs' % (num_suppressed,))
-            logger.info('\t %d corrupted jobs' % (num_corrupted,))
-            logger.info('Archived %d jobs...' % (num_archived,))
+            assert num_restarted == len(restart_jobcounter_list)
+
+            info.log('Registered %d jobs...' % (num_registered, ))
+            info.log('\t %d completed jobs' % (num_completed, ))
+            info.log('\t %d restarted jobs' % (num_restarted, ))
+            info.log('\t %d suppressed jobs' % (num_suppressed, ))
+            info.log('\t %d corrupted jobs' % (num_corrupted, ))
+            info.log('Archived %d jobs...' % (num_archived, ))
 
             # Update the jobcounter to be up to date
             update_notify = {
-                '__set_jobcounter__': completed_jobcounter,
+                '__set_jobcounter__': global_jobcounter,
             }
-            logger.info('Updating completed job counter: %r' % (update_notify,))
-            jobiface.engine_deal_sock.send_json(update_notify)
-            reply = jobiface.engine_deal_sock.recv_json()
-            jobcounter_ = reply['jobcounter']
-            assert jobcounter_ == completed_jobcounter
+            logger.info('Updating completed job counter: %r' % (update_notify, ))
+            jobiface.engine_recieve_socket.send_json(update_notify)
+            # reply = jobiface.engine_recieve_socket.recv_json()
+            # jobcounter_ = reply['jobcounter']
+            # assert jobcounter_ == global_jobcounter
 
             logger.info('Re-sending %d engine jobs...' % (len(restart_jobcounter_list),))
 
@@ -881,15 +961,13 @@ class JobInterface(object):
 
             for jobcounter, jobid, engine_request in tqdm.tqdm(zipped):
                 jobiface.engine_recieve_socket.send_json(engine_request)
-                reply = jobiface.engine_recieve_socket.recv_json()
-                jobcounter_ = reply['jobcounter']
-                jobid_ = reply['jobid']
-                assert jobcounter_ == jobcounter
-                assert jobid_ == jobid
+                # reply = jobiface.engine_recieve_socket.recv_json()
+                # jobcounter_ = reply['jobcounter']
+                # jobid_ = reply['jobid']
+                # assert jobcounter_ == jobcounter
+                # assert jobid_ == jobid
 
-    def queue_job(
-        jobiface, action, callback_url=None, callback_method=None, *args, **kwargs
-    ):
+    def queue_job(jobiface, action, callback_url=None, callback_method=None, lane='slow', *args, **kwargs):
         r"""
         IBEIS:
             This is just a function that lives in the main thread and ships off
@@ -921,15 +999,16 @@ class JobInterface(object):
                 pass
 
             engine_request = {
-                'action': action,
-                'args': args,
-                'kwargs': kwargs,
-                'callback_url': callback_url,
-                'callback_method': callback_method,
-                'request': request,
-                'restart_jobid': None,
-                'restart_jobcounter': None,
-                'restart_received': None,
+                'action'             : action,
+                'args'               : args,
+                'kwargs'             : kwargs,
+                'callback_url'       : callback_url,
+                'callback_method'    : callback_method,
+                'request'            : request,
+                'restart_jobid'      : None,
+                'restart_jobcounter' : None,
+                'restart_received'   : None,
+                'lane'               : lane,
             }
             if jobiface.verbose >= 2:
                 logger.info('Queue job: %s' % (engine_request))
@@ -1090,6 +1169,12 @@ def collect_queue_loop(port_dict):
             zmq.device(zmq.QUEUE, recieve_socket, send_socket)  # CHECKED - QUEUE
         except KeyboardInterrupt:
             logger.info('Caught ctrl+c in queue loop. Gracefully exiting')
+
+        recieve_socket.unbind(interface_pull)
+        recieve_socket.close()
+        send_socket.unbind(interface_push)
+        send_socket.close()
+
         if VERBOSE_JOBS:
             logger.info('Exiting %s' % (loop_name,))
 
@@ -1192,7 +1277,7 @@ def engine_queue_loop(port_dict, engine_lanes):
                         print('WARNING: Defaulting to slow lane')
                         lane = 'slow'
 
-                    engine_request[lane] = lane
+                    engine_request['lane'] = lane
 
                     if restart_jobid is not None:
                         '[RESTARTING] Replacing jobid=%s with previous restart_jobid=%s' % (
@@ -1242,23 +1327,24 @@ def engine_queue_loop(port_dict, engine_lanes):
                     metadata_notify = {
                         'jobid': jobid,
                         'metadata': {
-                            'jobcounter': jobcounter,
-                            'action': action,
-                            'args': args,
-                            'kwargs': kwargs,
-                            'callback_url': callback_url,
-                            'callback_method': callback_method,
-                            'request': request,
-                            'times': {
-                                'received': received,
-                                'started': None,
-                                'updated': None,
-                                'completed': None,
-                                'runtime': None,
-                                'turnaround': None,
-                                'runtime_sec': None,
-                                'turnaround_sec': None,
+                            'jobcounter'         : jobcounter,
+                            'action'             : action,
+                            'args'               : args,
+                            'kwargs'             : kwargs,
+                            'callback_url'       : callback_url,
+                            'callback_method'    : callback_method,
+                            'request'            : request,
+                            'times'              : {
+                                'received'       : received,
+                                'started'        : None,
+                                'updated'        : None,
+                                'completed'      : None,
+                                'runtime'        : None,
+                                'turnaround'     : None,
+                                'runtime_sec'    : None,
+                                'turnaround_sec' : None,
                             },
+                            'lane': lane,
                         },
                         'action': 'metadata',
                     }
@@ -1316,6 +1402,17 @@ def engine_queue_loop(port_dict, engine_lanes):
         except KeyboardInterrupt:
             logger.info('Caught ctrl+c in %s queue. Gracefully exiting' % (loop_name,))
 
+        engine_receive_socket.unbind(interface_engine_pull)
+        engine_receive_socket.close()
+
+        for lane in interface_engine_push_dict:
+            engine_send_socket = engine_send_socket_dict[lane]
+            engine_send_socket.unbind(interface_engine_push_dict[lane])
+            engine_send_socket.close()
+
+        collect_recieve_socket.disconnect(interface_collect_pull)
+        collect_recieve_socket.close()
+
         if VERBOSE_JOBS:
             logger.info('Exiting %s queue' % (loop_name,))
 
@@ -1337,12 +1434,14 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
 
     #base_print = print  # NOQA
     print = partial(ut.colorprint, color='brightgreen')
-    with ut.Indenter('[engine %d] ' % (id_)):
+    with ut.Indenter('[engine %s %d] ' % (lane, id_)):
         interface_engine_push = port_dict['engine_%s_push_url' % (lane, )]
+        interface_collect_pull = port_dict['collect_pull_url']
 
         if VERBOSE_JOBS:
-            logger.info('Initializing engine')
-            logger.info('connect engine_lane_push_url = %r' % (interface_engine_push,))
+            logger.info('Initializing %s engine %s' % (lane, id_, ))
+            logger.info('connect engine_%s_push_url = %r' % (lane, interface_engine_push,))
+
         assert dbdir is not None
 
         engine_send_sock = ctx.socket(zmq.ROUTER)  # CHECKED - ROUTER
@@ -1351,14 +1450,14 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
 
         collect_recieve_socket = ctx.socket(zmq.DEALER)
         collect_recieve_socket.setsockopt_string(zmq.IDENTITY, 'engine.%s.%s.collect.DEALER' % (lane, id_, ))
-        collect_recieve_socket.connect(port_dict['collect_pull_url'])
+        collect_recieve_socket.connect(interface_collect_pull)
 
         if VERBOSE_JOBS:
-            logger.info('connect collect_pull_url = %r' % (port_dict['collect_pull_url'],))
+            logger.info('connect collect_pull_url = %r' % (interface_collect_pull,))
             logger.info('engine is initialized')
 
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
-        update_proctitle('engine_loop.%s' % (id_, ), dbname=ibs.dbname)
+        update_proctitle('engine_loop.%s.%s' % (lane, id_, ), dbname=ibs.dbname)
 
         try:
             while True:
@@ -1435,22 +1534,27 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
         except KeyboardInterrupt:
             logger.info('Caught ctrl+c in engine loop. Gracefully exiting')
 
-        # Release the IBEIS controller for each job, hopefully freeing memory
-        ibs = None
+        engine_send_sock.disconnect(interface_engine_push)
+        engine_send_sock.close()
+        collect_recieve_socket.disconnect(interface_collect_pull)
+        collect_recieve_socket.close()
 
-        # Explicitly try to release GPU memory
-        try:
-            import torch
-            torch.cuda.empty_cache()
-        except Exception:
-            pass
+        # # Release the IBEIS controller for each job, hopefully freeing memory
+        # ibs = None
 
-        # Explicitly release Python memory
-        try:
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+        # # Explicitly try to release GPU memory
+        # try:
+        #     import torch
+        #     torch.cuda.empty_cache()
+        # except Exception:
+        #     pass
+
+        # # Explicitly release Python memory
+        # try:
+        #     import gc
+        #     gc.collect()
+        # except Exception:
+        #     pass
 
         # ----
         if VERBOSE_JOBS:
@@ -1566,6 +1670,10 @@ def collector_loop(port_dict, dbdir, containerized):
                     pass
         except KeyboardInterrupt:
             logger.info('Caught ctrl+c in collector loop. Gracefully exiting')
+
+        collect_rout_sock.disconnect(port_dict['collect_push_url'])
+        collect_rout_sock.close()
+
         if VERBOSE_JOBS:
             logger.info('Exiting collector')
 
@@ -1876,19 +1984,20 @@ def on_collect_request(
                     request = {}
 
                 job_status_data = {
-                    'status': status,
-                    'jobcounter': metadata.get('jobcounter', None),
-                    'action': metadata.get('action', None),
-                    'endpoint': request.get('endpoint', None),
-                    'function': request.get('function', None),
-                    'time_received': times.get('received', None),
-                    'time_started': times.get('started', None),
-                    'time_runtime': times.get('runtime', None),
-                    'time_updated': times.get('updated', None),
-                    'time_completed': times.get('completed', None),
-                    'time_turnaround': times.get('turnaround', None),
-                    'time_runtime_sec': times.get('runtime_sec', None),
-                    'time_turnaround_sec': times.get('turnaround_sec', None),
+                    'status'              : status,
+                    'jobcounter'          : metadata.get('jobcounter', None),
+                    'action'              : metadata.get('action', None),
+                    'endpoint'            : request.get('endpoint', None),
+                    'function'            : request.get('function', None),
+                    'time_received'       : times.get('received', None),
+                    'time_started'        : times.get('started', None),
+                    'time_runtime'        : times.get('runtime', None),
+                    'time_updated'        : times.get('updated', None),
+                    'time_completed'      : times.get('completed', None),
+                    'time_turnaround'     : times.get('turnaround', None),
+                    'time_runtime_sec'    : times.get('runtime_sec', None),
+                    'time_turnaround_sec' : times.get('turnaround_sec', None),
+                    'lane'                : metadata.get('lane', None),
                 }
                 if cache:
                     JOB_STATUS_CACHE[jobid] = job_status_data

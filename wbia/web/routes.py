@@ -1721,22 +1721,21 @@ def view_jobs(**kwargs):
         if jov_status == 'corrupted':
             job_state -= 1
         job_exception = None
-        job_list.append(
-            (
-                jobid,
-                job['jobcounter'],
-                job['action'],
-                job['endpoint'],
-                job['function'],
-                jov_status,
-                job_state,
-                job['time_received'],
-                job['time_started'],
-                job['time_completed'],
-                job['time_runtime'],
-                job['time_turnaround'],
-            )
-        )
+        job_list.append((
+            jobid,
+            job['jobcounter'],
+            job['action'],
+            job['endpoint'],
+            job['function'],
+            jov_status,
+            job_state,
+            job['time_received'],
+            job['time_started'],
+            job['time_completed'],
+            job['time_runtime'],
+            job['time_turnaround'],
+            job['lane'],
+        ))
 
     num_jobs = len(job_list)
 
@@ -2680,16 +2679,17 @@ def turk_detection(
     part_rowid_list = ibs.get_valid_part_rowids()
     part_aid_list = ibs.get_part_aids(part_rowid_list)
     part_species_text_list = ibs.get_annot_species_texts(part_aid_list)
-    part_types_list = ibs.get_part_types(part_rowid_list)
-    zipped = list(zip(part_species_text_list, part_types_list))
+    part_type_list = ibs.get_part_types(part_rowid_list)
+    zipped = list(zip(part_species_text_list, part_type_list))
 
-    species_part_dict = {const.UNKNOWN: set([])}
-    for part_species_text, part_type_list in zipped:
+    species_part_dict = {
+        const.UNKNOWN: set([])
+    }
+    for part_species_text, part_type in zipped:
         if part_species_text not in species_part_dict:
             species_part_dict[part_species_text] = set([const.UNKNOWN])
-        for part_type in part_type_list:
-            species_part_dict[part_species_text].add(part_type)
-            species_part_dict[const.UNKNOWN].add(part_type)
+        species_part_dict[part_species_text].add(part_type)
+        species_part_dict[const.UNKNOWN].add(part_type)
 
     # Add any images that did not get added because they aren't assigned any annotations
     for species_text in species_text_list:

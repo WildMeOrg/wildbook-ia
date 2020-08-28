@@ -261,6 +261,7 @@ function show_part_metadata(entry, parent_entry) {
     species = species_part_dict[parent_entry.metadata.species]
     for(var counter = 0; counter < species.length; counter++) {
         value = species[counter]
+        console.log(value)
         if (value == '____') {
             continue
         }

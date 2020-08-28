@@ -32,7 +32,6 @@ CONFIG_URL_DICT = {
 
 
 def classify_helper(weight_filepath, vector_list, index_list=None, verbose=VERBOSE_SVM):
-    ut.embed()
     if index_list is None:
         index_list = list(range(len(vector_list)))
     # Init score and class holders
@@ -68,8 +67,6 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     """
     import multiprocessing
     import numpy as np
-
-    ut.embed()
 
     # Get correct weight if specified with shorthand
     if weight_filepath in CONFIG_URL_DICT:

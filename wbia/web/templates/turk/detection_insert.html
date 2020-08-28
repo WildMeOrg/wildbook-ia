@@ -278,9 +278,6 @@
             <div id="ia-metadata-panel-part-type">
               Type: <span class="ia-detection-hotkey">(C to cycle)</span>
               <select id="ia-detection-part-class" class="form-control ia-detection-form-part-value"  name="ia-part-value" style="width: 200px;">
-                {% for species_nice, species_text in species_list %}
-                  <option value="{{ species_text }}">{{ species_nice }}</option>
-                {% endfor %}
               </select>
               {% if EMBEDDED %}
                 <span class="pull-left" data-toggle="modal" data-target="#part-add" style="color: #aaa; cursor: pointer;"><i>Add Type</i></span>

@@ -1226,10 +1226,6 @@ def submit_species(**kwargs):
 def submit_part_types(**kwargs):
     ibs = current_app.ibs
 
-    import utool as ut
-
-    ut.embed()
-
     method = request.form.get('ia-part-type-submit', '')
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)

@@ -1023,7 +1023,7 @@ def check_exif_data(ibs, gid_list):
 
 
 @register_ibs_method
-def run_integrity_checks(ibs, embed=False):
+def run_integrity_checks(ibs):
     """ Function to run all database consistency checks """
     logger.info('[ibsfuncs] Checking consistency')
     gid_list = ibs.get_valid_gids()
@@ -1036,8 +1036,6 @@ def run_integrity_checks(ibs, embed=False):
     check_annotmatch_consistency(ibs)
     # Very slow check
     check_image_uuid_consistency(ibs, gid_list)
-    if embed:
-        ut.embed()
     logger.info('[ibsfuncs] Finshed consistency check')
 
 
@@ -1261,7 +1259,6 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
     expires = now - datetime.timedelta(days=ttl_days)
     expires = datetime.datetime(expires.year, expires.month, 1, 0, 0, 0, tzinfo=PST)
     logger.info('Checking cached files since %r' % (expires,))
-
     timestamp = int(expires.timestamp())
 
     blacklist = [
@@ -1300,25 +1297,29 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
                 logger.info('\tPurgable: %d' % (len(delete_subpath_list),))
                 delete_path_list += delete_subpath_list
 
-    arguments_list = list(zip(delete_path_list))
-    values_list = check_cache_purge_parallel_wrapper(
-        check_cache_purge_delete_worker, arguments_list
-    )
+    if dryrun:
+        logger.info('Would have (dry-run = True) deleted %d files...' % (len(delete_path_list), ))
+    else:
+        logger.info('Deleting %d files...' % (len(delete_path_list), ))
+        arguments_list = list(zip(delete_path_list))
+        values_list = check_cache_purge_parallel_wrapper(
+            check_cache_purge_delete_worker, arguments_list
+        )
 
-    purged_bytes = 0
-    failed_list = []
-    zipped = list(zip(delete_path_list, values_list))
-    for delete_path, values in tqdm.tqdm(zipped):
-        size_bytes, success = values
-        if success:
-            if size_bytes is not None:
-                purged_bytes += size_bytes
-        else:
-            if os.path.exists(delete_path):
-                failed_list.append(delete_path)
+        purged_bytes = 0
+        failed_list = []
+        zipped = list(zip(delete_path_list, values_list))
+        for delete_path, values in tqdm.tqdm(zipped):
+            size_bytes, success = values
+            if success:
+                if size_bytes is not None:
+                    purged_bytes += size_bytes
+            else:
+                if os.path.exists(delete_path):
+                    failed_list.append(delete_path)
 
-    logger.info('Purged: %s' % (bytes2human(purged_bytes),))
-    logger.info('Failed: %d' % (len(failed_list),))
+        logger.info('Purged: %s' % (bytes2human(purged_bytes),))
+        logger.info('Failed: %d' % (len(failed_list),))
 
     table_list = []
     table_list += ibs.depc_image.tables
