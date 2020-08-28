@@ -1239,21 +1239,21 @@ def check_cache_purge_parallel_wrapper(func, arguments_list):
 def check_cache_purge(ibs, ttl_days=365, squeeze=False):
     r"""
     Args:
-        ibs (IBEISController):  wbia controller object
+        ibs (IBEISController):  ibeis controller object
         gid_list (list): (default = None)
 
     CommandLine:
-        python -m wbia.other.ibsfuncs --exec-check_cache_purge
+        python -m ibeis.other.ibsfuncs --exec-check_cache_purge
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.other.ibsfuncs import *  # NOQA
-        >>> import wbia
-        >>> ibs = wbia.opendb(defaultdb='testdb1')
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> result = check_cache_purge(ibs)
         >>> print(result)
     """
-    import wbia
+    import ibeis
 
     now = datetime.datetime.now(tz=PST)
     expires = now - datetime.timedelta(days=ttl_days)
@@ -1377,15 +1377,15 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
                 squeeze_tables.append(table)
 
     tables_list = [
-        (ibs.depc_image.tables, wbia.constants.IMAGE_TABLE, set(ibs._get_all_gids()),),
+        (ibs.depc_image.tables, ibeis.constants.IMAGE_TABLE, set(ibs._get_all_gids()),),
         (
             ibs.depc_annot.tables,
-            wbia.constants.ANNOTATION_TABLE,
+            ibeis.constants.ANNOTATION_TABLE,
             set(ibs._get_all_aids()),
         ),
         (
             ibs.depc_part.tables,
-            wbia.constants.PART_TABLE,
+            ibeis.constants.PART_TABLE,
             set(ibs._get_all_part_rowids()),
         ),
     ]
