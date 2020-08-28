@@ -16,3 +16,16 @@ services:
     env_file: ./.dockerfiles/docker-compose.env
     ports:
       - "5000:5000"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dev@wildme.org
+      PGADMIN_DEFAULT_PASSWORD: development
+    volumes:
+      - pgadmin-var:/var/lib/pgadmin
+    ports:
+      - "8000:80"
+
+volumes:
+  pgadmin-var:
