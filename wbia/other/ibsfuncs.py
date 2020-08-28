@@ -1297,6 +1297,9 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
                 logger.info('\tPurgable: %d' % (len(delete_subpath_list),))
                 delete_path_list += delete_subpath_list
 
+    purged_bytes = 0
+    failed_list = []
+
     if dryrun:
         logger.info('Would have (dry-run = True) deleted %d files...' % (len(delete_path_list), ))
     else:
@@ -1306,8 +1309,6 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
             check_cache_purge_delete_worker, arguments_list
         )
 
-        purged_bytes = 0
-        failed_list = []
         zipped = list(zip(delete_path_list, values_list))
         for delete_path, values in tqdm.tqdm(zipped):
             size_bytes, success = values
@@ -1318,8 +1319,8 @@ def check_cache_purge(ibs, ttl_days=365, squeeze=False):
                 if os.path.exists(delete_path):
                     failed_list.append(delete_path)
 
-        logger.info('Purged: %s' % (bytes2human(purged_bytes),))
-        logger.info('Failed: %d' % (len(failed_list),))
+    logger.info('Purged: %s' % (bytes2human(purged_bytes),))
+    logger.info('Failed: %d' % (len(failed_list),))
 
     table_list = []
     table_list += ibs.depc_image.tables
