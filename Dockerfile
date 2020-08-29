@@ -104,6 +104,7 @@ RUN set -x \
     # Install pytorch early because it's a large package
     && python3 -m pip install torch \
     && python3 -m pip install -r /tmp/code/requirements/runtime.txt \
+    && python3 -m pip install -r /tmp/code/requirements/postgres.txt \
     # TODO (4-Jun-12020) plugins will come in time...
     # && python3 -m pip install -r /tmp/code/requirements.txt -r /tmp/code/requirements/plugins.txt
     && rm -rf /tmp/code

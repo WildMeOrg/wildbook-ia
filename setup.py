@@ -231,6 +231,7 @@ KWARGS = OrderedDict(
         'tests': parse_requirements('requirements/tests.txt'),
         'build': parse_requirements('requirements/build.txt'),
         'runtime': parse_requirements('requirements/runtime.txt'),
+        'postgres': parse_requirements('requirements/postgres.txt'),
     },
     # --- VERSION ---
     # The following settings retreive the version from git.
