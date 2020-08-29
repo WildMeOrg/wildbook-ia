@@ -16,6 +16,8 @@ services:
     env_file: ./.dockerfiles/docker-compose.env
     ports:
       - "5000:5000"
+    volumes:
+      - ./:/code
 
   pgadmin:
     image: dpage/pgadmin4
