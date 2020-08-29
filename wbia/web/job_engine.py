@@ -84,10 +84,13 @@ ctx = zmq.Context.instance()
 
 # FIXME: needs to use correct number of ports
 URL = 'tcp://127.0.0.1'
-NUM_ENGINES = 1 if ut.get_argflag('--serial-job-lanes') else 3
-VERBOSE_JOBS = (
-    ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
-)
+NUM_ENGINES = 1 if ut.get_argflag('--serial-job-lanes') else 2
+# VERBOSE_JOBS = (
+#     ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
+# )
+VERBOSE_JOBS = True
+
+>>>>>>> df42abe49... Updates for jobs:ibeis/web/job_engine.py
 
 GLOBAL_SHELVE_LOCK = multiprocessing.Lock()
 
@@ -1318,6 +1321,7 @@ def engine_queue_loop(port_dict, engine_lanes):
                     # Status: Received (Notify Client)
                     if VERBOSE_JOBS:
                         logger.info('... notifying client that job was accepted')
+                        logger.info('%s' % (reply_notify, ))
                     # RETURNS: job_client_return
                     send_multipart_json(engine_receive_socket, idents, reply_notify)
 
