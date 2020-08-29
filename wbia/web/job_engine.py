@@ -1321,7 +1321,8 @@ def engine_queue_loop(port_dict, engine_lanes):
                     # Status: Received (Notify Client)
                     if VERBOSE_JOBS:
                         logger.info('... notifying client that job was accepted')
-                        logger.info('%s' % (reply_notify, ))
+                        logger.info('%r' % (idents, ))
+                        logger.info('%r' % (reply_notify, ))
                     # RETURNS: job_client_return
                     send_multipart_json(engine_receive_socket, idents, reply_notify)
 
