@@ -38,7 +38,6 @@ ENV LANG C.UTF-8
 
 USER root
 
-
 # ###
 # System setup
 # ###
@@ -56,6 +55,8 @@ RUN set -x \
        ca-certificates \
        #: used during package acquisition
        git \
+       #: tool to setuid+setgid+setgroups+exec at execution time
+       gosu \
        #: opencv2 dep
        libglib2.0-0 \
        #: opencv2 dependency
@@ -113,9 +114,8 @@ RUN python3 -c "import cv2; print(cv2.getBuildInformation())"
 # Ports for the frontend web server
 EXPOSE 5000
 
-# Change to the runtime user
+# Move to the workdir
 WORKDIR /data
-USER wbia
 
 COPY .dockerfiles/docker-entrypoint.sh /docker-entrypoint.sh
 
