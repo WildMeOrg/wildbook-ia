@@ -777,9 +777,9 @@ def initialize_process_record(record_filepath,
                 'action': 'register',
             }
             collect_recieve_socket.send_json(reply_notify)
-            # reply = jobiface.collect_recieve_socket.recv_json()
-            # jobid_ = reply['jobid']
-            # assert jobid_ == jobid
+            reply = collect_recieve_socket.recv_json()
+            jobid_ = reply['jobid']
+            assert jobid_ == jobid
         else:
             # We have a pending job, restart with the original request
             with ut.Indenter('[client %d] ' % (jobiface_id)):
@@ -801,7 +801,7 @@ def initialize_process_record(record_filepath,
                 ut.save_cPkl(record_filepath, record, verbose=False)
 
     collect_recieve_socket.disconnect(collect_pull_interface)
-    collect_recieve_socket.close()
+    # collect_recieve_socket.close()
 
     values = jobcounter, jobid, engine_request, archived, completed, suppressed, corrupted
     return values
@@ -821,10 +821,10 @@ class JobInterface(object):
             print('Cleaning up job frontend')
         if jobiface.engine_recieve_socket is not None:
             jobiface.engine_recieve_socket.disconnect(jobiface.port_dict['engine_pull_url'])
-            jobiface.engine_recieve_socket.close()
+            # jobiface.engine_recieve_socket.close()
         if jobiface.collect_recieve_socket is not None:
             jobiface.collect_recieve_socket.disconnect(jobiface.port_dict['collect_pull_url'])
-            jobiface.collect_recieve_socket.close()
+            # jobiface.collect_recieve_socket.close()
 
     # def init(jobiface):
     #     # Starts several new processes
@@ -947,9 +947,9 @@ class JobInterface(object):
             }
             logger.info('Updating completed job counter: %r' % (update_notify, ))
             jobiface.engine_recieve_socket.send_json(update_notify)
-            # reply = jobiface.engine_recieve_socket.recv_json()
-            # jobcounter_ = reply['jobcounter']
-            # assert jobcounter_ == global_jobcounter
+            reply = jobiface.engine_recieve_socket.recv_json()
+            jobcounter_ = reply['jobcounter']
+            assert jobcounter_ == global_jobcounter
 
             logger.info('Re-sending %d engine jobs...' % (len(restart_jobcounter_list),))
 
@@ -961,11 +961,11 @@ class JobInterface(object):
 
             for jobcounter, jobid, engine_request in tqdm.tqdm(zipped):
                 jobiface.engine_recieve_socket.send_json(engine_request)
-                # reply = jobiface.engine_recieve_socket.recv_json()
-                # jobcounter_ = reply['jobcounter']
-                # jobid_ = reply['jobid']
-                # assert jobcounter_ == jobcounter
-                # assert jobid_ == jobid
+                reply = jobiface.engine_recieve_socket.recv_json()
+                jobcounter_ = reply['jobcounter']
+                jobid_ = reply['jobid']
+                assert jobcounter_ == jobcounter
+                assert jobid_ == jobid
 
     def queue_job(jobiface, action, callback_url=None, callback_method=None, lane='slow', *args, **kwargs):
         r"""
@@ -1016,6 +1016,7 @@ class JobInterface(object):
             # Send request to job
             jobiface.engine_recieve_socket.send_json(engine_request)
             reply_notify = jobiface.engine_recieve_socket.recv_json()
+            print('reply_notify = %r' % (reply_notify, ))
             jobid = reply_notify['jobid']
 
             ibs = jobiface.ibs
@@ -1171,9 +1172,9 @@ def collect_queue_loop(port_dict):
             logger.info('Caught ctrl+c in queue loop. Gracefully exiting')
 
         recieve_socket.unbind(interface_pull)
-        recieve_socket.close()
+        # recieve_socket.close()
         send_socket.unbind(interface_push)
-        send_socket.close()
+        # send_socket.close()
 
         if VERBOSE_JOBS:
             logger.info('Exiting %s' % (loop_name,))
@@ -1402,16 +1403,21 @@ def engine_queue_loop(port_dict, engine_lanes):
         except KeyboardInterrupt:
             logger.info('Caught ctrl+c in %s queue. Gracefully exiting' % (loop_name,))
 
+        poller.unregister(engine_receive_socket)
+        for lane in engine_send_socket_dict:
+            engine_send_socket = engine_send_socket_dict[lane]
+            poller.unregister(engine_send_socket)
+
         engine_receive_socket.unbind(interface_engine_pull)
-        engine_receive_socket.close()
+        # engine_receive_socket.close()
 
         for lane in interface_engine_push_dict:
             engine_send_socket = engine_send_socket_dict[lane]
             engine_send_socket.unbind(interface_engine_push_dict[lane])
-            engine_send_socket.close()
+            # engine_send_socket.close()
 
         collect_recieve_socket.disconnect(interface_collect_pull)
-        collect_recieve_socket.close()
+        # collect_recieve_socket.close()
 
         if VERBOSE_JOBS:
             logger.info('Exiting %s queue' % (loop_name,))
@@ -1535,26 +1541,26 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
             logger.info('Caught ctrl+c in engine loop. Gracefully exiting')
 
         engine_send_sock.disconnect(interface_engine_push)
-        engine_send_sock.close()
+        # engine_send_sock.close()
         collect_recieve_socket.disconnect(interface_collect_pull)
-        collect_recieve_socket.close()
+        # collect_recieve_socket.close()
 
-        # # Release the IBEIS controller for each job, hopefully freeing memory
-        # ibs = None
+        # Release the IBEIS controller for each job, hopefully freeing memory
+        ibs = None
 
-        # # Explicitly try to release GPU memory
-        # try:
-        #     import torch
-        #     torch.cuda.empty_cache()
-        # except Exception:
-        #     pass
+        # Explicitly try to release GPU memory
+        try:
+            import torch
+            torch.cuda.empty_cache()
+        except Exception:
+            pass
 
-        # # Explicitly release Python memory
-        # try:
-        #     import gc
-        #     gc.collect()
-        # except Exception:
-        #     pass
+        # Explicitly release Python memory
+        try:
+            import gc
+            gc.collect()
+        except Exception:
+            pass
 
         # ----
         if VERBOSE_JOBS:
@@ -1672,7 +1678,7 @@ def collector_loop(port_dict, dbdir, containerized):
             logger.info('Caught ctrl+c in collector loop. Gracefully exiting')
 
         collect_rout_sock.disconnect(port_dict['collect_push_url'])
-        collect_rout_sock.close()
+        # collect_rout_sock.close()
 
         if VERBOSE_JOBS:
             logger.info('Exiting collector')
