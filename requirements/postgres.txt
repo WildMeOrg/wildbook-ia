@@ -1,0 +1,2 @@
+# dependencies needed to integrate with Postgres
+psycopg2-binary
