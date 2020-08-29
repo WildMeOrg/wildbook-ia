@@ -315,7 +315,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     )
     args = (qaid_list, daid_list, pipecfg)
     jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict',
-                                               callback_url, callback_method, lane
+                                               callback_url, callback_method, lane,
                                                *args)
 
     # if callback_url is not None:
@@ -383,7 +383,7 @@ def start_identify_annots_query_complete(ibs, annot_uuid_list=None,
 
     args = (aid_list, query_config_dict, k, )
     jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph_complete',
-                                               callback_url, callback_method, lane
+                                               callback_url, callback_method, lane,
                                                *args)
     return jobid
 
@@ -602,7 +602,7 @@ def start_identify_annots_query(ibs,
     )
     args = (qaid_list, daid_list, user_feedback, query_config_dict, echo_query_params)
     jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph',
-                                               callback_url, callback_method, lane
+                                               callback_url, callback_method, lane,
                                                *args)
     return jobid
 
@@ -628,7 +628,7 @@ def start_wic_image(ibs, image_uuid_list, callback_url=None, callback_method=Non
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('wic_cnn_json', callback_url, callback_method, lane *args)
+    jobid = ibs.job_manager.jobiface.queue_job('wic_cnn_json', callback_url, callback_method, lane, *args)
 
     #if callback_url is not None:
     #    #import requests
@@ -658,7 +658,7 @@ def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_me
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_json', callback_url, callback_method, lane *args)
+    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_json', callback_url, callback_method, lane, *args)
 
     #if callback_url is not None:
     #    #import requests
@@ -680,7 +680,7 @@ def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=N
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
     args = (aid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('labeler_cnn', callback_url, callback_method, lane *args)
+    jobid = ibs.job_manager.jobiface.queue_job('labeler_cnn', callback_url, callback_method, lane, *args)
 
     #if callback_url is not None:
     #    #import requests
@@ -704,7 +704,7 @@ def start_review_query_chips_best(ibs, annot_uuid, callback_url=None, callback_m
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     aid = aid_list[0]
     args = (aid, )
-    jobid = ibs.job_manager.jobiface.queue_job('review_query_chips_best', callback_url, callback_method, lane *args)
+    jobid = ibs.job_manager.jobiface.queue_job('review_query_chips_best', callback_url, callback_method, lane, *args)
 
     # if callback_url is not None:
     #    #import requests
@@ -747,7 +747,7 @@ def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callbac
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_lightnet_json', callback_url, callback_method, lane *args)
+    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_lightnet_json', callback_url, callback_method, lane, *args)
 
     #if callback_url is not None:
     #    #import requests
@@ -810,7 +810,7 @@ def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None,
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     annots = ibs.annots(uuids=annot_uuid_list)
     args = (annots.aids,)
-    jobid = ibs.job_manager.jobiface.queue_job('predict_ws_injury_interim_svm', callback_url, callback_method, lane *args)
+    jobid = ibs.job_manager.jobiface.queue_job('predict_ws_injury_interim_svm', callback_url, callback_method, lane, *args)
 
     # if callback_url is not None:
     #    #import requests
