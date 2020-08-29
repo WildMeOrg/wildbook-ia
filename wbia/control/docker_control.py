@@ -119,10 +119,10 @@ def docker_run(
     blacklist_ports = []
     container_dict = ibs.docker_container_status_dict()
     for status in container_dict:
-        for container_name in container_dict[status]:
-            container = ibs.docker_get_container(container_name)
-            option_list = ibs.docker_container_IP_port_options(container)
-            print(container_name, option_list)
+        for container_name_ in container_dict[status]:
+            container_ = ibs.docker_get_container(container_name_)
+            option_list = ibs.docker_container_IP_port_options(container_)
+            print(container_name_, option_list)
             for option in option_list:
                 url, port = option
                 if port is not None:
