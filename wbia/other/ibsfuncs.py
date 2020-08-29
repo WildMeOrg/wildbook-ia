@@ -1236,7 +1236,7 @@ def check_cache_purge_parallel_wrapper(func, arguments_list):
 
 
 @register_ibs_method
-def check_cache_purge(ibs, ttl_days=365, squeeze=False):
+def check_cache_purge(ibs, ttl_days=365, dryrun=True, squeeze=False):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
