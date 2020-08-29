@@ -10,16 +10,10 @@ logger = logging.getLogger('wbia')
 
 try:
     import docker
-    import wbia_deepsense  # noqa
 
-    DOCKER_CLIENT = docker.from_env()
-    assert DOCKER_CLIENT is not None
-except ModuleNotFoundError:
-    logger.info('Docker or wbia_deepsense not available')
+    assert docker.from_env() is not None
 except Exception:
-    logger.info('Local docker client is not available')
-    DOCKER_CLIENT = None
-    raise RuntimeError('Failed to connect to Docker for Deepsense Plugin')
+    logger.warning('Local docker client is not available')
 
 
 _, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
@@ -102,8 +96,9 @@ def docker_run(
         "We're starting image_name %s as %s with args %r"
         % (image_name, container_clone_name, run_args)
     )
+    docker_client = docker.from_env()
     try:
-        container = DOCKER_CLIENT.containers.run(image_name, **run_args)
+        container = docker_client.containers.run(image_name, **run_args)
     except docker.errors.APIError as ex:
         if ensure_new:
             raise ex
@@ -122,7 +117,8 @@ def docker_run(
 @register_ibs_method
 def docker_image_list(ibs):
     tag_list = []
-    for image in DOCKER_CLIENT.images.list():
+    docker_client = docker.from_env()
+    for image in docker_client.images.list():
         tag_list += image.tags
     tag_list = sorted(list(set(tag_list)))
     return tag_list
@@ -130,7 +126,8 @@ def docker_image_list(ibs):
 
 @register_ibs_method
 def docker_get_image(ibs, image_name):
-    for image in DOCKER_CLIENT.images.list():
+    docker_client = docker.from_env()
+    for image in docker_client.images.list():
         if image_name in image.tags:
             return image
     return None
@@ -200,7 +197,8 @@ def docker_image_run(ibs, port=6000, volumes=None):
 @register_ibs_method
 def docker_container_status_dict(ibs):
     container_dict = {}
-    for container in DOCKER_CLIENT.containers.list():
+    docker_client = docker.from_env()
+    for container in docker_client.containers.list():
         if container.status not in container_dict:
             container_dict[container.status] = []
         container_dict[container.status].append(container.name)
@@ -284,7 +282,8 @@ def docker_container_urls(ibs, container, docker_get_config):
 @register_ibs_method
 def docker_get_container(ibs, container_name, clone=None):
     container_clone_name = docker_container_clone_name(container_name, clone)
-    for container in DOCKER_CLIENT.containers.list():
+    docker_client = docker.from_env()
+    for container in docker_client.containers.list():
         if container.name == container_clone_name:
             return container
     return None
