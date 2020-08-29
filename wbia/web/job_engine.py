@@ -1014,7 +1014,7 @@ class JobInterface(object):
                 'lane'               : lane,
             }
             if jobiface.verbose >= 2:
-                logger.info('Queue job: %s' % (engine_request))
+                logger.info('Queue job: %s' % (ut.repr2(engine_request, truncate=True),))
 
             # Send request to job
             jobiface.engine_recieve_socket.send_json(engine_request)
@@ -2088,7 +2088,7 @@ def rcv_multipart_json(sock, num=2, print=print):
     multi_msg = sock.recv_multipart()
     if VERBOSE_JOBS:
         logger.info('----')
-        logger.info('RCV Json: %s' % (ut.repr2(multi_msg, truncate=False),))
+        logger.info('RCV Json: %s' % (ut.repr2(multi_msg, truncate=True),))
     idents = multi_msg[:num]
     request_json = multi_msg[num]
     request = ut.from_json(request_json)
