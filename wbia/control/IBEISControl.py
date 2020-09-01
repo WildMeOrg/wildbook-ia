@@ -658,7 +658,6 @@ class IBEISController(BASE_CLASS):
                 utool.embed()
                 raise
         # IBEIS SQL State Database
-        # ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
             ibs.db_version_expected = '2.0.0'
         else:
@@ -749,7 +748,7 @@ class IBEISController(BASE_CLASS):
                 raise
         # IBEIS SQL State Database
         if request_stagingversion is None:
-            ibs.staging_version_expected = '1.1.1'
+            ibs.staging_version_expected = '1.2.0'
         else:
             ibs.staging_version_expected = request_stagingversion
         # TODO: add this functionality to SQLController
@@ -759,7 +758,7 @@ class IBEISController(BASE_CLASS):
                 ibs.get_ibsdir(),
                 ibs.sqlstaging_fname,
                 ibs.staging_version_expected,
-                version_next='1.1.1',
+                version_next='1.2.0',
             )
             ibs.staging_version_expected = new_version
             ibs.sqlstaging_fname = new_fname

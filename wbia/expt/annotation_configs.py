@@ -8,6 +8,7 @@ import logging
 import utool as ut
 import numpy as np  # NOQA
 
+
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
@@ -87,11 +88,7 @@ INTRAGROUP_DEFAULTS_PARAM_INFO = [
 
 SAMPLE_DEFAULTS_PARAM_INFO = [
     ut.ParamInfo(
-        'sample_per_name',
-        None,
-        type_=int,
-        min_=0,
-        help_='Take this many annots per name',
+        'sample_per_name', None, type_=int, min_=0, help_='Take this many annots per name'
     ),
     ut.ParamInfo(
         'sample_rule',
@@ -118,7 +115,7 @@ OTHER_DEFAULTS = {
     'crossval_enc': None,
     # 'hack_extra' : None,  # hack param to make bigger db sizes
     # 'hack_imageset': None,
-    #  Hack out errors in test data
+    # Hack out errors in test data
     # 'hackerrors'    : True,
     'hackerrors': False,
     'joinme': None,
@@ -240,7 +237,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
         dict: acfg
 
     CommandLine:
-        #python -m wbia --tf compress_aidcfg
+        # python -m wbia --tf compress_aidcfg
         python -m wbia.expt.annotation_configs --exec-compress_aidcfg --show
 
     Example:
@@ -415,7 +412,7 @@ def print_acfg_list(
     ibs=None,
     combined=False,
     only_summary=False,
-    **kwargs,
+    **kwargs
 ):
     r"""
     Args:
@@ -468,7 +465,7 @@ def print_acfg_list(
         if not only_summary:
             ut.colorprint(
                 '+--- acfg %d / %d -- %s ---- ' % (acfgx + 1, len(acfg_list), title),
-                'lightgray',
+                'gray',
             )
             logger.info('acfg = ' + ut.repr2(varied_compressed_dict_list[acfgx], si=True))
 

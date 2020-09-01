@@ -13,7 +13,7 @@ import logging
 from wbia import constants as const
 import utool as ut
 
-(print, rrr, profile) = ut.inject2(__name__)
+# (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 try:
@@ -50,15 +50,15 @@ def update_1_0_0(db, ibs=None):
             ('review_decision', 'INTEGER NOT NULL'),
             (
                 'review_time_posix',
-                """INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))""",
+                '''INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))''',
             ),  # this should probably be UCT
             ('review_identity', 'TEXT'),
             ('review_tags', 'TEXT'),
         ),
         superkeys=[('annot_1_rowid', 'annot_2_rowid', 'review_count')],
-        docstr="""
+        docstr='''
         Used to store completed user review states of two matched annotations
-        """,
+        ''',
     )
 
 
@@ -117,18 +117,40 @@ def update_1_1_0(db, ibs=None):
             ('test_result', 'INTEGER'),
             (
                 'test_time_posix',
-                """INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))""",
+                '''INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))''',
             ),  # this should probably be UCT
         ),
         superkeys=[('test_uuid',)],
-        docstr="""
+        docstr='''
         Used to store tests given to the user, their responses, and their results
-        """,
+        ''',
     )
 
 
 def update_1_1_1(db, ibs=None):
     db.modify_table(const.REVIEW_TABLE, add_columns=[('review_metadata_json', 'TEXT')])
+
+
+def update_1_2_0(db, ibs=None):
+    db.add_table(
+        'weights',
+        [
+            ('weight_rowid', 'INTEGER PRIMARY KEY'),
+            ('weight_uuid', 'UUID NOT NULL'),
+            ('annot_1_rowid', 'INTEGER NOT NULL'),
+            ('annot_2_rowid', 'INTEGER NOT NULL'),
+            ('weight_count', 'INTEGER NOT NULL'),
+            ('weight_value', 'REAL'),
+            ('weight_tags', 'TEXT'),
+            ('weight_algo_identity', 'TEXT'),
+            ('weight_algo_confidence', 'REAL'),
+            ('weight_metadata_json', 'TEXT'),
+        ],
+        docstr='''
+        Used to store completed algo weight states of two matched annotations
+        ''',
+        superkeys=[('annot_1_rowid', 'annot_2_rowid', 'weight_count')],
+    )
 
 
 # ========================
@@ -149,6 +171,7 @@ VALID_VERSIONS = ut.odict(
         ('1.0.3', (None, update_1_0_3, None)),
         ('1.1.0', (None, update_1_1_0, None)),
         ('1.1.1', (None, update_1_1_1, None)),
+        ('1.2.0', (None, update_1_2_0, None)),
     ]
 )
 """
