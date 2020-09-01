@@ -51,6 +51,7 @@ Notes:
         python -m wbia.web.job_engine job_engine_tester --fg
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+
 # if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
@@ -90,7 +91,6 @@ NUM_ENGINES = 1 if ut.get_argflag('--serial-job-lanes') else 2
 # )
 VERBOSE_JOBS = True
 
->>>>>>> df42abe49... Updates for jobs:ibeis/web/job_engine.py
 
 GLOBAL_SHELVE_LOCK = multiprocessing.Lock()
 
@@ -459,6 +459,7 @@ def job_engine_tester():
 
 def spawn_background_process(func, *args, **kwargs):
     import utool as ut
+
     func_name = ut.get_funcname(func)
     name = 'job-engine.Progress-' + func_name
     proc_obj = multiprocessing.Process(target=func, name=name, args=args, kwargs=kwargs)
@@ -476,10 +477,7 @@ class JobBackend(object):
         self.engine_lanes = [lane.lower() for lane in self.engine_lanes]
         assert 'slow' in self.engine_lanes
 
-        self.num_engines = {
-            lane: NUM_ENGINES
-            for lane in self.engine_lanes
-        }
+        self.num_engines = {lane: NUM_ENGINES for lane in self.engine_lanes}
         self.engine_procs = None
         self.collect_queue_proc = None
         self.collect_proc = None
@@ -533,7 +531,7 @@ class JobBackend(object):
             # 'collect_pushpull_url',
         ]
         for lane in self.engine_lanes:
-            key_list.append('engine_%s_push_url' % (lane, ))
+            key_list.append('engine_%s_push_url' % (lane,))
 
         # Get ports
         if use_static_ports:
@@ -570,7 +568,9 @@ class JobBackend(object):
             return proc
 
         if self.spawn_queue:
-            self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict, self.engine_lanes)
+            self.engine_queue_proc = _spawner(
+                engine_queue_loop, self.port_dict, self.engine_lanes
+            )
             self.collect_queue_proc = _spawner(collect_queue_loop, self.port_dict)
 
         if self.spawn_collector:
@@ -594,7 +594,9 @@ class JobBackend(object):
                     if lane not in self.engine_procs:
                         self.engine_procs[lane] = []
                     for i in range(self.num_engines[lane]):
-                        proc = _spawner(engine_loop, i, self.port_dict, dbdir, containerized, lane)
+                        proc = _spawner(
+                            engine_loop, i, self.port_dict, dbdir, containerized, lane
+                        )
                         self.engine_procs[lane].append(proc)
 
         # Check if online
@@ -683,10 +685,15 @@ def get_shelve_filepaths(ibs, jobid):
     return shelve_input_filepath, shelve_output_filepath
 
 
-def initialize_process_record(record_filepath,
-                              shelve_input_filepath, shelve_output_filepath,
-                              shelve_path, shelve_archive_path,
-                              collect_pull_interface, jobiface_id):
+def initialize_process_record(
+    record_filepath,
+    shelve_input_filepath,
+    shelve_output_filepath,
+    shelve_path,
+    shelve_archive_path,
+    collect_pull_interface,
+    jobiface_id,
+):
 
     collect_recieve_socket = ctx.socket(zmq.DEALER)
     collect_recieve_socket.connect(collect_pull_interface)
@@ -741,22 +748,36 @@ def initialize_process_record(record_filepath,
             completed_timestamp = times.get('completed', None)
             if completed_timestamp is not None:
                 try:
-                    archive_elapsed = calculate_timedelta(completed_timestamp, archive_timestamp)
+                    archive_elapsed = calculate_timedelta(
+                        completed_timestamp, archive_timestamp
+                    )
                     job_age = archive_elapsed[-1]
                     archived = job_age > 0
                 except Exception:
-                    args = (completed_timestamp, archive_timestamp, )
-                    print('[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r' % args)
+                    args = (
+                        completed_timestamp,
+                        archive_timestamp,
+                    )
+                    print(
+                        '[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r'
+                        % args
+                    )
 
             if archived:
                 with ut.Indenter('[client %d] ' % (jobiface_id)):
                     color = 'brightmagenta'
                     print_ = partial(ut.colorprint, color=color)
-                    print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age, ))
-                    job_scr_filepath_list = list(ut.iglob(join(shelve_path, '%s*' % (jobid, ))))
+                    print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age,))
+                    job_scr_filepath_list = list(
+                        ut.iglob(join(shelve_path, '%s*' % (jobid,)))
+                    )
                     for job_scr_filepath in job_scr_filepath_list:
-                        job_dst_filepath = job_scr_filepath.replace(shelve_path, shelve_archive_path)
-                        ut.copy(job_scr_filepath, job_dst_filepath, overwrite=True)  # ut.copy allows for overwrite, ut.move does not
+                        job_dst_filepath = job_scr_filepath.replace(
+                            shelve_path, shelve_archive_path
+                        )
+                        ut.copy(
+                            job_scr_filepath, job_dst_filepath, overwrite=True
+                        )  # ut.copy allows for overwrite, ut.move does not
                         ut.delete(job_scr_filepath)
 
     if archived:
@@ -789,7 +810,9 @@ def initialize_process_record(record_filepath,
                 color = 'brightblue' if attempts == 0 else 'brightred'
                 print_ = partial(ut.colorprint, color=color)
 
-                print_('RESTARTING FAILED JOB FROM RESTART (ATTEMPT %d)' % (attempts + 1, ))
+                print_(
+                    'RESTARTING FAILED JOB FROM RESTART (ATTEMPT %d)' % (attempts + 1,)
+                )
                 print_(ut.repr3(record_filepath))
                 # print_(ut.repr3(record))
 
@@ -823,10 +846,14 @@ class JobInterface(object):
         if VERBOSE_JOBS:
             print('Cleaning up job frontend')
         if jobiface.engine_recieve_socket is not None:
-            jobiface.engine_recieve_socket.disconnect(jobiface.port_dict['engine_pull_url'])
+            jobiface.engine_recieve_socket.disconnect(
+                jobiface.port_dict['engine_pull_url']
+            )
             jobiface.engine_recieve_socket.close()
         if jobiface.collect_recieve_socket is not None:
-            jobiface.collect_recieve_socket.disconnect(jobiface.port_dict['collect_pull_url'])
+            jobiface.collect_recieve_socket.disconnect(
+                jobiface.port_dict['collect_pull_url']
+            )
             jobiface.collect_recieve_socket.close()
 
     # def init(jobiface):
@@ -843,21 +870,24 @@ class JobInterface(object):
             logger.info('Initializing JobInterface')
         jobiface.engine_recieve_socket = ctx.socket(zmq.DEALER)  # CHECK2 - REQ
         jobiface.engine_recieve_socket.setsockopt_string(
-            zmq.IDENTITY,
-            'client%s.engine.DEALER' % (jobiface.id_,)
+            zmq.IDENTITY, 'client%s.engine.DEALER' % (jobiface.id_,)
         )
         jobiface.engine_recieve_socket.connect(jobiface.port_dict['engine_pull_url'])
         if jobiface.verbose:
-            logger.info('connect engine_pull_url = %r' % (jobiface.port_dict['engine_pull_url'],))
+            logger.info(
+                'connect engine_pull_url = %r' % (jobiface.port_dict['engine_pull_url'],)
+            )
 
         jobiface.collect_recieve_socket = ctx.socket(zmq.DEALER)  # CHECK2 - REQ
         jobiface.collect_recieve_socket.setsockopt_string(
-            zmq.IDENTITY,
-            'client%s.collect.DEALER' % (jobiface.id_,)
+            zmq.IDENTITY, 'client%s.collect.DEALER' % (jobiface.id_,)
         )
         jobiface.collect_recieve_socket.connect(jobiface.port_dict['collect_pull_url'])
         if jobiface.verbose:
-            logger.info('connect collect_pull_url = %r' % (jobiface.port_dict['collect_pull_url'],))
+            logger.info(
+                'connect collect_pull_url = %r'
+                % (jobiface.port_dict['collect_pull_url'],)
+            )
 
     def queue_interrupted_jobs(jobiface):
         import tqdm
@@ -873,31 +903,32 @@ class JobInterface(object):
             record_filepath_list = _get_engine_job_paths(ibs)
 
             num_records = len(record_filepath_list)
-            logger.info('Reloading %d engine jobs...' % (num_records, ))
+            logger.info('Reloading %d engine jobs...' % (num_records,))
 
             shelve_input_filepath_list = []
             shelve_output_filepath_list = []
             for record_filepath in record_filepath_list:
                 jobid = splitext(basename(record_filepath))[0]
-                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(
+                    ibs, jobid
+                )
                 shelve_input_filepath_list.append(shelve_input_filepath)
                 shelve_output_filepath_list.append(shelve_output_filepath)
 
             collect_pull_interface = jobiface.port_dict['collect_pull_url']
 
-            arg_iter = list(zip(
-                record_filepath_list,
-                shelve_input_filepath_list,
-                shelve_output_filepath_list,
-                [shelve_path] * num_records,
-                [shelve_archive_path] * num_records,
-                [collect_pull_interface] * num_records,
-                [jobiface.id_] * num_records,
-            ))
-            values_list = ut.util_parallel.generate2(
-                initialize_process_record,
-                arg_iter,
+            arg_iter = list(
+                zip(
+                    record_filepath_list,
+                    shelve_input_filepath_list,
+                    shelve_output_filepath_list,
+                    [shelve_path] * num_records,
+                    [shelve_archive_path] * num_records,
+                    [collect_pull_interface] * num_records,
+                    [jobiface.id_] * num_records,
+                )
             )
+            values_list = ut.util_parallel.generate2(initialize_process_record, arg_iter,)
             values_list = list(values_list)
 
             restart_jobcounter_list = []
@@ -909,7 +940,15 @@ class JobInterface(object):
             num_completed, num_archived, num_suppressed, num_corrupted = 0, 0, 0, 0
 
             for values in values_list:
-                jobcounter, jobid, engine_request, archived, completed, suppressed, corrupted = values
+                (
+                    jobcounter,
+                    jobid,
+                    engine_request,
+                    archived,
+                    completed,
+                    suppressed,
+                    corrupted,
+                ) = values
 
                 if archived:
                     assert engine_request is None
@@ -937,18 +976,18 @@ class JobInterface(object):
 
             assert num_restarted == len(restart_jobcounter_list)
 
-            info.log('Registered %d jobs...' % (num_registered, ))
-            info.log('\t %d completed jobs' % (num_completed, ))
-            info.log('\t %d restarted jobs' % (num_restarted, ))
-            info.log('\t %d suppressed jobs' % (num_suppressed, ))
-            info.log('\t %d corrupted jobs' % (num_corrupted, ))
-            info.log('Archived %d jobs...' % (num_archived, ))
+            logger.info('Registered %d jobs...' % (num_registered,))
+            logger.info('\t %d completed jobs' % (num_completed,))
+            logger.info('\t %d restarted jobs' % (num_restarted,))
+            logger.info('\t %d suppressed jobs' % (num_suppressed,))
+            logger.info('\t %d corrupted jobs' % (num_corrupted,))
+            logger.info('Archived %d jobs...' % (num_archived,))
 
             # Update the jobcounter to be up to date
             update_notify = {
                 '__set_jobcounter__': global_jobcounter,
             }
-            logger.info('Updating completed job counter: %r' % (update_notify, ))
+            logger.info('Updating completed job counter: %r' % (update_notify,))
             jobiface.engine_recieve_socket.send_json(update_notify)
             reply = jobiface.engine_recieve_socket.recv_json()
             jobcounter_ = reply['jobcounter']
@@ -970,7 +1009,15 @@ class JobInterface(object):
                 assert jobcounter_ == jobcounter
                 assert jobid_ == jobid
 
-    def queue_job(jobiface, action, callback_url=None, callback_method=None, lane='slow', *args, **kwargs):
+    def queue_job(
+        jobiface,
+        action,
+        callback_url=None,
+        callback_method=None,
+        lane='slow',
+        *args,
+        **kwargs
+    ):
         r"""
         IBEIS:
             This is just a function that lives in the main thread and ships off
@@ -1002,16 +1049,16 @@ class JobInterface(object):
                 pass
 
             engine_request = {
-                'action'             : action,
-                'args'               : args,
-                'kwargs'             : kwargs,
-                'callback_url'       : callback_url,
-                'callback_method'    : callback_method,
-                'request'            : request,
-                'restart_jobid'      : None,
-                'restart_jobcounter' : None,
-                'restart_received'   : None,
-                'lane'               : lane,
+                'action': action,
+                'args': args,
+                'kwargs': kwargs,
+                'callback_url': callback_url,
+                'callback_method': callback_method,
+                'request': request,
+                'restart_jobid': None,
+                'restart_jobcounter': None,
+                'restart_received': None,
+                'lane': lane,
             }
             if jobiface.verbose >= 2:
                 logger.info('Queue job: %s' % (ut.repr2(engine_request, truncate=True),))
@@ -1019,7 +1066,7 @@ class JobInterface(object):
             # Send request to job
             jobiface.engine_recieve_socket.send_json(engine_request)
             reply_notify = jobiface.engine_recieve_socket.recv_json()
-            print('reply_notify = %r' % (reply_notify, ))
+            print('reply_notify = %r' % (reply_notify,))
             jobid = reply_notify['jobid']
 
             ibs = jobiface.ibs
@@ -1149,8 +1196,8 @@ def collect_queue_loop(port_dict):
 
     update_proctitle(queue_name)
 
-    interface_pull = port_dict['%s_pull_url' % (name, )]
-    interface_push = port_dict['%s_push_url' % (name, )]
+    interface_pull = port_dict['%s_pull_url' % (name,)]
+    interface_push = port_dict['%s_push_url' % (name,)]
 
     with ut.Indenter('[%s] ' % (queue_name,)):
         if VERBOSE_JOBS:
@@ -1198,8 +1245,7 @@ def engine_queue_loop(port_dict, engine_lanes):
 
     interface_engine_pull = port_dict['engine_pull_url']
     interface_engine_push_dict = {
-        lane: port_dict['engine_%s_push_url' % (lane, )]
-        for lane in engine_lanes
+        lane: port_dict['engine_%s_push_url' % (lane,)] for lane in engine_lanes
     }
     interface_collect_pull = port_dict['collect_pull_url']
 
@@ -1208,7 +1254,9 @@ def engine_queue_loop(port_dict, engine_lanes):
 
         # bind the client dealer to the queue router
         engine_receive_socket = ctx.socket(zmq.ROUTER)  # CHECK2 - REP
-        engine_receive_socket.setsockopt_string(zmq.IDENTITY, 'special_queue.' + name + '.' + 'ROUTER')
+        engine_receive_socket.setsockopt_string(
+            zmq.IDENTITY, 'special_queue.' + name + '.' + 'ROUTER'
+        )
         engine_receive_socket.bind(interface_engine_pull)
         if VERBOSE_JOBS:
             logger.info('bind %s_url2 = %r' % (name, interface_engine_pull,))
@@ -1217,14 +1265,21 @@ def engine_queue_loop(port_dict, engine_lanes):
         engine_send_socket_dict = {}
         for lane in interface_engine_push_dict:
             engine_send_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
-            engine_send_socket.setsockopt_string(zmq.IDENTITY, 'special_queue.' + lane + '.' + name + '.' + 'DEALER')
+            engine_send_socket.setsockopt_string(
+                zmq.IDENTITY, 'special_queue.' + lane + '.' + name + '.' + 'DEALER'
+            )
             engine_send_socket.bind(interface_engine_push_dict[lane])
             if VERBOSE_JOBS:
-                logger.info('bind %s %s_url2 = %r' % (name, lane, interface_engine_push_dict[lane],))
+                logger.info(
+                    'bind %s %s_url2 = %r'
+                    % (name, lane, interface_engine_push_dict[lane],)
+                )
             engine_send_socket_dict[lane] = engine_send_socket
 
         collect_recieve_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
-        collect_recieve_socket.setsockopt_string(zmq.IDENTITY, queue_name + '.collect.DEALER')
+        collect_recieve_socket.setsockopt_string(
+            zmq.IDENTITY, queue_name + '.collect.DEALER'
+        )
         collect_recieve_socket.connect(interface_collect_pull)
         if VERBOSE_JOBS:
             logger.info('connect collect_pull_url = %r' % (interface_collect_pull))
@@ -1244,7 +1299,9 @@ def engine_queue_loop(port_dict, engine_lanes):
                 evts = dict(poller.poll())
                 if engine_receive_socket in evts:
                     # CALLER: job_client
-                    idents, engine_request = rcv_multipart_json(engine_receive_socket, num=1, print=print)
+                    idents, engine_request = rcv_multipart_json(
+                        engine_receive_socket, num=1, print=print
+                    )
 
                     set_jobcounter = engine_request.get('__set_jobcounter__', None)
                     if set_jobcounter is not None:
@@ -1277,7 +1334,10 @@ def engine_queue_loop(port_dict, engine_lanes):
                     lane = engine_request.get('lane', 'slow')
 
                     if lane not in engine_lanes:
-                        print('WARNING: did not recognize desired lane %r from %r' % (lane, engine_lanes, ))
+                        print(
+                            'WARNING: did not recognize desired lane %r from %r'
+                            % (lane, engine_lanes,)
+                        )
                         print('WARNING: Defaulting to slow lane')
                         lane = 'slow'
 
@@ -1321,8 +1381,8 @@ def engine_queue_loop(port_dict, engine_lanes):
                     # Status: Received (Notify Client)
                     if VERBOSE_JOBS:
                         logger.info('... notifying client that job was accepted')
-                        logger.info('%r' % (idents, ))
-                        logger.info('%r' % (reply_notify, ))
+                        logger.info('%r' % (idents,))
+                        logger.info('%r' % (reply_notify,))
                     # RETURNS: job_client_return
                     send_multipart_json(engine_receive_socket, idents, reply_notify)
 
@@ -1333,22 +1393,22 @@ def engine_queue_loop(port_dict, engine_lanes):
                     metadata_notify = {
                         'jobid': jobid,
                         'metadata': {
-                            'jobcounter'         : jobcounter,
-                            'action'             : action,
-                            'args'               : args,
-                            'kwargs'             : kwargs,
-                            'callback_url'       : callback_url,
-                            'callback_method'    : callback_method,
-                            'request'            : request,
-                            'times'              : {
-                                'received'       : received,
-                                'started'        : None,
-                                'updated'        : None,
-                                'completed'      : None,
-                                'runtime'        : None,
-                                'turnaround'     : None,
-                                'runtime_sec'    : None,
-                                'turnaround_sec' : None,
+                            'jobcounter': jobcounter,
+                            'action': action,
+                            'args': args,
+                            'kwargs': kwargs,
+                            'callback_url': callback_url,
+                            'callback_method': callback_method,
+                            'request': request,
+                            'times': {
+                                'received': received,
+                                'started': None,
+                                'updated': None,
+                                'completed': None,
+                                'runtime': None,
+                                'turnaround': None,
+                                'runtime_sec': None,
+                                'turnaround_sec': None,
                             },
                             'lane': lane,
                         },
@@ -1443,24 +1503,28 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
     # CALLED_FROM: engine_queue
     import wbia
 
-    #base_print = print  # NOQA
+    # base_print = print  # NOQA
     print = partial(ut.colorprint, color='brightgreen')
     with ut.Indenter('[engine %s %d] ' % (lane, id_)):
-        interface_engine_push = port_dict['engine_%s_push_url' % (lane, )]
+        interface_engine_push = port_dict['engine_%s_push_url' % (lane,)]
         interface_collect_pull = port_dict['collect_pull_url']
 
         if VERBOSE_JOBS:
-            logger.info('Initializing %s engine %s' % (lane, id_, ))
-            logger.info('connect engine_%s_push_url = %r' % (lane, interface_engine_push,))
+            logger.info('Initializing %s engine %s' % (lane, id_,))
+            logger.info(
+                'connect engine_%s_push_url = %r' % (lane, interface_engine_push,)
+            )
 
         assert dbdir is not None
 
         engine_send_sock = ctx.socket(zmq.ROUTER)  # CHECKED - ROUTER
-        engine_send_sock.setsockopt_string(zmq.IDENTITY, 'engine.%s.%s' % (lane, id_, ))
+        engine_send_sock.setsockopt_string(zmq.IDENTITY, 'engine.%s.%s' % (lane, id_,))
         engine_send_sock.connect(interface_engine_push)
 
         collect_recieve_socket = ctx.socket(zmq.DEALER)
-        collect_recieve_socket.setsockopt_string(zmq.IDENTITY, 'engine.%s.%s.collect.DEALER' % (lane, id_, ))
+        collect_recieve_socket.setsockopt_string(
+            zmq.IDENTITY, 'engine.%s.%s.collect.DEALER' % (lane, id_,)
+        )
         collect_recieve_socket.connect(interface_collect_pull)
 
         if VERBOSE_JOBS:
@@ -1468,7 +1532,7 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
             logger.info('engine is initialized')
 
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
-        update_proctitle('engine_loop.%s.%s' % (lane, id_, ), dbname=ibs.dbname)
+        update_proctitle('engine_loop.%s.%s' % (lane, id_,), dbname=ibs.dbname)
 
         try:
             while True:
@@ -1556,6 +1620,7 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
         # Explicitly try to release GPU memory
         try:
             import torch
+
             torch.cuda.empty_cache()
         except Exception:
             pass
@@ -1563,6 +1628,7 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
         # Explicitly release Python memory
         try:
             import gc
+
             gc.collect()
         except Exception:
             pass
@@ -1631,7 +1697,9 @@ def collector_loop(port_dict, dbdir, containerized):
         collect_rout_sock.setsockopt_string(zmq.IDENTITY, 'collect.ROUTER')
         collect_rout_sock.connect(port_dict['collect_push_url'])
         if VERBOSE_JOBS:
-            logger.info('connect collect_push_url  = %r' % (port_dict['collect_push_url'],))
+            logger.info(
+                'connect collect_push_url  = %r' % (port_dict['collect_push_url'],)
+            )
 
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
         update_proctitle('collector_loop', dbname=ibs.dbname)
@@ -1777,7 +1845,7 @@ def on_collect_request(
         # corrupted
 
         current_status = collector_data[jobid].get('status', None)
-        print('Updating jobid = %r status %r -> %r' % (jobid, current_status, status, ))
+        print('Updating jobid = %r status %r -> %r' % (jobid, current_status, status,))
         collector_data[jobid]['status'] = status
 
         logger.info('Notify %s' % ut.repr3(collector_data[jobid]))
@@ -1995,20 +2063,20 @@ def on_collect_request(
                     request = {}
 
                 job_status_data = {
-                    'status'              : status,
-                    'jobcounter'          : metadata.get('jobcounter', None),
-                    'action'              : metadata.get('action', None),
-                    'endpoint'            : request.get('endpoint', None),
-                    'function'            : request.get('function', None),
-                    'time_received'       : times.get('received', None),
-                    'time_started'        : times.get('started', None),
-                    'time_runtime'        : times.get('runtime', None),
-                    'time_updated'        : times.get('updated', None),
-                    'time_completed'      : times.get('completed', None),
-                    'time_turnaround'     : times.get('turnaround', None),
-                    'time_runtime_sec'    : times.get('runtime_sec', None),
-                    'time_turnaround_sec' : times.get('turnaround_sec', None),
-                    'lane'                : metadata.get('lane', None),
+                    'status': status,
+                    'jobcounter': metadata.get('jobcounter', None),
+                    'action': metadata.get('action', None),
+                    'endpoint': request.get('endpoint', None),
+                    'function': request.get('function', None),
+                    'time_received': times.get('received', None),
+                    'time_started': times.get('started', None),
+                    'time_runtime': times.get('runtime', None),
+                    'time_updated': times.get('updated', None),
+                    'time_completed': times.get('completed', None),
+                    'time_turnaround': times.get('turnaround', None),
+                    'time_runtime_sec': times.get('runtime_sec', None),
+                    'time_turnaround_sec': times.get('turnaround_sec', None),
+                    'lane': metadata.get('lane', None),
                 }
                 if cache:
                     JOB_STATUS_CACHE[jobid] = job_status_data
@@ -2107,6 +2175,7 @@ def _on_ctrl_c(signal, frame):
 
 def _init_signals():
     import signal
+
     signal.signal(signal.SIGINT, _on_ctrl_c)
 
 
@@ -2118,6 +2187,8 @@ if __name__ == '__main__':
         python -m ibeis.web.job_engine --allexamples --noface --nosrc
     """
     import multiprocessing
+
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+
     ut.doctest_funcs()
