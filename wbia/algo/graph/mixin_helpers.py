@@ -289,9 +289,7 @@ class Convenience(object):
                     df_str, ut.regex_word(str(nid1)), color='blue'
                 )
             if nid2 not in {aid1, aid2}:
-                df_str = ut.highlight_regex(
-                    df_str, ut.regex_word(str(nid2)), color='red'
-                )
+                df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid2)), color='red')
             logger.info('\n\n=====')
             logger.info(lbl)
             logger.info('=====')

@@ -667,10 +667,7 @@ def check_image_loadable(ibs, gid_list=None):
     gpath_list = ibs.get_image_paths(gid_list)
     orient_list = ibs.get_image_orientation(gid_list)
 
-    arg_iter = list(zip(
-        gpath_list,
-        orient_list,
-    ))
+    arg_iter = list(zip(gpath_list, orient_list,))
     flag_list = ut.util_parallel.generate2(
         check_image_loadable_worker,
         arg_iter,
@@ -1057,6 +1054,7 @@ def check_annotmatch_consistency(ibs):
 if sys.version_info >= (3, 2, 0):
     my_cache_decorator = functools.lru_cache(maxsize=4096)
 else:
+
     def null_decorator(ob):
         return ob
 
@@ -1301,9 +1299,11 @@ def check_cache_purge(ibs, ttl_days=365, dryrun=True, squeeze=False):
     failed_list = []
 
     if dryrun:
-        logger.info('Would have (dry-run = True) deleted %d files...' % (len(delete_path_list), ))
+        logger.info(
+            'Would have (dry-run = True) deleted %d files...' % (len(delete_path_list),)
+        )
     else:
-        logger.info('Deleting %d files...' % (len(delete_path_list), ))
+        logger.info('Deleting %d files...' % (len(delete_path_list),))
         arguments_list = list(zip(delete_path_list))
         values_list = check_cache_purge_parallel_wrapper(
             check_cache_purge_delete_worker, arguments_list

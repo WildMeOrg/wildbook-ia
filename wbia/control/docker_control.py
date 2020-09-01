@@ -130,8 +130,10 @@ def docker_run(
                     blacklist_ports.append(port)
     blacklist_ports = sorted(list(set(blacklist_ports)))
 
-    ext_port = find_open_port(override_run_args['_external_suggested_port'], blacklist_ports)
-    port_key = '%d/tcp' % (override_run_args['_internal_port'], )
+    ext_port = find_open_port(
+        override_run_args['_external_suggested_port'], blacklist_ports
+    )
+    port_key = '%d/tcp' % (override_run_args['_internal_port'],)
 
     # remove underscore args from run_args
     key_list = list(override_run_args.keys())

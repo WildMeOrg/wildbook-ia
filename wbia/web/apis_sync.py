@@ -460,6 +460,7 @@ def _sync_get_auuid_endpoint(ibs, endpoint, auuid_list):
     working_list = auuid_list.copy()
     if len(working_list) > 0 and type(working_list[0]) is str:
         from uuid import UUID
+
         working_list = [UUID(item) for item in working_list]
 
     serialized_uuids = ut.to_json(working_list)

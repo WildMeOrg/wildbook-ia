@@ -1721,21 +1721,23 @@ def view_jobs(**kwargs):
         if jov_status == 'corrupted':
             job_state -= 1
         job_exception = None
-        job_list.append((
-            jobid,
-            job['jobcounter'],
-            job['action'],
-            job['endpoint'],
-            job['function'],
-            jov_status,
-            job_state,
-            job['time_received'],
-            job['time_started'],
-            job['time_completed'],
-            job['time_runtime'],
-            job['time_turnaround'],
-            job['lane'],
-        ))
+        job_list.append(
+            (
+                jobid,
+                job['jobcounter'],
+                job['action'],
+                job['endpoint'],
+                job['function'],
+                jov_status,
+                job_state,
+                job['time_received'],
+                job['time_started'],
+                job['time_completed'],
+                job['time_runtime'],
+                job['time_turnaround'],
+                job['lane'],
+            )
+        )
 
     num_jobs = len(job_list)
 
@@ -2682,9 +2684,7 @@ def turk_detection(
     part_type_list = ibs.get_part_types(part_rowid_list)
     zipped = list(zip(part_species_text_list, part_type_list))
 
-    species_part_dict = {
-        const.UNKNOWN: set([])
-    }
+    species_part_dict = {const.UNKNOWN: set([])}
     for part_species_text, part_type in zipped:
         if part_species_text not in species_part_dict:
             species_part_dict[part_species_text] = set([const.UNKNOWN])

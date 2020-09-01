@@ -189,8 +189,15 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
 
 @register_ibs_method
 @register_api('/api/engine/query/annot/rowid/', methods=['GET', 'POST'])
-def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
-                          pipecfg={}, callback_url=None, callback_method=None, lane='slow'):
+def start_identify_annots(
+    ibs,
+    qannot_uuid_list,
+    dannot_uuid_list=None,
+    pipecfg={},
+    callback_url=None,
+    callback_method=None,
+    lane='slow',
+):
     r"""
     REST:
         Method: GET
@@ -314,9 +321,9 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list
     )
     args = (qaid_list, daid_list, pipecfg)
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict',
-                                               callback_url, callback_method, lane,
-                                               *args)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_simple_dict', callback_url, callback_method, lane, *args
+    )
 
     # if callback_url is not None:
     #    #import requests
@@ -327,14 +334,18 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
 @register_ibs_method
 @register_api('/api/engine/query/graph/complete/', methods=['GET', 'POST'])
-def start_identify_annots_query_complete(ibs, annot_uuid_list=None,
-                                         annot_name_list=None,
-                                         matching_state_list=[],
-                                         query_config_dict={},
-                                         k=5,
-                                         echo_query_params=True,
-                                         callback_url=None,
-                                         callback_method=None, lane='slow'):
+def start_identify_annots_query_complete(
+    ibs,
+    annot_uuid_list=None,
+    annot_name_list=None,
+    matching_state_list=[],
+    query_config_dict={},
+    k=5,
+    echo_query_params=True,
+    callback_url=None,
+    callback_method=None,
+    lane='slow',
+):
     r"""
     REST:
         Method: GET
@@ -378,31 +389,39 @@ def start_identify_annots_query_complete(ibs, annot_uuid_list=None,
         nid_list = ibs.add_names(annot_name_list)
         ibs.set_annot_name_rowids(aid_list, nid_list)
 
-    ibs.assert_valid_aids(aid_list, msg='error in start_identify qaids',
-                          auuid_list=annot_uuid_list)
+    ibs.assert_valid_aids(
+        aid_list, msg='error in start_identify qaids', auuid_list=annot_uuid_list
+    )
 
-    args = (aid_list, query_config_dict, k, )
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph_complete',
-                                               callback_url, callback_method, lane,
-                                               *args)
+    args = (
+        aid_list,
+        query_config_dict,
+        k,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_graph_complete', callback_url, callback_method, lane, *args
+    )
     return jobid
 
 
 @register_ibs_method
 @register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
-def start_identify_annots_query(ibs,
-                                query_annot_uuid_list=None,
-                                # query_annot_name_uuid_list=None,
-                                query_annot_name_list=None,
-                                database_annot_uuid_list=None,
-                                # database_annot_name_uuid_list=None,
-                                database_annot_name_list=None,
-                                matching_state_list=[],
-                                query_config_dict={},
-                                echo_query_params=True,
-                                include_qaid_in_daids=True,
-                                callback_url=None,
-                                callback_method=None, lane='slow'):
+def start_identify_annots_query(
+    ibs,
+    query_annot_uuid_list=None,
+    # query_annot_name_uuid_list=None,
+    query_annot_name_list=None,
+    database_annot_uuid_list=None,
+    # database_annot_name_uuid_list=None,
+    database_annot_name_list=None,
+    matching_state_list=[],
+    query_config_dict={},
+    echo_query_params=True,
+    include_qaid_in_daids=True,
+    callback_url=None,
+    callback_method=None,
+    lane='slow',
+):
     r"""
     REST:
         Method: GET
@@ -601,15 +620,17 @@ def start_identify_annots_query(ibs,
         daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list
     )
     args = (qaid_list, daid_list, user_feedback, query_config_dict, echo_query_params)
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph',
-                                               callback_url, callback_method, lane,
-                                               *args)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_graph', callback_url, callback_method, lane, *args
+    )
     return jobid
 
 
 @register_ibs_method
 @register_api('/api/engine/wic/cnn/', methods=['POST'])
-def start_wic_image(ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs):
+def start_wic_image(
+    ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+):
     """
     REST:
         Method: GET
@@ -627,10 +648,15 @@ def start_wic_image(ibs, image_uuid_list, callback_url=None, callback_method=Non
     # ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('wic_cnn_json', callback_url, callback_method, lane, *args)
+    args = (
+        gid_list,
+        kwargs,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'wic_cnn_json', callback_url, callback_method, lane, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -639,7 +665,9 @@ def start_wic_image(ibs, image_uuid_list, callback_url=None, callback_method=Non
 
 @register_ibs_method
 @register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
-def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs):
+def start_detect_image_yolo(
+    ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+):
     """
     REST:
         Method: GET
@@ -657,10 +685,15 @@ def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_me
     # ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_json', callback_url, callback_method, lane, *args)
+    args = (
+        gid_list,
+        kwargs,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'detect_cnn_yolo_json', callback_url, callback_method, lane, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -669,7 +702,9 @@ def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_me
 
 @register_ibs_method
 @register_api('/api/engine/labeler/cnn/', methods=['POST'])
-def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs):
+def start_labeler_cnn(
+    ibs, annot_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+):
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
 
@@ -679,10 +714,15 @@ def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=N
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
-    args = (aid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('labeler_cnn', callback_url, callback_method, lane, *args)
+    args = (
+        aid_list,
+        kwargs,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'labeler_cnn', callback_url, callback_method, lane, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -691,7 +731,9 @@ def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=N
 
 @register_ibs_method
 @register_api('/api/engine/review/query/chip/best/', methods=['POST'])
-def start_review_query_chips_best(ibs, annot_uuid, callback_url=None, callback_method=None, lane='slow', **kwargs):
+def start_review_query_chips_best(
+    ibs, annot_uuid, callback_url=None, callback_method=None, lane='slow', **kwargs
+):
     annot_uuid_list = [annot_uuid]
 
     # Check UUIDs
@@ -703,8 +745,10 @@ def start_review_query_chips_best(ibs, annot_uuid, callback_url=None, callback_m
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     aid = aid_list[0]
-    args = (aid, )
-    jobid = ibs.job_manager.jobiface.queue_job('review_query_chips_best', callback_url, callback_method, lane, *args)
+    args = (aid,)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'review_query_chips_best', callback_url, callback_method, lane, *args
+    )
 
     # if callback_url is not None:
     #    #import requests
@@ -728,7 +772,9 @@ def start_detect_image_test_yolo(ibs):
 
 @register_ibs_method
 @register_api('/api/engine/detect/cnn/lightnet/', methods=['POST', 'GET'])
-def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs):
+def start_detect_image_lightnet(
+    ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+):
     """
     REST:
         Method: GET/api/engine/detect/cnn/lightnet/
@@ -746,10 +792,15 @@ def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callbac
     # ibs.load_plugin_module(apis_engine)
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    args = (gid_list, kwargs, )
-    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_lightnet_json', callback_url, callback_method, lane, *args)
+    args = (
+        gid_list,
+        kwargs,
+    )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'detect_cnn_lightnet_json', callback_url, callback_method, lane, *args
+    )
 
-    #if callback_url is not None:
+    # if callback_url is not None:
     #    #import requests
     #    #requests.
     #    #callback_url
@@ -771,7 +822,9 @@ def start_detect_image_test_lightnet(ibs):
 
 @register_ibs_method
 @register_api('/api/engine/classify/whaleshark/injury/', methods=['POST'])
-def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs):
+def start_predict_ws_injury_interim_svm(
+    ibs, annot_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+):
     """
     REST:
         Method: POST
@@ -810,7 +863,9 @@ def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None,
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     annots = ibs.annots(uuids=annot_uuid_list)
     args = (annots.aids,)
-    jobid = ibs.job_manager.jobiface.queue_job('predict_ws_injury_interim_svm', callback_url, callback_method, lane, *args)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'predict_ws_injury_interim_svm', callback_url, callback_method, lane, *args
+    )
 
     # if callback_url is not None:
     #    #import requests

@@ -177,17 +177,17 @@ def decode_refer_url(encoded):
 def template(template_directory=None, template_filename=None, **kwargs):
     ibs = current_app.ibs
     global_args = {
-        'NAVBAR'             : NavbarClass(),
-        'YEAR'               : date.today().year,
-        'URL'                : flask.request.url,
-        'REFER_SRC_STR'      : flask.request.url.replace(flask.request.url_root, '/'),
-        '__login__'          : flask.request.url_rule.rule == url_for('login'),
-        '__wrapper__'        : True,
-        '__wrapper_header__' : True,
-        '__wrapper_footer__' : True,
-        '__containerized__'  : ibs.containerized,
-        '__https__'          : ibs.https,
-        'user'               : controller_inject.get_user(),
+        'NAVBAR': NavbarClass(),
+        'YEAR': date.today().year,
+        'URL': flask.request.url,
+        'REFER_SRC_STR': flask.request.url.replace(flask.request.url_root, '/'),
+        '__login__': flask.request.url_rule.rule == url_for('login'),
+        '__wrapper__': True,
+        '__wrapper_header__': True,
+        '__wrapper_footer__': True,
+        '__containerized__': ibs.containerized,
+        '__https__': ibs.https,
+        'user': controller_inject.get_user(),
         'GOOGLE_MAPS_API_KEY': '<<INSERT GOOGLE API KEY>>',
     }
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])

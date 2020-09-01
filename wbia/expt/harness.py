@@ -200,7 +200,9 @@ def make_single_testres(
             pass
         else:
             if ut.NOT_QUIET:
-                ut.colorprint('[harn] single testres cache hit... returning', 'brightcyan')
+                ut.colorprint(
+                    '[harn] single testres cache hit... returning', 'brightcyan'
+                )
             return testres
 
     if ibs.table_cache:

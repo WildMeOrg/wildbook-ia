@@ -12,7 +12,7 @@ def pytest_addoption(parser):
         '--disable-refresh-db',
         action='store_true',
         help=(
-            "disables the set_up_db fixture from rebuilding the db, "
+            'disables the set_up_db fixture from rebuilding the db, '
             "instead it will reuse the previous test run's db"
         ),
     )
