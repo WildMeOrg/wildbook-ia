@@ -9,7 +9,6 @@ RUN git clone https://github.com/opencv/opencv.git                        /wbia/
  && git clone https://github.com/opencv/opencv_contrib.git                /wbia/opencv_contrib \
  && git clone https://github.com/Theano/libgpuarray.git                   /wbia/libgpuarray \
  && git clone https://github.com/Theano/Theano.git                        /wbia/Theano \
- && git clone https://github.com/Lasagne/Lasagne.git                      /wbia/Lasagne \
  && git clone https://github.com/networkx/networkx.git                    /wbia/networkx
 
 # Install basic Python3 dependencies (and ones that were missing in IBEIS install)
@@ -130,8 +129,6 @@ RUN /virtualenv/env3/bin/pip install git+https://github.com/aleju/imgaug \
 
 # Install Python dependencies
 RUN cd /wbia/Theano \
- && /virtualenv/env3/bin/pip install -e . \
- && cd /wbia/Lasagne \
  && /virtualenv/env3/bin/pip install -e . \
  && cd /wbia/networkx \
  && /virtualenv/env3/bin/pip install -e .
