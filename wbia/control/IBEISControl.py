@@ -681,7 +681,7 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        db_uri = 'file://{}'.format(realpath(sqldb_fpath))
+        db_uri = 'sqlite:///{}'.format(realpath(sqldb_fpath))
         ibs.db = dtool.SQLDatabaseController.from_uri(db_uri, readonly=readonly)
         ibs.readonly = ibs.db.readonly
 
@@ -767,7 +767,7 @@ class IBEISController(BASE_CLASS):
             readonly = None
         else:
             readonly = True
-        db_uri = 'file://{}'.format(realpath(sqlstaging_fpath))
+        db_uri = 'sqlite:///{}'.format(realpath(sqlstaging_fpath))
         ibs.staging = dtool.SQLDatabaseController.from_uri(
             db_uri,
             readonly=readonly,
