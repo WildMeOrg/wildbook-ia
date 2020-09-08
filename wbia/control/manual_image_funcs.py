@@ -2178,7 +2178,7 @@ def get_image_imgsetids(ibs, gid_list):
             """.format(
                 GSG_RELATION_TABLE=const.GSG_RELATION_TABLE, IMAGE_ROWID=IMAGE_ROWID
             )
-        ).fetchall()
+        )
     colnames = ('imageset_rowid',)
     imgsetids_list = ibs.db.get(
         const.GSG_RELATION_TABLE,
@@ -2280,7 +2280,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
             """
             CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
             """
-        ).fetchall()
+        )
 
         # The index maxes the following query very efficient
         if __check_staged__:

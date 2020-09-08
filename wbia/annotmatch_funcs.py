@@ -52,7 +52,7 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
                 ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
                 annot_rowid1=manual_annotmatch_funcs.ANNOT_ROWID1,
             )
-        ).fetchall()
+        )
     where_colnames = [manual_annotmatch_funcs.ANNOT_ROWID1]
     annotmatch_rowid_list = ibs.db.get_where_eq(
         ibs.const.ANNOTMATCH_TABLE,
@@ -89,7 +89,7 @@ def get_annotmatch_rowids_from_aid2(
                 ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
                 annot_rowid2=manual_annotmatch_funcs.ANNOT_ROWID2,
             )
-        ).fetchall()
+        )
     colnames = (manual_annotmatch_funcs.ANNOTMATCH_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(aid2_list)
