@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import sqlite3
 import uuid
 
 import pytest
+from sqlalchemy.engine import Connection
 
 from wbia.dtool.sql_control import (
     METADATA_TABLE_COLUMNS,
@@ -13,17 +13,17 @@ from wbia.dtool.sql_control import (
 
 @pytest.fixture
 def ctrlr():
-    return SQLDatabaseController.from_uri(':memory:')
+    return SQLDatabaseController.from_uri('sqlite:///:memory:')
 
 
 def test_instantiation(ctrlr):
     # Check for basic connection information
-    assert ctrlr.uri == ':memory:'
+    assert ctrlr.uri == 'sqlite:///:memory:'
     assert ctrlr.timeout == TIMEOUT
 
     # Check for a connection, that would have been made during instantiation
-    assert isinstance(ctrlr.connection, sqlite3.Connection)
-    assert isinstance(ctrlr.cur, sqlite3.Cursor)
+    assert isinstance(ctrlr.connection, Connection)
+    assert not ctrlr.connection.closed
 
 
 def test_safely_get_db_version(ctrlr):
