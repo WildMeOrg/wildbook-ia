@@ -4,11 +4,13 @@ import json
 import uuid
 
 import numpy as np
-from sqlalchemy.types import UserDefinedType
+from sqlalchemy.types import Integer as SAInteger
+from sqlalchemy.types import TypeDecorator, UserDefinedType
 
 
 __all__ = (
     'Dict',
+    'Integer',
     'List',
     'TYPE_TO_SQLTYPE',
     'UUID',
@@ -67,6 +69,13 @@ class JSONCodeableType(UserDefinedType):
 class Dict(JSONCodeableType):
     base_py_type = dict
     col_spec = 'DICT'
+
+
+class Integer(TypeDecorator):
+    impl = SAInteger
+
+    def process_bind_param(self, value, dialect):
+        return int(value)
 
 
 class List(JSONCodeableType):

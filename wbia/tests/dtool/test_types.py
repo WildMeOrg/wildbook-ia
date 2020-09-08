@@ -7,7 +7,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text, bindparam
 from sqlalchemy.types import Float
 
-from wbia.dtool.types import Dict, List, UUID
+from wbia.dtool.types import Dict, Integer, List, UUID
 
 
 @pytest.fixture(autouse=True)
@@ -80,6 +80,39 @@ def test_numpy_floats(db, num_type):
     stmt = text('SELECT x FROM test')
     # Hint: https://docs.sqlalchemy.org/en/13/core/tutorial.html#specifying-result-column-behaviors
     stmt = stmt.columns(x=Float)
+    results = db.execute(stmt)
+    selected_value = results.fetchone()[0]
+    assert selected_value == insert_value
+
+
+np_number_types = (
+    np.int8,
+    np.int16,
+    np.int32,
+    np.int64,
+    np.uint8,
+    np.uint16,
+    np.uint32,
+    np.uint64,
+)
+
+
+@pytest.mark.parametrize('num_type', np_number_types)
+def test_numpy_ints(db, num_type):
+    # Create a table that uses the type
+    db.execute(text('CREATE TABLE test(x INTEGER)'))
+
+    # Insert a uuid value into the table
+    insert_value = num_type(8)
+    # Hint: https://docs.sqlalchemy.org/en/13/core/tutorial.html#specifying-bound-parameter-behaviors
+    stmt = text('INSERT INTO test(x) VALUES (:x)')
+    stmt = stmt.bindparams(bindparam('x', type_=Integer))
+    db.execute(stmt, x=insert_value)
+
+    # Query for the value
+    stmt = text('SELECT x FROM test')
+    # Hint: https://docs.sqlalchemy.org/en/13/core/tutorial.html#specifying-result-column-behaviors
+    stmt = stmt.columns(x=Integer)
     results = db.execute(stmt)
     selected_value = results.fetchone()[0]
     assert selected_value == insert_value
