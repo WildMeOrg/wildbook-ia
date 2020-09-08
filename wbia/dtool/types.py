@@ -8,6 +8,7 @@ from sqlalchemy.types import UserDefinedType
 
 
 __all__ = (
+    'Dict',
     'List',
     'TYPE_TO_SQLTYPE',
     'UUID',
@@ -27,6 +28,35 @@ TYPE_TO_SQLTYPE = {
     dict: 'DICT',
     list: 'LIST',
 }
+
+
+class Dict(UserDefinedType):
+    def get_col_spec(self, **kw):
+        return 'DICT'
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is None:
+                return value
+            else:
+                if isinstance(value, dict):
+                    return json.dumps(value)
+                else:
+                    return value
+
+        return process
+
+    def result_processor(self, dialect, coltype):
+        def process(value):
+            if value is None:
+                return value
+            else:
+                if not isinstance(value, dict):
+                    return json.loads(value)
+                else:
+                    return value
+
+        return process
 
 
 class List(UserDefinedType):
