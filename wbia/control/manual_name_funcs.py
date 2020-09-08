@@ -493,7 +493,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
             """
             CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
             """
-        ).fetchall()
+        )
         aids_list = ibs.db.get(
             const.ANNOTATION_TABLE,
             (ANNOT_ROWID,),
