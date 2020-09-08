@@ -6,7 +6,9 @@
 # See `_integrate_sqlite3` module for details.
 import sqlite3
 
-from wbia.dtool import _integrate_sqlite3 as lite
+# BBB (7-Sept-12020)
+import sqlite3 as lite
+
 from wbia.dtool import base
 from wbia.dtool import sql_control
 from wbia.dtool import depcache_control
