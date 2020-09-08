@@ -235,7 +235,7 @@ class _CoreDependencyCache(object):
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
             # if ut.get_argflag('--clear-all-depcache'):
             #     ut.delete(fpath)
-            db_uri = 'file://{}'.format(os.path.realpath(fpath))
+            db_uri = 'sqlite:///{}'.format(os.path.realpath(fpath))
             db = sql_control.SQLDatabaseController.from_uri(db_uri)
             depcache_table.ensure_config_table(db)
             depc.fname_to_db[fname] = db

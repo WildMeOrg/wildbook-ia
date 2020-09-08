@@ -10,6 +10,7 @@ import collections
 import os
 import parse
 import re
+import sqlite3
 import threading
 import uuid
 from collections.abc import Mapping, MutableMapping
@@ -17,10 +18,11 @@ from functools import partial
 from os.path import join, exists
 
 import six
+import sqlalchemy
 import utool as ut
 from deprecated import deprecated
 
-from wbia.dtool import sqlite3 as lite
+from wbia.dtool import lite
 from wbia.dtool.dump import dumps
 
 
@@ -156,8 +158,8 @@ class SQLExecutionContext(object):
         context.verbose = verbose
         context.is_insert = context.operation_type.startswith('INSERT')
         context.keepwrap = keepwrap
-        context.cur = None
         context.connection = None
+        context.transaction = None
 
     def __enter__(context):
         """ Checks to see if the operating will change the database """
@@ -174,21 +176,12 @@ class SQLExecutionContext(object):
         # Start SQL Transaction
 
         context.connection = context.db.connection
-        try:
-            context.cur = context.connection.cursor()  # HACK in a new cursor
-        except lite.ProgrammingError:
-            # Get connection for new thread
-            context.connection = context.db.thread_connection()
-            context.cur = context.connection.cursor()
-
-        # context.cur = context.db.cur  # OR USE DB CURSOR??
         if context.start_transaction:
-            # context.cur.execute('BEGIN', ())
             try:
-                context.cur.execute('BEGIN')
-            except lite.OperationalError:
+                context.transaction = context.connection.begin()
+            except sqlalchemy.exc.OperationalError:
                 context.connection.rollback()
-                context.cur.execute('BEGIN')
+                context.transaction = context.connection.begin()
         if context.verbose or VERBOSE_SQL:
             logger.info(context.operation_lbl)
             if context.verbose:
@@ -203,8 +196,8 @@ class SQLExecutionContext(object):
     def execute_and_generate_results(context, params):
         """ helper for context statment """
         try:
-            context.cur.execute(context.operation, params)
-        except lite.Error as ex:
+            result = context.connection.execute(context.operation, params)
+        except sqlalchemy.exc.OperationalError as ex:
             logger.info('Reporting SQLite Error')
             logger.info('params = ' + ut.repr2(params, truncate=not ut.VERBOSE))
             ut.printex(ex, 'sql.Error', keys=['params'])
@@ -232,10 +225,10 @@ class SQLExecutionContext(object):
                 except Exception:
                     pass
             raise
-        return context._results_gen()
+        return context._results_gen(result)
 
     # @profile
-    def _results_gen(context):
+    def _results_gen(context, result):
         """HELPER - Returns as many results as there are.
         Careful. Overwrites the results once you call it.
         Basically: Dont call this twice.
@@ -244,19 +237,22 @@ class SQLExecutionContext(object):
             # The sqlite3_last_insert_rowid(D) interface returns the
             # <b> rowid of the most recent successful INSERT </b>
             # into a rowid table in D
-            context.cur.execute('SELECT last_insert_rowid()', ())
+            result = context.connection.execute('SELECT last_insert_rowid()', ())
         # Wraping fetchone in a generator for some pretty tight calls.
         while True:
-            result = context.cur.fetchone()
-            if not result:
+            if not result.returns_rows:
+                # Doesn't have any results, e.g. CREATE TABLE statements
+                return
+            row = result.fetchone()
+            if row is None:
                 return
             if context.keepwrap:
                 # Results are always returned wraped in a tuple
-                yield result
+                yield row
             else:
                 # Here unpacking is conditional
                 # FIXME: can this if be removed?
-                yield result[0] if len(result) == 1 else result
+                yield row[0] if len(row) == 1 else row
 
     def __exit__(context, type_, value, trace):
         """ Finalization of an SQLController call """
@@ -269,8 +265,8 @@ class SQLExecutionContext(object):
             return False
         else:
             # Commit the transaction
-            if context.auto_commit:
-                context.connection.commit()
+            if context.auto_commit and context.transaction:
+                context.transaction.commit()
             else:
                 logger.info('no commit %r' % context.operation_lbl)
 
@@ -637,7 +633,7 @@ class SQLDatabaseController(object):
             >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
             >>> path = os.path.join(sqldb_dpath, sqldb_fname)
-            >>> db_uri = 'file://{}'.format(os.path.realpath(path))
+            >>> db_uri = 'sqlite:///{}'.format(os.path.realpath(path))
             >>> db = SQLDatabaseController.from_uri(db_uri)
             >>> db.print_schema()
             >>> print(db)
@@ -660,9 +656,6 @@ class SQLDatabaseController(object):
         # FIXME (31-Jul-12020) rename to private attribute
         self.thread_connections = {}
         self._connection = None
-        # FIXME (31-Jul-12020) rename to private attribute, no direct access to the connection
-        # Initialize a cursor
-        self.cur = self.connection.cursor()
 
         if not self.readonly:
             # Ensure the metadata table is initialized.
@@ -677,9 +670,14 @@ class SQLDatabaseController(object):
 
     def connect(self):
         """Create a connection for the instance or use the existing connection"""
-        self._connection = lite.connect(
-            self.uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout, uri=True
+        # The echo flag is a shortcut to set up SQLAlchemy logging
+        self._engine = sqlalchemy.create_engine(
+            self.uri,
+            # FIXME (27-Aug-12020) Hardcoded for sqlite
+            connect_args={'detect_types': sqlite3.PARSE_DECLTYPES},
+            echo=False,
         )
+        self._connection = self._engine.connect()
         return self._connection
 
     @property
@@ -693,7 +691,7 @@ class SQLDatabaseController(object):
         return conn
 
     def _create_connection(self):
-        path = self.uri.replace('file://', '')
+        path = self.uri.replace('sqlite://', '')
         if not exists(path):
             logger.info('[sql] Initializing new database: %r' % (self.uri,))
             if self.readonly:
@@ -707,9 +705,13 @@ class SQLDatabaseController(object):
         uri = self.uri
         if self.readonly:
             uri += '?mode=ro'
-        connection = lite.connect(
-            uri, uri=True, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
+        engine = sqlalchemy.create_engine(
+            uri,
+            # FIXME (27-Aug-12020) Hardcoded for sqlite
+            connect_args={'detect_types': sqlite3.PARSE_DECLTYPES},
+            echo=False,
         )
+        connection = engine.connect()
 
         # Keep track of what thead this was started in
         threadid = threading.current_thread()
@@ -718,7 +720,6 @@ class SQLDatabaseController(object):
         return connection, uri
 
     def close(self):
-        self.cur = None
         self.connection.close()
         self.thread_connections = {}
 
@@ -747,7 +748,7 @@ class SQLDatabaseController(object):
         """
         try:
             orig_table_kw = self.get_table_autogen_dict(METADATA_TABLE_NAME)
-        except (lite.OperationalError, NameError):
+        except (sqlalchemy.exc.OperationalError, NameError):
             orig_table_kw = None
 
         meta_table_kw = ut.odict(
@@ -813,7 +814,7 @@ class SQLDatabaseController(object):
             >>> import os
             >>> from wbia.dtool.sql_control import *  # NOQA
             >>> # Check random database gets new UUID on init
-            >>> db = SQLDatabaseController.from_uri(':memory:')
+            >>> db = SQLDatabaseController.from_uri('sqlite:///')
             >>> uuid_ = db.get_db_init_uuid()
             >>> print('New Database: %r is valid' % (uuid_, ))
             >>> assert isinstance(uuid_, uuid.UUID)
@@ -821,7 +822,7 @@ class SQLDatabaseController(object):
             >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
             >>> path = os.path.join(sqldb_dpath, sqldb_fname)
-            >>> db_uri = 'file://{}'.format(os.path.realpath(path))
+            >>> db_uri = 'sqlite:///{}'.format(os.path.realpath(path))
             >>> db1 = SQLDatabaseController.from_uri(db_uri)
             >>> uuid_1 = db1.get_db_init_uuid()
             >>> db2 = SQLDatabaseController.from_uri(db_uri)
@@ -837,14 +838,15 @@ class SQLDatabaseController(object):
 
     def reboot(self):
         logger.info('[sql] reboot')
-        self.cur.close()
-        del self.cur
         self.connection.close()
         del self.connection
-        self.connection = lite.connect(
-            self.uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout, uri=True
+        self._engine = sqlalchemy.create_engine(
+            self.uri,
+            # FIXME (27-Aug-12020) Hardcoded for sqlite
+            connect_args={'detect_types': sqlite3.PARSE_DECLTYPES},
+            echo=False,
         )
-        self.cur = self.connection.cursor()
+        self.connection = self._engine.connect()
 
     def backup(self, backup_filepath):
         """
@@ -853,10 +855,11 @@ class SQLDatabaseController(object):
         # Create a brand new conenction to lock out current thread and any others
         connection, uri = self._create_connection()
         # Start Exclusive transaction, lock out all other writers from making database changes
+        transaction = connection.begin()
         connection.isolation_level = 'EXCLUSIVE'
         connection.execute('BEGIN EXCLUSIVE')
         # Assert the database file exists, and copy to backup path
-        path = self.uri.replace('file://', '')
+        path = self.uri.replace('sqlite://', '')
         if exists(path):
             ut.copy(path, backup_filepath)
         else:
@@ -864,7 +867,7 @@ class SQLDatabaseController(object):
                 'Could not backup the database as the URI does not exist: %r' % (uri,)
             )
         # Commit the transaction, releasing the lock
-        connection.commit()
+        transaction.commit()
         # Close the connection
         connection.close()
 
@@ -873,35 +876,35 @@ class SQLDatabaseController(object):
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
         if VERBOSE_SQL:
             logger.info('[sql] running sql pragma optimizions')
-        # self.cur.execute('PRAGMA cache_size = 0;')
-        # self.cur.execute('PRAGMA cache_size = 1024;')
-        # self.cur.execute('PRAGMA page_size = 1024;')
+        # self.connection.execute('PRAGMA cache_size = 0;')
+        # self.connection.execute('PRAGMA cache_size = 1024;')
+        # self.connection.execute('PRAGMA page_size = 1024;')
         # logger.info('[sql] running sql pragma optimizions')
-        self.cur.execute('PRAGMA cache_size = 10000;')  # Default: 2000
-        self.cur.execute('PRAGMA temp_store = MEMORY;')
-        self.cur.execute('PRAGMA synchronous = OFF;')
-        # self.cur.execute('PRAGMA synchronous = NORMAL;')
-        # self.cur.execute('PRAGMA synchronous = FULL;')  # Default
-        # self.cur.execute('PRAGMA parser_trace = OFF;')
-        # self.cur.execute('PRAGMA busy_timeout = 1;')
-        # self.cur.execute('PRAGMA default_cache_size = 0;')
+        self.connection.execute('PRAGMA cache_size = 10000;')  # Default: 2000
+        self.connection.execute('PRAGMA temp_store = MEMORY;')
+        self.connection.execute('PRAGMA synchronous = OFF;')
+        # self.connection.execute('PRAGMA synchronous = NORMAL;')
+        # self.connection.execute('PRAGMA synchronous = FULL;')  # Default
+        # self.connection.execute('PRAGMA parser_trace = OFF;')
+        # self.connection.execute('PRAGMA busy_timeout = 1;')
+        # self.connection.execute('PRAGMA default_cache_size = 0;')
 
     def shrink_memory(self):
         logger.info('[sql] shrink_memory')
         self.connection.commit()
-        self.cur.execute('PRAGMA shrink_memory;')
+        self.connection.execute('PRAGMA shrink_memory;')
         self.connection.commit()
 
     def vacuum(self):
         logger.info('[sql] vaccum')
-        self.connection.commit()
-        self.cur.execute('VACUUM;')
-        self.connection.commit()
+        transaction = self.connection.begin()
+        self.connection.execute('VACUUM;')
+        transaction.commit()
 
     def integrity(self):
         logger.info('[sql] vaccum')
         self.connection.commit()
-        self.cur.execute('PRAGMA integrity_check;')
+        self.connection.execute('PRAGMA integrity_check;')
         self.connection.commit()
 
     def squeeze(self):
@@ -1015,7 +1018,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri(':memory:')
+            >>> db = SQLDatabaseController.from_uri('sqlite:///')
             >>> db.add_table('dummy_table', (
             >>>     ('rowid',               'INTEGER PRIMARY KEY'),
             >>>     ('key',                 'TEXT'),
@@ -1106,7 +1109,7 @@ class SQLDatabaseController(object):
         """
         operation = 'SELECT count(1) FROM {tblname} WHERE rowid=?'.format(tblname=tblname)
         for rowid in rowids:
-            yield bool(self.cur.execute(operation, (rowid,)).fetchone()[0])
+            yield bool(self.connection.execute(operation, (rowid,)).fetchone()[0])
 
     def get_where_eq(
         self,
@@ -1354,7 +1357,7 @@ class SQLDatabaseController(object):
                 'id_repr': ','.join(map(str, id_iter)),
             }
             operation = operation_fmt.format(**fmtdict)
-            results = self.cur.execute(operation).fetchall()
+            results = self.connection.execute(operation).fetchall()
             import numpy as np
 
             sortx = np.argsort(np.argsort(id_iter))
@@ -2249,7 +2252,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri(':memory:')
+            >>> db = SQLDatabaseController.from_uri('sqlite:///')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2284,7 +2287,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri(':memory:')
+            >>> db = SQLDatabaseController.from_uri('sqlite:///')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2381,8 +2384,10 @@ class SQLDatabaseController(object):
     def get_table_names(self, lazy=False):
         """ Conveinience: """
         if not lazy or self._tablenames is None:
-            self.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            tablename_list = self.cur.fetchall()
+            result = self.connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+            tablename_list = result.fetchall()
             self._tablenames = {str(tablename[0]) for tablename in tablename_list}
         return self._tablenames
 
@@ -2504,9 +2509,9 @@ class SQLDatabaseController(object):
             ]
         """
         # check if the table exists first. Throws an error if it does not exist.
-        self.cur.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
-        self.cur.execute("PRAGMA TABLE_INFO('" + tablename + "')")
-        colinfo_list = self.cur.fetchall()
+        self.connection.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
+        result = self.connection.execute("PRAGMA TABLE_INFO('" + tablename + "')")
+        colinfo_list = result.fetchall()
         colrichinfo_list = [SQLColumnRichInfo(*colinfo) for colinfo in colinfo_list]
         return colrichinfo_list
 
@@ -3278,8 +3283,8 @@ class SQLDatabaseController(object):
 
     def get_sql_version(self):
         """ Conveinience """
-        self.cur.execute('SELECT sqlite_version()')
-        sql_version = self.cur.fetchone()
+        self.connection.execute('SELECT sqlite_version()')
+        sql_version = self.connection.fetchone()
         logger.info('[sql] SELECT sqlite_version = %r' % (sql_version,))
         # The version number sqlite3 module. NOT the version of SQLite library.
         logger.info('[sql] sqlite3.version = %r' % (lite.version,))
