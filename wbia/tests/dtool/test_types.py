@@ -7,7 +7,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text, bindparam
 from sqlalchemy.types import Float
 
-from wbia.dtool.types import Dict, Integer, List, UUID
+from wbia.dtool.types import Dict, Integer, List, NDArray, UUID
 
 
 @pytest.fixture(autouse=True)
@@ -116,6 +116,26 @@ def test_numpy_ints(db, num_type):
     results = db.execute(stmt)
     selected_value = results.fetchone()[0]
     assert selected_value == insert_value
+
+
+def test_numpy_ndarray(db):
+    # Create a table that uses the type
+    db.execute(text('CREATE TABLE test(x NDARRAY)'))
+
+    # Insert a numpy array value into the table
+    insert_value = np.array([[1, 2, 3], [4, 5, 6]], np.int32)
+    # Hint: https://docs.sqlalchemy.org/en/13/core/tutorial.html#specifying-bound-parameter-behaviors
+    stmt = text('INSERT INTO test(x) VALUES (:x)')
+    stmt = stmt.bindparams(bindparam('x', type_=NDArray))
+    db.execute(stmt, x=insert_value)
+
+    # Query for the value
+    stmt = text('SELECT x FROM test')
+    # Hint: https://docs.sqlalchemy.org/en/13/core/tutorial.html#specifying-result-column-behaviors
+    stmt = stmt.columns(x=NDArray)
+    results = db.execute(stmt)
+    selected_value = results.fetchone()[0]
+    assert (selected_value == insert_value).all()
 
 
 def test_uuid(db):

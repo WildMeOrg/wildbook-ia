@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Mapping of Python types to SQL types"""
+import io
 import json
 import uuid
 
@@ -12,6 +13,7 @@ __all__ = (
     'Dict',
     'Integer',
     'List',
+    'NDArray',
     'TYPE_TO_SQLTYPE',
     'UUID',
 )
@@ -81,6 +83,42 @@ class Integer(TypeDecorator):
 class List(JSONCodeableType):
     base_py_type = list
     col_spec = 'LIST'
+
+
+class NDArray(UserDefinedType):
+    def get_col_spec(self, **kw):
+        return 'NDARRAY'
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is None:
+                return value
+            else:
+                if isinstance(value, np.ndarray):
+                    out = io.BytesIO()
+                    np.save(out, value)
+                    out.seek(0)
+                    return memoryview(out.read())
+                else:
+                    return value
+
+        return process
+
+    def result_processor(self, dialect, coltype):
+        def process(value):
+            if value is None:
+                return value
+            else:
+                if not isinstance(value, np.ndarray):
+                    out = io.BytesIO(value)
+                    out.seek(0)
+                    arr = np.load(out, allow_pickle=True)
+                    out.close()
+                    return arr
+                else:
+                    return value
+
+        return process
 
 
 class UUID(UserDefinedType):
