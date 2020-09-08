@@ -30,16 +30,21 @@ TYPE_TO_SQLTYPE = {
 }
 
 
-class Dict(UserDefinedType):
+class JSONCodeableType(UserDefinedType):
+
+    # Abstract properties
+    base_py_type = None
+    col_spec = None
+
     def get_col_spec(self, **kw):
-        return 'DICT'
+        return self.col_spec
 
     def bind_processor(self, dialect):
         def process(value):
             if value is None:
                 return value
             else:
-                if isinstance(value, dict):
+                if isinstance(value, self.base_py_type):
                     return json.dumps(value)
                 else:
                     return value
@@ -51,7 +56,7 @@ class Dict(UserDefinedType):
             if value is None:
                 return value
             else:
-                if not isinstance(value, dict):
+                if not isinstance(value, self.base_py_type):
                     return json.loads(value)
                 else:
                     return value
@@ -59,33 +64,14 @@ class Dict(UserDefinedType):
         return process
 
 
-class List(UserDefinedType):
-    def get_col_spec(self, **kw):
-        return 'LIST'
+class Dict(JSONCodeableType):
+    base_py_type = dict
+    col_spec = 'DICT'
 
-    def bind_processor(self, dialect):
-        def process(value):
-            if value is None:
-                return value
-            else:
-                if isinstance(value, list):
-                    return json.dumps(value)
-                else:
-                    return value
 
-        return process
-
-    def result_processor(self, dialect, coltype):
-        def process(value):
-            if value is None:
-                return value
-            else:
-                if not isinstance(value, list):
-                    return json.loads(value)
-                else:
-                    return value
-
-        return process
+class List(JSONCodeableType):
+    base_py_type = list
+    col_spec = 'LIST'
 
 
 class UUID(UserDefinedType):
