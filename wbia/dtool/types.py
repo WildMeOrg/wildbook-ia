@@ -14,6 +14,7 @@ __all__ = (
     'Integer',
     'List',
     'NDArray',
+    'Number',
     'TYPE_TO_SQLTYPE',
     'UUID',
 )
@@ -68,6 +69,47 @@ class JSONCodeableType(UserDefinedType):
         return process
 
 
+class NumPyPicklableType(UserDefinedType):
+
+    # Abstract properties
+    base_py_types = None
+    col_spec = None
+
+    def get_col_spec(self, **kw):
+        return self.col_spec
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is None:
+                return value
+            else:
+                if isinstance(value, self.base_py_types):
+                    out = io.BytesIO()
+                    np.save(out, value)
+                    out.seek(0)
+                    return out.read()
+                else:
+                    return value
+
+        return process
+
+    def result_processor(self, dialect, coltype):
+        def process(value):
+            if value is None:
+                return value
+            else:
+                if not isinstance(value, self.base_py_types):
+                    out = io.BytesIO(value)
+                    out.seek(0)
+                    arr = np.load(out, allow_pickle=True)
+                    out.close()
+                    return arr
+                else:
+                    return value
+
+        return process
+
+
 class Dict(JSONCodeableType):
     base_py_type = dict
     col_spec = 'DICT'
@@ -85,40 +127,28 @@ class List(JSONCodeableType):
     col_spec = 'LIST'
 
 
-class NDArray(UserDefinedType):
-    def get_col_spec(self, **kw):
-        return 'NDARRAY'
+class NDArray(NumPyPicklableType):
+    base_py_types = (np.ndarray,)
+    col_spec = 'NDARRAY'
 
-    def bind_processor(self, dialect):
-        def process(value):
-            if value is None:
-                return value
-            else:
-                if isinstance(value, np.ndarray):
-                    out = io.BytesIO()
-                    np.save(out, value)
-                    out.seek(0)
-                    return memoryview(out.read())
-                else:
-                    return value
 
-        return process
+NP_NUMBER_TYPES = (
+    np.int8,
+    np.int16,
+    np.int32,
+    np.int64,
+    np.uint8,
+    np.uint16,
+    np.uint32,
+    np.uint64,
+    np.float32,
+    np.float64,
+)
 
-    def result_processor(self, dialect, coltype):
-        def process(value):
-            if value is None:
-                return value
-            else:
-                if not isinstance(value, np.ndarray):
-                    out = io.BytesIO(value)
-                    out.seek(0)
-                    arr = np.load(out, allow_pickle=True)
-                    out.close()
-                    return arr
-                else:
-                    return value
 
-        return process
+class Number(NumPyPicklableType):
+    base_py_types = NP_NUMBER_TYPES
+    col_spec = 'NUMPY'
 
 
 class UUID(UserDefinedType):

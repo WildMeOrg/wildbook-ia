@@ -7,7 +7,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text, bindparam
 from sqlalchemy.types import Float
 
-from wbia.dtool.types import Dict, Integer, List, NDArray, UUID
+from wbia.dtool.types import Dict, Integer, List, NDArray, Number, UUID
 
 
 @pytest.fixture(autouse=True)
@@ -94,6 +94,8 @@ np_number_types = (
     np.uint16,
     np.uint32,
     np.uint64,
+    np.float32,
+    np.float64,
 )
 
 
@@ -133,6 +135,41 @@ def test_numpy_ndarray(db):
     stmt = text('SELECT x FROM test')
     # Hint: https://docs.sqlalchemy.org/en/13/core/tutorial.html#specifying-result-column-behaviors
     stmt = stmt.columns(x=NDArray)
+    results = db.execute(stmt)
+    selected_value = results.fetchone()[0]
+    assert (selected_value == insert_value).all()
+
+
+np_numbers = (
+    np.int8(120),
+    np.int16(32767),
+    np.int32(-2147483648),
+    np.int64(9223372036854775807),
+    np.uint8(255),
+    np.uint16(65535),
+    np.uint32(4294967295),
+    np.uint64(18446744073709551615),
+    np.float32(1.7976931348623157),
+    np.float64(1.7976931348623157e308),
+)
+
+
+@pytest.mark.parametrize('num', np_numbers)
+def test_numpy_sql_type(db, num):
+    # Create a table that uses the type
+    db.execute(text('CREATE TABLE test(x NUMPY)'))
+
+    # Insert a numpy array value into the table
+    insert_value = num
+    # Hint: https://docs.sqlalchemy.org/en/13/core/tutorial.html#specifying-bound-parameter-behaviors
+    stmt = text('INSERT INTO test(x) VALUES (:x)')
+    stmt = stmt.bindparams(bindparam('x', type_=Number))
+    db.execute(stmt, x=insert_value)
+
+    # Query for the value
+    stmt = text('SELECT x FROM test')
+    # Hint: https://docs.sqlalchemy.org/en/13/core/tutorial.html#specifying-result-column-behaviors
+    stmt = stmt.columns(x=Number)
     results = db.execute(stmt)
     selected_value = results.fetchone()[0]
     assert (selected_value == insert_value).all()
