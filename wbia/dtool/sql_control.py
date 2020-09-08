@@ -10,7 +10,6 @@ import collections
 import os
 import parse
 import re
-import sqlite3
 import threading
 import uuid
 from collections.abc import Mapping, MutableMapping
@@ -673,8 +672,6 @@ class SQLDatabaseController(object):
         # The echo flag is a shortcut to set up SQLAlchemy logging
         self._engine = sqlalchemy.create_engine(
             self.uri,
-            # FIXME (27-Aug-12020) Hardcoded for sqlite
-            connect_args={'detect_types': sqlite3.PARSE_DECLTYPES},
             echo=False,
         )
         self._connection = self._engine.connect()
@@ -707,8 +704,6 @@ class SQLDatabaseController(object):
             uri += '?mode=ro'
         engine = sqlalchemy.create_engine(
             uri,
-            # FIXME (27-Aug-12020) Hardcoded for sqlite
-            connect_args={'detect_types': sqlite3.PARSE_DECLTYPES},
             echo=False,
         )
         connection = engine.connect()
@@ -842,8 +837,6 @@ class SQLDatabaseController(object):
         del self.connection
         self._engine = sqlalchemy.create_engine(
             self.uri,
-            # FIXME (27-Aug-12020) Hardcoded for sqlite
-            connect_args={'detect_types': sqlite3.PARSE_DECLTYPES},
             echo=False,
         )
         self.connection = self._engine.connect()
