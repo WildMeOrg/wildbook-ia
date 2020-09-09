@@ -9,11 +9,22 @@ export ROOT_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd
 cd ${ROOT_LOC}
 
 # Build the images in dependence order
-docker build -t wildme/wbia-base:latest base
-docker build -t wildme/wbia-dependencies:latest dependencies
-docker build -t wildme/wbia-provision:latest provision
-docker build -t wildme/wbia:latest .
-
-cd ../
-# Build the runtime container
-docker build -t wildme/wildbook-ia:latest .
+while [ $# -ge 1 ]; do
+    if [ "$1" == "wbia-base" ]; then
+        docker build -t wildme/wbia-base:latest base
+    elif [ "$1" == "wbia-dependencies" ]; then
+        docker build -t wildme/wbia-dependencies:latest dependencies
+    elif [ "$1" == "wbia-provision" ]; then
+        docker build -t wildme/wbia-provision:latest provision
+    elif [ "$1" == "wbia" ]; then
+        docker build -t wildme/wbia:latest .
+    elif [ "$1" == "wildbook-ia" ]; then
+        cd ../
+        # Build the runtime container
+        docker build -t wildme/wildbook-ia:latest .
+    else
+        echo "Image $1 not found"
+        exit 1
+    fi
+    shift
+done
