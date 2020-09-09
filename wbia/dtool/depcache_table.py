@@ -54,8 +54,6 @@ CONFIG_DICT = 'config_dict'
 # else:
 GRACE_PERIOD = ut.get_argval('--grace', type_=int, default=0)
 
-STORE_CFGDICT = True
-
 
 class ExternType(ub.NiceRepr):
     """
@@ -144,8 +142,8 @@ def ensure_config_table(db):
                     (CONFIG_HASHID, 'TEXT'),
                     (CONFIG_TABLENAME, 'TEXT'),
                     (CONFIG_STRID, 'TEXT'),
-                ]
-                + ([(CONFIG_DICT, 'DICT')] if STORE_CFGDICT else []),
+                    (CONFIG_DICT, 'DICT'),
+                ],
             ),
             ('docstr', 'table for algo configurations'),
             ('superkeys', [(CONFIG_HASHID,)]),
@@ -409,7 +407,6 @@ class _TableConfigHelper(object):
         return config_rowid_list
 
     def get_config_from_rowid(table, config_rowids):
-        assert STORE_CFGDICT
         cfgdict_list = table.db.get(
             CONFIG_TABLE,
             colnames=(CONFIG_DICT,),
@@ -433,16 +430,12 @@ class _TableConfigHelper(object):
             logger.info('config_strid = %r' % (config_strid,))
             logger.info('config_hashid = %r' % (config_hashid,))
         get_rowid_from_superkey = table.get_config_rowid_from_hashid
-        if STORE_CFGDICT:
-            colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID, CONFIG_DICT)
-            if hasattr(config, 'config'):
-                # Hack for requests
-                config = config.config
-            cfgdict = config.__getstate__()
-            param_list = [(config_hashid, table.tablename, config_strid, cfgdict)]
-        else:
-            colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID)
-            param_list = [(config_hashid, table.tablename, config_strid)]
+        colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID, CONFIG_DICT)
+        if hasattr(config, 'config'):
+            # Hack for requests
+            config = config.config
+        cfgdict = config.__getstate__()
+        param_list = [(config_hashid, table.tablename, config_strid, cfgdict)]
         config_rowid_list = table.db.add_cleanly(
             CONFIG_TABLE, colnames, param_list, get_rowid_from_superkey
         )
@@ -2831,7 +2824,6 @@ class DependencyCacheTable(
         Recomputes the external file stored for this row.
         This DOES NOT modify the depcache internals.
         """
-        assert STORE_CFGDICT
         logger.info('Recomputing external data (_recompute_external_storage)')
         # TODO: need to rectify parent ids?
 
@@ -2859,7 +2851,6 @@ class DependencyCacheTable(
         Recomputes all data stored for this row.
         This DOES modify the depcache internals.
         """
-        assert STORE_CFGDICT
         logger.info('Recomputing external data (_recompute_and_store)')
         if len(tbl_rowids) == 0:
             return
