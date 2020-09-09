@@ -6,6 +6,7 @@ colorama>=0.3.2
 dateutils>=0.6.6
 
 delorean
+deprecated
 docker
 flask>=0.10.1
 flask-cas

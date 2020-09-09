@@ -17,6 +17,7 @@ from os.path import join, exists
 
 import six
 import utool as ut
+from deprecated import deprecated
 
 from wbia.dtool import sqlite3 as lite
 from wbia.dtool.dump import dumps
@@ -410,10 +411,11 @@ class SQLDatabaseController(object):
 
             @property
             def version(self):
-                return self.ctrlr.executeone(
-                    f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?',
-                    ('database_version',),
-                )[0]
+                stmt = f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?'
+                try:
+                    return self.ctrlr.executeone(stmt, ('database_version',))[0]
+                except IndexError:  # No result
+                    return None
 
             @version.setter
             def version(self, value):
@@ -426,10 +428,11 @@ class SQLDatabaseController(object):
 
             @property
             def init_uuid(self):
-                return self.ctrlr.executeone(
-                    f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?',
-                    ('database_init_uuid',),
-                )[0]
+                stmt = f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?'
+                try:
+                    return self.ctrlr.executeone(stmt, ('database_init_uuid',))[0]
+                except IndexError:  # No result
+                    return None
 
             @init_uuid.setter
             def init_uuid(self, value):
@@ -776,7 +779,7 @@ class SQLDatabaseController(object):
         self.get_db_init_uuid(ensure=True)
 
     def get_db_version(self, ensure=True):
-        version = self.get_metadata_val('database_version', default=None)
+        version = self.metadata.database.version
         if version is None and ensure:
             BASE_DATABASE_VERSION = '0.0.0'
             version = BASE_DATABASE_VERSION
@@ -823,7 +826,7 @@ class SQLDatabaseController(object):
         """
         import uuid
 
-        db_init_uuid_str = self.get_metadata_val('database_init_uuid', default=None)
+        db_init_uuid_str = self.metadata.database.init_uuid
         if db_init_uuid_str is None and ensure:
             db_init_uuid_str = six.text_type(uuid.uuid4())
             colnames = ['metadata_key', 'metadata_value']
@@ -1722,7 +1725,7 @@ class SQLDatabaseController(object):
         params = [key, val]
         self.executeone(operation, params, verbose=False)
 
-    @profile
+    @deprecated('Use metadata property instead')
     def get_metadata_val(self, key, eval_=False, default=None):
         """
         val is the repr string unless eval_ is true
@@ -2035,7 +2038,7 @@ class SQLDatabaseController(object):
         metadata_keyval2 = metadata_keyval.copy()
         for suffix in METADATA_TABLE_COLUMN_NAMES:
             if suffix not in metadata_keyval2 or metadata_keyval2[suffix] is None:
-                val = self.get_metadata_val(tablename_orig + '_' + suffix, eval_=True)
+                val = getattr(self.metadata[tablename_orig], suffix)
                 metadata_keyval2[suffix] = val
 
         self.add_table(tablename_temp, coldef_list, **metadata_keyval2)
@@ -2208,7 +2211,7 @@ class SQLDatabaseController(object):
         """
         TODO: use coldef_list with table_autogen_dict instead
         """
-        constraint = self.get_metadata_val(tablename + '_constraint', default=None)
+        constraint = self.metadata[tablename].constraint
         return None if constraint is None else constraint.split(';')
 
     def get_coldef_list(self, tablename):
@@ -2271,9 +2274,7 @@ class SQLDatabaseController(object):
         autogen_dict['coldef_list'] = self.get_coldef_list(tablename)
         autogen_dict['docstr'] = self.get_table_docstr(tablename)
         autogen_dict['superkeys'] = self.get_table_superkey_colnames(tablename)
-        autogen_dict['dependson'] = self.get_metadata_val(
-            tablename + '_dependson', eval_=True, default=None
-        )
+        autogen_dict['dependson'] = self.metadata[tablename].dependson
         return autogen_dict
 
     def get_table_autogen_str(self, tablename):
@@ -2344,14 +2345,11 @@ class SQLDatabaseController(object):
             if suffix in specially_handled_table_metakeys:
                 continue
             key = tablename + '_' + suffix
-            val = self.get_metadata_val(key, eval_=True, default=None)
+            val = getattr(self.metadata[tablename], suffix)
             logger.info(key)
             if val is not None:
                 line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
-        # FIXME: are we depricating dependsmap?
-        dependsmap = self.get_metadata_val(
-            tablename + '_dependsmap', eval_=True, default=None
-        )
+        dependsmap = self.metadata[tablename].dependsmap
         if dependsmap is not None:
             _dictstr = ut.indent(ut.repr2(dependsmap, nl=1), tab2)
             depends_map_dictstr = ut.align(_dictstr.lstrip(' '), ':')
@@ -2437,9 +2435,7 @@ class SQLDatabaseController(object):
         assert tablename in self.get_table_names(
             lazy=True
         ), 'tablename=%r is not a part of this database' % (tablename,)
-        superkey_colnames_list_repr = self.get_metadata_val(
-            tablename + '_superkeys', default=None
-        )
+        superkey_colnames_list_repr = self.metadata[tablename].superkeys
         # These asserts might not be valid, but in that case this function needs
         # to be rewritten under a different name
         # assert len(superkeys) == 1, 'INVALID DEVELOPER ASSUMPTION IN
@@ -2489,12 +2485,7 @@ class SQLDatabaseController(object):
             >>> print(result)
             Used to store individual chip features (ellipses)
         """
-        docstr = self.get_metadata_val(tablename + '_docstr')
-        # where_clause = 'metadata_key=?'
-        # colnames = ('metadata_value',)
-        # data = [(tablename + '_docstr',)]
-        # docstr = self.get_where(const.METADATA_TABLE_NAME, colnames, data, where_clause)[0]
-        return docstr
+        return self.metadata[tablename].docstr
 
     def get_columns(self, tablename):
         """
@@ -2673,10 +2664,7 @@ class SQLDatabaseController(object):
             extern_tablename_list,
             extern_primarycolnames_list,
         ) = new_transferdata
-        dependsmap = self.get_metadata_val(
-            tablename + '_dependsmap', eval_=True, default=None
-        )
-        # dependson = self.get_metadata_val(tablename + '_dependson', eval_=True, default=None)
+        dependsmap = self.metadata[tablename].dependsmap
 
         richcolinfo_list = self.get_columns(tablename)
         table_dict_def = ut.odict([(r.name, r.type_) for r in richcolinfo_list])
@@ -2751,7 +2739,7 @@ class SQLDatabaseController(object):
             >>> tablename = ibs.const.IMAGE_TABLE
             >>> new_transferdata = db.get_table_new_transferdata(tablename)
             >>> column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
-            >>> dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
+            >>> dependsmap = db.metadata[tablename].dependsmap
             >>> print('tablename = %r' % (tablename,))
             >>> print('colnames = ' + ut.repr2(column_names))
             >>> print('extern_colx_list = ' + ut.repr2(extern_colx_list))
@@ -2761,7 +2749,7 @@ class SQLDatabaseController(object):
             >>> tablename = ibs.const.ANNOTATION_TABLE
             >>> new_transferdata = db.get_table_new_transferdata(tablename)
             >>> column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
-            >>> dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
+            >>> dependsmap = db.metadata[tablename].dependsmap
             >>> print('tablename = %r' % (tablename,))
             >>> print('colnames = ' + ut.repr2(column_names))
             >>> print('extern_colx_list = ' + ut.repr2(extern_colx_list))
@@ -2786,9 +2774,7 @@ class SQLDatabaseController(object):
             extern_superkey_colname_list = []
             extern_superkey_colval_list = []
             extern_primarycolnames_list = []
-            dependsmap = self.get_metadata_val(
-                tablename + '_dependsmap', eval_=True, default=None
-            )
+            dependsmap = self.metadata[tablename].dependsmap
             if dependsmap is not None:
                 for colname, dependtup in six.iteritems(dependsmap):
                     assert len(dependtup) == 3, 'must be 3 for now'
@@ -2809,13 +2795,9 @@ class SQLDatabaseController(object):
                                 # FIXME: Rectify duplicate code
                                 superkeys = self.get_table_superkey_colnames(tablename_)
                                 if len(superkeys) > 1:
-                                    # primary_superkey =
-                                    # self.get_metadata_val(tablename_ +
-                                    #                    '_primary_superkey',
-                                    #                    eval_=True)
-                                    primary_superkey = self.get_metadata_val(
-                                        tablename_ + '_primary_superkey', eval_=True
-                                    )
+                                    primary_superkey = self.metadata[
+                                        tablename_
+                                    ].primary_superkey
                                     self.get_table_superkey_colnames('contributors')
                                     if primary_superkey is None:
                                         raise AssertionError(
@@ -2839,9 +2821,9 @@ class SQLDatabaseController(object):
                                     # Execute hack to fix contributor tables
                                     if tablename_ == 'contributors':
                                         # hack to fix contributors table
-                                        constraint_str = self.get_metadata_val(
-                                            tablename_ + '_constraint'
-                                        )
+                                        constraint_str = self.metadata[
+                                            tablename_
+                                        ].constraint
                                         parse_result = parse.parse(
                                             'CONSTRAINT superkey UNIQUE ({superkey})',
                                             constraint_str,
@@ -2850,8 +2832,8 @@ class SQLDatabaseController(object):
                                         assert (
                                             superkey == 'contributor_tag'
                                         ), 'hack failed1'
-                                        assert None is self.get_metadata_val(
-                                            'contributors_superkey'
+                                        assert (
+                                            self.metadata['contributors'].superkey is None
                                         ), 'hack failed2'
                                         if True:
                                             self.set_metadata_val(
@@ -2987,8 +2969,8 @@ class SQLDatabaseController(object):
         verbose = True
         veryverbose = True
         # Check version consistency
-        version_dst = self.get_metadata_val('database_version')
-        version_src = db_src.get_metadata_val('database_version')
+        version_dst = self.metadata.database.version
+        version_src = db_src.metadata.database.version
         assert (
             version_src == version_dst
         ), 'cannot merge databases that have different versions'
@@ -3007,8 +2989,7 @@ class SQLDatabaseController(object):
         # Reorder tablenames based on dependencies.
         # the tables with dependencies are merged after the tables they depend on
         dependsmap_list = [
-            self.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
-            for tablename in tablename_list
+            self.metadata[tablename].dependsmap for tablename in tablename_list
         ]
         dependency_digraph = {
             tablename: []
@@ -3176,9 +3157,7 @@ class SQLDatabaseController(object):
                 raise
             if len(superkey_colnames_list) > 1:
                 # FIXME: Rectify duplicate code
-                primary_superkey = self.get_metadata_val(
-                    tablename + '_primary_superkey', eval_=True, default=None
-                )
+                primary_superkey = self.metadata[tablename].primary_superkey
                 if primary_superkey is None:
                     raise AssertionError(
                         (
