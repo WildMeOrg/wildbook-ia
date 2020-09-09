@@ -2436,31 +2436,9 @@ class SQLDatabaseController(object):
         assert tablename in self.get_table_names(
             lazy=True
         ), 'tablename=%r is not a part of this database' % (tablename,)
-        superkey_colnames_list_repr = self.metadata[tablename].superkeys
-        # These asserts might not be valid, but in that case this function needs
-        # to be rewritten under a different name
-        # assert len(superkeys) == 1, 'INVALID DEVELOPER ASSUMPTION IN
-        # SQLCONTROLLER. MORE THAN 1 SUPERKEY'
-        if superkey_colnames_list_repr is None:
+        superkeys = self.metadata[tablename].superkeys
+        if superkeys is None:
             superkeys = []
-            pass
-        else:
-            # superkey_colnames = superkey_colnames_str.split(';')
-            # with ut.EmbedOnException():
-            if superkey_colnames_list_repr.find(';') > -1:
-                # SHOW NOT HAPPEN
-                # hack for old metadata superkey_val format
-                superkeys = [tuple(map(str, superkey_colnames_list_repr.split(';')))]
-            else:
-                # new evalable format
-                locals_ = {}
-                globals_ = {}
-                superkeys = eval(superkey_colnames_list_repr, globals_, locals_)
-        # superkeys = [
-        #    None if superkey_colname is None else str(superkey_colname)
-        #    for superkey_colname in superkey_colnames
-        # ]
-        superkeys = list(map(tuple, superkeys))
         return superkeys
 
     def get_table_primarykey_colnames(self, tablename):
