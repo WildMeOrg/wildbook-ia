@@ -421,10 +421,10 @@ class SQLDatabaseController(object):
             def version(self, value):
                 if not value:
                     raise ValueError(value)
-                return self.ctrlr.executeone(
+                self.ctrlr.executeone(
                     f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
                     ('database_version', value,),
-                )[0]
+                )
 
             @property
             def init_uuid(self):
@@ -438,10 +438,10 @@ class SQLDatabaseController(object):
             def init_uuid(self, value):
                 if not value:
                     raise ValueError(value)
-                return self.ctrlr.executeone(
+                self.ctrlr.executeone(
                     f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
                     ('database_init_uuid', value,),
-                )[0]
+                )
 
             # collections.abc.MutableMapping abstract methods
 
@@ -1712,6 +1712,7 @@ class SQLDatabaseController(object):
         )
         return metadata_items
 
+    @deprecated('Use the metadata property instead')
     def set_metadata_val(self, key, val):
         """
         key must be given as a repr-ed string
@@ -2835,11 +2836,9 @@ class SQLDatabaseController(object):
                                         assert (
                                             self.metadata['contributors'].superkey is None
                                         ), 'hack failed2'
-                                        if True:
-                                            self.set_metadata_val(
-                                                'contributors_superkeys',
-                                                "[('" + superkey + "',)]",
-                                            )
+                                        self.metadata['contributors'].superkey = [
+                                            (superkey,)
+                                        ]
                                         return (superkey,)
                                     else:
                                         raise NotImplementedError(
