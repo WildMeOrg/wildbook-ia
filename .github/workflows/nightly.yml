@@ -14,6 +14,11 @@ jobs:
   devops:
     name: DevOps container image build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        images:
+          - wildbook-ia
+          - wbia-base wbia-dependencies wbia-provision wbia
 
     steps:
       - uses: actions/checkout@v2
@@ -25,7 +30,7 @@ jobs:
 
       # Build containers
       - name: Build containers
-        run: bash devops/build.sh
+        run: bash devops/build.sh ${{ matrix.images }}
 
       # Log into container registries
       - name: Log into Docker Hub
@@ -35,10 +40,10 @@ jobs:
 
       # Push containers out to container registries
       - name: Push to GitHub Packages
-        run: bash devops/publish.sh -t nightly -r docker.pkg.github.com
+        run: bash devops/publish.sh -t nightly -r docker.pkg.github.com ${{ matrix.images }}
       - name: Push to Docker Hub
         if: github.event_name == 'schedule'
-        run: bash devops/publish.sh -t nightly
+        run: bash devops/publish.sh -t nightly ${{ matrix.images }}
 
       # Notify status in Slack
       - name: Slack Notification

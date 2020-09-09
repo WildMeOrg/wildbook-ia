@@ -3,7 +3,7 @@
 set -e
 
 usage () {
-    echo "Usage: $0 [-t <tag>] [-r <registry-url>]";
+    echo "Usage: $0 [-t <tag>] [-r <registry-url>] [<image> ...]";
 }
 
 # Parse commandline options
@@ -14,10 +14,12 @@ while getopts ":t:r:" option; do
         \? ) usage; exit 1;;
     esac
 done
+shift $((OPTIND - 1))
 
 # Assign variables
 TAG=${TAG:-latest}
 REGISTRY=${REGISTRY:-}
+IMAGES=${@:-wbia-base wbia-dependencies wbia-provision wbia wildbook-ia}
 # Set the image prefix
 if [ -n "$REGISTRY" ]; then
     IMG_PREFIX="${REGISTRY}/wildbookorg/wildbook-ia/"
@@ -26,9 +28,10 @@ else
 fi
 
 # Tag built images from `build.sh`, which tags as `latest`
-for IMG in wbia-base wbia-dependencies wbia-provision wbia wildbook-ia; do
+for IMG in $IMAGES; do
     echo "Tagging wildme/${IMG}:latest --> ${IMG_PREFIX}${IMG}:${TAG}"
     docker tag wildme/${IMG}:latest ${IMG_PREFIX}${IMG}:${TAG}
     echo "Pushing ${IMG_PREFIX}${IMG}:${TAG}"
     docker push ${IMG_PREFIX}${IMG}:${TAG}
+    docker rmi wildme/${IMG}:latest
 done
