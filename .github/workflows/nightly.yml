@@ -47,7 +47,7 @@ jobs:
 
       # Notify status in Slack
       - name: Slack Notification
-        if: failure()
+        if: ${{ failure() && github.event_name == 'schedule' }}
         uses: rtCamp/action-slack-notify@master
         env:
           SLACK_CHANNEL: ia-development
