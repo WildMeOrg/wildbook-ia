@@ -1186,7 +1186,7 @@ def compute_feats(depc, cid_list, config=None):
             ordered=True,
             force_serial=ibs.force_serial,
             progkw={'freq': 1},
-            # futures_threaded=True,
+            futures_threaded=True,
         )
     elif feat_type == 'hesaff+siam128':
         from wbia_cnn import _plugin
@@ -1324,7 +1324,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         ordered=True,
         force_serial=ibs.force_serial,
         progkw={'freq': 1},
-        # futures_threaded=True,
+        futures_threaded=True,
     )
     featweight_list = list(featweight_gen)
     logger.info('[compute_fgweights] Done computing %d fgweights' % (nTasks,))

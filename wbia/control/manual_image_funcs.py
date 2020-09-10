@@ -264,7 +264,7 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
             nTasks=len(gpath_list),
             ordered=True,
             force_serial=force_serial,
-            # futures_threaded=True,
+            futures_threaded=True,
         )
     )
 
