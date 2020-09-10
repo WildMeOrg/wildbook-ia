@@ -669,9 +669,7 @@ def check_image_loadable(ibs, gid_list=None):
 
     arg_iter = list(zip(gpath_list, orient_list,))
     flag_list = ut.util_parallel.generate2(
-        check_image_loadable_worker,
-        arg_iter,
-        # futures_threaded=True
+        check_image_loadable_worker, arg_iter, futures_threaded=True
     )
     flag_list = list(flag_list)
     loadable_list = ut.take_column(flag_list, 0)
