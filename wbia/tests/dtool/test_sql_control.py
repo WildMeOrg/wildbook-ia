@@ -143,8 +143,8 @@ class TestMetadataProperty:
     def test_database_attributes(self):
         # Check the database version
         assert self.ctrlr.metadata.database.version == '0.0.0'
-        # Check the database init_uuid, verified via evaluating it
-        assert uuid.UUID(self.ctrlr.metadata.database.init_uuid)
+        # Check the database init_uuid is a valid uuid.UUID
+        assert isinstance(self.ctrlr.metadata.database.init_uuid, uuid.UUID)
 
     # ###
     # Test batch manipulation methods
@@ -253,4 +253,5 @@ class TestMetadataProperty:
             del self.ctrlr.metadata.database['init_uuid']
         with pytest.raises(ValueError):
             self.ctrlr.metadata.database['init_uuid'] = None
-        assert uuid.UUID(self.ctrlr.metadata.database.init_uuid)
+        # Check the value is still a uuid.UUID
+        assert isinstance(self.ctrlr.metadata.database.init_uuid, uuid.UUID)

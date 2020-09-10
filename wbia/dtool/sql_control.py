@@ -11,6 +11,7 @@ import os
 import parse
 import re
 import threading
+import uuid
 from collections.abc import Mapping, MutableMapping
 from functools import partial
 from os.path import join, exists
@@ -430,14 +431,17 @@ class SQLDatabaseController(object):
             def init_uuid(self):
                 stmt = f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?'
                 try:
-                    return self.ctrlr.executeone(stmt, ('database_init_uuid',))[0]
+                    value = self.ctrlr.executeone(stmt, ('database_init_uuid',))[0]
                 except IndexError:  # No result
                     return None
+                return uuid.UUID(value)
 
             @init_uuid.setter
             def init_uuid(self, value):
                 if not value:
                     raise ValueError(value)
+                elif isinstance(value, uuid.UUID):
+                    value = str(value)
                 self.ctrlr.executeone(
                     f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
                     ('database_init_uuid', value,),
@@ -824,22 +828,10 @@ class SQLDatabaseController(object):
             >>> print('Existing Database: %r == %r' % (uuid_1, uuid_2, ))
             >>> assert uuid_1 == uuid_2
         """
-        import uuid
-
-        db_init_uuid_str = self.metadata.database.init_uuid
-        if db_init_uuid_str is None and ensure:
-            db_init_uuid_str = six.text_type(uuid.uuid4())
-            colnames = ['metadata_key', 'metadata_value']
-            params_iter = zip(['database_init_uuid'], [db_init_uuid_str])
-            # We don't care to find any, because we know there is no version
-
-            def get_rowid_from_superkey(x):
-                return [None] * len(x)
-
-            self.add_cleanly(
-                METADATA_TABLE_NAME, colnames, params_iter, get_rowid_from_superkey
-            )
-        db_init_uuid = uuid.UUID(db_init_uuid_str)
+        db_init_uuid = self.metadata.database.init_uuid
+        if db_init_uuid is None and ensure:
+            db_init_uuid = uuid.uuid4()
+            self.metadata.database.init_uuid = db_init_uuid
         return db_init_uuid
 
     def reboot(self):
