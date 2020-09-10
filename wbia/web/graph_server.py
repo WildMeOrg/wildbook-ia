@@ -24,7 +24,7 @@ class ProcessActorExecutor(ProcessPoolExecutor):
         self.actor_instance = actor_class()
 
     def post(self, payload):
-        self.submit(self.actor_instance.handle, payload)
+        return self.submit(self.actor_instance.handle, payload)
 
 
 class ThreadedActorExecutor(ThreadPoolExecutor):
@@ -35,7 +35,7 @@ class ThreadedActorExecutor(ThreadPoolExecutor):
         self.actor_instance = actor_class()
 
     def post(self, payload):
-        self.submit(self.actor_instance.handle, payload)
+        return self.submit(self.actor_instance.handle, payload)
 
 
 class Actor(object):
