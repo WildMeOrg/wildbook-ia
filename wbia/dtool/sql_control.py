@@ -20,6 +20,7 @@ import six
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
+from sqlalchemy.sql import text
 
 from wbia.dtool import lite
 from wbia.dtool.dump import dumps
@@ -1503,38 +1504,18 @@ class SQLDatabaseController(object):
         )
 
     def delete(self, tblname, id_list, id_colname='rowid', **kwargs):
+        """Deletes rows from a SQL table (``tblname``) by ID,
+        given a sequence of IDs (``id_list``).
+        Optionally a different ID column can be specified via ``id_colname``.
+
         """
-        deleter. USE delete_rowids instead
-        """
-        fmtdict = {
-            'tblname': tblname,
-            'rowid_str': (id_colname + '=?'),
-        }
-        operation_fmt = """
-            DELETE
-            FROM {tblname}
-            WHERE {rowid_str}
-            """
-        params_iter = ((_rowid,) for _rowid in id_list)
-        return self._executemany_operation_fmt(
-            operation_fmt, fmtdict, params_iter=params_iter, **kwargs
-        )
+        stmt = text(f'DELETE FROM {tblname} WHERE {id_colname} = :id')
+        for id in id_list:
+            self.connection.execute(stmt, id=id)
 
     def delete_rowids(self, tblname, rowid_list, **kwargs):
         """ deletes the the rows in rowid_list """
-        fmtdict = {
-            'tblname': tblname,
-            'rowid_str': ('rowid=?'),
-        }
-        operation_fmt = """
-            DELETE
-            FROM {tblname}
-            WHERE {rowid_str}
-            """
-        params_iter = ((_rowid,) for _rowid in rowid_list)
-        return self._executemany_operation_fmt(
-            operation_fmt, fmtdict, params_iter=params_iter, **kwargs
-        )
+        self.delete(tblname, rowid_list, id_colname='rowid', **kwargs)
 
     # ==============
     # CORE WRAPPERS
