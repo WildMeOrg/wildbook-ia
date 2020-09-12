@@ -277,6 +277,75 @@ class TestAPI:
             '(id INTEGER PRIMARY KEY, x TEXT, y INTEGER, z REAL)'
         )
 
+    def test_get_where_without_where_condition(self):
+        table_name = 'test_get_where'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        results = self.ctrlr.get_where(table_name, ['id', 'y'], tuple(), None,)
+
+        # Verify query
+        assert results == [(i + 1, i) for i in range(0, 10)]
+
+    def test_scalar_get_where(self):
+        table_name = 'test_get_where'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        results = self.ctrlr.get_where(table_name, ['id', 'y'], ([1]), 'id = ?',)
+        evens = results[0]
+
+        # Verify query
+        assert evens == (1, 0)
+
+    def test_multi_row_get_where(self):
+        table_name = 'test_get_where'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        results = self.ctrlr.get_where(
+            table_name,
+            ['id', 'y'],
+            (['even'], ['odd']),
+            'x = ?',
+            unpack_scalars=False,  # this makes it more than one row of results
+        )
+        evens = results[0]
+        odds = results[1]
+
+        # Verify query
+        assert evens == [(i + 1, i) for i in range(0, 10) if not i % 2]
+        assert odds == [(i + 1, i) for i in range(0, 10) if i % 2]
 
     def test_setting(self):
         # Note, this is not a comprehensive test. It only attempts to test the SQL logic.
@@ -290,24 +359,21 @@ class TestAPI:
             x, y, z = (str(i), i, i * 2.01)
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
-        results = self.ctrlr.connection.execute(f'SELECT id, CAST((y%2) AS BOOL) FROM {table_name}')
+        results = self.ctrlr.connection.execute(
+            f'SELECT id, CAST((y%2) AS BOOL) FROM {table_name}'
+        )
         rows = results.fetchall()
         ids = [row[0] for row in rows if row[1]]
 
         # Call the testing target
         self.ctrlr.set(
-            table_name,
-            ['x', 'z'],
-            [('even', 0.0)] * len(ids),
-            ids,
-            id_colname='id'
+            table_name, ['x', 'z'], [('even', 0.0)] * len(ids), ids, id_colname='id'
         )
 
         # Verify setting
         sql_array = ', '.join([str(id) for id in ids])
         results = self.ctrlr.connection.execute(
-            f'SELECT id, x, z FROM {table_name} '
-            f"WHERE id in ({sql_array})"
+            f'SELECT id, x, z FROM {table_name} ' f'WHERE id in ({sql_array})'
         )
         expected = sorted(map(lambda a: tuple([a] + ['even', 0.0]), ids))
         set_rows = sorted(results)
@@ -324,7 +390,9 @@ class TestAPI:
             x, y, z = (str(i), i, i * 2.01)
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
-        results = self.ctrlr.connection.execute(f'SELECT id, CAST((y % 2) AS BOOL) FROM {table_name}')
+        results = self.ctrlr.connection.execute(
+            f'SELECT id, CAST((y % 2) AS BOOL) FROM {table_name}'
+        )
         rows = results.fetchall()
         del_ids = [row[0] for row in rows if row[1]]
         remaining_ids = sorted([row[0] for row in rows if not row[1]])
@@ -347,7 +415,9 @@ class TestAPI:
             x, y, z = (str(i), i, i * 2.01)
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
-        results = self.ctrlr.connection.execute(f'SELECT rowid, CAST((y % 2) AS BOOL) FROM {table_name}')
+        results = self.ctrlr.connection.execute(
+            f'SELECT rowid, CAST((y % 2) AS BOOL) FROM {table_name}'
+        )
         rows = results.fetchall()
         del_ids = [row[0] for row in rows if row[1]]
         remaining_ids = sorted([row[0] for row in rows if not row[1]])
