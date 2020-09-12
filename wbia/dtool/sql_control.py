@@ -1153,8 +1153,8 @@ class SQLDatabaseController(object):
         eager=True,
         **kwargs,
     ):
-        """"""
-        assert isinstance(colnames, tuple), 'colnames must be a tuple'
+        if not isinstance(colnames, (tuple, list)):
+            raise TypeError('colnames must be a sequence type of strings')
 
         if where_clause is None:
             operation_fmt = """
@@ -1289,9 +1289,8 @@ class SQLDatabaseController(object):
                 + ut.get_caller_name(list(range(1, 4)))
                 + ' db.get(%r, %r, ...)' % (tblname, colnames)
             )
-        assert isinstance(colnames, tuple), 'must specify column names TUPLE to get from'
-        # if isinstance(colnames, six.string_types):
-        #    colnames = (colnames,)
+        if not isinstance(colnames, (tuple, list)):
+            raise TypeError('colnames must be a sequence type of strings')
 
         if (
             assume_unique
@@ -1369,9 +1368,9 @@ class SQLDatabaseController(object):
             >>> table.print_csv()
             >>> depc.clear_all()
         """
-        assert isinstance(colnames, tuple)
-        # if isinstance(colnames, six.string_types):
-        #    colnames = (colnames,)
+        if not isinstance(colnames, (tuple, list)):
+            raise TypeError('colnames must be a sequence type of strings')
+
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
 
