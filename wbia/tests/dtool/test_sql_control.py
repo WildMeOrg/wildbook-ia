@@ -277,6 +277,42 @@ class TestAPI:
             '(id INTEGER PRIMARY KEY, x TEXT, y INTEGER, z REAL)'
         )
 
+
+    def test_setting(self):
+        # Note, this is not a comprehensive test. It only attempts to test the SQL logic.
+        # Make a table for records
+        table_name = 'test_setting'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (str(i), i, i * 2.01)
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        results = self.ctrlr.connection.execute(f'SELECT id, CAST((y%2) AS BOOL) FROM {table_name}')
+        rows = results.fetchall()
+        ids = [row[0] for row in rows if row[1]]
+
+        # Call the testing target
+        self.ctrlr.set(
+            table_name,
+            ['x', 'z'],
+            [('even', 0.0)] * len(ids),
+            ids,
+            id_colname='id'
+        )
+
+        # Verify setting
+        sql_array = ', '.join([str(id) for id in ids])
+        results = self.ctrlr.connection.execute(
+            f'SELECT id, x, z FROM {table_name} '
+            f"WHERE id in ({sql_array})"
+        )
+        expected = sorted(map(lambda a: tuple([a] + ['even', 0.0]), ids))
+        set_rows = sorted(results)
+        assert set_rows == expected
+
     def test_delete(self):
         # Make a table for records
         table_name = 'test_delete'
