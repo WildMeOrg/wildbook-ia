@@ -3,6 +3,7 @@ import uuid
 
 import pytest
 from sqlalchemy.engine import Connection
+from sqlalchemy.sql import text
 
 from wbia.dtool.sql_control import (
     METADATA_TABLE_COLUMNS,
@@ -261,3 +262,63 @@ class TestMetadataProperty:
             self.ctrlr.metadata.database['init_uuid'] = None
         # Check the value is still a uuid.UUID
         assert isinstance(self.ctrlr.metadata.database.init_uuid, uuid.UUID)
+
+
+class TestAPI:
+    """Testing the primary *usage* API"""
+
+    @pytest.fixture(autouse=True)
+    def fixture(self, ctrlr):
+        self.ctrlr = ctrlr
+
+    def make_table(self, name):
+        self.ctrlr.connection.execute(
+            f'CREATE TABLE IF NOT EXISTS {name} '
+            '(id INTEGER PRIMARY KEY, x TEXT, y INTEGER, z REAL)'
+        )
+
+    def test_delete(self):
+        # Make a table for records
+        table_name = 'test_delete'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (str(i), i, i * 2.01)
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        results = self.ctrlr.connection.execute(f'SELECT id, CAST((y % 2) AS BOOL) FROM {table_name}')
+        rows = results.fetchall()
+        del_ids = [row[0] for row in rows if row[1]]
+        remaining_ids = sorted([row[0] for row in rows if not row[1]])
+
+        # Call the testing target
+        self.ctrlr.delete(table_name, del_ids, 'id')
+
+        # Verify the deletion
+        results = self.ctrlr.connection.execute(f'SELECT id FROM {table_name}')
+        assert sorted([r[0] for r in results]) == remaining_ids
+
+    def test_delete_rowid(self):
+        # Make a table for records
+        table_name = 'test_delete_rowid'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (str(i), i, i * 2.01)
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        results = self.ctrlr.connection.execute(f'SELECT rowid, CAST((y % 2) AS BOOL) FROM {table_name}')
+        rows = results.fetchall()
+        del_ids = [row[0] for row in rows if row[1]]
+        remaining_ids = sorted([row[0] for row in rows if not row[1]])
+
+        # Call the testing target
+        self.ctrlr.delete_rowids(table_name, del_ids)
+
+        # Verify the deletion
+        results = self.ctrlr.connection.execute(f'SELECT rowid FROM {table_name}')
+        assert sorted([r[0] for r in results]) == remaining_ids
