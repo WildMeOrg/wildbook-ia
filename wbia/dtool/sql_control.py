@@ -1374,12 +1374,11 @@ class SQLDatabaseController(object):
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
 
-        if VERBOSE_SQL or (NOT_QUIET and VERYVERBOSE):
-            logger.info('[sql] SETTER: ' + ut.get_caller_name())
-            logger.info('[sql] * tblname=%r' % (tblname,))
-            logger.info('[sql] * val_list=%r' % (val_list,))
-            logger.info('[sql] * id_list=%r' % (id_list,))
-            logger.info('[sql] * id_colname=%r' % (id_colname,))
+        logger.debug('[sql] SETTER: ' + ut.get_caller_name())
+        logger.debug('[sql] * tblname=%r' % (tblname,))
+        logger.debug('[sql] * val_list=%r' % (val_list,))
+        logger.debug('[sql] * id_list=%r' % (id_list,))
+        logger.debug('[sql] * id_colname=%r' % (id_colname,))
 
         if duplicate_behavior == 'error':
             try:
@@ -1406,7 +1405,7 @@ class SQLDatabaseController(object):
                         for index in sorted(pop_list, reverse=True):
                             del id_list[index]
                             del val_list[index]
-                        logger.info(
+                        logger.debug(
                             '[!set] Auto Resolution: Removed %d duplicate (id, value) pairs from the database operation'
                             % (len(pop_list),)
                         )
