@@ -277,6 +277,73 @@ class TestAPI:
             '(id INTEGER PRIMARY KEY, x TEXT, y INTEGER, z REAL)'
         )
 
+    def test_executeone(self):
+        table_name = 'test_executeone'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        result = self.ctrlr.executeone(f'SELECT id, y FROM {table_name}')
+
+        assert result == [(i + 1, i) for i in range(0, 10)]
+
+    def test_executeone_on_insert(self):
+        # Should return id after an insert
+        table_name = 'test_executeone'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        result = self.ctrlr.executeone(f'INSERT INTO {table_name} (y) VALUES (?)', (10,))
+
+        # Cursory check that the result is a single int value
+        assert result == [11]  # the result list with one unwrapped value
+
+        # Check for the actual value associated with the resulting id
+        inserted_value = self.ctrlr.connection.execute(
+            f'SELECT id, y FROM {table_name} WHERE rowid = :rowid', rowid=result[0],
+        ).fetchone()
+        assert inserted_value == (11, 10,)
+
+    def test_executeone_for_single_column(self):
+        # Should unwrap the resulting query value (no tuple wrapping)
+        table_name = 'test_executeone'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        result = self.ctrlr.executeone(f'SELECT y FROM {table_name}')
+
+        # Note the unwrapped values, rather than [(i,) ...]
+        assert result == [i for i in range(0, 10)]
+
     def test_get_where_without_where_condition(self):
         table_name = 'test_get_where'
         self.make_table(table_name)
