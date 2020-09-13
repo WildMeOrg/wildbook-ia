@@ -1514,17 +1514,30 @@ class SQLDatabaseController(object):
     # SQLDB CORE
     # =========
 
-    def executeone(db, operation, params=(), eager=True, verbose=VERBOSE_SQL):
-        contextkw = dict(nInput=1, verbose=verbose)
-        with SQLExecutionContext(db, operation, **contextkw) as context:
-            try:
-                result_iter = context.execute_and_generate_results(params)
-                result_list = list(result_iter)
-            except Exception as ex:
-                ut.printex(ex, key_list=[(str, 'operation'), 'params'])
-                # ut.sys.exit(1)
-                raise
-        return result_list
+    def executeone(self, operation, params=(), eager=True, verbose=VERBOSE_SQL):
+        """Executes the given ``operation`` once with the given set of ``params``"""
+        # FIXME (12-Sept-12020) Allows passing through '?' (question mark) parameters.
+        results = self.connection.execute(operation, params)
+
+        # BBB (12-Sept-12020) Retaining insertion rowid result
+        # FIXME postgresql (12-Sept-12020) This won't work in postgres.
+        #       Maybe see if ResultProxy.inserted_primary_key will work
+        if 'insert' in operation.lower():
+            # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
+            return [results.lastrowid]
+        elif not results.returns_rows:
+            return None
+        else:
+            values = list(
+                [
+                    # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
+                    row[0] if len(row) == 1 else row
+                    for row in results
+                ]
+            )
+            if not values:  # empty list
+                values = None
+            return values
 
     @profile
     def executemany(
