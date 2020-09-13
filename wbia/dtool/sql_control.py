@@ -88,10 +88,20 @@ def tuplize(list_):
 
 class SQLExecutionContext(object):
     """
-    Context manager for transactional database calls
+    Context manager for
+       1. handling database transactions
+       2. returning id information after inserts
+       3. unwrapping single value queries
 
-    FIXME: hash out details. I don't think anybody who programmed this
-    knows what is going on here. So much for fine grained control.
+    Args:
+        db (SQLDatabaseController): invoking instance of the database controller
+        operation (str): sql operation
+        nInput (int): Number of parameter inputs (only used for informational purposes)
+        auto_commit (bool): [deprecated] do not use (default: True)
+        start_transaction (bool): flag to start a transaction (default: False)
+        keepwrap (bool): flag to unwrap single value queries
+        verbose (bool): verbosity
+        tablename (str): [deprecated] name of the table the operation is running on
 
     Referencs:
         http://stackoverflow.com/questions/9573768/understand-sqlite-multi-module-envs
