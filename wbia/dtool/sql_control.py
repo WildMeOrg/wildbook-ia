@@ -1181,11 +1181,11 @@ class SQLDatabaseController(object):
             >>> table.print_csv()
             >>> # Break things to test set
             >>> colnames = ('dummy_annot_rowid',)
-            >>> val_iter = [9003, 9001, 9002]
+            >>> val_iter = [(9003,), (9001,), (9002,)]
             >>> orig_data = db.get('notch', colnames, id_iter=rowids)
             >>> db.set('notch', colnames, val_iter, id_iter=rowids)
             >>> new_data = db.get('notch', colnames, id_iter=rowids)
-            >>> assert new_data == val_iter
+            >>> assert new_data == [x[0] for x in val_iter]
             >>> assert new_data != orig_data
             >>> table.print_csv()
             >>> depc.clear_all()
