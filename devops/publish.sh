@@ -33,5 +33,4 @@ for IMG in $IMAGES; do
     docker tag wildme/${IMG}:latest ${IMG_PREFIX}${IMG}:${TAG}
     echo "Pushing ${IMG_PREFIX}${IMG}:${TAG}"
     docker push ${IMG_PREFIX}${IMG}:${TAG}
-    docker rmi wildme/${IMG}:latest
 done
