@@ -138,11 +138,6 @@ if ut.get_argflag('--pie'):
         (('--no-pie', '--nopie'), 'wbia_pie._plugin'),
     ]
 
-if ut.get_argflag('--pie'):
-    AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-pie', '--nopie'), 'wbia_pie._plugin'),
-    ]
-
 
 """
 # Should import

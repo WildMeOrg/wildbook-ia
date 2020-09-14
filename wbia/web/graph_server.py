@@ -9,11 +9,7 @@ import random
 import time
 
 
-print, rrr, profile = ut.inject2(__name__)
-logger = logging.getLogger('wbia')
-
-
-(print, rrr, profile) = ut.inject2(__name__)
+log = logging.getLogger('wbia')
 
 
 class ProcessActorExecutor(ProcessPoolExecutor):
@@ -95,14 +91,14 @@ def double_review_test():
         'init': 'annotmatch',
     }
     start_resp = actor.handle(payload)
-    logger.info('start_resp = {!r}'.format(start_resp))
+    log.info('start_resp = {!r}'.format(start_resp))
     infr = actor.infr
 
     infr.verbose = 100
 
     user_resp = infr.continue_review()
     edge, p, d = user_resp[0]
-    logger.info('edge = {!r}'.format(edge))
+    log.info('edge = {!r}'.format(edge))
 
     last = None
 
@@ -110,7 +106,7 @@ def double_review_test():
         infr.add_feedback(edge, infr.edge_decision(edge))
         user_resp = infr.continue_review()
         edge, p, d = user_resp[0]
-        logger.info('edge = {!r}'.format(edge))
+        log.info('edge = {!r}'.format(edge))
         assert last != edge
         last = edge
 
@@ -154,7 +150,7 @@ def _testdata_feedback_payload(edge, decision):
 
 
 def _test_foo(future):
-    logger.info('FOO %r' % (future,))
+    log.info('FOO %r' % (future,))
 
 
 # GRAPH_ACTOR_CLASS = ProcessActor if ut.LINUX or ut.WIN32 else ThreadActor
@@ -255,8 +251,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                         actor.infr.print('Actor Server Error: {!r}'.format(ex))
                         actor.infr.print('Actor Server Traceback: {!r}'.format(trace))
                     else:
-                        logger.info(ex)
-                        logger.info(trace)
+                        log.info(ex)
+                        log.info(trace)
 
                     raise sys.exc_info()[0](trace)
 
@@ -268,7 +264,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         # Create the AnnotInference
-        logger.info('starting via actor with ibs = %r' % (ibs,))
+        log.info('starting via actor with ibs = %r' % (ibs,))
         actor.infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         actor.infr.print('started via actor')
         actor.infr.print('config = {}'.format(ut.repr3(config)))
@@ -309,20 +305,20 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return response
 
     def remove_annots(actor, aids, **kwargs):
-        logger.info('Removing aids=%r from AnnotInference' % (aids,))
+        log.info('Removing aids=%r from AnnotInference' % (aids,))
         response = actor.infr.remove_aids(aids)
-        logger.info('\t got response = %r' % (response,))
-        logger.info('Applying NonDynamic Update to AnnotInference')
+        log.info('\t got response = %r' % (response,))
+        log.info('Applying NonDynamic Update to AnnotInference')
         actor.infr.apply_nondynamic_update()
-        logger.info('\t ...applied')
+        log.info('\t ...applied')
         return 'removed'
 
     def update_task_thresh(actor, task, decision, value, **kwargs):
-        logger.info(
+        log.info(
             'Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value,)
         )
         actor.infr.task_thresh[task][decision] = value
-        logger.info('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh,))
+        log.info('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh,))
         return 'updated'
 
     def add_annots(actor, aids, **kwargs):
@@ -561,7 +557,7 @@ class GraphClient(object):
         client.review_vip = None
 
         if data_list is None:
-            logger.info('GRAPH CLIENT GOT NONE UPDATE')
+            log.info('GRAPH CLIENT GOT NONE UPDATE')
             client.review_dict = None
         else:
             data_list = list(data_list)
@@ -570,8 +566,8 @@ class GraphClient(object):
             num_samples = min(num_samples, num_items)
             first = list(data_list[:num_samples])
 
-            logger.info('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(num_items))
-            logger.info('First few are: ' + ut.repr4(first, si=2, precision=4))
+            log.info('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(num_items))
+            log.info('First few are: ' + ut.repr4(first, si=2, precision=4))
             client.review_dict = {}
 
             for (edge, priority, edge_data_dict) in data_list:
@@ -600,7 +596,7 @@ class GraphClient(object):
     def sample(client, previous_edge_list=[], max_previous_edges=10):
         if client.review_dict is None:
             raise controller_inject.WebReviewFinishedException(client.graph_uuid)
-        logger.info('SAMPLING')
+        log.info('SAMPLING')
         edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None
@@ -618,21 +614,21 @@ class GraphClient(object):
                         break
 
                 if not found:
-                    logger.info('SHOWING VIP TO USER!!!')
+                    log.info('SHOWING VIP TO USER!!!')
                     edge = client.review_vip
                     client.prev_vip = edge
                     client.review_vip = None
                 else:
-                    logger.info(
+                    log.info(
                         'VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)'
                     )
             else:
-                logger.info('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
+                log.info('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
 
         if edge is None:
-            logger.info('VIP ALREADY SHOWN!!!')
+            log.info('VIP ALREADY SHOWN!!!')
             edge = random.choice(edge_list)
 
         priority, data_dict = client.review_dict[edge]
-        logger.info('SAMPLED edge = {!r}'.format(edge))
+        log.info('SAMPLED edge = {!r}'.format(edge))
         return edge, priority, data_dict

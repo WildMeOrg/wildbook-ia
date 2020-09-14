@@ -1155,6 +1155,7 @@ def bytes2human(n, format='%(value).02f%(symbol)s', symbols='customary'):
     n = int(n)
     if n < 0:
         raise ValueError('n < 0')
+
     symbols = SYMBOLS[symbols]
     prefix = {}
     for i, s in enumerate(symbols[1:]):
@@ -1400,6 +1401,7 @@ def check_cache_purge(ibs, ttl_days=365, dryrun=True, squeeze=False):
                 table_parent_rowids_set = list(map(set, table_parent_rowids_list))
 
                 logger.info('\tChecking parents...')
+
                 table_bad_rowids = []
                 zipped = list(zip(table_all_rowids, table_parent_rowids_set))
                 for table_rowid, table_parent_rowid_set in zipped:

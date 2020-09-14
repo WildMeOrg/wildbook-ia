@@ -487,8 +487,6 @@ def localizer_lightnet_train(
     subprocess.call(call_str, shell=True)
     assert exists(backup_path)
 
-    ut.embed()
-
     """
     x = (
         'CUDA_VISIBLE_DEVICES=3 ',

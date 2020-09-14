@@ -77,7 +77,6 @@ def get_data_annot_pair_info(
     # logger.info('!!! data_config2_ = %r' % (data_config2_,))
     # logger.info('!!! dqreq_ = %r' % (qreq_,))
     tblhack = getattr(qreq_, 'tablename', None)
-
     if (
         not tblhack
         or tblhack.lower()

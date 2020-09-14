@@ -223,6 +223,7 @@ def make_single_testres(
             'yellow',
         )
         cprint('pipe_cfgstr= %s' % (qreq_.get_cfgstr(with_data=False),), 'brightcyan')
+
         cprint('pipe_hashstr = %s' % (qreq_.get_pipe_hashid(),), 'cyan')
         if DRY_RUN:
             continue
