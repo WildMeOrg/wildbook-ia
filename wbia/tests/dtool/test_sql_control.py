@@ -2,6 +2,7 @@
 import uuid
 
 import pytest
+import sqlalchemy.exc
 from sqlalchemy.engine import Connection
 from sqlalchemy.sql import text
 
@@ -322,6 +323,52 @@ class TestAPI:
             f'SELECT id, y FROM {table_name} WHERE rowid = :rowid', rowid=result[0],
         ).fetchone()
         assert inserted_value == (11, 10,)
+
+    def test_executemany(self):
+        table_name = 'test_executemany'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        results = self.ctrlr.executemany(
+            f'SELECT id, y FROM {table_name} where x = ?',
+            (['even'], ['odd']),
+            unpack_scalars=False,
+        )
+
+        # Check for results
+        evens = [(i + 1, i) for i in range(0, 10) if not i % 2]
+        odds = [(i + 1, i) for i in range(0, 10) if i % 2]
+        assert results == [evens, odds]
+
+    def test_executemany_transaction(self):
+        table_name = 'test_executemany'
+        self.make_table(table_name)
+
+        # Test a failure to execute in the transaction to test the transaction boundary.
+        insert = f'INSERT INTO {table_name} (x, y, z) VALUES (?, ?, ?)'
+        params = [
+            ('even', 0, 0.0),
+            ('odd', 1, 1.01),
+            ('oops', 2.02),  # error
+            ('odd', 3, 3.03),
+        ]
+        with pytest.raises(sqlalchemy.exc.ProgrammingError):
+            # Call the testing target
+            results = self.ctrlr.executemany(insert, params)
+
+        # Check for results
+        results = self.ctrlr.connection.execute(f'select count(*) from {table_name}')
+        assert results.fetchone()[0] == 0
 
     def test_executeone_for_single_column(self):
         # Should unwrap the resulting query value (no tuple wrapping)
