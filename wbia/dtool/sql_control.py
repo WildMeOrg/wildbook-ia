@@ -13,7 +13,6 @@ import re
 import threading
 import uuid
 from collections.abc import Mapping, MutableMapping
-from functools import partial
 from os.path import join, exists
 
 import six
@@ -1539,90 +1538,29 @@ class SQLDatabaseController(object):
                 values = None
             return values
 
-    @profile
-    def executemany(
-        self,
-        operation,
-        params_iter,
-        verbose=VERBOSE_SQL,
-        unpack_scalars=True,
-        nInput=None,
-        eager=True,
-        keepwrap=False,
-        showprog=False,
-    ):
-        """
-        if unpack_scalars is True only a single result must be returned for each query.
-        """
-        # --- ARGS PREPROC ---
-        # Aggresively compute iterator if the nInput is not given
-        if nInput is None:
-            if isinstance(params_iter, (list, tuple)):
-                nInput = len(params_iter)
-            else:
-                if VERBOSE_SQL:
-                    logger.info(
-                        '[sql!] WARNING: aggressive eval of params_iter because nInput=None'
-                    )
-                params_iter = list(params_iter)
-                nInput = len(params_iter)
-        else:
-            if VERBOSE_SQL:
-                logger.info('[sql] Taking params_iter as iterator')
+    def executemany(self, operation, params_iter, unpack_scalars=True, **kwargs):
+        """Executes the given ``operation`` once for each item in ``params_iter``
 
-        # Do not compute executemany without params
-        if nInput == 0:
-            if VERBOSE_SQL:
-                logger.info(
-                    '[sql!] WARNING: dont use executemany'
-                    'with no params use executeone instead.'
-                )
-            return []
-        # --- SQL EXECUTION ---
-        contextkw = {
-            'nInput': nInput,
-            'start_transaction': True,
-            'verbose': verbose,
-            'keepwrap': keepwrap,
-        }
-        with SQLExecutionContext(self, operation, **contextkw) as context:
-            if eager:
-                if showprog:
-                    if isinstance(showprog, six.string_types):
-                        lbl = showprog
-                    else:
-                        lbl = 'sqlread'
-                    prog = ut.ProgPartial(
-                        adjust=True, length=nInput, freq=1, lbl=lbl, bs=True
-                    )
-                    params_iter = prog(params_iter)
-                results_iter = [
-                    list(context.execute_and_generate_results(params))
-                    for params in params_iter
-                ]
+        Args:
+            operation (str): SQL operation
+            params_iter (sequence): a sequence of sequences
+                                    containing parameters in the sql operation
+            unpack_scalars (bool): [deprecated] use to unpack a single result from each query
+                                   only use with operations that return a single result for each query
+                                   (default: True)
+
+        """
+        results = []
+        with self.connection.begin():
+            for params in params_iter:
+                value = self.executeone(operation, params)
+                # Should only be used when the user wants back on value.
+                # Let the error bubble up if used wrong.
+                # Deprecated... Do not depend on the unpacking behavior.
                 if unpack_scalars:
-                    # list of iterators
-                    _unpacker_ = partial(_unpacker)
-                    results_iter = list(map(_unpacker_, results_iter))
-                # Eager evaluation
-                results_list = list(results_iter)
-            else:
-
-                def _tmpgen(context):
-                    # Temporary hack to turn off eager_evaluation
-                    for params in params_iter:
-                        # Eval results per query yeild per iter
-                        results = list(context.execute_and_generate_results(params))
-                        if unpack_scalars:
-                            yield _unpacker(results)
-                        else:
-                            yield results
-
-                results_list = _tmpgen(context)
-        return results_list
-
-    # def commit(db):
-    #    db.connection.commit()
+                    value = _unpacker(value)
+                results.append(value)
+        return results
 
     def print_dbg_schema(self):
         logger.info(
