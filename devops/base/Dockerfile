@@ -2,10 +2,6 @@ FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
-ARG AZURE_DEVOPS_CACHEBUSTER=0
-
-RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
-
 # Install requirements
 RUN apt-get update \
  && apt-get install -y \
@@ -20,15 +16,15 @@ RUN apt-get update \
 # Install developer tools
 RUN apt-get update \
  && apt-get install -y \
-        git \
-        tmux \
-        htop \
         ipython \
         ipython3 \
         python3-gdbm \
+        git \
         graphviz \
-        vim \
+        htop \
+        tmux \
         unzip \
+        vim \
         xvfb \
  && rm -rf /var/lib/apt/lists/*
 
@@ -40,7 +36,7 @@ RUN set -ex \
  && sh get-docker.sh \
  && apt-get purge -y curl \
  && rm -rf /var/lib/apt/lists/*
- 
+
 # Create wbia source location
 RUN mkdir -p /wbia
 
@@ -51,16 +47,32 @@ RUN mkdir -p /virtualenv
 RUN /usr/bin/pip3 install cmake ninja
 
 # Install CNMeM
-RUN git clone https://github.com/NVIDIA/cnmem.git /wbia/cnmem \
- && cd /wbia/cnmem/ \
+RUN git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
+ && cd /tmp/cnmem/ \
  && git checkout v1.0.0 \
- && mkdir -p /wbia/cnmem/build \
- && cd /wbia/cnmem/build \
+ && mkdir -p /tmp/cnmem/build \
+ && cd /tmp/cnmem/build \
  && cmake .. \
  && make -j4 \
  && make install \
  && cd .. \
- && rm -rf /wbia/cnmem
+ && rm -rf /tmp/cnmem
+
+# Install NVTOP
+RUN set -ex \
+ && apt-get update \
+ && apt-get install -y slibncurses5-dev libncursesw5-dev \
+ && git clone https://github.com/Syllo/nvtop.git /tmp/nvtop \
+ && cd /tmp/nvtop/ \
+ && mkdir -p /tmp/nvtop/build \
+ && cd /tmp/nvtop/build \
+ && cmake .. \
+ && make -j4 \
+ && make install \
+ && cd .. \
+ && rm -rf /tmp/nvtop \
+ && apt-get purge -y slibncurses5-dev libncursesw5-dev \
+ && rm -rf /var/lib/apt/lists/*
 
 # Install virtualenv PyPI package
 RUN /usr/bin/pip3 install \

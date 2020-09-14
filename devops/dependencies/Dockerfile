@@ -1,8 +1,6 @@
 FROM wildme/wbia-base:latest as org.wildme.wbia.dependencies
 
-ARG AZURE_DEVOPS_CACHEBUSTER=0
-
-RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
+MAINTAINER Wild Me <dev@wildme.org>
 
 # Install OpenCV requirements
 RUN apt-get update \

@@ -2,10 +2,6 @@ FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
 
 MAINTAINER Wild Me <dev@wildme.org>
 
-ARG AZURE_DEVOPS_CACHEBUSTER=0
-
-RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
-
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
 
