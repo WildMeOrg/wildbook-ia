@@ -58,6 +58,7 @@ METADATA_TABLE_COLUMNS = {
     'extern_tables': dict(is_coded_data=True),
     'dependsmap': dict(is_coded_data=True),
     'primary_superkey': dict(is_coded_data=True),
+    'constraint': dict(is_coded_data=False),
 }
 METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
