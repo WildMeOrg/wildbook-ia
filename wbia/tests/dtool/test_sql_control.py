@@ -391,6 +391,30 @@ class TestAPI:
         # Note the unwrapped values, rather than [(i,) ...]
         assert result == [i for i in range(0, 10)]
 
+    def test_add(self):
+        table_name = 'test_add'
+        self.make_table(table_name)
+
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        parameter_values = []
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            parameter_values.append((x, y, z))
+
+        # Call the testing target
+        ids = self.ctrlr._add(table_name, ['x', 'y', 'z'], parameter_values)
+
+        # Verify the resulting ids
+        assert ids == [i + 1 for i in range(0, len(parameter_values))]
+        # Verify addition of records
+        results = self.ctrlr.connection.execute(f'SELECT id, x, y, z FROM {table_name}')
+        expected = [(i + 1, x, y, z) for i, (x, y, z) in enumerate(parameter_values)]
+        assert results.fetchall() == expected
+
     def test_get_where_without_where_condition(self):
         table_name = 'test_get_where'
         self.make_table(table_name)
