@@ -19,7 +19,7 @@ import six
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text, ClauseElement
 
 from wbia.dtool import lite
 from wbia.dtool.dump import dumps
@@ -1328,13 +1328,19 @@ class SQLDatabaseController(object):
 
     def executeone(self, operation, params=(), eager=True, verbose=VERBOSE_SQL):
         """Executes the given ``operation`` once with the given set of ``params``"""
+        if not isinstance(operation, ClauseElement):
+            raise TypeError(
+                "'operation' needs to be a sqlalchemy textual sql instance "
+                "see docs on 'sqlalchemy.sql:text' factory function; "
+                f"'operation' is a '{type(operation)}'"
+            )
         # FIXME (12-Sept-12020) Allows passing through '?' (question mark) parameters.
         results = self.connection.execute(operation, params)
 
         # BBB (12-Sept-12020) Retaining insertion rowid result
         # FIXME postgresql (12-Sept-12020) This won't work in postgres.
         #       Maybe see if ResultProxy.inserted_primary_key will work
-        if 'insert' in operation.lower():
+        if 'insert' in operation.text.lower():
             # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
             return [results.lastrowid]
         elif not results.returns_rows:
@@ -1363,6 +1369,13 @@ class SQLDatabaseController(object):
                                    (default: True)
 
         """
+        if not isinstance(operation, ClauseElement):
+            raise TypeError(
+                "'operation' needs to be a sqlalchemy textual sql instance "
+                "see docs on 'sqlalchemy.sql:text' factory function; "
+                f"'operation' is a '{type(operation)}'"
+            )
+
         results = []
         with self.connection.begin():
             for params in params_iter:
