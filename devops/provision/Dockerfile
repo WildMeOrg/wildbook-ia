@@ -2,6 +2,9 @@ FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
 
 MAINTAINER Wild Me <dev@wildme.org>
 
+# Set up xvfb for running gui doctests
+ENV DISPLAY :1
+
 # Clone WBIA repository
 RUN set -ex \
  && cd /wbia \
@@ -146,8 +149,5 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-kaggle7 \
  && pip install -e .'
-
-# Set up xvfb for running gui doctests
-ENV DISPLAY :1
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]

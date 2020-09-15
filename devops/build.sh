@@ -22,6 +22,7 @@ while [ $# -ge 1 ]; do
         cd ../
         # Build the runtime container
         docker build -t wildme/wildbook-ia:latest .
+        cd devops/
     else
         echo "Image $1 not found"
         exit 1
