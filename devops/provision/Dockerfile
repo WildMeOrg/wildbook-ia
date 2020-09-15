@@ -13,8 +13,6 @@ RUN set -ex \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-utool.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-vtool.git
 
-RUN ls
-
 # Clone WBIA third-party toolkit repositories
 RUN set -ex \
  && cd /wbia \
