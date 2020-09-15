@@ -1752,10 +1752,10 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
         >>> result += ('semantic_uuid_hashid = ' + str(semantic_uuid_hashid))
         >>> print(result)
         [
-            UUID('9acc1a8e-b35f-11b5-f844-9e8fd5dd7ad9'),
-            UUID('9b03e268-aaed-9341-25ee-733859629a3a'),
+            UUID('...'),
+            UUID('...'),
         ]
-        semantic_uuid_hashid = SUUIDS-13-tnvebtbaoyvqirwi
+        semantic_uuid_hashid = SUUIDS-13-...
 
     """
     semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
