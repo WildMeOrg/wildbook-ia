@@ -740,23 +740,15 @@ class SQLDatabaseController(object):
         exists_list = [rowid is not None for rowid in rowid_list1]
         return exists_list
 
-    def _add(self, tblname, colnames, params_iter, **kwargs):
+    def _add(self, tblname, colnames, params_iter, unpack_scalars=True, **kwargs):
         """ ADDER NOTE: use add_cleanly """
-        fmtdict = {
-            'tblname': tblname,
-            'erotemes': ', '.join(['?'] * len(colnames)),
-            'params': ',\n'.join(colnames),
-        }
-        operation_fmt = """
-        INSERT INTO {tblname}(
-        rowid,
-        {params}
-        ) VALUES (NULL, {erotemes})
-        """
-        rowid_list = self._executemany_operation_fmt(
-            operation_fmt, fmtdict, params_iter=params_iter, **kwargs
-        )
-        return rowid_list
+        columns = ', '.join(colnames)
+        column_params = ', '.join(f':{col}' for col in colnames)
+        parameterized_values = [
+            {col: val for col, val in zip(colnames, params)} for params in params_iter
+        ]
+        stmt = text(f'INSERT INTO {tblname} ({columns}) VALUES ({column_params})')
+        return self.executemany(stmt, parameterized_values, unpack_scalars=unpack_scalars)
 
     def add_cleanly(
         self,
