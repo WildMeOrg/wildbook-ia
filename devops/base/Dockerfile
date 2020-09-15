@@ -2,40 +2,43 @@ FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
-# Install requirements
-RUN apt-get update \
- && apt-get install -y \
+ENV LC_ALL C.UTF-8
+
+ENV LANG C.UTF-8
+
+# Install package updates and dependencies
+RUN set -ex \
+ && apt update \
+ && apt upgrade -y \
+ && apt dist-upgrade -y \
+ && apt clean \
+ && apt autoclean \
+ && apt autoremove -y \
+ && apt install -y \
+        # Install requirements - Pegged to Version 3.7 to support TensorFlow 1.15.3
         ca-certificates \
         build-essential \
         pkg-config \
-        python3 \
-        python3-dev \
+        python3.7 \
+        python3.7-dev \
+        python3.7-gdbm \
         python3-pip \
- && rm -rf /var/lib/apt/lists/*
-
-# Install developer tools
-RUN apt-get update \
- && apt-get install -y \
-        ipython \
-        ipython3 \
-        python3-gdbm \
+        # Install developer tools
+        curl \
         git \
-        graphviz \
         htop \
+        locate \
         tmux \
         unzip \
         vim \
+        wget \
         xvfb \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Docker CE
 RUN set -ex \
- && apt-get update \
- && apt-get install -y curl \
  && curl -fsSL https://get.docker.com -o get-docker.sh \
- && sh get-docker.sh \
- && apt-get purge -y curl \
- && rm -rf /var/lib/apt/lists/*
+ && sh get-docker.sh
 
 # Create wbia source location
 RUN mkdir -p /wbia
@@ -43,11 +46,23 @@ RUN mkdir -p /wbia
 # Create virtualenv location
 RUN mkdir -p /virtualenv
 
-# Install cmake and ninja
-RUN /usr/bin/pip3 install cmake ninja
+# Install Python Virtual Environments
+RUN set -ex \
+ && /usr/bin/pip3 install virtualenv
+
+# Create virtualenvs for Python3
+RUN set -ex \
+ && virtualenv -p $(which python3.7) /virtualenv/env3
+
+# Install PyPI packages
+RUN set -ex \
+ && /virtualenv/env3/bin/pip install --upgrade pip \
+ && /virtualenv/env3/bin/pip install --upgrade cmake ninja scikit-build setuptools
 
 # Install CNMeM
-RUN git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
+RUN set -ex \
+ && . /virtualenv/env3/bin/activate \
+ && git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
  && cd /tmp/cnmem/ \
  && git checkout v1.0.0 \
  && mkdir -p /tmp/cnmem/build \
@@ -60,8 +75,9 @@ RUN git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
 
 # Install NVTOP
 RUN set -ex \
- && apt-get update \
- && apt-get install -y slibncurses5-dev libncursesw5-dev \
+ && . /virtualenv/env3/bin/activate \
+ && apt update \
+ && apt install -y libncurses5-dev libncursesw5-dev \
  && git clone https://github.com/Syllo/nvtop.git /tmp/nvtop \
  && cd /tmp/nvtop/ \
  && mkdir -p /tmp/nvtop/build \
@@ -71,19 +87,11 @@ RUN set -ex \
  && make install \
  && cd .. \
  && rm -rf /tmp/nvtop \
- && apt-get purge -y slibncurses5-dev libncursesw5-dev \
  && rm -rf /var/lib/apt/lists/*
-
-# Install virtualenv PyPI package
-RUN /usr/bin/pip3 install \
-    virtualenv==15.2.0
-
-# Create virtualenvs for Python3
-RUN virtualenv -p $(which python3) /virtualenv/env3
 
 # Set CUDA-specific environment paths
 ENV PATH "/usr/local/cuda/bin:${PATH}"
 
-ENV LD_LIBRARY_PATH "/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH "/usr/local/cuda/lib64:/virtualenv/env3/lib:${LD_LIBRARY_PATH}"
 
 ENV CUDA_HOME "/usr/local/cuda"

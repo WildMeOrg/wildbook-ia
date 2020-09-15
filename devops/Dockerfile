@@ -25,6 +25,8 @@ RUN /virtualenv/env3/bin/pip uninstall -y dtool-ibeis guitool-ibeis plottool-ibe
 ##########################################################################################
 FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
+MAINTAINER Wild Me <dev@wildme.org>
+
 COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia

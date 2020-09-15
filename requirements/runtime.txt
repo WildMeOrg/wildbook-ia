@@ -5,6 +5,8 @@ click
 colorama>=0.3.2
 dateutils>=0.6.6
 
+gdm
+
 delorean
 deprecated
 docker
@@ -12,25 +14,31 @@ flask>=0.10.1
 flask-cas
 flask-cors
 
-futures_actors
 ipython>=5.0.0
 lightnet
 lockfile>=0.10.2
 matplotlib>=3.3.0
 networkx>=2.1
 numpy>=1.14.2
-opencv-python
+opencv-python==3.4.11.41
 pandas>=0.19.2
 parse>=1.6.6
 Pillow>=7.1.0
 pyasn1>=0.1.7
 pygments>=2.1.3
 
+pyfiglet
+imgaug
+mako
+
 pynmea2>=1.5.3
 pyparsing>=2.1.5
 
 pyqt5>=5.11.2,<5.12
+# PyQt5-sip
 pyzmq>=14.7.0
+pyshp
+
 requests>=2.5.0
 scikit-image>=0.12.3
 scikit-learn>=0.17.1
@@ -40,11 +48,17 @@ six>=1.10.0
 sqlalchemy
 statsmodels>=0.6.1
 
+sip
+
+shapely
+setproctitle
+
 torch
 torchvision
 tornado>=4.2.1
 tqdm
 ubelt >= 0.8.7
+
 wbia-cnn>=3.0.2
 wbia-pydarknet >= 3.0.1
 wbia-pyflann >= 3.1.0
