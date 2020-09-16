@@ -138,6 +138,9 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && ./unix_build.sh \
  && pip install -e .'
 
+# Ensure no previous or deprecated repositories are installed
+# Ensure that opencv-python is un-installed since we want to use our built version
+# Ensure specific version of keras and tensorflow-gpu are installed (for Pie support)
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
         opencv-python \
@@ -160,14 +163,13 @@ RUN set -ex \
         tensorflow-estimator \
         tensorboard \
         tensorboard-plugin-wit \
-        keras
-
-RUN set -ex \
- && /virtualenv/env3/bin/pip install \
+        keras \
+ && /virtualenv/env3/bin/pip install -y \
         tensorflow-gpu==1.15 \
         keras==2.2.5
 
 # Restore copy of our build OpenCV
+# When opencv-python is installed and subsequently un-installed is clobbers our version 
 RUN set -ex \
  && rm -rf /virtualenv/env3/lib/python3.7/site-packages/cv2* \
  && cp -r /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2 \

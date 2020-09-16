@@ -2,7 +2,7 @@ FROM wildme/wbia-provision:latest as org.wildme.wbia.build
 
 MAINTAINER Wild Me <dev@wildme.org>
 
-# Remove all git association from the code
+# Grab latest code and remove all Git histories from code repositories
 RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
