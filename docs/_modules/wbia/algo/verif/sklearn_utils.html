@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.verif.sklearn_utils &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -34,22 +33,23 @@
             
   <h1>Source code for wbia.algo.verif.sklearn_utils</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 
 <span class="c1"># import warning</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_array</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_array</span>
 
 <span class="c1"># from sklearn.utils import check_random_state</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 
 <span class="c1"># from sklearn.model_selection._split import (_BaseKFold, KFold)</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection._split</span> <span class="k">import</span> <span class="n">_BaseKFold</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection._split</span> <span class="kn">import</span> <span class="n">_BaseKFold</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="c1"># from sklearn.utils.fixes import bincount</span>
@@ -73,7 +73,7 @@
 <span class="sd">        Number of folds. Must be at least 2.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">StratifiedGroupKFold</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">n_splits</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">,</span> <span class="n">random_state</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_make_test_folds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -147,7 +147,7 @@
         <span class="n">sortx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">grouped_y_counts</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">grouped_splitx</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">group_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sortx</span><span class="p">):</span>
-            <span class="c1"># print(&#39;---------\n&#39;)</span>
+            <span class="c1"># logger.info(&#39;---------\n&#39;)</span>
             <span class="n">group_freq</span> <span class="o">=</span> <span class="n">grouped_y_counts</span><span class="p">[</span><span class="n">group_idx</span><span class="p">]</span>
             <span class="n">cand_freq</span> <span class="o">=</span> <span class="n">split_freq</span> <span class="o">+</span> <span class="n">group_freq</span>
             <span class="n">cand_ratio</span> <span class="o">=</span> <span class="n">cand_freq</span> <span class="o">/</span> <span class="n">cand_freq</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
@@ -167,12 +167,12 @@
             <span class="n">freq_loss</span> <span class="o">=</span> <span class="n">split_freq</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">freq_loss</span> <span class="o">=</span> <span class="n">freq_loss</span> <span class="o">/</span> <span class="n">freq_loss</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">losses</span> <span class="o">=</span> <span class="n">ratio_loss</span> <span class="o">+</span> <span class="n">freq_loss</span>
-            <span class="c1"># print(&#39;group_freq = %r&#39; % (group_freq,))</span>
-            <span class="c1"># print(&#39;freq_loss = %s&#39; % (ut.repr2(freq_loss, precision=2),))</span>
-            <span class="c1"># print(&#39;ratio_loss = %s&#39; % (ut.repr2(ratio_loss, precision=2),))</span>
+            <span class="c1"># logger.info(&#39;group_freq = %r&#39; % (group_freq,))</span>
+            <span class="c1"># logger.info(&#39;freq_loss = %s&#39; % (ut.repr2(freq_loss, precision=2),))</span>
+            <span class="c1"># logger.info(&#39;ratio_loss = %s&#39; % (ut.repr2(ratio_loss, precision=2),))</span>
             <span class="c1"># -------</span>
             <span class="n">splitx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
-            <span class="c1"># print(&#39;losses = %r, splitx=%r&#39; % (losses, splitx))</span>
+            <span class="c1"># logger.info(&#39;losses = %r, splitx=%r&#39; % (losses, splitx))</span>
             <span class="n">split_freq</span><span class="p">[</span><span class="n">splitx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cand_freq</span><span class="p">[</span><span class="n">splitx</span><span class="p">]</span>
             <span class="n">split_ratios</span><span class="p">[</span><span class="n">splitx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cand_ratio</span><span class="p">[</span><span class="n">splitx</span><span class="p">]</span>
             <span class="n">split_diffs</span><span class="p">[</span><span class="n">splitx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cand_diffs</span><span class="p">[</span><span class="n">splitx</span><span class="p">]</span>
@@ -181,22 +181,22 @@
             <span class="c1"># if count &gt; 4:</span>
             <span class="c1">#     break</span>
             <span class="c1"># else:</span>
-            <span class="c1">#     print(&#39;split_freq = \n&#39; +</span>
+            <span class="c1">#     logger.info(&#39;split_freq = \n&#39; +</span>
             <span class="c1">#           ut.repr2(split_freq, precision=2, suppress_small=True))</span>
-            <span class="c1">#     print(&#39;target_ratio = \n&#39; +</span>
+            <span class="c1">#     logger.info(&#39;target_ratio = \n&#39; +</span>
             <span class="c1">#           ut.repr2(target_ratio, precision=2, suppress_small=True))</span>
-            <span class="c1">#     print(&#39;split_ratios = \n&#39; +</span>
+            <span class="c1">#     logger.info(&#39;split_ratios = \n&#39; +</span>
             <span class="c1">#           ut.repr2(split_ratios, precision=2, suppress_small=True))</span>
-            <span class="c1">#     print(ut.dict_hist(grouped_splitx))</span>
+            <span class="c1">#     logger.info(ut.dict_hist(grouped_splitx))</span>
 
         <span class="c1"># final_ratio_loss = ((split_ratios - target_ratio) ** 2).sum(axis=1)</span>
-        <span class="c1"># print(&#39;split_freq = \n&#39; +</span>
+        <span class="c1"># logger.info(&#39;split_freq = \n&#39; +</span>
         <span class="c1">#       ut.repr2(split_freq, precision=3, suppress_small=True))</span>
-        <span class="c1"># print(&#39;target_ratio = \n&#39; +</span>
+        <span class="c1"># logger.info(&#39;target_ratio = \n&#39; +</span>
         <span class="c1">#       ut.repr2(target_ratio, precision=3, suppress_small=True))</span>
-        <span class="c1"># print(&#39;split_ratios = \n&#39; +</span>
+        <span class="c1"># logger.info(&#39;split_ratios = \n&#39; +</span>
         <span class="c1">#       ut.repr2(split_ratios, precision=3, suppress_small=True))</span>
-        <span class="c1"># print(ut.dict_hist(grouped_splitx))</span>
+        <span class="c1"># logger.info(ut.dict_hist(grouped_splitx))</span>
 
         <span class="n">test_folds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">group_idx</span><span class="p">,</span> <span class="n">splitx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sortx</span><span class="p">,</span> <span class="n">grouped_splitx</span><span class="p">):</span>
@@ -218,14 +218,14 @@
 
 
 <div class="viewcode-block" id="temp"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.temp">[docs]</a><span class="k">def</span> <span class="nf">temp</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">sklearn</span> <span class="k">import</span> <span class="n">model_selection</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">sklearn_utils</span>
+    <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">model_selection</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">sklearn_utils</span>
 
     <span class="k">def</span> <span class="nf">check_balance</span><span class="p">(</span><span class="n">idxs</span><span class="p">):</span>
         <span class="c1"># from sklearn.utils.fixes import bincount</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;-------&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">train</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">idxs</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;split </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;split </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
             <span class="n">groups_train</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">train</span><span class="p">))</span>
             <span class="n">groups_test</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">test</span><span class="p">))</span>
             <span class="n">n_group_isect</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups_train</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">groups_test</span><span class="p">))</span>
@@ -234,10 +234,10 @@
             <span class="n">y_test_ratio</span> <span class="o">=</span> <span class="n">y_test_freq</span> <span class="o">/</span> <span class="n">y_test_freq</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">y_train_ratio</span> <span class="o">=</span> <span class="n">y_train_freq</span> <span class="o">/</span> <span class="n">y_train_freq</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">balance_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_test_ratio</span> <span class="o">-</span> <span class="n">y_train_ratio</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_group_isect = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_group_isect</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;y_test_ratio = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y_test_ratio</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;y_train_ratio = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y_train_ratio</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;balance_error = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">balance_error</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;n_group_isect = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_group_isect</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;y_test_ratio = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y_test_ratio</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;y_train_ratio = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y_train_ratio</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;balance_error = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">balance_error</span><span class="p">,))</span>
 
     <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">encoded_1d</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
@@ -322,7 +322,7 @@
 <span class="sd">        &gt;&gt;&gt; pt.multi_plot(ydata_list=ys)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">sklearn.metrics</span>
-    <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">LabelEncoder</span>
+    <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">LabelEncoder</span>
 
     <span class="k">if</span> <span class="n">target_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">unique_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">]))</span>
@@ -463,7 +463,7 @@
             <span class="s1">&#39;raw&#39;</span><span class="p">:</span> <span class="n">mcc_raw</span><span class="p">,</span>
         <span class="p">}</span>
 
-        <span class="c1"># print(&#39;%r &lt;&lt;&lt;&#39; % (mcc_known,))</span>
+        <span class="c1"># logger.info(&#39;%r &lt;&lt;&lt;&#39; % (mcc_known,))</span>
         <span class="n">means</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="n">amean</span><span class="p">,</span>
             <span class="c1"># &#39;h&#39;: hmean,</span>
@@ -486,15 +486,15 @@
                 <span class="n">m</span> <span class="o">=</span> <span class="n">mean</span><span class="p">(</span><span class="n">mccs</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
                 <span class="n">r_key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mean_key</span><span class="p">,</span> <span class="n">w_key</span><span class="p">)</span>
                 <span class="n">report</span><span class="p">[</span><span class="n">r_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>
-                <span class="c1"># print(r_key)</span>
-                <span class="c1"># print(np.abs(m - mcc_known))</span>
+                <span class="c1"># logger.info(r_key)</span>
+                <span class="c1"># logger.info(np.abs(m - mcc_known))</span>
 
-        <span class="c1"># print(ut.repr4(report, precision=8))</span>
+        <span class="c1"># logger.info(ut.repr4(report, precision=8))</span>
         <span class="k">return</span> <span class="n">report</span>
-        <span class="c1"># print(&#39;mcc_known = %r&#39; % (mcc_known,))</span>
-        <span class="c1"># print(&#39;mcc_combo1 = %r&#39; % (mcc_combo1,))</span>
-        <span class="c1"># print(&#39;mcc_combo2 = %r&#39; % (mcc_combo2,))</span>
-        <span class="c1"># print(&#39;mcc_combo3 = %r&#39; % (mcc_combo3,))</span>
+        <span class="c1"># logger.info(&#39;mcc_known = %r&#39; % (mcc_known,))</span>
+        <span class="c1"># logger.info(&#39;mcc_combo1 = %r&#39; % (mcc_combo1,))</span>
+        <span class="c1"># logger.info(&#39;mcc_combo2 = %r&#39; % (mcc_combo2,))</span>
+        <span class="c1"># logger.info(&#39;mcc_combo3 = %r&#39; % (mcc_combo3,))</span>
 
     <span class="c1"># if target_names is None:</span>
     <span class="c1">#     target_names = list(range(k))</span>
@@ -528,15 +528,15 @@
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">cfsm_str</span> <span class="o">=</span> <span class="n">confusion_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">float_format</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%.1f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Confusion Matrix (real × pred) :&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39;    &#39;</span><span class="p">,</span> <span class="n">cfsm_str</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Confusion Matrix (real × pred) :&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39;    &#39;</span><span class="p">,</span> <span class="n">cfsm_str</span><span class="p">))</span>
 
         <span class="c1"># ut.cprint(&#39;\nExtended Report&#39;, &#39;turquoise&#39;)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Evaluation Metric Report:&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Evaluation Metric Report:&#39;</span><span class="p">)</span>
         <span class="n">float_precision</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="n">float_format</span> <span class="o">=</span> <span class="s1">&#39;%.&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">float_precision</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;f&#39;</span>
         <span class="n">ext_report</span> <span class="o">=</span> <span class="n">metric_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">float_format</span><span class="o">=</span><span class="n">float_format</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39;    &#39;</span><span class="p">,</span> <span class="n">ext_report</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39;    &#39;</span><span class="p">,</span> <span class="n">ext_report</span><span class="p">))</span>
 
     <span class="n">report</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;metrics&#39;</span><span class="p">:</span> <span class="n">metric_df</span><span class="p">,</span>
@@ -547,7 +547,7 @@
     <span class="c1"># and BM * MK MCC?</span>
 
     <span class="k">def</span> <span class="nf">matthews_corrcoef</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">sklearn.metrics.classification</span> <span class="k">import</span> <span class="p">(</span>
+        <span class="kn">from</span> <span class="nn">sklearn.metrics.classification</span> <span class="kn">import</span> <span class="p">(</span>
             <span class="n">_check_targets</span><span class="p">,</span>
             <span class="n">LabelEncoder</span><span class="p">,</span>
             <span class="n">confusion_matrix</span><span class="p">,</span>
@@ -595,11 +595,11 @@
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mcc_significance_scales</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mcc</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">k</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;classifier correlation is </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;classifier correlation is </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,))</span>
                 <span class="k">break</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="n">float_precision</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;MCC&#39; = %.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">float_precision</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">mcc</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">((</span><span class="s2">&quot;MCC&#39; = %.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">float_precision</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">mcc</span><span class="p">,))</span>
         <span class="n">report</span><span class="p">[</span><span class="s1">&#39;mcc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mcc</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">pass</span>
@@ -748,7 +748,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clf_list</span><span class="p">,</span> <span class="n">voting</span><span class="o">=</span><span class="s1">&#39;soft&#39;</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clf_list</span><span class="p">,</span> <span class="n">voting</span><span class="o">=</span><span class="s1">&#39;soft&#39;</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clf_list</span> <span class="o">=</span> <span class="n">clf_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">voting</span> <span class="o">=</span> <span class="n">voting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="kc">None</span>
@@ -840,7 +840,7 @@
     <span class="c1"># classes_ = ut.list_getattr(clf_list, &#39;classes_&#39;)</span>
     <span class="c1"># if not ut.allsame(classes_):</span>
     <span class="c1">#     for clf in clf_list:</span>
-    <span class="c1">#         print(clf.predict_proba(X_train))</span>
+    <span class="c1">#         logger.info(clf.predict_proba(X_train))</span>
     <span class="c1">#         pass</span>
     <span class="c1">#     # Note: There is a corner case where one fold doesn&#39;t get any labels of</span>
     <span class="c1">#     # a certain class. Because y_train is an encoded integer, the</span>
@@ -896,17 +896,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -923,7 +921,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

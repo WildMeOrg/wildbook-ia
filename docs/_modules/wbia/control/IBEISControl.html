@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.control.IBEISControl &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -68,22 +67,25 @@
 <span class="sd">    This submodule only provides function headers, the source code still</span>
 <span class="sd">      resides in the injected modules.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
 <span class="kn">import</span> <span class="nn">atexit</span>
 <span class="kn">import</span> <span class="nn">weakref</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">split</span>
-<span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">sysres</span>
-<span class="kn">from</span> <span class="nn">wbia.dbio</span> <span class="k">import</span> <span class="n">ingest_hsdb</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">realpath</span>
+<span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">wbia.dbio</span> <span class="kn">import</span> <span class="n">ingest_hsdb</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.dtool.dump</span> <span class="kn">import</span> <span class="n">dump</span>
+
 
 <span class="c1"># Inject utool functions</span>
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="c1"># Import modules which define injectable functions</span>
 
@@ -135,12 +137,19 @@
     <span class="s1">&#39;wbia.core_parts&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.algo.smk.vocab_indexer&#39;</span><span class="p">,</span>
     <span class="s1">&#39;wbia.algo.smk.smk_pipeline&#39;</span><span class="p">,</span>
-    <span class="c1"># ((&#39;--no-cnn&#39;, &#39;--nocnn&#39;), &#39;wbia_cnn&#39;),</span>
     <span class="p">((</span><span class="s1">&#39;--no-cnn&#39;</span><span class="p">,</span> <span class="s1">&#39;--nocnn&#39;</span><span class="p">),</span> <span class="s1">&#39;wbia_cnn._plugin&#39;</span><span class="p">),</span>
-    <span class="c1"># ((&#39;--no-fluke&#39;, &#39;--nofluke&#39;), &#39;ibeis_flukematch.plugin&#39;),</span>
-    <span class="c1"># ((&#39;--no-curvrank&#39;, &#39;--nocurvrank&#39;), &#39;wbia_curvrank._plugin&#39;),</span>
-    <span class="c1"># &#39;wbia_plugin_identification_example&#39;,</span>
 <span class="p">]</span>
+
+
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--flukematch&#39;</span><span class="p">):</span>
+    <span class="n">AUTOLOAD_PLUGIN_MODNAMES</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="p">((</span><span class="s1">&#39;--no-flukematch&#39;</span><span class="p">,</span> <span class="s1">&#39;--noflukematch&#39;</span><span class="p">),</span> <span class="s1">&#39;wbia_flukematch.plugin&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--curvrank&#39;</span><span class="p">):</span>
+    <span class="n">AUTOLOAD_PLUGIN_MODNAMES</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="p">((</span><span class="s1">&#39;--no-curvrank&#39;</span><span class="p">,</span> <span class="s1">&#39;--nocurvrank&#39;</span><span class="p">),</span> <span class="s1">&#39;wbia_curvrank._plugin&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
 
 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--deepsense&#39;</span><span class="p">):</span>
     <span class="n">AUTOLOAD_PLUGIN_MODNAMES</span> <span class="o">+=</span> <span class="p">[</span>
@@ -219,7 +228,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        python -m wbia dev_autogen_explicit_injects</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_autogen_explicit_controller</span>
+        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">_autogen_explicit_controller</span>
 
         <span class="n">BASE_CLASS</span> <span class="o">=</span> <span class="n">_autogen_explicit_controller</span><span class="o">.</span><span class="n">ExplicitInjectIBEISController</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -283,7 +292,7 @@
 
     <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">and</span> <span class="n">dbdir</span> <span class="ow">in</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[request_IBEISController] returning cached controller&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[request_IBEISController] returning cached controller&#39;</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span><span class="p">[</span><span class="n">dbdir</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">force_serial</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">ibs</span><span class="o">.</span><span class="n">force_serial</span><span class="p">,</span> <span class="s1">&#39;set use_cache=False in wbia.opendb&#39;</span>
@@ -318,7 +327,7 @@
         <span class="k">del</span> <span class="n">__ALL_CONTROLLERS__</span>
         <span class="k">del</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span>
     <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cannot cleanup IBEISController&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;cannot cleanup IBEISController&#39;</span><span class="p">)</span>
         <span class="k">pass</span>
 
 
@@ -348,7 +357,7 @@
     <span class="c1"># -------------------------------</span>
 
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span>
         <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -360,7 +369,7 @@
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Creates a new IBEIS Controller associated with one database &quot;&quot;&quot;</span>
         <span class="c1"># if verbose and ut.VERBOSE:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[ibs.__init__] new IBEISController&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[ibs.__init__] new IBEISController&#39;</span><span class="p">)</span>
 
         <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># an dict to hack in temporary state</span>
@@ -376,8 +385,8 @@
                 <span class="n">force_serial</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">force_serial</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">const</span><span class="o">.</span><span class="n">CONTAINERIZED</span><span class="p">:</span>
-            <span class="n">force_serial</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># if const.CONTAINERIZED:</span>
+        <span class="c1">#     force_serial = True</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">force_serial</span> <span class="o">=</span> <span class="n">force_serial</span>
         <span class="c1"># observer_weakref_list keeps track of the guibacks connected to this</span>
         <span class="c1"># controller</span>
@@ -407,19 +416,19 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">CONTAINERIZED</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">production</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">PRODUCTION</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] CONTAINERIZED: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] PRODUCTION: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">production</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] CONTAINERIZED: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] PRODUCTION: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">production</span><span class="p">,))</span>
 
         <span class="c1"># Hack to store HTTPS flag (deliver secure content in web)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">https</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">HTTPS</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] END new IBEISController</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.__init__] END new IBEISController</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="IBEISController.reset_table_cache"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.reset_table_cache">[docs]</a>    <span class="k">def</span> <span class="nf">reset_table_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span> <span class="o">=</span> <span class="n">accessor_decors</span><span class="o">.</span><span class="n">init_tablecache</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="IBEISController.clear_table_cache"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.clear_table_cache">[docs]</a>    <span class="k">def</span> <span class="nf">clear_table_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] clearing table_cache[</span><span class="si">%r</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] clearing table_cache[</span><span class="si">%r</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">tablename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -500,8 +509,8 @@
 
 <div class="viewcode-block" id="IBEISController.print_cachestats_str"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.print_cachestats_str">[docs]</a>    <span class="k">def</span> <span class="nf">print_cachestats_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="n">cachestats_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachestats_str</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IBEIS Controller Cache Stats:&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">cachestats_str</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;IBEIS Controller Cache Stats:&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">cachestats_str</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cachestats_str</span></div>
 
     <span class="k">def</span> <span class="nf">_initialize_self</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -511,7 +520,7 @@
 <span class="sd">        Used in utools auto reload.  Called after reload.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] _initialize_self()&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] _initialize_self()&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">util_class</span><span class="o">.</span><span class="n">inject_all_external_modules</span><span class="p">(</span>
             <span class="n">ibs</span><span class="p">,</span>
@@ -572,21 +581,21 @@
 
 <div class="viewcode-block" id="IBEISController.cleanup"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; call on del? &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.cleanup] Observers (if any) notified [controller killed]&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.cleanup] Observers (if any) notified [controller killed]&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">observer_weakref</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="p">:</span>
             <span class="n">observer_weakref</span><span class="p">()</span><span class="o">.</span><span class="n">notify_controller_killed</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="IBEISController.register_observer"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.register_observer">[docs]</a>    <span class="k">def</span> <span class="nf">register_observer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[register_observer] Observer registered: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">observer</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[register_observer] Observer registered: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">observer</span><span class="p">)</span>
         <span class="n">observer_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observer_weakref</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IBEISController.remove_observer"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.remove_observer">[docs]</a>    <span class="k">def</span> <span class="nf">remove_observer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[remove_observer] Observer removed: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">observer</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[remove_observer] Observer removed: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">observer</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IBEISController.notify_observers"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.notify_observers">[docs]</a>    <span class="k">def</span> <span class="nf">notify_observers</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[notify_observers] Observers (if any) notified&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[notify_observers] Observers (if any) notified&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">observer_weakref</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="p">:</span>
             <span class="n">observer_weakref</span><span class="p">()</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span></div>
 
@@ -613,7 +622,7 @@
     <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">_init_sql</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request_stagingversion</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Load or create sql database &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">duct_tape</span>  <span class="c1"># NOQA</span>
+        <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">duct_tape</span>  <span class="c1"># NOQA</span>
 
         <span class="c1"># LOAD THE DEPENDENCY CACHE BEFORE THE MAIN DATABASE SO THAT ANY UPDATE</span>
         <span class="c1"># CALLS TO THE CORE DATABASE WILL HAVE ACCESS TO THE CACHE DATABASES IF</span>
@@ -626,7 +635,6 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sqldbcore</span><span class="p">(</span><span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sqldbstaging</span><span class="p">(</span><span class="n">request_stagingversion</span><span class="o">=</span><span class="n">request_stagingversion</span><span class="p">)</span>
         <span class="c1"># ibs.db.dump_schema()</span>
-        <span class="c1"># ibs.db.dump()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_rowid_constants</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_needs_backup</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -661,17 +669,17 @@
 
 <span class="sd">            ibs.print_imageset_table(exclude_columns=[&#39;imageset_uuid&#39;])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_sql_helpers</span>
-        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">DB_SCHEMA</span>
+        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
+        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA</span>
 
         <span class="c1"># Before load, ensure database has been backed up for the day</span>
         <span class="n">backup_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--loadbackup&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">sqldb_fpath</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">backups</span> <span class="o">=</span> <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">get_backup_fpaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;backups = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">backups</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;backups = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">backups</span><span class="p">,))</span>
             <span class="n">sqldb_fpath</span> <span class="o">=</span> <span class="n">backups</span><span class="p">[</span><span class="n">backup_idx</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CHOSE BACKUP sqldb_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sqldb_fpath</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CHOSE BACKUP sqldb_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sqldb_fpath</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_needs_backup</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_daily_database_backup</span><span class="p">(</span>
@@ -686,7 +694,6 @@
                 <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
                 <span class="k">raise</span>
         <span class="c1"># IBEIS SQL State Database</span>
-        <span class="c1"># ibs.db_version_expected = &#39;1.1.1&#39;</span>
         <span class="k">if</span> <span class="n">request_dbversion</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="s1">&#39;2.0.0&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -708,12 +715,8 @@
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span>
-            <span class="n">fpath</span><span class="o">=</span><span class="n">sqldb_fpath</span><span class="p">,</span>
-            <span class="n">inmemory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
-            <span class="n">always_check_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="n">db_uri</span> <span class="o">=</span> <span class="s1">&#39;file://</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">realpath</span><span class="p">(</span><span class="n">sqldb_fpath</span><span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="n">db_uri</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">readonly</span>
 
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -753,17 +756,17 @@
 
 <span class="sd">            ibs.print_imageset_table(exclude_columns=[&#39;imageset_uuid&#39;])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_sql_helpers</span>
-        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">STAGING_SCHEMA</span>
+        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
+        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">STAGING_SCHEMA</span>
 
         <span class="c1"># Before load, ensure database has been backed up for the day</span>
         <span class="n">backup_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--loadbackup-staging&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">sqlstaging_fpath</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">backups</span> <span class="o">=</span> <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">get_backup_fpaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;backups = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">backups</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;backups = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">backups</span><span class="p">,))</span>
             <span class="n">sqlstaging_fpath</span> <span class="o">=</span> <span class="n">backups</span><span class="p">[</span><span class="n">backup_idx</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CHOSE BACKUP sqlstaging_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sqlstaging_fpath</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CHOSE BACKUP sqlstaging_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sqlstaging_fpath</span><span class="p">,))</span>
         <span class="c1"># HACK</span>
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_needs_backup</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
@@ -777,7 +780,7 @@
                 <span class="k">raise</span>
         <span class="c1"># IBEIS SQL State Database</span>
         <span class="k">if</span> <span class="n">request_stagingversion</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">staging_version_expected</span> <span class="o">=</span> <span class="s1">&#39;1.1.1&#39;</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">staging_version_expected</span> <span class="o">=</span> <span class="s1">&#39;1.2.0&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">staging_version_expected</span> <span class="o">=</span> <span class="n">request_stagingversion</span>
         <span class="c1"># TODO: add this functionality to SQLController</span>
@@ -787,7 +790,7 @@
                 <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
                 <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span><span class="p">,</span>
                 <span class="n">ibs</span><span class="o">.</span><span class="n">staging_version_expected</span><span class="p">,</span>
-                <span class="n">version_next</span><span class="o">=</span><span class="s1">&#39;1.1.1&#39;</span><span class="p">,</span>
+                <span class="n">version_next</span><span class="o">=</span><span class="s1">&#39;1.2.0&#39;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">staging_version_expected</span> <span class="o">=</span> <span class="n">new_version</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">sqlstaging_fname</span> <span class="o">=</span> <span class="n">new_fname</span>
@@ -797,12 +800,8 @@
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span>
-            <span class="n">fpath</span><span class="o">=</span><span class="n">sqlstaging_fpath</span><span class="p">,</span>
-            <span class="n">inmemory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
-            <span class="n">always_check_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="n">db_uri</span> <span class="o">=</span> <span class="s1">&#39;file://</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">realpath</span><span class="p">(</span><span class="n">sqlstaging_fpath</span><span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="n">db_uri</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">readonly</span>
 
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -884,7 +883,7 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">depc_part</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="IBEISController.disconnect_sqldatabase"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.disconnect_sqldatabase">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect_sqldatabase</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;disconnecting from sql database&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;disconnecting from sql database&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_close_depcache</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="kc">None</span>
@@ -900,7 +899,7 @@
         <span class="k">return</span> <span class="n">ibs2</span></div>
 
 <div class="viewcode-block" id="IBEISController.backup_database"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.backup_database">[docs]</a>    <span class="k">def</span> <span class="nf">backup_database</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_sql_helpers</span>
+        <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
 
         <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
         <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">database_backup</span><span class="p">(</span>
@@ -918,10 +917,12 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">wbaddr</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
         <span class="c1"># except requests.MissingSchema:</span>
-        <span class="c1">#     print(&#39;[ibs._send_wildbook_request] Invalid URL: %r&#39; % wbaddr)</span>
+        <span class="c1">#     logger.info(&#39;[ibs._send_wildbook_request] Invalid URL: %r&#39; % wbaddr)</span>
         <span class="c1">#     return None</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs.wb_reqst] Could not connect to Wildbook server at </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">wbaddr</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;[ibs.wb_reqst] Could not connect to Wildbook server at </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">wbaddr</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">response</span>
 
@@ -935,7 +936,7 @@
         <span class="n">REL_PATHS</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">REL_PATHS</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs._init_dirs] ibs.dbdir = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dbdir</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs._init_dirs] ibs.dbdir = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dbdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dbdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">workdir</span><span class="p">,</span> <span class="n">dbname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
@@ -1036,13 +1037,13 @@
         <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span></div>
 
 <div class="viewcode-block" id="IBEISController.get_db_core_path"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_db_core_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_db_core_path</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">fpath</span></div>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">uri</span></div>
 
 <div class="viewcode-block" id="IBEISController.get_db_staging_path"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_db_staging_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_db_staging_path</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">fpath</span></div>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">uri</span></div>
 
 <div class="viewcode-block" id="IBEISController.get_db_cache_path"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_db_cache_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_db_cache_path</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">fpath</span></div>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">uri</span></div>
 
 <div class="viewcode-block" id="IBEISController.get_shelves_path"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_shelves_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_shelves_path</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="n">engine_slot</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">ENGINE_SLOT</span>
@@ -1178,7 +1179,7 @@
 <span class="sd">            python -m wbia.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88</span>
 
 <span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; # xdoctest: +REQUIRES(--web)</span>
+<span class="sd">            &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
 <span class="sd">            &gt;&gt;&gt; from wbia.control.IBEISControl import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; import wbia</span>
 <span class="sd">            &gt;&gt;&gt; import wbia.web</span>
@@ -1193,7 +1194,7 @@
 
 <div class="viewcode-block" id="IBEISController.get_dbinfo"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_dbinfo">[docs]</a>    <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/core/db/info/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
     <span class="k">def</span> <span class="nf">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">dbinfo</span>
+        <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">dbinfo</span>
 
         <span class="n">locals_</span> <span class="o">=</span> <span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">locals_</span><span class="p">[</span><span class="s1">&#39;info_str&#39;</span><span class="p">]</span></div>
@@ -1205,14 +1206,15 @@
 
 <div class="viewcode-block" id="IBEISController.copy_database"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.copy_database">[docs]</a>    <span class="k">def</span> <span class="nf">copy_database</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dest_dbdir</span><span class="p">):</span>
         <span class="c1"># TODO: rectify with rsync, script, and merge script.</span>
-        <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">sysres</span>
+        <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">sysres</span>
 
         <span class="n">sysres</span><span class="o">.</span><span class="n">copy_wbiadb</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="n">dest_dbdir</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IBEISController.dump_database_csv"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.dump_database_csv">[docs]</a>    <span class="k">def</span> <span class="nf">dump_database_csv</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="n">dump_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="s1">&#39;CSV_DUMP&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">dump_tables_to_csv</span><span class="p">(</span><span class="n">dump_dir</span><span class="o">=</span><span class="n">dump_dir</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">dump_to_fpath</span><span class="p">(</span><span class="n">dump_fpath</span><span class="o">=</span><span class="n">join</span><span class="p">(</span><span class="n">dump_dir</span><span class="p">,</span> <span class="s1">&#39;_ibsdb.dump&#39;</span><span class="p">))</span></div>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dump_dir</span><span class="p">,</span> <span class="s1">&#39;_ibsdb.dump&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">dump</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IBEISController.get_database_icon"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.get_database_icon">[docs]</a>    <span class="k">def</span> <span class="nf">get_database_icon</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">max_dsize</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">192</span><span class="p">),</span> <span class="n">aid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -1276,10 +1278,10 @@
         <span class="n">ibsstr</span> <span class="o">=</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) with UUID </span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">hash_str</span><span class="p">,)</span>
         <span class="k">return</span> <span class="n">ibsstr</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_custom_ibsstr</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_custom_ibsstr</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -1318,7 +1320,7 @@
         <span class="n">ibs</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">ibs2</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="IBEISController.predict_ws_injury_interim_svm"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.IBEISControl.IBEISController.predict_ws_injury_interim_svm">[docs]</a>    <span class="k">def</span> <span class="nf">predict_ws_injury_interim_svm</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">classify_shark</span>
+        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">classify_shark</span>
 
         <span class="k">return</span> <span class="n">classify_shark</span><span class="o">.</span><span class="n">predict_ws_injury_interim_svm</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span></div>
 
@@ -1335,9 +1337,9 @@
                 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">candidate_url</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to find IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Failed to find IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,))</span>
                 <span class="k">continue</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,))</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
                 <span class="n">candidate_uuid</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;response&#39;</span><span class="p">)</span>
@@ -1345,30 +1347,12 @@
                 <span class="k">return</span> <span class="n">candidate_port</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">AssertionError</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid response from IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;Invalid response from IA server at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">candidate_url</span><span class="p">,)</span>
+                    <span class="p">)</span>
                 <span class="k">continue</span>
 
         <span class="k">return</span> <span class="kc">None</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Issue when running on windows:</span>
-<span class="sd">    python wbia/control/IBEISControl.py</span>
-<span class="sd">    python -m wbia.control.IBEISControl --verbose --very-verbose --veryverbose --nodyn --quietclass</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.control.IBEISControl</span>
-<span class="sd">        python -m wbia.control.IBEISControl --allexamples</span>
-<span class="sd">        python -m wbia.control.IBEISControl --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># from wbia.control import IBEISControl</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1406,17 +1390,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1433,7 +1415,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

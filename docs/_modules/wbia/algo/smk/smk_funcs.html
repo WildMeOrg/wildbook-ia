@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.smk.smk_funcs &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -93,13 +92,14 @@
 <span class="sd">    Orientation covariant aggregation of local descriptors with embeddings</span>
 <span class="sd">    https://arxiv.org/pdf/1407.2170.pdf</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="cast_residual_integer"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.cast_residual_integer">[docs]</a><span class="k">def</span> <span class="nf">cast_residual_integer</span><span class="p">(</span><span class="n">rvecs</span><span class="p">):</span>
@@ -263,7 +263,7 @@
         <span class="n">all_agg_vecs</span><span class="p">[</span><span class="n">offsets</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">agg_rvecs_</span>
 
     <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">all_agg_vecs</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Apply normalization&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Apply normalization&#39;</span><span class="p">)</span>
     <span class="n">vt</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">all_agg_vecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">all_agg_vecs</span><span class="p">)</span>
     <span class="n">all_error_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">all_agg_vecs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">all_agg_vecs</span><span class="p">[</span><span class="n">all_error_flags</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -458,10 +458,10 @@
         <span class="n">invalid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span><span class="n">_idx_to_wdist</span><span class="p">,</span> <span class="n">ma_thresh</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="n">nInvalid</span> <span class="o">=</span> <span class="p">(</span><span class="n">invalid</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">invalid</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">invalid</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_alpha = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_alpha</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_sigma = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_sigma</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_equal_weights = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_equal_weights</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[maw] * Marked </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> assignments as invalid&#39;</span> <span class="o">%</span> <span class="n">nInvalid</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_alpha = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_alpha</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_sigma = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_sigma</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_equal_weights = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_equal_weights</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[maw] * Marked </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> assignments as invalid&#39;</span> <span class="o">%</span> <span class="n">nInvalid</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">massign_equal_weights</span><span class="p">:</span>
             <span class="c1"># Performance hack from jegou paper: just give everyone equal weight</span>
@@ -548,9 +548,11 @@
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">verbose</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[vocab.assign] +--- Start Assign vecs to words.&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[vocab.assign] * nAssign=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nAssign</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[vocab.assign] assign_to_words_. len(idx_to_vec) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx_to_vec</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[vocab.assign] +--- Start Assign vecs to words.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[vocab.assign] * nAssign=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nAssign</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[vocab.assign] assign_to_words_. len(idx_to_vec) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx_to_vec</span><span class="p">)</span>
+        <span class="p">)</span>
     <span class="n">_idx_to_wx</span><span class="p">,</span> <span class="n">_idx_to_wdist</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span><span class="n">idx_to_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">nAssign</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">idx_to_wxs</span><span class="p">,</span> <span class="n">idx_to_maws</span> <span class="o">=</span> <span class="n">weight_multi_assigns</span><span class="p">(</span>
@@ -612,7 +614,7 @@
     <span class="n">maws_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">maws</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">for</span> <span class="n">maws</span> <span class="ow">in</span> <span class="n">maws_list</span><span class="p">]</span>
     <span class="n">wx_to_maws</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[vocab] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[vocab] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">wx_to_idxs</span><span class="p">,</span> <span class="n">wx_to_maws</span><span class="p">)</span></div>
 
 
@@ -679,7 +681,7 @@
     <span class="n">wx_to_maws</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[vocab] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[vocab] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">wx_to_idxs</span><span class="p">,</span> <span class="n">wx_to_maws</span><span class="p">)</span></div>
 
 
@@ -1038,7 +1040,7 @@
 <span class="sd">        &gt;&gt;&gt; ax.set_ylim(*extents[2:4])</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">sklearn.metrics.pairwise</span> <span class="k">import</span> <span class="n">euclidean_distances</span>
+    <span class="kn">from</span> <span class="nn">sklearn.metrics.pairwise</span> <span class="kn">import</span> <span class="n">euclidean_distances</span>
 
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
     <span class="c1"># dim = dim</span>
@@ -1081,20 +1083,6 @@
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">data</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.algo.smk.smk_funcs</span>
-<span class="sd">        python -m wbia.algo.smk.smk_funcs --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1134,17 +1122,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1161,7 +1147,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

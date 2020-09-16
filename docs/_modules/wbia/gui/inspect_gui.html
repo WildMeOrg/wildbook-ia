@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.gui.inspect_gui &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -46,20 +45,21 @@
 <span class="sd">TODO:</span>
 <span class="sd">    Refresh name table on inspect gui close</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtWidgets</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="k">import</span> <span class="n">Qt</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">fig_presenter</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtWidgets</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
 <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
 
 <span class="c1"># import six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">id_review_api</span>
-<span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">guiexcept</span>
+<span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="kn">import</span> <span class="n">id_review_api</span>
+<span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="kn">import</span> <span class="n">guiexcept</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">USE_FILTER_PROXY</span> <span class="o">=</span> <span class="kc">False</span>
@@ -67,7 +67,7 @@
 
 <div class="viewcode-block" id="launch_review_matches_interface"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.launch_review_matches_interface">[docs]</a><span class="k">def</span> <span class="nf">launch_review_matches_interface</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">dodraw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filter_reviewed</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; TODO: move to a more general function &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">inspect_gui</span>
+    <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
 
     <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
     <span class="c1"># backend_callback = back.front.update_tables</span>
@@ -83,14 +83,14 @@
 
 
 <div class="viewcode-block" id="CustomFilterModel"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.CustomFilterModel">[docs]</a><span class="k">class</span> <span class="nc">CustomFilterModel</span><span class="p">(</span><span class="n">gt</span><span class="o">.</span><span class="n">FilterProxyModel</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">gt</span><span class="o">.</span><span class="n">FilterProxyModel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
         <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># negative one is an invalid imgsetid  # seems unused</span>
         <span class="n">model</span><span class="o">.</span><span class="n">original_ider</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">APIItemModel</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">setSourceModel</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs_model] just set the sourcemodel&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs_model] just set the sourcemodel&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_update_headers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">headers</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_null_ider</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -157,7 +157,7 @@
 <span class="sd">        &gt;&gt;&gt; exec(main_execstr)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="n">qres_wgt</span><span class="p">,</span>
         <span class="n">ibs</span><span class="p">,</span>
         <span class="n">cm_list</span><span class="p">,</span>
@@ -168,7 +168,7 @@
         <span class="n">review_cfg</span><span class="o">=</span><span class="p">{},</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qres_wgt] Init QueryResultsWidget&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[qres_wgt] Init QueryResultsWidget&#39;</span><span class="p">)</span>
 
         <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;must specify qreq_&#39;</span>
@@ -274,8 +274,8 @@
 
         <span class="c1"># ut.vd(review_log_dir)</span>
         <span class="c1"># create logger with &#39;spam_application&#39;</span>
-        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;query_review&#39;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+        <span class="n">logger_</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;query_review&#39;</span><span class="p">)</span>
+        <span class="n">logger_</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
         <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
             <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
         <span class="p">)</span>
@@ -283,27 +283,27 @@
         <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">log_fpath</span><span class="p">)</span>
         <span class="n">fh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
         <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+        <span class="n">logger_</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
 
         <span class="c1"># create console handler with a higher log level</span>
         <span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
         <span class="n">ch</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
         <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+        <span class="n">logger_</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
 
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;START QUERY_RESULT_REVIEW&#39;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;NUM CHIP_MATCH OBJECTS (len(cm_list)=</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">),))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;START QUERY_RESULT_REVIEW&#39;</span><span class="p">)</span>
+        <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;NUM CHIP_MATCH OBJECTS (len(cm_list)=</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">),))</span>
+        <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;NUM PAIRS TO EVIDENCE_DECISION (nRows=</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">review_api</span><span class="o">.</span><span class="n">nRows</span><span class="p">,)</span>
         <span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;PARENT QUERY REQUEST (cfgstr=</span><span class="si">%s</span><span class="s1">)&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_input</span><span class="o">=</span><span class="kc">True</span><span class="p">),)</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="QueryResultsWidget.edit_filters"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.QueryResultsWidget.edit_filters">[docs]</a>    <span class="k">def</span> <span class="nf">edit_filters</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
 
         <span class="n">config</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">review_cfg</span><span class="p">)</span>
         <span class="n">dlg</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">ConfigConfirmWidget</span><span class="o">.</span><span class="n">as_dialog</span><span class="p">(</span>
@@ -316,18 +316,18 @@
         <span class="n">dlg</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
         <span class="bp">self</span> <span class="o">=</span> <span class="n">dlg</span><span class="o">.</span><span class="n">widget</span>
         <span class="n">dlg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
         <span class="n">updated_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span>  <span class="c1"># NOQA</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;updated_config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">updated_config</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;updated_config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">updated_config</span><span class="p">,))</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">review_cfg</span> <span class="o">=</span> <span class="n">updated_config</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">repopulate</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="QueryResultsWidget.repopulate"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.QueryResultsWidget.repopulate">[docs]</a>    <span class="k">def</span> <span class="nf">repopulate</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;repopulate&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;repopulate&#39;</span><span class="p">)</span>
         <span class="c1"># Really just reloads the widget</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qreq_</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qres_wgt] repopulate set_query_results()&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[qres_wgt] repopulate set_query_results()&#39;</span><span class="p">)</span>
         <span class="n">tblnice</span> <span class="o">=</span> <span class="s1">&#39;Query Results: &#39;</span> <span class="o">+</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">query_title</span>
 
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_</span>
@@ -378,17 +378,17 @@
 
     <span class="nd">@gt</span><span class="o">.</span><span class="n">slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_on_doubleclick</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qres_wgt] _on_doubleclick: &#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qres_wgt] DoubleClicked: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gt</span><span class="o">.</span><span class="n">qtype</span><span class="o">.</span><span class="n">qindexinfo</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[qres_wgt] _on_doubleclick: &#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[qres_wgt] DoubleClicked: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gt</span><span class="o">.</span><span class="n">qtype</span><span class="o">.</span><span class="n">qindexinfo</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)))</span>
         <span class="n">col</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">review_api</span><span class="o">.</span><span class="n">col_edit_list</span><span class="p">[</span><span class="n">col</span><span class="p">]:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;do nothing special for editable columns&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;do nothing special for editable columns&#39;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="k">return</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_match_at_qtindex</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
 
     <span class="c1"># @gt.slot_(QtCore.QModelIndex)</span>
     <span class="c1"># def _on_pressed(qres_wgt, qtindex):</span>
-    <span class="c1">#    print(&#39;[qres_wgt] _on_pressed: &#39;)</span>
+    <span class="c1">#    logger.info(&#39;[qres_wgt] _on_pressed: &#39;)</span>
     <span class="c1">#    def _check_for_double_click(qres_wgt, qtindex):</span>
     <span class="c1">#        threshold = 0.20  # seconds</span>
     <span class="c1">#        distance = ut.toc(qres_wgt.tt)</span>
@@ -420,7 +420,7 @@
             <span class="n">pos</span> <span class="o">=</span> <span class="n">qrect</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
             <span class="n">qres_wgt</span><span class="o">.</span><span class="n">on_contextMenuRequested</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[alt] Multiple </span><span class="si">%d</span><span class="s1"> selection&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">selected_qtindex_list</span><span class="p">),))</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[alt] Multiple </span><span class="si">%d</span><span class="s1"> selection&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">selected_qtindex_list</span><span class="p">),))</span></div>
 
 <div class="viewcode-block" id="QueryResultsWidget.on_special_key_pressed"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.QueryResultsWidget.on_special_key_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">on_special_key_pressed</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="c1"># selected_qtindex_list = view.selectedIndexes()</span>
@@ -428,8 +428,8 @@
 
         <span class="c1"># if len(selected_qtindex_list) == 1:</span>
         <span class="k">for</span> <span class="n">qtindex</span> <span class="ow">in</span> <span class="n">selected_qtindex_list</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;event = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;event.key() = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">(),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;event = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;event.key() = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">(),))</span>
             <span class="n">qtindex</span> <span class="o">=</span> <span class="n">selected_qtindex_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
             <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
@@ -454,7 +454,7 @@
                 <span class="k">return</span> <span class="n">option_dict</span>
 
             <span class="c1"># TODO: use guitool options dict</span>
-            <span class="c1"># print(&#39;option_dict = %s&#39; % (ut.repr3(option_dict, nl=2),))</span>
+            <span class="c1"># logger.info(&#39;option_dict = %s&#39; % (ut.repr3(option_dict, nl=2),))</span>
             <span class="n">option_dict</span> <span class="o">=</span> <span class="n">make_option_dict</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
 
             <span class="n">event_key</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span>
@@ -485,7 +485,7 @@
             <span class="c1">#    option_dict[&#39;S&#39;]()</span>
             <span class="c1"># elif event_key == QtCore.Qt.Key_P:</span>
             <span class="c1">#    option_dict[&#39;P&#39;]()</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;emiting data changed&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;emiting data changed&#39;</span><span class="p">)</span>
             <span class="c1"># This may not work with PyQt5</span>
             <span class="c1"># http://stackoverflow.com/questions/22560296/view-not-resp-datachanged</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
@@ -493,10 +493,10 @@
             <span class="n">model</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">qtindex</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
             <span class="c1"># but it doesnt seem to be, but this seems to solve the issue</span>
             <span class="n">model</span><span class="o">.</span><span class="n">layoutChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;emited data changed&#39;</span><span class="p">)</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;emited data changed&#39;</span><span class="p">)</span></div>
             <span class="c1"># model.select()</span>
         <span class="c1"># else:</span>
-        <span class="c1">#    print(&#39;[key] Multiple %d selection&#39; % (len(selected_qtindex_list),))</span>
+        <span class="c1">#    logger.info(&#39;[key] Multiple %d selection&#39; % (len(selected_qtindex_list),))</span>
 
 <div class="viewcode-block" id="QueryResultsWidget.on_contextMenuRequested"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.QueryResultsWidget.on_contextMenuRequested">[docs]</a>    <span class="nd">@gt</span><span class="o">.</span><span class="n">slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QPoint</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">on_contextMenuRequested</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
@@ -522,7 +522,7 @@
             <span class="p">)</span>
             <span class="n">gt</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">qwin</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[context] Multiple </span><span class="si">%d</span><span class="s1"> selection&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">selected_qtindex_list</span><span class="p">),))</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[context] Multiple </span><span class="si">%d</span><span class="s1"> selection&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">selected_qtindex_list</span><span class="p">),))</span></div>
 
 <div class="viewcode-block" id="QueryResultsWidget.get_widget_review_vars"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.QueryResultsWidget.get_widget_review_vars">[docs]</a>    <span class="k">def</span> <span class="nf">get_widget_review_vars</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
@@ -545,7 +545,7 @@
         <span class="k">return</span> <span class="n">annotmatch_rowid_list</span></div>
 
 <div class="viewcode-block" id="QueryResultsWidget.show_match_at_qtindex"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.QueryResultsWidget.show_match_at_qtindex">[docs]</a>    <span class="k">def</span> <span class="nf">show_match_at_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;interact&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;interact&#39;</span><span class="p">)</span>
         <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
         <span class="n">cm</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qaid2_cm</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
         <span class="n">match_interaction</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">ishow_single_annotmatch</span><span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -558,7 +558,7 @@
             <span class="n">qtindex</span> <span class="o">=</span> <span class="n">selected_qtindex_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="c1"># aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)</span>
             <span class="n">thresh</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;thresh = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thresh</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;thresh = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thresh</span><span class="p">,))</span>
 
             <span class="n">rows</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">review_api</span><span class="o">.</span><span class="n">ider</span><span class="p">()</span>
             <span class="n">scores_</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">review_api</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -624,10 +624,10 @@
                 <span class="c1"># the new graph name inference algorithm.</span>
                 <span class="c1"># then the chosen point will be used as the threshold. Then</span>
                 <span class="c1"># the graph cut algorithm will be applied.</span>
-                <span class="n">logger</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">logger</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;START MASS_THRESHOLD_MERGE&#39;</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;num_groups=</span><span class="si">%d</span><span class="s1"> thresh=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dbside_groups</span><span class="p">),</span> <span class="n">thresh</span><span class="p">,))</span>
+                <span class="n">logger_</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">logger</span>
+                <span class="n">logger_</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;START MASS_THRESHOLD_MERGE&#39;</span><span class="p">)</span>
+                <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;num_groups=</span><span class="si">%d</span><span class="s1"> thresh=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dbside_groups</span><span class="p">),</span> <span class="n">thresh</span><span class="p">,))</span>
                 <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">subgraph</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dbside_groups</span><span class="p">):</span>
                     <span class="n">thresh_aid_pairs</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="n">edge</span>
@@ -670,14 +670,14 @@
                         <span class="n">am_rowids</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;algo:lnbnn_thresh&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">am_rowids</span><span class="p">)</span>
                     <span class="p">)</span>
 
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;START GROUP </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;START GROUP </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
+                    <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;GROUP BASED ON </span><span class="si">%d</span><span class="s1"> ANNOT_PAIRS WITH SCORE ABOVE (thresh=</span><span class="si">%r</span><span class="s1">)&#39;</span>
                         <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">thresh_uuid_pairs</span><span class="p">),</span> <span class="n">thresh</span><span class="p">,)</span>
                     <span class="p">)</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;(uuid_pairs=</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thresh_uuid_pairs</span><span class="p">))</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;(merge_name=</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">merge_name</span><span class="p">))</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="n">logger_</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;(uuid_pairs=</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thresh_uuid_pairs</span><span class="p">))</span>
+                    <span class="n">logger_</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;(merge_name=</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">merge_name</span><span class="p">))</span>
+                    <span class="n">logger_</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                         <span class="s1">&#39;CHANGE NAME OF </span><span class="si">%d</span><span class="s1"> (annot_uuids=</span><span class="si">%r</span><span class="s1">) WITH (previous_names=</span><span class="si">%r</span><span class="s1">) TO (</span><span class="si">%s</span><span class="s1">) (merge_name=</span><span class="si">%r</span><span class="s1">)&#39;</span>
                         <span class="o">%</span> <span class="p">(</span>
                             <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuids</span><span class="p">),</span>
@@ -687,7 +687,7 @@
                             <span class="n">merge_name</span><span class="p">,</span>
                         <span class="p">)</span>
                     <span class="p">)</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="n">logger_</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                         <span class="s1">&#39;ADDITIONAL CHANGE NAME OF </span><span class="si">%d</span><span class="s1"> (annot_uuids=</span><span class="si">%r</span><span class="s1">) WITH (previous_names=</span><span class="si">%r</span><span class="s1">) TO (</span><span class="si">%s</span><span class="s1">) (merge_name=</span><span class="si">%r</span><span class="s1">)&#39;</span>
                         <span class="o">%</span> <span class="p">(</span>
                             <span class="nb">len</span><span class="p">(</span><span class="n">other_auuids</span><span class="p">),</span>
@@ -697,12 +697,12 @@
                             <span class="n">merge_name</span><span class="p">,</span>
                         <span class="p">)</span>
                     <span class="p">)</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;END GROUP </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
+                    <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;END GROUP </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
                     <span class="n">new_nids</span> <span class="o">=</span> <span class="p">[</span><span class="n">merge_nid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
                     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">new_nids</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;END MASS_THRESHOLD_MERGE&#39;</span><span class="p">)</span>
+                <span class="n">logger_</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;END MASS_THRESHOLD_MERGE&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[context] Multiple </span><span class="si">%d</span><span class="s1"> selection&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">selected_qtindex_list</span><span class="p">),))</span></div></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[context] Multiple </span><span class="si">%d</span><span class="s1"> selection&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">selected_qtindex_list</span><span class="p">),))</span></div></div>
 
 
 <span class="c1"># ______</span>
@@ -745,11 +745,11 @@
             <span class="n">on_nontrivial_merge</span><span class="o">=</span><span class="n">on_nontrivial_merge</span><span class="p">,</span>
             <span class="n">logger</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;logger&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;status = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;status = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
     <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">:</span>
         <span class="n">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;user canceled positive match&#39;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;user canceled positive match&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="set_annot_pair_as_negative_match_"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.set_annot_pair_as_negative_match_">[docs]</a><span class="k">def</span> <span class="nf">set_annot_pair_as_negative_match_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -759,7 +759,7 @@
 
     <span class="k">def</span> <span class="nf">on_nontrivial_split</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
         <span class="n">aid1_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> annots in this name. Need more sophisticated split&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid1_groundtruth</span><span class="p">))</span>
         <span class="p">)</span>
@@ -772,7 +772,7 @@
             <span class="n">on_nontrivial_split</span><span class="o">=</span><span class="n">on_nontrivial_split</span><span class="p">,</span>
             <span class="n">logger</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;logger&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;status = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;status = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
     <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">:</span>
         <span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Flag for later&#39;</span><span class="p">,</span> <span class="s1">&#39;Review now&#39;</span><span class="p">]</span>
         <span class="n">reply</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span>
@@ -800,7 +800,7 @@
         <span class="k">elif</span> <span class="n">reply</span> <span class="o">==</span> <span class="n">options</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
             <span class="n">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;user canceled negative match&#39;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;user canceled negative match&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="review_match"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.review_match">[docs]</a><span class="k">def</span> <span class="nf">review_match</span><span class="p">(</span>
@@ -813,8 +813,8 @@
     <span class="n">cm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Review match: </span><span class="si">{}</span><span class="s1">-vs-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
-    <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="k">import</span> <span class="n">interact_name</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Review match: </span><span class="si">{}</span><span class="s1">-vs-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+    <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="kn">import</span> <span class="n">interact_name</span>
 
     <span class="c1"># ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])</span>
     <span class="n">mvinteract</span> <span class="o">=</span> <span class="n">interact_name</span><span class="o">.</span><span class="n">MatchVerificationInteraction</span><span class="p">(</span>
@@ -874,7 +874,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] Building AID pair context menu options&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] Building AID pair context menu options&#39;</span><span class="p">)</span>
     <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c1"># assert qreq_ is not None, &#39;must specify qreq_&#39;</span>
@@ -924,7 +924,7 @@
 
     <span class="n">with_review_options</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_graph2</span>
+    <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_graph2</span>
 
     <span class="k">if</span> <span class="n">with_review_options</span><span class="p">:</span>
         <span class="n">aid_list2</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">]</span>
@@ -974,7 +974,7 @@
 
         <span class="k">def</span> <span class="nf">vsmany_load_and_show</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no qreq_ given&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;no qreq_ given&#39;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span>
                 <span class="c1"># qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})</span>
             <span class="k">else</span><span class="p">:</span>
@@ -995,12 +995,12 @@
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
 
         <span class="k">def</span> <span class="nf">dev_debug</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=== DBG ===&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ibs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cm = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid2</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;qreq_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;=== DBG ===&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ibs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;cm = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;aid1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;aid2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid2</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;qreq_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="p">,))</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">print_inspect_str</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">print_rawinfostr</span><span class="p">()</span>
 
@@ -1041,7 +1041,7 @@
 <span class="sd">        &gt;&gt;&gt; gt.qtapp_loop(qwin=self, freq=10)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">inspect_matches</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">inspect_matches</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 
     <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1064,7 +1064,7 @@
         <span class="n">match</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">PairwiseMatch</span><span class="p">(</span><span class="n">annot1</span><span class="p">,</span> <span class="n">annot2</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">on_context</span><span class="p">():</span>
-            <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">inspect_gui</span>
+            <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
 
             <span class="k">return</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">make_annotpair_context_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
@@ -1079,7 +1079,7 @@
 
 <div class="viewcode-block" id="show_vsone_tuner"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.show_vsone_tuner">[docs]</a><span class="k">def</span> <span class="nf">show_vsone_tuner</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">edge</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] show_vsone_tuner edge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] show_vsone_tuner edge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
     <span class="bp">self</span> <span class="o">=</span> <span class="n">make_vsone_tuner</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
@@ -1114,7 +1114,7 @@
 
 
 <div class="viewcode-block" id="make_annotpair_context_options"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.make_annotpair_context_options">[docs]</a><span class="k">def</span> <span class="nf">make_annotpair_context_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="k">import</span> <span class="n">interact_chip</span>
+    <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
 
     <span class="n">aid_list2</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1123,8 +1123,8 @@
         <span class="n">config2_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span><span class="p">]</span>
 
     <span class="n">chip_contex_options</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config2_list_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config2_list_</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid_list2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list2</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config2_list_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config2_list_</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;aid_list2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list2</span><span class="p">,))</span>
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="n">config2_list_</span><span class="p">),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">chip_contex_options</span> <span class="o">+=</span> <span class="p">[</span>
             <span class="p">(</span>
@@ -1163,7 +1163,7 @@
 
 
 <div class="viewcode-block" id="make_aidpair_tag_context_options"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.inspect_gui.make_aidpair_tag_context_options">[docs]</a><span class="k">def</span> <span class="nf">make_aidpair_tag_context_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">tag_funcs</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
 
     <span class="n">annotmatch_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">])[</span>
         <span class="mi">0</span>
@@ -1182,22 +1182,22 @@
     <span class="n">case_hotlink_list</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">make_word_hotlinks</span><span class="p">(</span><span class="n">case_list</span><span class="p">,</span> <span class="n">used_chars</span><span class="p">)</span>
     <span class="n">pair_tag_options</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="kc">True</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] annotmatch_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">annotmatch_rowid</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] tags = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tags</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] annotmatch_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">annotmatch_rowid</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] tags = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tags</span><span class="p">,))</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] Making case hotlist: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">case_hotlink_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] Making case hotlist: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">case_hotlink_list</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_wrap_set_annotmatch_prop</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">toggle_val</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[SETTING] Clicked set prop=</span><span class="si">%r</span><span class="s1"> to val=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">toggle_val</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[SETTING] Clicked set prop=</span><span class="si">%r</span><span class="s1"> to val=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">toggle_val</span><span class="p">,))</span>
         <span class="n">am_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch_undirected</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[SETTING] aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[SETTING] annotmatch_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">am_rowid</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[SETTING] aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[SETTING] annotmatch_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">am_rowid</span><span class="p">,))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_prop</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="p">[</span><span class="n">am_rowid</span><span class="p">],</span> <span class="p">[</span><span class="n">toggle_val</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[SETTING] done&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[SETTING] done&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
             <span class="c1"># hack for reporting</span>
             <span class="k">if</span> <span class="n">annotmatch_rowid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1205,9 +1205,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">tags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_case_tags</span><span class="p">([</span><span class="n">annotmatch_rowid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] annotmatch_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">annotmatch_rowid</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] tags = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tags</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] annotmatch_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">annotmatch_rowid</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inspect_gui] tags = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tags</span><span class="p">,))</span>
 
     <span class="k">for</span> <span class="n">case</span><span class="p">,</span> <span class="n">case_hotlink</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">case_list</span><span class="p">,</span> <span class="n">case_hotlink_list</span><span class="p">):</span>
         <span class="n">toggle_val</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tags</span>
@@ -1224,7 +1224,7 @@
             <span class="p">),</span>
         <span class="p">]</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Partial tag funcs:&#39;</span>
             <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span>
                 <span class="p">[</span>
@@ -1234,21 +1234,6 @@
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">pair_tag_options</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.gui.inspect_gui</span>
-<span class="sd">        python -m wbia.gui.inspect_gui --allexamples</span>
-<span class="sd">        python -m wbia.gui.inspect_gui --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1284,17 +1269,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1311,7 +1294,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.Config &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -37,19 +36,20 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="c1"># from wbia import dtool</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">splitext</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">filter</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="k">import</span> <span class="n">get_funcname</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">filter</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[cfg]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="c1"># ConfigBase = ut.DynStruct</span>
 <span class="c1"># ConfigBase = object</span>
@@ -78,17 +78,17 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">ConfigBase</span><span class="p">):</span>
             <span class="n">child_cfg</span> <span class="o">=</span> <span class="n">val</span>
             <span class="n">param_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">child_cfg</span><span class="p">))</span>
-            <span class="c1"># print(key)</span>
+            <span class="c1"># logger.info(key)</span>
             <span class="k">pass</span>
         <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
-            <span class="c1"># print(key)</span>
+            <span class="c1"># logger.info(key)</span>
             <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
             <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-            <span class="c1"># print(key)</span>
+            <span class="c1"># logger.info(key)</span>
     <span class="k">return</span> <span class="n">param_list</span></div>
 
 
@@ -116,8 +116,8 @@
 <span class="sd">                    ut.ParamInfo(&#39;z&#39;, 3),</span>
 <span class="sd">                ]</span>
 <span class="sd">        cfg = FooConfig()</span>
-<span class="sd">        print(cfg.get_cfgstr(ignore_keys=[&#39;x&#39;]))</span>
-<span class="sd">        print(cfg.get_cfgstr(ignore_keys=[]))</span>
+<span class="sd">        logger.info(cfg.get_cfgstr(ignore_keys=[&#39;x&#39;]))</span>
+<span class="sd">        logger.info(cfg.get_cfgstr(ignore_keys=[]))</span>
 
 <span class="sd">        cfg = GenericConfig()</span>
 <span class="sd">        cfg.x = &#39;y&#39;</span>
@@ -157,8 +157,8 @@
                         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span>
                     <span class="p">]</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">ignore_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">ignore_keys</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ignore_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ignore_keys</span><span class="p">)</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;item_list&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore_keys&#39;</span><span class="p">])</span>
                 <span class="k">raise</span>
         <span class="n">filtered_itemstr_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">itemstr_list</span><span class="p">))</span>
@@ -191,7 +191,7 @@
         <span class="k">return</span> <span class="n">config_name</span>
 
     <span class="nd">@_register</span>
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Needed for comparison operators &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
 
@@ -211,7 +211,7 @@
 <span class="sd">        Defines extra methods for Configs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            cls - meta</span>
 <span class="sd">            name - classname</span>
@@ -239,7 +239,7 @@
 
 <div class="viewcode-block" id="GenericConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.GenericConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">GenericConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">GenericConfig</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -259,7 +259,7 @@
 <span class="sd">        _NN(single,K=4,Kn=1,padk=False,cks800)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NNConfig</span><span class="p">,</span> <span class="n">nn_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># if True:</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
@@ -311,7 +311,7 @@
 <span class="sd">    Spatial verification</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">sv_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">sv_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SpatialVerifyConfig</span><span class="p">,</span> <span class="n">sv_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;sv_cfg&#39;</span><span class="p">)</span>
         <span class="n">tau</span> <span class="o">=</span> <span class="mf">6.28</span>  <span class="c1"># 318530</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span> <span class="o">=</span> <span class="kc">True</span>
@@ -368,7 +368,7 @@
 <span class="sd">    Old Agg Cfg</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">agg_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">agg_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AggregateConfig</span><span class="p">,</span> <span class="n">agg_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;agg_cfg&#39;</span><span class="p">)</span>
         <span class="c1"># chipsum, namesum,</span>
         <span class="c1"># agg_cfg.score_method = &#39;csum&#39;</span>
@@ -410,7 +410,7 @@
 <span class="sd">        http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">flann_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">flann_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FlannConfig</span><span class="p">,</span> <span class="n">flann_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;flann_cfg&#39;</span><span class="p">)</span>
         <span class="c1"># General Params</span>
         <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="s1">&#39;kdtree&#39;</span>  <span class="c1"># linear</span>
@@ -491,7 +491,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nnweight_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">nnweight_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NNWeightConfig</span><span class="p">,</span> <span class="n">nnweight_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nnweight_cfg&#39;</span><span class="p">)</span>
         <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
         <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -559,7 +559,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">featweight_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">featweight_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FeatureWeightConfig</span><span class="p">,</span> <span class="n">featweight_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;featweight_cfg&#39;</span><span class="p">)</span>
         <span class="c1"># Featweights depend on features</span>
         <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span> <span class="o">=</span> <span class="n">FeatureConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -567,7 +567,7 @@
         <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FeatureWeightConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FeatureWeightConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_annots</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
 
         <span class="k">return</span> <span class="p">(</span>
             <span class="n">core_annots</span><span class="o">.</span><span class="n">ProbchipConfig</span><span class="o">.</span><span class="n">_param_info_list</span>
@@ -599,7 +599,7 @@
     <span class="p">]</span>
 
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QueryConfig</span><span class="p">,</span> <span class="n">query_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;query_cfg&#39;</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span> <span class="o">=</span> <span class="n">NNConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">nnweight_cfg</span> <span class="o">=</span> <span class="n">NNWeightConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -621,7 +621,7 @@
         <span class="c1"># Depends on feature config</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[config] NEW QueryConfig&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[config] NEW QueryConfig&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="QueryConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.QueryConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># Ensure feasibility of the configuration</span>
@@ -687,7 +687,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
             <span class="k">raise</span></div>
 
@@ -787,7 +787,7 @@
 <span class="sd">        _Feat(hesaff+sift)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">feat_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">feat_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># Features depend on chips</span>
         <span class="c1"># import pyhesaff</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FeatureConfig</span><span class="p">,</span> <span class="n">feat_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;feat_cfg&#39;</span><span class="p">)</span>
@@ -804,7 +804,7 @@
         <span class="n">feat_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FeatureConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FeatureConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_annots</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
 
         <span class="k">return</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">FeatConfig</span><span class="p">()</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()</span></div>
 
@@ -823,7 +823,7 @@
 <span class="k">class</span> <span class="nc">ChipConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; ChipConfig &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cc_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">cc_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ChipConfig</span><span class="p">,</span> <span class="n">cc_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;chip_cfg&#39;</span><span class="p">)</span>
         <span class="n">cc_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
         <span class="c1"># cc_cfg.dim_size    = 450</span>
@@ -840,7 +840,7 @@
         <span class="n">cc_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ChipConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.ChipConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_annots</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
 
         <span class="k">return</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">ChipConfig</span><span class="o">.</span><span class="n">_param_info_list</span></div></div>
 
@@ -860,7 +860,7 @@
 <span class="sd">        _DETECT(cnn,____,sz=800)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">detect_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">detect_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DetectionConfig</span><span class="p">,</span> <span class="n">detect_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;detect_cfg&#39;</span><span class="p">)</span>
         <span class="c1"># detect_cfg.species_text = &#39;zebra_grevys&#39;</span>
         <span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
@@ -897,7 +897,7 @@
 <span class="sd">        &gt;&gt;&gt; print(occur_cfg.get_cfgstr())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">occur_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">occur_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">OccurrenceConfig</span><span class="p">,</span> <span class="n">occur_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;occur_cfg&#39;</span><span class="p">)</span>
         <span class="n">occur_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
         <span class="n">occur_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -926,7 +926,7 @@
 <span class="k">class</span> <span class="nc">DisplayConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; DisplayConfig &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">display_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">display_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DisplayConfig</span><span class="p">,</span> <span class="n">display_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;display_cfg&#39;</span><span class="p">)</span>
         <span class="n">display_cfg</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="mi">6</span>
         <span class="n">display_cfg</span><span class="o">.</span><span class="n">name_scoring</span> <span class="o">=</span> <span class="kc">False</span>
@@ -942,7 +942,7 @@
 
 <div class="viewcode-block" id="OtherConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.OtherConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">OtherConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">other_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">other_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">OtherConfig</span><span class="p">,</span> <span class="n">other_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;other_cfg&#39;</span><span class="p">)</span>
         <span class="c1"># other_cfg.thumb_size      = 128</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_size</span> <span class="o">=</span> <span class="mi">221</span>
@@ -1054,7 +1054,7 @@
         <span class="n">cfgname</span> <span class="o">=</span> <span class="s1">&#39;cfg&#39;</span>
     <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">cfgname</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.cPkl&#39;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Config] loading named config fpath=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] loading named config fpath=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
     <span class="c1"># Always a fresh object</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">GenericConfig</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">fpath</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -1093,7 +1093,7 @@
         <span class="c1">#    # TODO: Finishme update the out of data preferences</span>
         <span class="c1">#    pass</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Config] successfully loaded config cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] successfully loaded config cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1102,7 +1102,7 @@
         <span class="n">cfg</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
     <span class="c1"># Hack in cfgname</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Config] hack in z_cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] hack in z_cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
     <span class="n">cfg</span><span class="o">.</span><span class="n">z_cfgname</span> <span class="o">=</span> <span class="n">cfgname</span>
     <span class="k">return</span> <span class="n">cfg</span></div>
 
@@ -1111,7 +1111,7 @@
 <span class="k">def</span> <span class="nf">_default_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; hack 12-30-2014 &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Config] building default config&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] building default config&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cfgname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">cfgname</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">z_cfgname</span>
     <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
@@ -1173,21 +1173,7 @@
         <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="mi">316</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: UNKNOWN CFGNAME=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.algo.Config</span>
-<span class="sd">        python -m wbia.algo.Config --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WARNING: UNKNOWN CFGNAME=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
 </pre></div>
 
           </div>
@@ -1225,17 +1211,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1252,7 +1236,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.algo.detect package" href="wbia.algo.detect.html" />
@@ -52,7 +51,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.html#module-wbia.algo.detect.azure">wbia.algo.detect.azure module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.html#wbia-algo-detect-canonical-module">wbia.algo.detect.canonical module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.html#module-wbia.algo.detect.canonical">wbia.algo.detect.canonical module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.html#module-wbia.algo.detect.darknet">wbia.algo.detect.darknet module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.html#module-wbia.algo.detect.densenet">wbia.algo.detect.densenet module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.html#module-wbia.algo.detect.fasterrcnn">wbia.algo.detect.fasterrcnn module</a></li>
@@ -162,11 +161,11 @@
 <li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#wbia-algo-verif-torch-fit-harness-module">wbia.algo.verif.torch.fit_harness module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#module-wbia.algo.verif.torch.gpu_util">wbia.algo.verif.torch.gpu_util module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#module-wbia.algo.verif.torch.lr_schedule">wbia.algo.verif.torch.lr_schedule module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#wbia-algo-verif-torch-models-module">wbia.algo.verif.torch.models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#module-wbia.algo.verif.torch.models">wbia.algo.verif.torch.models module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#module-wbia.algo.verif.torch.netmath">wbia.algo.verif.torch.netmath module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#module-wbia.algo.verif.torch.old_harness">wbia.algo.verif.torch.old_harness module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#module-wbia.algo.verif.torch.siamese">wbia.algo.verif.torch.siamese module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#wbia-algo-verif-torch-train-main-module">wbia.algo.verif.torch.train_main module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#module-wbia.algo.verif.torch.train_main">wbia.algo.verif.torch.train_main module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.torch.html#module-wbia.algo.verif.torch">Module contents</a></li>
 </ul>
 </li>
@@ -193,237 +192,237 @@
 <div class="section" id="module-wbia.algo.Config">
 <span id="wbia-algo-config-module"></span><h2>wbia.algo.Config module<a class="headerlink" href="#module-wbia.algo.Config" title="Permalink to this headline">¶</a></h2>
 <p>DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS</p>
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.AggregateConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">AggregateConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#AggregateConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.AggregateConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">AggregateConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#AggregateConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.AggregateConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
 <p>Old Agg Cfg</p>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.AggregateConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.AggregateConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#AggregateConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#AggregateConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.AggregateConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.AggregateConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.AggregateConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.AggregateConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.AggregateConfig.meta_get_cfgstr_list">
-<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.AggregateConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.AggregateConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.ChipConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">ChipConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#ChipConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.ChipConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">ChipConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#ChipConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.ChipConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.ChipConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.ChipConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.ChipConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.ChipConfig.get_param_info_list">
-<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#ChipConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.ChipConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#ChipConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.ChipConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.ChipConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.ChipConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.ChipConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.ChipConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ChipConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.ConfigMetaclass">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">ConfigMetaclass</code><a class="headerlink" href="#wbia.algo.Config.ConfigMetaclass" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">ConfigMetaclass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">bases</span></em>, <em class="sig-param"><span class="n">dct</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.ConfigMetaclass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></p>
 <p>Defines extra methods for Configs</p>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.DetectionConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">DetectionConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#DetectionConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.DetectionConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">DetectionConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#DetectionConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.DetectionConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.Config –test-DetectionConfig</dd>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.Config –test-DetectionConfig</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">detect_cfg</span> <span class="o">=</span> <span class="n">DetectionConfig</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">_DETECT(cnn,____,sz=800)</span>
 </pre></div>
 </div>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DetectionConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DetectionConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#DetectionConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#DetectionConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DetectionConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DetectionConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DetectionConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DetectionConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DetectionConfig.meta_get_cfgstr_list">
-<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DetectionConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DetectionConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.DisplayConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">DisplayConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#DisplayConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.DisplayConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">DisplayConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#DisplayConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.DisplayConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DisplayConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DisplayConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#DisplayConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#DisplayConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DisplayConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DisplayConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DisplayConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DisplayConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DisplayConfig.meta_get_cfgstr_list">
-<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.DisplayConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.DisplayConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.FeatureConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">FeatureConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">FeatureConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
 <p>Feature configuration object.</p>
 <p>TODO depcirate for core_annots.FeatConfig</p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.Config –test-FeatureConfig</dd>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.Config –test-FeatureConfig</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="k">import</span> <span class="n">Config</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="kn">import</span> <span class="n">Config</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">FeatureConfig</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -431,72 +430,72 @@
 <span class="go">_Feat(hesaff+sift)</span>
 </pre></div>
 </div>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureConfig.get_config_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureConfig.get_config_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.get_hesaff_params">
-<code class="descname">get_hesaff_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureConfig.get_hesaff_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_hesaff_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_hesaff_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureConfig.get_hesaff_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_hesaff_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.get_param_info_list">
-<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.meta_get_config_name">
-<code class="descname">meta_get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.meta_get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">meta_get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.meta_get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.FeatureWeightConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">FeatureWeightConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureWeightConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">FeatureWeightConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureWeightConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.Config –exec-FeatureWeightConfig</dd>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.Config –exec-FeatureWeightConfig</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">FeatureWeightConfig</span><span class="p">(</span><span class="n">fw_detector</span><span class="o">=</span><span class="s1">&#39;rf&#39;</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>                                     <span class="n">featweight_enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
@@ -505,54 +504,54 @@
 </div>
 <p>_FEATWEIGHT(ON,uselabel,rf)_FEAT(<a href="#id1"><span class="problematic" id="id2">hesaff+sift_</span></a>)_CHIP(sz450)</p>
 <p>_FEATWEIGHT(OFF)_FEAT(<a href="#id3"><span class="problematic" id="id4">hesaff+sift_</span></a>)_CHIP(sz450)</p>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureWeightConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureWeightConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureWeightConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureWeightConfig.get_param_info_list">
-<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureWeightConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FeatureWeightConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureWeightConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureWeightConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureWeightConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FeatureWeightConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FeatureWeightConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.FlannConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">FlannConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FlannConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FlannConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">FlannConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FlannConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FlannConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
 <p>this flann is only for neareset neighbors in vsone/many
 TODO: this might not need to be here, should be part of neighbor config</p>
@@ -560,111 +559,111 @@ TODO: this might not need to be here, should be part of neighbor config</p>
 <p><a class="reference external" href="http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf">http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf</a>
 <a class="reference external" href="http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf">http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf</a>
 <a class="reference external" href="http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html">http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html</a></p>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FlannConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FlannConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FlannConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FlannConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.get_flann_params">
-<code class="descname">get_flann_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FlannConfig.get_flann_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FlannConfig.get_flann_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_flann_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#FlannConfig.get_flann_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.FlannConfig.get_flann_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.meta_get_cfgstr_list">
-<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.FlannConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.FlannConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.GenericConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">GenericConfig</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#GenericConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.GenericConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">GenericConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#GenericConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.GenericConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.GenericConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.GenericConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.GenericConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.GenericConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.GenericConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.GenericConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.GenericConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.GenericConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.NNConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">NNConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">NNConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.Config –exec-NNConfig</dd>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.Config –exec-NNConfig</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nn_cfg</span> <span class="o">=</span> <span class="n">NNConfig</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nn_cfg</span> <span class="o">=</span> <span class="n">NNConfig</span><span class="p">(</span><span class="n">requery</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
@@ -672,67 +671,67 @@ TODO: this might not need to be here, should be part of neighbor config</p>
 <span class="go">_NN(single,K=4,Kn=1,padk=False,cks800)</span>
 </pre></div>
 </div>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.get_param_info_list">
-<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.make_feasible">
-<code class="descname">make_feasible</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">make_feasible</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.NNWeightConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">NNWeightConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNWeightConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">NNWeightConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNWeightConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.Config –test-NNWeightConfig</dd>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.Config –test-NNWeightConfig</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cfg_list</span> <span class="o">=</span> <span class="p">[</span>
 <span class="gp">... </span>    <span class="n">NNWeightConfig</span><span class="p">(),</span>
 <span class="gp">... </span>    <span class="n">NNWeightConfig</span><span class="p">(</span><span class="n">can_match_sameimg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">can_match_samename</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -747,162 +746,162 @@ TODO: this might not need to be here, should be part of neighbor config</p>
 <span class="go">_NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normer=foobarstr,lnbnn_norm_thresh=0.5,nosqrd_dist)</span>
 </pre></div>
 </div>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNWeightConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNWeightConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNWeightConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNWeightConfig.get_param_info_list">
-<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNWeightConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#NNWeightConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNWeightConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNWeightConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNWeightConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.NNWeightConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.NNWeightConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.OccurrenceConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">OccurrenceConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#OccurrenceConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">OccurrenceConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#OccurrenceConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.Config –exec-OccurrenceConfig –show</dd>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.Config –exec-OccurrenceConfig –show</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">occur_cfg</span> <span class="o">=</span> <span class="n">OccurrenceConfig</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">occur_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
 </pre></div>
 </div>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OccurrenceConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OccurrenceConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OccurrenceConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OccurrenceConfig.get_param_info_list">
-<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#OccurrenceConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_param_info_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#OccurrenceConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OccurrenceConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OccurrenceConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OccurrenceConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OccurrenceConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OccurrenceConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.OtherConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">OtherConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#OtherConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.OtherConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">OtherConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#OtherConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.OtherConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OtherConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OtherConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OtherConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OtherConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OtherConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OtherConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.OtherConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.OtherConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.QueryConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">QueryConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">QueryConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
 <p>LNBNN ranking query configuration parameters</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
@@ -910,166 +909,162 @@ TODO: this might not need to be here, should be part of neighbor config</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.apply_codename">
-<code class="descname">apply_codename</code><span class="sig-paren">(</span><em>codename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.apply_codename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.apply_codename" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">apply_codename</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">codename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.apply_codename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.apply_codename" title="Permalink to this definition">¶</a></dt>
 <dd><p>codenames denote mass changes to configurations
 it is a hacky solution to setting different parameter
 values all at once.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.deepcopy">
-<code class="descname">deepcopy</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.deepcopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.deepcopy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">deepcopy</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.deepcopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.deepcopy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.make_feasible">
-<code class="descname">make_feasible</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">make_feasible</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.make_feasible_">
-<code class="descname">make_feasible_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.make_feasible_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.make_feasible_" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">make_feasible_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.make_feasible_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.make_feasible_" title="Permalink to this definition">¶</a></dt>
 <dd><p>removes invalid parameter settings over all cfgs (move to QueryConfig)</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.meta_get_cfgstr_list">
-<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.QueryConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.QueryConfig.update_query_cfg">
-<code class="descname">update_query_cfg</code><span class="sig-paren">(</span><em>**cfgdict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.update_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.update_query_cfg" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">update_query_cfg</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">cfgdict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#QueryConfig.update_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.QueryConfig.update_query_cfg" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="wbia.algo.Config.SpatialVerifyConfig">
-<em class="property">class </em><code class="descclassname">wbia.algo.Config.</code><code class="descname">SpatialVerifyConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#SpatialVerifyConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">SpatialVerifyConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#SpatialVerifyConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.Preferences.Pref</span></code></p>
 <p>Spatial verification</p>
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.SpatialVerifyConfig.get_cfgstr">
-<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.SpatialVerifyConfig.get_cfgstr_list">
-<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#SpatialVerifyConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#SpatialVerifyConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.SpatialVerifyConfig.get_config_name">
-<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_config_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>the user might want to overwrite this function</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.SpatialVerifyConfig.initialize_params">
-<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes config class attributes based on params info list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.SpatialVerifyConfig.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.keys" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.SpatialVerifyConfig.lookup_paraminfo">
-<code class="descname">lookup_paraminfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_paraminfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.lookup_paraminfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.SpatialVerifyConfig.meta_get_cfgstr_list">
-<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_keys</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>default get_cfgstr_list, can be overrided by a config object</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="wbia.algo.Config.SpatialVerifyConfig.parse_items">
-<code class="descname">parse_items</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parse_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.Config.SpatialVerifyConfig.parse_items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.Config.default_vsone_cfg">
-<code class="descclassname">wbia.algo.Config.</code><code class="descname">default_vsone_cfg</code><span class="sig-paren">(</span><em>ibs</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#default_vsone_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.default_vsone_cfg" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">default_vsone_cfg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#default_vsone_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.default_vsone_cfg" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.Config.load_named_config">
-<code class="descclassname">wbia.algo.Config.</code><code class="descname">load_named_config</code><span class="sig-paren">(</span><em>cfgname</em>, <em>dpath</em>, <em>use_config_cache=False</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#load_named_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.load_named_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">load_named_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfgname</span></em>, <em class="sig-param"><span class="n">dpath</span></em>, <em class="sig-param"><span class="n">use_config_cache</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#load_named_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.load_named_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>hack 12-30-2014</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cfgname</strong> (<em>str</em>) – </li>
-<li><strong>dpath</strong> (<em>str</em>) – </li>
-<li><strong>use_config_cache</strong> (<em>bool</em>) – </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cfgname</strong> (<em>str</em>) – </p></li>
+<li><p><strong>dpath</strong> (<em>str</em>) – </p></li>
+<li><p><strong>use_config_cache</strong> (<em>bool</em>) – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">cfg</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="wbia.dtool.html#wbia.dtool.base.Config" title="wbia.dtool.base.Config">Config</a></p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.Config –test-load_named_config</dd>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>cfg</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="wbia.dtool.html#wbia.dtool.base.Config" title="wbia.dtool.base.Config">Config</a></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.Config –test-load_named_config</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="n">_default_config</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="n">_default_config</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_Master0&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs.cfg.save()</span>
@@ -1090,50 +1085,49 @@ values all at once.</p>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.Config.make_config_metaclass">
-<code class="descclassname">wbia.algo.Config.</code><code class="descname">make_config_metaclass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#make_config_metaclass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.make_config_metaclass" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">make_config_metaclass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#make_config_metaclass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.make_config_metaclass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a metaclass for Config objects that automates some of the more
 tedious functions to write</p>
-<dl class="docutils">
-<dt>Like:</dt>
-<dd>get_cfgstr
-and the comparison methods</dd>
+<dl class="simple">
+<dt>Like:</dt><dd><p>get_cfgstr
+and the comparison methods</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
 <p>from wbia.algo.Config import *  # NOQA
 &#64;six.add_metaclass(ConfigMetaclass)
 class FooConfig(ConfigBase):</p>
 <blockquote>
-<div><dl class="docutils">
-<dt>def __init__(cfg):</dt>
-<dd>super(FooConfig, cfg).__init__(name=’FooConfig’)
-cfg.initialize_params()</dd>
-<dt>def get_param_info_list(cfg):</dt>
-<dd><dl class="first docutils">
-<dt>return [</dt>
-<dd>ut.ParamInfo(‘x’, ‘y’),
-ut.ParamInfo(‘z’, 3),</dd>
+<div><dl>
+<dt>def __init__(cfg):</dt><dd><p>super(FooConfig, cfg).__init__(name=’FooConfig’)
+cfg.initialize_params()</p>
+</dd>
+<dt>def get_param_info_list(cfg):</dt><dd><dl class="simple">
+<dt>return [</dt><dd><p>ut.ParamInfo(‘x’, ‘y’),
+ut.ParamInfo(‘z’, 3),</p>
+</dd>
 </dl>
-<p class="last">]</p>
+<p>]</p>
 </dd>
 </dl>
 </div></blockquote>
 <p>cfg = FooConfig()
-print(cfg.get_cfgstr(ignore_keys=[‘x’]))
-print(cfg.get_cfgstr(ignore_keys=[]))</p>
+logger.info(cfg.get_cfgstr(ignore_keys=[‘x’]))
+logger.info(cfg.get_cfgstr(ignore_keys=[]))</p>
 <p>cfg = GenericConfig()
 cfg.x = ‘y’</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.Config.parse_config_items">
-<code class="descclassname">wbia.algo.Config.</code><code class="descname">parse_config_items</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#parse_config_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.parse_config_items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">parse_config_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#parse_config_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.parse_config_items" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursively extracts key, val pairs from Config objects
 into a flat list. (there must not be name conflicts)</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
@@ -1142,51 +1136,44 @@ into a flat list. (there must not be name conflicts)</p>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.Config.set_query_cfg">
-<code class="descclassname">wbia.algo.Config.</code><code class="descname">set_query_cfg</code><span class="sig-paren">(</span><em>cfg</em>, <em>query_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#set_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.set_query_cfg" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">set_query_cfg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span></em>, <em class="sig-param"><span class="n">query_cfg</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#set_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.set_query_cfg" title="Permalink to this definition">¶</a></dt>
 <dd><p>hack 12-30-2014</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.Config.update_query_config">
-<code class="descclassname">wbia.algo.Config.</code><code class="descname">update_query_config</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#update_query_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.update_query_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.Config.</code><code class="sig-name descname">update_query_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/Config.html#update_query_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.Config.update_query_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>hack 12-30-2014</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-wbia.algo">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wbia.algo" title="Permalink to this headline">¶</a></h2>
-<dl class="data">
+<dl class="py data">
 <dt id="wbia.algo.IMPORT_TUPLES">
-<code class="descclassname">wbia.algo.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('Config', None, False), ('detect', None, True), ('hots', None, True), ('smk', None, True), ('preproc', None, True)]</em><a class="headerlink" href="#wbia.algo.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
-<dd><p>cd /home/joncrall/code/wbia/wbia/algo
+<code class="sig-prename descclassname">wbia.algo.</code><code class="sig-name descname">IMPORT_TUPLES</code><em class="property"> = [('Config', None, False), ('detect', None, True), ('hots', None, True), ('smk', None, True), ('preproc', None, True)]</em><a class="headerlink" href="#wbia.algo.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<dd><p>Regen Command:
+cd /home/joncrall/code/wbia/wbia/algo
 makeinit.py –modname=wbia.algo</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">Regen Command</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.reassign_submodule_attributes">
-<code class="descclassname">wbia.algo.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.</code><code class="sig-name descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
 <dd><p>why reloading all the modules doesnt do this I don’t know</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.reload_subs">
-<code class="descclassname">wbia.algo.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.reload_subs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.</code><code class="sig-name descname">reload_subs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.reload_subs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reloads wbia.algo and submodules</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.rrrr">
-<code class="descclassname">wbia.algo.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.rrrr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.</code><code class="sig-name descname">rrrr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.rrrr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reloads wbia.algo and submodules</p>
 </dd></dl>
 
@@ -1243,7 +1230,7 @@ makeinit.py –modname=wbia.algo</p>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.dev">wbia.dev</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.filter_configs">wbia.filter_configs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.images">wbia.images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.main_module">wbia.main_module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#wbia-main-module">wbia.main_module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.params">wbia.params</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.tag_funcs">wbia.tag_funcs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-contents">Module contents</a></li>
@@ -1263,17 +1250,15 @@ makeinit.py –modname=wbia.algo</p>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1290,7 +1275,7 @@ makeinit.py –modname=wbia.algo</p>
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

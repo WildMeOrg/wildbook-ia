@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.core_annots &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -81,20 +80,21 @@
 <span class="sd">    &gt;&gt;&gt; depc = ibs.depc_annot</span>
 <span class="sd">    &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:2]</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">image_filters</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">image_filters</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
-<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">register_preprocs</span><span class="p">,</span> <span class="n">register_subprops</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots.chip_match</span> <span class="k">import</span> <span class="n">ChipMatch</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">neighbor_index</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preprocs</span><span class="p">,</span> <span class="n">register_subprops</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots.chip_match</span> <span class="kn">import</span> <span class="n">ChipMatch</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">derived_attribute</span> <span class="o">=</span> <span class="n">register_preprocs</span><span class="p">[</span><span class="s1">&#39;annot&#39;</span><span class="p">]</span>
@@ -156,8 +156,8 @@
 <span class="sd">        &gt;&gt;&gt; interact_obj.start()</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Chips Thumbs&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Chips Thumbs&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
 
@@ -376,8 +376,8 @@
 <span class="sd">        &gt;&gt;&gt; pt.imshow(vt.stack_image_recurse(chips))</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Preprocess Chips&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Preprocess Chips&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
 
@@ -390,7 +390,7 @@
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
         <span class="k">yield</span> <span class="n">result</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done Preprocessing Chips&#39;</span><span class="p">)</span></div>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done Preprocessing Chips&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="gen_chip_configure_and_compute"><a class="viewcode-back" href="../../wbia.html#wbia.core_annots.gen_chip_configure_and_compute">[docs]</a><span class="k">def</span> <span class="nf">gen_chip_configure_and_compute</span><span class="p">(</span>
@@ -629,7 +629,7 @@
 <span class="sd">        &gt;&gt;&gt; pt.imshow(blended, title=&#39;mask&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">interact_impaint</span>
+    <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">interact_impaint</span>
 
     <span class="c1"># TODO: Ensure interactive required cache words</span>
     <span class="c1"># Keep manual things above the cache dir</span>
@@ -660,7 +660,7 @@
             <span class="n">init_mask</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">interact_impaint</span><span class="o">.</span><span class="n">impaint_mask2</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">init_mask</span><span class="o">=</span><span class="n">init_mask</span><span class="p">)</span>
         <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">mask_fpath</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;imwrite&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;imwrite&#39;</span><span class="p">)</span>
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 
         <span class="k">yield</span> <span class="n">mask_fpath</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span></div>
@@ -732,16 +732,16 @@
 <span class="sd">        &gt;&gt;&gt; iteract_obj.start()</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[core] COMPUTING FEATWEIGHTS&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[core] COMPUTING FEATWEIGHTS&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
 
     <span class="c1"># Use the labeled species for the fw_detector</span>
     <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="c1"># print(&#39;aid_list = %r&#39; % (aid_list,))</span>
-    <span class="c1"># print(&#39;species_list = %r&#39; % (species_list,))</span>
+    <span class="c1"># logger.info(&#39;aid_list = %r&#39; % (aid_list,))</span>
+    <span class="c1"># logger.info(&#39;species_list = %r&#39; % (species_list,))</span>
 
     <span class="n">fw_detector</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;fw_detector&#39;</span><span class="p">]</span>
     <span class="n">dim_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;fw_dim_size&#39;</span><span class="p">]</span>
@@ -781,16 +781,16 @@
     <span class="n">unique_species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">grouped_species</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] +--------------------&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] +--------------------&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="p">(</span>
             <span class="s1">&#39;[preproc_probchip.compute_and_write_probchip] &#39;</span>
             <span class="s1">&#39;Preparing to compute </span><span class="si">%d</span><span class="s1"> probchips of </span><span class="si">%d</span><span class="s1"> species&#39;</span>
         <span class="p">)</span>
         <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">))</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unique_species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;unique_species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
     <span class="c1"># grouped_probchip_fpath_list = []</span>
     <span class="n">grouped_probchips</span> <span class="o">=</span> <span class="p">[]</span>
@@ -835,8 +835,8 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;unknown fw_detector=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fw_detector</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
 
     <span class="n">probchip_result_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping2</span><span class="p">(</span>
         <span class="n">grouped_probchips</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span>
@@ -874,8 +874,8 @@
 
 <div class="viewcode-block" id="rf_probchips"><a class="viewcode-back" href="../../wbia.html#wbia.core_annots.rf_probchips">[docs]</a><span class="k">def</span> <span class="nf">rf_probchips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="k">import</span> <span class="n">randomforest</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
 
     <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">ensure_app_cache_dir</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span> <span class="s1">&#39;rfchips&#39;</span><span class="p">)</span>
     <span class="c1"># Hack disk based output for RF detector.</span>
@@ -925,6 +925,7 @@
 <span class="sd">        rowid_kw = dict(config=config)</span>
 
 <span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia_cnn)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.core_annots import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
 <span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
@@ -968,7 +969,7 @@
 <span class="sd">    References:</span>
 <span class="sd">        https://github.com/scikit-image/scikit-image/blob/master/skimage/feature/_hog.py</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">draw</span>
+    <span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">draw</span>
 
     <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">HOGConfig</span><span class="p">()</span>
@@ -1200,9 +1201,9 @@
         <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[preproc_feat] config = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[preproc_feat] config = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;full_params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">())</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;full_params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">())</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
     <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;hesaff+sift&#39;</span><span class="p">:</span>
@@ -1222,7 +1223,7 @@
             <span class="n">futures_threaded</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="k">import</span> <span class="n">_plugin</span>
+        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="kn">import</span> <span class="n">_plugin</span>
 
         <span class="k">assert</span> <span class="n">maskmethod</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;not implemented&#39;</span>
         <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;not implemented&#39;</span>
@@ -1327,6 +1328,7 @@
 <span class="sd">        python -m wbia.core_annots compute_fgweights</span>
 
 <span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia_cnn)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.core_annots import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
 <span class="sd">        &gt;&gt;&gt; full_config = {}</span>
@@ -1340,7 +1342,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
     <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fid_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[compute_fgweights] Computing </span><span class="si">%d</span><span class="s1"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[compute_fgweights] Computing </span><span class="si">%d</span><span class="s1"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
     <span class="c1"># aid_list = depc.get_ancestor_rowids(&#39;feat&#39;, fid_list, &#39;annotations&#39;)</span>
     <span class="c1"># probchip_fpath_list = depc.get(aid_list, &#39;img&#39;, config={}, read_extern=False)</span>
     <span class="n">probchip_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;probchip&#39;</span><span class="p">,</span> <span class="n">pcid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">)</span>
@@ -1359,7 +1361,7 @@
         <span class="n">futures_threaded</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">featweight_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featweight_gen</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[compute_fgweights] Done computing </span><span class="si">%d</span><span class="s1"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[compute_fgweights] Done computing </span><span class="si">%d</span><span class="s1"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
     <span class="k">for</span> <span class="n">fw</span> <span class="ow">in</span> <span class="n">featweight_list</span><span class="p">:</span>
         <span class="k">yield</span> <span class="p">(</span><span class="n">fw</span><span class="p">,)</span></div>
 
@@ -1380,6 +1382,7 @@
 <span class="sd">        python -m wbia.core_annots --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9</span>
 
 <span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia_cnn)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.core_annots import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; #test_featweight_worker()</span>
 <span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
@@ -1677,7 +1680,7 @@
 <span class="sd">        &gt;&gt;&gt; assert nnindexer1.knn(ibs.get_annot_vecs(1), 1) is not None</span>
 <span class="sd">        &gt;&gt;&gt; assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[IBEIS] COMPUTE_NEIGHBOR_INDEX:&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[IBEIS] COMPUTE_NEIGHBOR_INDEX:&#39;</span><span class="p">)</span>
     <span class="c1"># TODO: allow augment</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fids_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;only working with one indexer at a time&#39;</span>
     <span class="n">fid_list</span> <span class="o">=</span> <span class="n">fids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1733,7 +1736,7 @@
 <span class="sd">            &gt;&gt;&gt; config = ibs.depc_annot[&#39;feat_neighbs&#39;].configclass()</span>
 <span class="sd">            &gt;&gt;&gt; compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[IBEIS] NEAREST NEIGHBORS&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[IBEIS] NEAREST NEIGHBORS&#39;</span><span class="p">)</span>
         <span class="c1"># assert False</span>
         <span class="c1"># do computation</span>
         <span class="c1"># num_neighbors = (config[&#39;K&#39;] + config[&#39;Knorm&#39;])</span>
@@ -1835,8 +1838,8 @@
 <span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;classifier&#39;, gid_list, None)</span>
 <span class="sd">        &gt;&gt;&gt; print(results)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Image Classifications&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Image Classifications&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
     <span class="c1"># Get controller</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
@@ -1848,7 +1851,7 @@
         <span class="n">chip_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2</span><span class="p">)</span>
         <span class="n">result_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">generate_thumbnail_class_list</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;classifier_algo&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;densenet&#39;</span><span class="p">]:</span>
-        <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="k">import</span> <span class="n">densenet</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">densenet</span>
 
         <span class="n">config2</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">,</span> <span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">),</span>
@@ -1911,12 +1914,12 @@
 <span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;canonical&#39;, gid_list, None)</span>
 <span class="sd">        &gt;&gt;&gt; print(results)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annot Canonical&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annot Canonical&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
     <span class="c1"># Get controller</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="k">import</span> <span class="n">canonical</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">canonical</span>
 
     <span class="n">config2</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">canonical</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">,</span> <span class="n">canonical</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">),</span>
@@ -2008,14 +2011,14 @@
 <span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;labeler&#39;, aid_list, None, config=config)</span>
 <span class="sd">        &gt;&gt;&gt; print(results)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annotation Labels&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annotation Labels&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
     <span class="c1"># Get controller</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
 
     <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;pipeline&#39;</span><span class="p">,</span> <span class="s1">&#39;cnn&#39;</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] labeling using Detection Pipeline Labeler&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] labeling using Detection Pipeline Labeler&#39;</span><span class="p">)</span>
         <span class="n">config_</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
             <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;wh&#39;</span><span class="p">,</span>
@@ -2024,12 +2027,12 @@
         <span class="n">chip_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_</span><span class="p">)</span>
         <span class="n">result_gen</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">generate_chip_label_list</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;azure&#39;</span><span class="p">]:</span>
-        <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="k">import</span> <span class="n">azure</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">azure</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] detecting using Azure AI for Earth Species Classification API&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] detecting using Azure AI for Earth Species Classification API&#39;</span><span class="p">)</span>
         <span class="n">result_gen</span> <span class="o">=</span> <span class="n">azure</span><span class="o">.</span><span class="n">label_aid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;densenet&#39;</span><span class="p">]:</span>
-        <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="k">import</span> <span class="n">densenet</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">densenet</span>
 
         <span class="k">if</span> <span class="s1">&#39;+&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]:</span>
             <span class="n">config_</span> <span class="o">=</span> <span class="p">{</span>
@@ -2175,8 +2178,8 @@
 <span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;aoi_two&#39;, aid_list, None)</span>
 <span class="sd">        &gt;&gt;&gt; print(results)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annotation AoI2s&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annotation AoI2s&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
     <span class="c1"># Get controller</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
@@ -2249,14 +2252,14 @@
 <span class="sd">        &gt;&gt;&gt; result_list = depc.get_property(&#39;orienter&#39;, aid_list, None, config=config)</span>
 <span class="sd">        &gt;&gt;&gt; print(result_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annotation Labels&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Annotation Labels&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
     <span class="c1"># Get controller</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
 
     <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;orienter_algo&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;deepsense&#39;</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] orienting using Deepsense Orienter&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] orienting using Deepsense Orienter&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -2298,21 +2301,6 @@
     <span class="c1"># yield detections</span>
     <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_gen</span><span class="p">:</span>
         <span class="k">yield</span> <span class="n">result</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.core_annots</span>
-<span class="sd">        python -m wbia.core_annots --allexamples</span>
-<span class="sd">        utprof.py -m wbia.core_annots --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -2348,17 +2336,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -2375,7 +2361,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

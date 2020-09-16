@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.graph.demo &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -37,14 +36,15 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO: separate out the tests and make this file just generate the demo data</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">SAME</span><span class="p">,</span> <span class="n">DIFF</span><span class="p">,</span> <span class="n">NULL</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">SAME</span><span class="p">,</span> <span class="n">DIFF</span><span class="p">,</span> <span class="n">NULL</span>  <span class="c1"># NOQA</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="make_dummy_infr"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.demo.make_dummy_infr">[docs]</a><span class="k">def</span> <span class="nf">make_dummy_infr</span><span class="p">(</span><span class="n">annots_per_name</span><span class="p">):</span>
@@ -115,7 +115,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 
-    <span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="k">import</span> <span class="n">TMP_RC</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="kn">import</span> <span class="n">TMP_RC</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 
     <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">TMP_RC</span><span class="p">)</span>
@@ -195,7 +195,7 @@
         <span class="n">infr_</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
         <span class="n">infr_</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">pickable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">showkw</span><span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
-        <span class="c1"># print(&#39;status &#39; + ut.repr4(infr_.status()))</span>
+        <span class="c1"># logger.info(&#39;status &#39; + ut.repr4(infr_.status()))</span>
         <span class="c1"># infr.show(**showkw)</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
@@ -236,7 +236,7 @@
 
         <span class="c1"># ax.xaxis.label.set_color(&#39;red&#39;)</span>
 
-        <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;demo_</span><span class="si">{:04d}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">fig_counter</span><span class="p">)))</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
@@ -253,18 +253,18 @@
         <span class="n">infr</span><span class="o">.</span><span class="n">update_visual_attrs</span><span class="p">(</span><span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;name_label&#39;</span><span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">set_node_attrs</span><span class="p">(</span><span class="s1">&#39;pin&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
         <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">node_dict</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">node_dict</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 
     <span class="k">if</span> <span class="n">VISUALIZE</span><span class="p">:</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">latest_logs</span><span class="p">()</span>
         <span class="c1"># Pin Nodes into the target groundtruth position</span>
         <span class="n">show_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;target-gt&#39;</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()))</span>
     <span class="n">infr</span><span class="o">.</span><span class="n">clear_feedback</span><span class="p">()</span>
     <span class="n">infr</span><span class="o">.</span><span class="n">clear_name_labels</span><span class="p">()</span>
     <span class="n">infr</span><span class="o">.</span><span class="n">clear_edges</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()))</span>
     <span class="n">infr</span><span class="o">.</span><span class="n">latest_logs</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">VISUALIZE</span><span class="p">:</span>
@@ -284,7 +284,7 @@
     <span class="n">infr</span><span class="o">.</span><span class="n">refresh_candidate_edges</span><span class="p">()</span>
 
     <span class="n">VIZ_ALL</span> <span class="o">=</span> <span class="n">VISUALIZE</span> <span class="ow">and</span> <span class="n">TARGET_REVIEW</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">START</span> <span class="ow">is</span> <span class="kc">None</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;VIZ_ALL = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">VIZ_ALL</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;VIZ_ALL = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">VIZ_ALL</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">VIZ_ALL</span> <span class="ow">or</span> <span class="n">TARGET_REVIEW</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">show_graph</span><span class="p">(</span><span class="n">infr</span><span class="p">,</span> <span class="s1">&#39;find-candidates&#39;</span><span class="p">)</span>
@@ -299,9 +299,9 @@
     <span class="n">first</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">priority</span> <span class="ow">in</span> <span class="n">infr</span><span class="o">.</span><span class="n">_generate_reviews</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;review #</span><span class="si">%d</span><span class="s1">, priority=</span><span class="si">%.3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">priority</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">----------&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">----------&#39;</span><span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;pop edge </span><span class="si">{}</span><span class="s1"> with priority=</span><span class="si">{:.3f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="p">))</span>
-        <span class="c1"># print(&#39;remaining_reviews = %r&#39; % (infr.remaining_reviews()),)</span>
+        <span class="c1"># logger.info(&#39;remaining_reviews = %r&#39; % (infr.remaining_reviews()),)</span>
         <span class="c1"># Make the next review</span>
 
         <span class="k">if</span> <span class="n">START</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -359,9 +359,9 @@
     <span class="c1">#                        enabled=False)</span>
     <span class="c1">#     for count, (aid1, aid2) in prog:</span>
     <span class="c1">#         msg = &#39;reviewII #%d&#39; % (count)</span>
-    <span class="c1">#         print(&#39;\n----------&#39;)</span>
-    <span class="c1">#         print(msg)</span>
-    <span class="c1">#         print(&#39;remaining_reviews = %r&#39; % (infr.remaining_reviews()),)</span>
+    <span class="c1">#         logger.info(&#39;\n----------&#39;)</span>
+    <span class="c1">#         logger.info(msg)</span>
+    <span class="c1">#         logger.info(&#39;remaining_reviews = %r&#39; % (infr.remaining_reviews()),)</span>
     <span class="c1">#         # Make the next review evidence_decision</span>
     <span class="c1">#         feedback = infr.request_oracle_review(edge)</span>
     <span class="c1">#         if count == TARGET_REVIEW:</span>
@@ -416,11 +416,11 @@
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 
     <span class="k">class</span> <span class="nc">MarkovView</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dir_</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_state</span><span class="p">()</span>
 
         <span class="k">def</span> <span class="nf">next_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -515,7 +515,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">nx_utils</span>
 
     <span class="k">def</span> <span class="nf">kwalias</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -599,12 +599,12 @@
             <span class="c1">#     probs = probs / probs.sum()</span>
             <span class="n">pcumsum</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
             <span class="c1"># Determine which mutually exclusive state each complement edge is in</span>
-            <span class="c1"># print(&#39;pcumsum = %r&#39; % (pcumsum,))</span>
+            <span class="c1"># logger.info(&#39;pcumsum = %r&#39; % (pcumsum,))</span>
             <span class="n">states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">pcumsum</span><span class="p">,</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">complement_edges</span><span class="p">)))</span>
 
             <span class="n">incon_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">states</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incon_idxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_n_incon</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;max_n_incon = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">max_n_incon</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;max_n_incon = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">max_n_incon</span><span class="p">,))</span>
                 <span class="n">chosen</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">incon_idxs</span><span class="p">,</span> <span class="n">max_n_incon</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">states</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">incon_idxs</span><span class="p">,</span> <span class="n">chosen</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
 
@@ -640,7 +640,7 @@
     <span class="n">neg_edges</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">kwalias</span><span class="p">(</span><span class="s1">&#39;ignore_pair&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;making pairs&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;making pairs&#39;</span><span class="p">)</span>
 
         <span class="n">pair_attrs_lookup</span> <span class="o">=</span> <span class="p">{</span>
             <span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;evidence_decision&#39;</span><span class="p">:</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="s1">&#39;truth&#39;</span><span class="p">:</span> <span class="n">NEGTV</span><span class="p">},</span>
@@ -679,15 +679,15 @@
 
             <span class="n">unique_states</span><span class="p">,</span> <span class="n">groupxs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">stateful_states</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">unique_states</span><span class="p">,</span> <span class="n">groupxs_list</span><span class="p">):</span>
-                <span class="c1"># print(&#39;state = %r&#39; % (state,))</span>
+                <span class="c1"># logger.info(&#39;state = %r&#39; % (state,))</span>
                 <span class="c1"># Add in candidate edges</span>
                 <span class="n">edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">stateful_edges</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
                 <span class="n">attrs</span> <span class="o">=</span> <span class="n">pair_attrs_lookup</span><span class="p">[</span><span class="n">state</span><span class="p">]</span>
                 <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
                     <span class="n">neg_edges</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">attrs</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Made </span><span class="si">{}</span><span class="s1"> neg_edges between PCCS&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">neg_edges</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Made </span><span class="si">{}</span><span class="s1"> neg_edges between PCCS&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">neg_edges</span><span class="p">)))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ignoring pairs&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ignoring pairs&#39;</span><span class="p">)</span>
 
     <span class="kn">import</span> <span class="nn">wbia</span>
 
@@ -755,7 +755,7 @@
 <span class="sd">        &gt;&gt;&gt; assert len(infr.dummy_verif.infr.task_probs[&#39;match_state&#39;]) == 2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">verif</span><span class="p">,</span> <span class="n">infr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">verif</span><span class="p">,</span> <span class="n">infr</span><span class="p">):</span>
         <span class="n">verif</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">4033913</span><span class="p">)</span>
         <span class="n">verif</span><span class="o">.</span><span class="n">dummy_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">NEGTV</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">},</span>
@@ -851,7 +851,7 @@
         <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">verif</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
         <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
             <span class="n">new_edges</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">verif</span><span class="o">.</span><span class="n">dummy_ranker</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">))</span>
-        <span class="c1"># print(&#39;new_edges = %r&#39; % (ut.hash_data(new_edges),))</span>
+        <span class="c1"># logger.info(&#39;new_edges = %r&#39; % (ut.hash_data(new_edges),))</span>
         <span class="n">new_edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_edges</span></div>
 
@@ -910,7 +910,7 @@
                 <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">probs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">probs0</span><span class="p">,</span> <span class="n">probs1</span><span class="p">,</span> <span class="n">probs2</span><span class="p">)):</span>
                     <span class="n">prob_cache</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">probs</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
         <span class="n">probs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
@@ -922,23 +922,6 @@
 <div class="viewcode-block" id="DummyVerif.predict_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.demo.DummyVerif.predict_edges">[docs]</a>    <span class="k">def</span> <span class="nf">predict_edges</span><span class="p">(</span><span class="n">verif</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
         <span class="n">pos_scores</span> <span class="o">=</span> <span class="n">verif</span><span class="o">.</span><span class="n">predict_proba_df</span><span class="p">(</span><span class="n">edges</span><span class="p">)[</span><span class="n">POSTV</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">pos_scores</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph</span>
-<span class="sd">        python -m wbia.algo.graph.demo demo2</span>
-<span class="sd">        python -m wbia.algo.graph.demo</span>
-<span class="sd">        python -m wbia.algo.graph.demo --allexamples</span>
-<span class="sd">        python -m wbia.algo.graph.demo --allexamples --show</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -978,17 +961,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1005,7 +986,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

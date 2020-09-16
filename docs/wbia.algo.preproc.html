@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.preproc package &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="wbia.algo.smk package" href="wbia.algo.smk.html" />
@@ -59,36 +58,31 @@ print(‘thresh_sec = %r’ % (thresh_sec,))
 print(‘thresh_km = %r’ % (thresh_km,))
 thresh_sec = thresh_km / km_per_sec
 print(‘thresh_sec = %r’ % (thresh_sec,))</p>
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.cluster_timespace_km">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">cluster_timespace_km</code><span class="sig-paren">(</span><em>posixtimes</em>, <em>latlons</em>, <em>thresh_km</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#cluster_timespace_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.cluster_timespace_km" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">cluster_timespace_km</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">posixtimes</span></em>, <em class="sig-param"><span class="n">latlons</span></em>, <em class="sig-param"><span class="n">thresh_km</span></em>, <em class="sig-param"><span class="n">km_per_sec</span><span class="o">=</span><span class="default_value">0.002</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#cluster_timespace_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.cluster_timespace_km" title="Permalink to this definition">¶</a></dt>
 <dd><p>Agglometerative clustering of time/space data</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>X_data</strong> (<em>ndarray</em>) – Nx3 array where columns are (seconds, lat, lon)</li>
-<li><strong>thresh_km</strong> (<em>float</em>) – threshold in kilometers</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_data</strong> (<em>ndarray</em>) – Nx3 array where columns are (seconds, lat, lon)</p></li>
+<li><p><strong>thresh_km</strong> (<em>float</em>) – threshold in kilometers</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">References</p>
-<dl class="docutils">
-<dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt>
-<dd>scipy.cluster.hierarchy.linkage.html
-scipy.cluster.hierarchy.fcluster.html</dd>
+<dl class="simple">
+<dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt><dd><p>scipy.cluster.hierarchy.linkage.html
+scipy.cluster.hierarchy.fcluster.html</p>
+</dd>
 </dl>
 <p class="rubric">Notes</p>
 <p># Visualize spots
 <a class="reference external" href="http://www.darrinward.com/lat-long/?id=2009879">http://www.darrinward.com/lat-long/?id=2009879</a></p>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.preproc.occurrence_blackbox cluster_timespace_km</dd>
-<dt>Doctest:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.occurrence_blackbox cluster_timespace_km</p>
+</dd>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
@@ -117,24 +111,19 @@ scipy.cluster.hierarchy.fcluster.html</dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.cluster_timespace_sec">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">cluster_timespace_sec</code><span class="sig-paren">(</span><em>posixtimes</em>, <em>latlons</em>, <em>thresh_sec=5</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#cluster_timespace_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.cluster_timespace_sec" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>X_data</strong> (<em>ndarray</em>) – Nx3 array where columns are (seconds, lat, lon)</li>
-<li><strong>thresh_sec</strong> (<em>float</em>) – threshold in seconds</li>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">cluster_timespace_sec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">posixtimes</span></em>, <em class="sig-param"><span class="n">latlons</span></em>, <em class="sig-param"><span class="n">thresh_sec</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">km_per_sec</span><span class="o">=</span><span class="default_value">0.002</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#cluster_timespace_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.cluster_timespace_sec" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_data</strong> (<em>ndarray</em>) – Nx3 array where columns are (seconds, lat, lon)</p></li>
+<li><p><strong>thresh_sec</strong> (<em>float</em>) – threshold in seconds</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>Doctest:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+</dd>
+</dl>
+<dl>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
@@ -159,8 +148,7 @@ scipy.cluster.hierarchy.fcluster.html</dd>
 </pre></div>
 </div>
 </dd>
-<dt>Doctest:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
@@ -186,36 +174,31 @@ scipy.cluster.hierarchy.fcluster.html</dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.haversine">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">haversine</code><span class="sig-paren">(</span><em>latlon1</em>, <em>latlon2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#haversine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.haversine" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">haversine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">latlon1</span></em>, <em class="sig-param"><span class="n">latlon2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#haversine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.haversine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the great circle distance between two points
 on the earth (specified in decimal degrees)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>latlon1</strong> (<em>tuple</em>) – (lat, lon)</li>
-<li><strong>latlon2</strong> (<em>tuple</em>) – (lat, lon)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latlon1</strong> (<em>tuple</em>) – (lat, lon)</p></li>
+<li><p><strong>latlon2</strong> (<em>tuple</em>) – (lat, lon)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">distance in kilometers</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>distance in kilometers</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 <p class="rubric">References</p>
 <p>en.wikipedia.org/wiki/Haversine_formula
 gis.stackexchange.com/questions/81551/matching-gps-tracks
 stackoverflow.com/questions/4913349/haversine-distance-gps-points</p>
-<dl class="docutils">
-<dt>Doctest:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<dl>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="k">as</span> <span class="nn">spdist</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">functools</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">latlon1</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.21895315</span><span class="p">,</span> <span class="o">-</span><span class="mf">158.81099213</span><span class="p">]</span>
@@ -230,53 +213,48 @@ stackoverflow.com/questions/4913349/haversine-distance-gps-points</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.haversine_rad">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">haversine_rad</code><span class="sig-paren">(</span><em>lat1</em>, <em>lon1</em>, <em>lat2</em>, <em>lon2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#haversine_rad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.haversine_rad" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">haversine_rad</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat1</span></em>, <em class="sig-param"><span class="n">lon1</span></em>, <em class="sig-param"><span class="n">lat2</span></em>, <em class="sig-param"><span class="n">lon2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#haversine_rad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.haversine_rad" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.main">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.main" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>ib
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.main" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>CommandLine:</dt><dd><p>ib
 cd ~/code/wbia/wbia/algo/preproc
 python occurrence_blackbox.py –lat 42.727985 42.657414 42.658333 42.654384 –lon -73.683994 -73.774448 -73.770993 -73.768919 –sec 0 0 0 0
 # Should return
-X_labels = [2, 1, 1, 1]</dd>
+X_labels = [2, 1, 1, 1]</p>
+</dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.prepare_data">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">prepare_data</code><span class="sig-paren">(</span><em>posixtimes</em>, <em>latlons</em>, <em>km_per_sec=0.002</em>, <em>thresh_units='seconds'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#prepare_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.prepare_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">prepare_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">posixtimes</span></em>, <em class="sig-param"><span class="n">latlons</span></em>, <em class="sig-param"><span class="n">km_per_sec</span><span class="o">=</span><span class="default_value">0.002</span></em>, <em class="sig-param"><span class="n">thresh_units</span><span class="o">=</span><span class="default_value">'seconds'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#prepare_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.prepare_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Package datas and picks distance function</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>posixtimes</strong> (<em>ndarray</em>) – </li>
-<li><strong>latlons</strong> (<em>ndarray</em>) – </li>
-<li><strong>km_per_sec</strong> (<em>float</em>) – (default = 0.002)</li>
-<li><strong>thresh_units</strong> (<em>str</em>) – (default = ‘seconds’)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>posixtimes</strong> (<em>ndarray</em>) – </p></li>
+<li><p><strong>latlons</strong> (<em>ndarray</em>) – </p></li>
+<li><p><strong>km_per_sec</strong> (<em>float</em>) – (default = 0.002)</p></li>
+<li><p><strong>thresh_units</strong> (<em>str</em>) – (default = ‘seconds’)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><a href="#id1"><span class="problematic" id="id2">arr_</span></a> -</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.preproc.occurrence_blackbox prepare_data</dd>
-<dt>Doctest:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><a href="#id1"><span class="problematic" id="id2">arr_</span></a> -</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.occurrence_blackbox prepare_data</p>
+</dd>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.727985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.683994</span><span class="p">),</span>
@@ -300,53 +278,48 @@ X_labels = [2, 1, 1, 1]</dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.space_distance_km">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">space_distance_km</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#space_distance_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.space_distance_km" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">space_distance_km</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pt1</span></em>, <em class="sig-param"><span class="n">pt2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#space_distance_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.space_distance_km" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.space_distance_sec">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">space_distance_sec</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#space_distance_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.space_distance_sec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">space_distance_sec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pt1</span></em>, <em class="sig-param"><span class="n">pt2</span></em>, <em class="sig-param"><span class="n">km_per_sec</span><span class="o">=</span><span class="default_value">0.002</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#space_distance_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.space_distance_sec" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.time_dist_km">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">time_dist_km</code><span class="sig-paren">(</span><em>sec1</em>, <em>sec2</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#time_dist_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.time_dist_km" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">time_dist_km</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sec1</span></em>, <em class="sig-param"><span class="n">sec2</span></em>, <em class="sig-param"><span class="n">km_per_sec</span><span class="o">=</span><span class="default_value">0.002</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#time_dist_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.time_dist_km" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.time_dist_sec">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">time_dist_sec</code><span class="sig-paren">(</span><em>sec1</em>, <em>sec2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#time_dist_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.time_dist_sec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">time_dist_sec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sec1</span></em>, <em class="sig-param"><span class="n">sec2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#time_dist_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.time_dist_sec" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.timespace_distance_km">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">timespace_distance_km</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#timespace_distance_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.timespace_distance_km" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">timespace_distance_km</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pt1</span></em>, <em class="sig-param"><span class="n">pt2</span></em>, <em class="sig-param"><span class="n">km_per_sec</span><span class="o">=</span><span class="default_value">0.002</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#timespace_distance_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.timespace_distance_km" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes distance between two points in space and time.
 Time is converted into spatial units using km_per_sec</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>pt1</strong> (<em>tuple</em>) – (seconds, lat, lon)</li>
-<li><strong>pt2</strong> (<em>tuple</em>) – (seconds, lat, lon)</li>
-<li><strong>km_per_sec</strong> (<em>float</em>) – reasonable animal walking speed</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pt1</strong> (<em>tuple</em>) – (seconds, lat, lon)</p></li>
+<li><p><strong>pt2</strong> (<em>tuple</em>) – (seconds, lat, lon)</p></li>
+<li><p><strong>km_per_sec</strong> (<em>float</em>) – reasonable animal walking speed</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">distance in kilometers</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>Doctest:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>distance in kilometers</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<dl>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="k">as</span> <span class="nn">spdist</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">functools</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="o">.</span><span class="mi">02</span>
@@ -370,81 +343,79 @@ Time is converted into spatial units using km_per_sec</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.occurrence_blackbox.timespace_distance_sec">
-<code class="descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="descname">timespace_distance_sec</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#timespace_distance_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.timespace_distance_sec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.occurrence_blackbox.</code><code class="sig-name descname">timespace_distance_sec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pt1</span></em>, <em class="sig-param"><span class="n">pt2</span></em>, <em class="sig-param"><span class="n">km_per_sec</span><span class="o">=</span><span class="default_value">0.002</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#timespace_distance_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.timespace_distance_sec" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-wbia.algo.preproc.preproc_annot">
 <span id="wbia-algo-preproc-preproc-annot-module"></span><h2>wbia.algo.preproc.preproc_annot module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_annot" title="Permalink to this headline">¶</a></h2>
 <p>helpers for controller manual_annot_funcs</p>
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_annot.generate_annot_properties">
-<code class="descclassname">wbia.algo.preproc.preproc_annot.</code><code class="descname">generate_annot_properties</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>bbox_list=None</em>, <em>theta_list=None</em>, <em>species_list=None</em>, <em>nid_list=None</em>, <em>name_list=None</em>, <em>detect_confidence_list=None</em>, <em>notes_list=None</em>, <em>vert_list=None</em>, <em>annot_uuid_list=None</em>, <em>yaw_list=None</em>, <em>quiet_delete_thumbs=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#generate_annot_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.generate_annot_properties" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_annot.</code><code class="sig-name descname">generate_annot_properties</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">gid_list</span></em>, <em class="sig-param"><span class="n">bbox_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">theta_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">species_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nid_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">detect_confidence_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">notes_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vert_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">annot_uuid_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yaw_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#generate_annot_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.generate_annot_properties" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_annot.make_annotation_uuids">
-<code class="descclassname">wbia.algo.preproc.preproc_annot.</code><code class="descname">make_annotation_uuids</code><span class="sig-paren">(</span><em>image_uuid_list</em>, <em>bbox_list</em>, <em>theta_list</em>, <em>deterministic=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#make_annotation_uuids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.make_annotation_uuids" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_annot.</code><code class="sig-name descname">make_annotation_uuids</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_uuid_list</span></em>, <em class="sig-param"><span class="n">bbox_list</span></em>, <em class="sig-param"><span class="n">theta_list</span></em>, <em class="sig-param"><span class="n">deterministic</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#make_annotation_uuids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.make_annotation_uuids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_annot.postget_annot_verts">
-<code class="descclassname">wbia.algo.preproc.preproc_annot.</code><code class="descname">postget_annot_verts</code><span class="sig-paren">(</span><em>vertstr_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#postget_annot_verts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.postget_annot_verts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_annot.</code><code class="sig-name descname">postget_annot_verts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vertstr_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#postget_annot_verts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.postget_annot_verts" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_annot.testdata_preproc_annot">
-<code class="descclassname">wbia.algo.preproc.preproc_annot.</code><code class="descname">testdata_preproc_annot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#testdata_preproc_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.testdata_preproc_annot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_annot.</code><code class="sig-name descname">testdata_preproc_annot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#testdata_preproc_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.testdata_preproc_annot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-wbia.algo.preproc.preproc_image">
 <span id="wbia-algo-preproc-preproc-image-module"></span><h2>wbia.algo.preproc.preproc_image module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_image" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_image.get_standard_ext">
-<code class="descclassname">wbia.algo.preproc.preproc_image.</code><code class="descname">get_standard_ext</code><span class="sig-paren">(</span><em>gpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#get_standard_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.get_standard_ext" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_image.</code><code class="sig-name descname">get_standard_ext</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gpath</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#get_standard_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.get_standard_ext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns standardized image extension</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_image.on_delete">
-<code class="descclassname">wbia.algo.preproc.preproc_image.</code><code class="descname">on_delete</code><span class="sig-paren">(</span><em>ibs</em>, <em>featweight_rowid_list</em>, <em>qreq_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.on_delete" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_image.</code><code class="sig-name descname">on_delete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">featweight_rowid_list</span></em>, <em class="sig-param"><span class="n">qreq_</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.on_delete" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_image.parse_exif">
-<code class="descclassname">wbia.algo.preproc.preproc_image.</code><code class="descname">parse_exif</code><span class="sig-paren">(</span><em>pil_img</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#parse_exif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.parse_exif" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_image.</code><code class="sig-name descname">parse_exif</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pil_img</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#parse_exif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.parse_exif" title="Permalink to this definition">¶</a></dt>
 <dd><p>Image EXIF helper</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_image.parse_imageinfo">
-<code class="descclassname">wbia.algo.preproc.preproc_image.</code><code class="descname">parse_imageinfo</code><span class="sig-paren">(</span><em>gpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#parse_imageinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.parse_imageinfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_image.</code><code class="sig-name descname">parse_imageinfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gpath</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#parse_imageinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.parse_imageinfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Worker function: gpath must be in UNIX-PATH format!</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath</strong> (<em>str</em>) – image path</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
-<dt>param_tup -</dt>
-<dd>if successful returns a tuple of image parameters which are values
-for SQL columns on else returns None</dd>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gpath</strong> (<em>str</em>) – image path</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>param_tup -</dt><dd><p>if successful returns a tuple of image parameters which are values
+for SQL columns on else returns None</p>
+</dd>
 </dl>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.preproc.preproc_image –exec-parse_imageinfo</dd>
-<dt>Doctest:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_image</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.preproc_image –exec-parse_imageinfo</p>
+</dd>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">(</span><span class="s1">&#39;patsy.jpg&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">param_tup</span> <span class="o">=</span> <span class="n">parse_imageinfo</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;param_tup = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">param_tup</span><span class="p">),))</span>
@@ -460,38 +431,34 @@ for SQL columns on else returns None</dd>
 </div>
 <div class="section" id="module-wbia.algo.preproc.preproc_occurrence">
 <span id="wbia-algo-preproc-preproc-occurrence-module"></span><h2>wbia.algo.preproc.preproc_occurrence module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_occurrence" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">agglomerative_cluster_occurrences</code><span class="sig-paren">(</span><em>X_data</em>, <em>thresh_sec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#agglomerative_cluster_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">agglomerative_cluster_occurrences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X_data</span></em>, <em class="sig-param"><span class="n">thresh_sec</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#agglomerative_cluster_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences" title="Permalink to this definition">¶</a></dt>
 <dd><p>Agglomerative occurrence clustering algorithm</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>X_data</strong> (<em>ndarray</em>) – Length N array of data to cluster</li>
-<li><strong>thresh_sec</strong> (<em>float</em>) – </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_data</strong> (<em>ndarray</em>) – Length N array of data to cluster</p></li>
+<li><p><strong>thresh_sec</strong> (<em>float</em>) – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(label_arr) - Length N array of cluster indexes</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.preproc.preproc_occurrence –exec-agglomerative_cluster_occurrences</dd>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(label_arr) - Length N array of cluster indexes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.preproc_occurrence –exec-agglomerative_cluster_occurrences</p>
+</dd>
 </dl>
 <p class="rubric">References</p>
 <p><a class="reference external" href="https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata">https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata</a>
 <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html</a></p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_sec</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">agglomerative_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
@@ -501,19 +468,19 @@ for SQL columns on else returns None</dd>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.cluster_timespace">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">cluster_timespace</code><span class="sig-paren">(</span><em>X_data</em>, <em>thresh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#cluster_timespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.cluster_timespace" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">cluster_timespace</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X_data</span></em>, <em class="sig-param"><span class="n">thresh</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#cluster_timespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.cluster_timespace" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">References</p>
-<dl class="docutils">
-<dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt>
-<dd>scipy.cluster.hierarchy.linkage.html</dd>
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.preproc.preproc_occurrence cluster_timespace –show</dd>
+<dl class="simple">
+<dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt><dd><p>scipy.cluster.hierarchy.linkage.html</p>
+</dd>
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.preproc_occurrence cluster_timespace –show</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">testdata_gps</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">thresh</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
@@ -526,34 +493,30 @@ for SQL columns on else returns None</dd>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.compute_occurrence_groups">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">compute_occurrence_groups</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>config={}</em>, <em>use_gps=False</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#compute_occurrence_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.compute_occurrence_groups" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</li>
-<li><strong>gid_list</strong> (<em>list</em>) – </li>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">compute_occurrence_groups</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">gid_list</span></em>, <em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">use_gps</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#compute_occurrence_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.compute_occurrence_groups" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</p></li>
+<li><p><strong>gid_list</strong> (<em>list</em>) – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(None, None)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia compute_occurrence_groups</dd>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(None, None)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia compute_occurrence_groups</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
@@ -572,55 +535,51 @@ for SQL columns on else returns None</dd>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.compute_occurrence_unixtime">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">compute_occurrence_unixtime</code><span class="sig-paren">(</span><em>ibs</em>, <em>occur_gids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#compute_occurrence_unixtime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.compute_occurrence_unixtime" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">compute_occurrence_unixtime</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">occur_gids</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#compute_occurrence_unixtime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.compute_occurrence_unixtime" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.filter_and_relabel">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">filter_and_relabel</code><span class="sig-paren">(</span><em>labels</em>, <em>label_gids</em>, <em>min_imgs_per_occurence</em>, <em>occur_unixtimes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#filter_and_relabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.filter_and_relabel" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">filter_and_relabel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">labels</span></em>, <em class="sig-param"><span class="n">label_gids</span></em>, <em class="sig-param"><span class="n">min_imgs_per_occurence</span></em>, <em class="sig-param"><span class="n">occur_unixtimes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#filter_and_relabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.filter_and_relabel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes clusters with too few members.
 Relabels clusters-labels such that label 0 has the most members</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.group_images_by_label">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">group_images_by_label</code><span class="sig-paren">(</span><em>label_arr</em>, <em>gid_arr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#group_images_by_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.group_images_by_label" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">group_images_by_label</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">label_arr</span></em>, <em class="sig-param"><span class="n">gid_arr</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#group_images_by_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.group_images_by_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input: Length N list of labels and ids
 Output: Length M list of unique labels, and lenth M list of lists of ids</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.meanshift_cluster_occurrences">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">meanshift_cluster_occurrences</code><span class="sig-paren">(</span><em>X_data</em>, <em>quantile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#meanshift_cluster_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.meanshift_cluster_occurrences" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">meanshift_cluster_occurrences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X_data</span></em>, <em class="sig-param"><span class="n">quantile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#meanshift_cluster_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.meanshift_cluster_occurrences" title="Permalink to this definition">¶</a></dt>
 <dd><p>Meanshift occurrence clustering algorithm</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>X_data</strong> (<em>ndarray</em>) – Length N array of data to cluster</li>
-<li><strong>quantile</strong> (<em>float</em>) – quantile should be between [0, 1].
-eg: quantile=.5 represents the median of all pairwise distances</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_data</strong> (<em>ndarray</em>) – Length N array of data to cluster</p></li>
+<li><p><strong>quantile</strong> (<em>float</em>) – quantile should be between [0, 1].
+eg: quantile=.5 represents the median of all pairwise distances</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Length N array of labels</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia.algo.preproc.preproc_occurrence –exec-meanshift_cluster_occurrences</dd>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Length N array of labels</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.preproc_occurrence –exec-meanshift_cluster_occurrences</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">quantile</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">meanshift_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">quantile</span><span class="p">)</span>
@@ -629,26 +588,25 @@ eg: quantile=.5 represents the median of all pairwise distances</li>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.plot_gps_html">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">plot_gps_html</code><span class="sig-paren">(</span><em>gps_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#plot_gps_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.plot_gps_html" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">plot_gps_html</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gps_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#plot_gps_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.plot_gps_html" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots gps coordinates on a map projection</p>
-<dl class="docutils">
-<dt>InstallBasemap:</dt>
-<dd><p class="first">sudo apt-get install libgeos-dev
+<dl>
+<dt>InstallBasemap:</dt><dd><p>sudo apt-get install libgeos-dev
 pip install git+https://github.com/matplotlib/basemap
 http://matplotlib.org/basemap/users/examples.html</p>
 <p>pip install gmplot</p>
-<p class="last">sudo apt-get install netcdf-bin
+<p>sudo apt-get install netcdf-bin
 sudo apt-get install libnetcdf-dev
 pip install netCDF4</p>
 </dd>
-<dt>Ignore:</dt>
-<dd>pip install git+git://github.com/myuser/foo.git&#64;v123</dd>
+<dt>Ignore:</dt><dd><p>pip install git+git://github.com/myuser/foo.git&#64;v123</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
@@ -666,13 +624,13 @@ pip install netCDF4</p>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.prepare_X_data">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">prepare_X_data</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>use_gps=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#prepare_X_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.prepare_X_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">prepare_X_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">gid_list</span></em>, <em class="sig-param"><span class="n">use_gps</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#prepare_X_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.prepare_X_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Splits data into groups with/without gps and time</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
@@ -687,125 +645,112 @@ pip install netCDF4</p>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.testdata_gps">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">testdata_gps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#testdata_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.testdata_gps" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">testdata_gps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#testdata_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.testdata_gps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple data to test GPS algorithm.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nx1 matrix denoting groundtruth locations
-X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">X_name (ndarray)</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Nx1 matrix denoting groundtruth locations
+X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>X_name (ndarray)</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.timespace_distance">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">timespace_distance</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#timespace_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.timespace_distance" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">timespace_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pt1</span></em>, <em class="sig-param"><span class="n">pt2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#timespace_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.timespace_distance" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.timespace_pdist">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">timespace_pdist</code><span class="sig-paren">(</span><em>X_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#timespace_pdist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.timespace_pdist" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">timespace_pdist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#timespace_pdist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.timespace_pdist" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_occurrence.wbia_compute_occurrences">
-<code class="descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="descname">wbia_compute_occurrences</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>config=None</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#wbia_compute_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.wbia_compute_occurrences" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_occurrence.</code><code class="sig-name descname">wbia_compute_occurrences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">gid_list</span></em>, <em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#wbia_compute_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.wbia_compute_occurrences" title="Permalink to this definition">¶</a></dt>
 <dd><p>clusters occurrences togethers (by time, not yet space)
 An occurrence is a meeting, localized in time and space between a camera
 and a group of animals.
 Animals are identified within each occurrence.</p>
 <p>Does not modify database state, just returns cluster ids</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</li>
-<li><strong>gid_list</strong> (<em>list</em>) – </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<a class="reference internal" href="wbia.control.html#wbia.control.IBEISControl.IBEISController" title="wbia.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – wbia controller object</p></li>
+<li><p><strong>gid_list</strong> (<em>list</em>) – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(None, None)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m wbia –tf wbia_compute_occurrences:0 –show
-TODO: FIXME: good example of autogen doctest return failure</dd>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(None, None)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia –tf wbia_compute_occurrences:0 –show
+TODO: FIXME: good example of autogen doctest return failure</p>
+</dd>
 </dl>
 </dd></dl>
 
 </div>
 <div class="section" id="module-wbia.algo.preproc.preproc_residual">
 <span id="wbia-algo-preproc-preproc-residual-module"></span><h2>wbia.algo.preproc.preproc_residual module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_residual" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_residual.add_residual_params_gen">
-<code class="descclassname">wbia.algo.preproc.preproc_residual.</code><code class="descname">add_residual_params_gen</code><span class="sig-paren">(</span><em>ibs</em>, <em>fid_list</em>, <em>qreq_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_residual.html#add_residual_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_residual.add_residual_params_gen" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_residual.</code><code class="sig-name descname">add_residual_params_gen</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">fid_list</span></em>, <em class="sig-param"><span class="n">qreq_</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_residual.html#add_residual_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_residual.add_residual_params_gen" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_residual.on_delete">
-<code class="descclassname">wbia.algo.preproc.preproc_residual.</code><code class="descname">on_delete</code><span class="sig-paren">(</span><em>ibs</em>, <em>featweight_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_residual.html#on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_residual.on_delete" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_residual.</code><code class="sig-name descname">on_delete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">featweight_rowid_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_residual.html#on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_residual.on_delete" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-wbia.algo.preproc.preproc_rvec">
 <span id="wbia-algo-preproc-preproc-rvec-module"></span><h2>wbia.algo.preproc.preproc_rvec module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_rvec" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_rvec.add_rvecs_params_gen">
-<code class="descclassname">wbia.algo.preproc.preproc_rvec.</code><code class="descname">add_rvecs_params_gen</code><span class="sig-paren">(</span><em>ibs</em>, <em>nInput=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_rvec.html#add_rvecs_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_rvec.add_rvecs_params_gen" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_rvec.</code><code class="sig-name descname">add_rvecs_params_gen</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">nInput</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_rvec.html#add_rvecs_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_rvec.add_rvecs_params_gen" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.preproc_rvec.generate_rvecs">
-<code class="descclassname">wbia.algo.preproc.preproc_rvec.</code><code class="descname">generate_rvecs</code><span class="sig-paren">(</span><em>vecs_list</em>, <em>words</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_rvec.html#generate_rvecs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_rvec.generate_rvecs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.preproc_rvec.</code><code class="sig-name descname">generate_rvecs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vecs_list</span></em>, <em class="sig-param"><span class="n">words</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_rvec.html#generate_rvecs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_rvec.generate_rvecs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-wbia.algo.preproc">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wbia.algo.preproc" title="Permalink to this headline">¶</a></h2>
-<dl class="data">
+<dl class="py data">
 <dt id="wbia.algo.preproc.IMPORT_TUPLES">
-<code class="descclassname">wbia.algo.preproc.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('preproc_annot', None), ('preproc_image', None), ('preproc_occurrence', None), ('preproc_residual', None), ('preproc_rvec', None)]</em><a class="headerlink" href="#wbia.algo.preproc.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
-<dd><p>cd /home/joncrall/code/wbia/wbia/algo/preproc
+<code class="sig-prename descclassname">wbia.algo.preproc.</code><code class="sig-name descname">IMPORT_TUPLES</code><em class="property"> = [('preproc_annot', None), ('preproc_image', None), ('preproc_occurrence', None), ('preproc_residual', None), ('preproc_rvec', None)]</em><a class="headerlink" href="#wbia.algo.preproc.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<dd><p>Regen Command:
+cd /home/joncrall/code/wbia/wbia/algo/preproc
 makeinit.py –modname=wbia.algo.preproc –write</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">Regen Command</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.reassign_submodule_attributes">
-<code class="descclassname">wbia.algo.preproc.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.</code><code class="sig-name descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
 <dd><p>why reloading all the modules doesnt do this I don’t know</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.reload_subs">
-<code class="descclassname">wbia.algo.preproc.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.reload_subs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.</code><code class="sig-name descname">reload_subs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.algo.preproc.reload_subs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reloads wbia.algo.preproc and submodules</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="wbia.algo.preproc.rrrr">
-<code class="descclassname">wbia.algo.preproc.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.preproc.rrrr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.algo.preproc.</code><code class="sig-name descname">rrrr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.preproc.rrrr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reloads wbia.algo.preproc and submodules</p>
 </dd></dl>
 
@@ -862,7 +807,7 @@ makeinit.py –modname=wbia.algo.preproc –write</p>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.dev">wbia.dev</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.filter_configs">wbia.filter_configs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.images">wbia.images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.main_module">wbia.main_module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.html#wbia-main-module">wbia.main_module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.params">wbia.params</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-wbia.tag_funcs">wbia.tag_funcs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#module-contents">Module contents</a></li>
@@ -884,17 +829,15 @@ makeinit.py –modname=wbia.algo.preproc –write</p>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -911,7 +854,7 @@ makeinit.py –modname=wbia.algo.preproc –write</p>
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

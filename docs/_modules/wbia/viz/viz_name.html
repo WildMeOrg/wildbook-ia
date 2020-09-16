@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.viz.viz_name &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,16 +33,17 @@
             
   <h1>Source code for wbia.viz.viz_name</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool.draw_func2</span> <span class="k">as</span> <span class="nn">df2</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_chip</span>
+<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="show_name_of"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_name.show_name_of">[docs]</a><span class="k">def</span> <span class="nf">show_name_of</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -149,8 +149,8 @@
         <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">chips</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="n">in_image</span> <span class="ow">or</span> <span class="n">annote</span><span class="p">),</span> <span class="n">feats</span><span class="o">=</span><span class="n">annote</span>
     <span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_name] * annot_vuuid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_name] * aid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">aid_list</span><span class="p">,)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_name] * annot_vuuid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_name] * aid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">aid_list</span><span class="p">,)))</span>
 
     <span class="n">DOBOTH</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--doboth&#39;</span><span class="p">)</span>
 
@@ -164,16 +164,16 @@
     <span class="n">show_chip_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">notitle</span><span class="o">=</span><span class="n">notitle</span><span class="p">,</span> <span class="n">draw_lbls</span><span class="o">=</span><span class="n">draw_lbls</span>
     <span class="p">)</span>
-    <span class="c1"># print(&#39;[viz_name] * r=%r, c=%r&#39; % (nRows, nCols))</span>
+    <span class="c1"># logger.info(&#39;[viz_name] * r=%r, c=%r&#39; % (nRows, nCols))</span>
     <span class="c1"># gs2 = gridspec.GridSpec(nRows, nCols)</span>
     <span class="n">pnum_</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
     <span class="n">ax_list1</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">px</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;px = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">px</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;px = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">px</span><span class="p">,))</span>
         <span class="n">_fig</span><span class="p">,</span> <span class="n">_ax1</span> <span class="o">=</span> <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="o">**</span><span class="n">show_chip_kw</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;other_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_contact_aids</span><span class="p">(</span><span class="n">aid</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;other_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_contact_aids</span><span class="p">(</span><span class="n">aid</span><span class="p">),))</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
         <span class="n">ax_list1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_ax1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">sel_aids</span><span class="p">:</span>
@@ -227,8 +227,8 @@
 
             <span class="c1"># invTransFigure_fn1 = fig.transFigure.inverted().transform</span>
             <span class="c1"># invTransFigure_fn2 = fig.transFigure.inverted().transform</span>
-            <span class="c1"># print(ax_list1)</span>
-            <span class="c1"># print(ax_list2)</span>
+            <span class="c1"># logger.info(ax_list1)</span>
+            <span class="c1"># logger.info(ax_list2)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax_list1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax_list2</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ax_list1</span><span class="p">,</span> <span class="n">ax_list2</span><span class="p">):</span>
@@ -240,9 +240,9 @@
                 <span class="c1"># if bbox1[-1] &lt; 0:</span>
                 <span class="c1">#    # Weird bug</span>
                 <span class="c1">#    bbox1 = bbox1[1]</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ax1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ax2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ax2</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ax1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ax2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ax2</span><span class="p">,))</span>
                 <span class="n">chipshape</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="s1">&#39;chipshape&#39;</span><span class="p">)</span>
                 <span class="c1"># _bbox1 = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())</span>
                 <span class="c1"># bbox1 = (0, 0, _bbox1.width * fig.dpi, _bbox1.height * fig.dpi)</span>
@@ -254,21 +254,21 @@
                 <span class="n">annotation_bbox_list</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="s1">&#39;annotation_bbox_list&#39;</span><span class="p">)</span>
                 <span class="n">bbox2</span> <span class="o">=</span> <span class="n">annotation_bbox_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;bbox1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox1</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;bbox2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox2</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;bbox1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox1</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;bbox2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox2</span><span class="p">,))</span>
 
                 <span class="n">vert_list1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">verts_from_bbox</span><span class="p">(</span><span class="n">bbox1</span><span class="p">))</span>
                 <span class="n">vert_list2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">verts_from_bbox</span><span class="p">(</span><span class="n">bbox2</span><span class="p">))</span>
 
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;vert_list1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vert_list1</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;vert_list2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vert_list2</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;vert_list1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vert_list1</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;vert_list2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vert_list2</span><span class="p">,))</span>
                 <span class="c1"># for vx in [0, 1, 2, 3]:</span>
                 <span class="k">for</span> <span class="n">vx</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
                     <span class="n">vert1</span> <span class="o">=</span> <span class="n">vert_list1</span><span class="p">[</span><span class="n">vx</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
                     <span class="n">vert2</span> <span class="o">=</span> <span class="n">vert_list2</span><span class="p">[</span><span class="n">vx</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  ***&#39;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  * vert1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vert1</span><span class="p">,))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  * vert2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vert2</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  ***&#39;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  * vert1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vert1</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  * vert2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vert2</span><span class="p">,))</span>
 
                     <span class="n">coordsA</span> <span class="o">=</span> <span class="n">coordsB</span> <span class="o">=</span> <span class="s1">&#39;data&#39;</span>
                     <span class="c1"># coords = &#39;axes points&#39;</span>
@@ -316,18 +316,18 @@
                 <span class="c1"># coord_bl1 = transFigure.transform(transAxes1.transform(bottom_left1))</span>
                 <span class="c1"># coord_br1 = transFigure.transform(transAxes1.transform(bottom_right1))</span>
                 <span class="c1"># coord_bl1 = invTransFigure_fn1(transAxes1_fn(bottom_left1))</span>
-                <span class="c1"># print(&#39;bottom_left2 = %r&#39; % (bottom_left2,))</span>
+                <span class="c1"># logger.info(&#39;bottom_left2 = %r&#39; % (bottom_left2,))</span>
                 <span class="c1"># coord_bl1 = (5, 5)</span>
                 <span class="c1"># coord_bl2 = invTransFigure_fn2(transAxes2_fn(bottom_left2))</span>
-                <span class="c1"># print(&#39;coord_bl2 = %r&#39; % (coord_bl2,))</span>
+                <span class="c1"># logger.info(&#39;coord_bl2 = %r&#39; % (coord_bl2,))</span>
 
                 <span class="c1"># coord_br1 = invTransFigure_fn1(transAxes1_fn(bottom_right1))</span>
                 <span class="c1"># coord_br2 = invTransFigure_fn2(transAxes2_fn(bottom_right2))</span>
-                <span class="c1"># #print(&#39;coord_bl1 = %r&#39; % (coord_bl1,))</span>
+                <span class="c1"># #logger.info(&#39;coord_bl1 = %r&#39; % (coord_bl1,))</span>
 
                 <span class="c1"># line_coords1 = np.vstack([coord_bl1, coord_bl2])</span>
                 <span class="c1"># line_coords2 = np.vstack([coord_br1, coord_br2])</span>
-                <span class="c1"># print(&#39;line_coords1 = %r&#39; % (line_coords1,))</span>
+                <span class="c1"># logger.info(&#39;line_coords1 = %r&#39; % (line_coords1,))</span>
 
                 <span class="c1"># line1 = mpl.lines.Line2D((line_coords1[0]), (line_coords1[1]), transform=fig.transFigure)</span>
                 <span class="c1"># line2 = mpl.lines.Line2D((line_coords2[0]), (line_coords2[1]), transform=fig.transFigure)</span>
@@ -338,8 +338,8 @@
                 <span class="c1"># linekw = dict(transform=fig.transFigure)</span>
                 <span class="c1"># linekw = dict()</span>
 
-                <span class="c1"># print(&#39;xs1 = %r&#39; % (xs1,))</span>
-                <span class="c1"># print(&#39;ys1 = %r&#39; % (ys1,))</span>
+                <span class="c1"># logger.info(&#39;xs1 = %r&#39; % (xs1,))</span>
+                <span class="c1"># logger.info(&#39;ys1 = %r&#39; % (ys1,))</span>
 
                 <span class="c1"># line1 = mpl.lines.Line2D(xs1, ys1, **linekw)</span>
                 <span class="c1"># line2 = mpl.lines.Line2D(xs2, ys2, **linekw)  # NOQA</span>
@@ -397,7 +397,7 @@
 <span class="sd">        &gt;&gt;&gt; show_name(ibs, nid, in_image, fnum, sel_aids, subtitle, annote, index_list=index_list)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[viz_name] show_name nid=</span><span class="si">%r</span><span class="s1">, index_list=</span><span class="si">%r</span><span class="s1">, aid_list=</span><span class="si">%r</span><span class="s1">&#39;</span>
         <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">index_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="p">)</span>
@@ -410,7 +410,7 @@
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">index_list</span><span class="p">)</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">((</span><span class="n">nid</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_name] * name=</span><span class="si">%r</span><span class="s1"> aid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_name] * name=</span><span class="si">%r</span><span class="s1"> aid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">))</span>
 
     <span class="n">show_multiple_chips</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span>
@@ -437,21 +437,6 @@
     <span class="c1"># gs2.tight_layout(fig)</span>
     <span class="c1"># gs2.update(top=df2.TOP_SUBPLOT_ADJUST)</span>
     <span class="c1"># df2.set_figtitle(title, subtitle)</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.viz.viz_name</span>
-<span class="sd">        python -m wbia.viz.viz_name --allexamples</span>
-<span class="sd">        python -m wbia.viz.viz_name --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -489,17 +474,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -516,7 +499,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

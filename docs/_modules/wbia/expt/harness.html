@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.expt.harness &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -37,15 +36,16 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Runs many queries and keeps track of some results</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">textwrap</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="k">import</span> <span class="n">experiment_helpers</span>
-<span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="k">import</span> <span class="n">test_result</span>
+<span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
+<span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">test_result</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">NOMEMORY</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nomemory&#39;</span><span class="p">)</span>
 <span class="n">TESTRES_VERBOSITY</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">)</span>
@@ -98,7 +98,7 @@
 <span class="sd">        &gt;&gt;&gt; use_cache = False</span>
 <span class="sd">        &gt;&gt;&gt; testres_list = run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[harn] run_expt&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[harn] run_expt&#39;</span><span class="p">)</span>
     <span class="c1"># Generate list of database annotation configurations</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must give acfg name list&#39;</span><span class="p">)</span>
@@ -156,7 +156,7 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;[harness] No database annotas specified&#39;</span>
         <span class="n">acfg</span> <span class="o">=</span> <span class="n">acfg_list</span><span class="p">[</span><span class="n">acfgx</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">---Annot config testnameid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">testnameid</span><span class="p">,),</span> <span class="s1">&#39;turquoise&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">---Annot config testnameid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">testnameid</span><span class="p">,),</span> <span class="s1">&#39;brightcyan&#39;</span><span class="p">)</span>
         <span class="n">subindexer_partial</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span>
             <span class="n">parent_index</span><span class="o">=</span><span class="n">acfgx</span><span class="p">,</span> <span class="n">parent_length</span><span class="o">=</span><span class="n">nAcfg</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span>
         <span class="p">)</span>
@@ -178,12 +178,12 @@
         <span class="n">testres_</span><span class="o">.</span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">test_cfg_name_list</span>
         <span class="n">testres_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testres_</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">DRY_RUN</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DRYRUN: Cannot continue past run_expt&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DRYRUN: Cannot continue past run_expt&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="n">testres</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">combine_testres_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres_list</span><span class="p">)</span>
     <span class="c1"># testres.print_results()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Returning Test Result&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Returning Test Result&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">testres</span></div>
 
 
@@ -211,7 +211,7 @@
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
 
     <span class="c1"># if ut.NOT_QUIET:</span>
-    <span class="c1">#     print(&#39;[harn] Make single testres&#39;)</span>
+    <span class="c1">#     logger.info(&#39;[harn] Make single testres&#39;)</span>
 
     <span class="n">cfgx2_qreq_</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">query_cfg</span><span class="o">=</span><span class="n">pipe_cfg</span><span class="p">)</span>
@@ -234,7 +234,9 @@
             <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;[harn] single testres cache hit... returning&#39;</span><span class="p">,</span> <span class="s1">&#39;turquoise&#39;</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span>
+                    <span class="s1">&#39;[harn] single testres cache hit... returning&#39;</span><span class="p">,</span> <span class="s1">&#39;brightcyan&#39;</span>
+                <span class="p">)</span>
             <span class="k">return</span> <span class="n">testres</span>
 
     <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">:</span>
@@ -254,8 +256,9 @@
             <span class="s1">&#39;annot_cfgstr = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_input</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="kc">False</span><span class="p">),),</span>
             <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;pipe_cfgstr= </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_data</span><span class="o">=</span><span class="kc">False</span><span class="p">),),</span> <span class="s1">&#39;turquoise&#39;</span><span class="p">)</span>
-        <span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;pipe_hashstr = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_pipe_hashid</span><span class="p">(),),</span> <span class="s1">&#39;teal&#39;</span><span class="p">)</span>
+        <span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;pipe_cfgstr= </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_data</span><span class="o">=</span><span class="kc">False</span><span class="p">),),</span> <span class="s1">&#39;brightcyan&#39;</span><span class="p">)</span>
+
+        <span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;pipe_hashstr = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_pipe_hashid</span><span class="p">(),),</span> <span class="s1">&#39;cyan&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">DRY_RUN</span><span class="p">:</span>
             <span class="k">continue</span>
 
@@ -306,10 +309,10 @@
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;[harn] Completed running test configurations&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">DRY_RUN</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ran tests dryrun mode.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ran tests dryrun mode.&#39;</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="k">if</span> <span class="n">NOMEMORY</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ran tests in memory savings mode. Cannot Print. exiting&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ran tests in memory savings mode. Cannot Print. exiting&#39;</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="c1"># Store all pipeline config results in a test result object</span>
     <span class="n">testres</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">TestResult</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">,</span> <span class="n">cfgx2_cmsinfo</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">)</span>
@@ -325,20 +328,6 @@
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
                 <span class="k">raise</span>
     <span class="k">return</span> <span class="n">testres</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.expt.harness</span>
-<span class="sd">        python -m wbia.expt.harness --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -376,17 +365,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -403,7 +390,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

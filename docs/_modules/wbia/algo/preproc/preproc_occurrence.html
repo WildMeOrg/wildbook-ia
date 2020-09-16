@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.preproc.preproc_occurrence &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -34,16 +33,17 @@
             
   <h1>Source code for wbia.algo.preproc.preproc_occurrence</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">distance</span>
 <span class="kn">import</span> <span class="nn">scipy.cluster.hierarchy</span>
 <span class="kn">import</span> <span class="nn">sklearn.cluster</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[preproc_occurrence]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="wbia_compute_occurrences"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.wbia_compute_occurrences">[docs]</a><span class="k">def</span> <span class="nf">wbia_compute_occurrences</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -123,13 +123,13 @@
     <span class="c1"># Config info</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[occur] Computing occurrences on </span><span class="si">%r</span><span class="s1"> images.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[occur] config = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[occur] Computing occurrences on </span><span class="si">%r</span><span class="s1"> images.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[occur] config = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
 
     <span class="n">use_gps</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;use_gps&#39;</span><span class="p">]</span>
     <span class="n">datas</span> <span class="o">=</span> <span class="n">prepare_X_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">use_gps</span><span class="o">=</span><span class="n">use_gps</span><span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="k">import</span> <span class="n">occurrence_blackbox</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="kn">import</span> <span class="n">occurrence_blackbox</span>
 
     <span class="n">cluster_algo</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cluster_algo&#39;</span><span class="p">,</span> <span class="s1">&#39;agglomerative&#39;</span><span class="p">)</span>
     <span class="n">km_per_sec</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;km_per_sec&#39;</span><span class="p">,</span> <span class="n">occurrence_blackbox</span><span class="o">.</span><span class="n">KM_PER_SEC</span><span class="p">)</span>
@@ -171,9 +171,9 @@
         <span class="n">labels</span><span class="p">,</span> <span class="n">label_gids</span><span class="p">,</span> <span class="n">min_imgs_per_occurence</span><span class="p">,</span> <span class="n">occur_unixtimes</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[occur] Found </span><span class="si">%d</span><span class="s1"> clusters.&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">occur_labels</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[occur] Found </span><span class="si">%d</span><span class="s1"> clusters.&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">occur_labels</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_gids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[occur] Cluster image size stats:&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[occur] Cluster image size stats:&#39;</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)),</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_sum</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="s1">&#39;occur image stats&#39;</span><span class="p">,</span>
@@ -184,7 +184,7 @@
 <div class="viewcode-block" id="compute_occurrence_unixtime"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.compute_occurrence_unixtime">[docs]</a><span class="k">def</span> <span class="nf">compute_occurrence_unixtime</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">):</span>
     <span class="c1"># assert isinstance(ibs, IBEISController)</span>
     <span class="c1"># TODO: account for -1</span>
-    <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
+    <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 
     <span class="n">unixtimes</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span>
     <span class="n">time_arrs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">unixtimes</span><span class="p">))</span>
@@ -575,26 +575,26 @@
     <span class="c1"># from mpl_toolkits.basemap import shiftgrid, cm  # NOQA</span>
     <span class="c1"># from netCDF4 import Dataset</span>
     <span class="c1"># # Read information to make background pretty</span>
-    <span class="c1"># print(&#39;Grab topo information&#39;)</span>
+    <span class="c1"># logger.info(&#39;Grab topo information&#39;)</span>
     <span class="c1"># etopodata = Dataset(&#39;http://ferret.pmel.noaa.gov/thredds/dodsC/data/PMEL/etopo5.nc&#39;)</span>
-    <span class="c1"># print(&#39;Read topo information&#39;)</span>
+    <span class="c1"># logger.info(&#39;Read topo information&#39;)</span>
     <span class="c1"># topoin = etopodata.variables[&#39;ROSE&#39;][:]</span>
     <span class="c1"># lons = etopodata.variables[&#39;ETOPO05_X&#39;][:]</span>
     <span class="c1"># lats = etopodata.variables[&#39;ETOPO05_Y&#39;][:]</span>
     <span class="c1"># # shift data so lons go from -180 to 180 instead of 20 to 380.</span>
-    <span class="c1"># print(&#39;Shift data&#39;)</span>
+    <span class="c1"># logger.info(&#39;Shift data&#39;)</span>
     <span class="c1"># topoin, lons = shiftgrid(180., topoin, lons, start=False)</span>
 
-    <span class="c1"># print(&#39;Make figure&#39;)</span>
+    <span class="c1"># logger.info(&#39;Make figure&#39;)</span>
     <span class="c1"># fnum = pt.ensure_fnum(None)</span>
     <span class="c1"># fig = pt.figure(fnum=fnum, doclf=True, docla=True)  # NOQA</span>
-    <span class="c1"># print(&#39;Draw projection&#39;)</span>
+    <span class="c1"># logger.info(&#39;Draw projection&#39;)</span>
     <span class="c1"># m = Basemap(projection=&#39;mill&#39;, **basemap_extent)</span>
     <span class="c1"># # setup Lambert Conformal basemap.</span>
     <span class="c1"># #m = Basemap(projection=&#39;cea&#39;,resolution=&#39;h&#39;, **basemap_extent)</span>
 
     <span class="c1"># # transform to nx x ny regularly spaced 5km native projection grid</span>
-    <span class="c1"># print(&#39;projection grid&#39;)</span>
+    <span class="c1"># logger.info(&#39;projection grid&#39;)</span>
     <span class="c1"># nx = int((m.xmax - m.xmin) / 5000.) + 1</span>
     <span class="c1"># ny = int((m.ymax - m.ymin) / 5000.) + 1</span>
     <span class="c1"># topodat = m.transform_scalar(topoin, lons, lats, nx, ny)</span>
@@ -628,18 +628,6 @@
     <span class="c1"># fig.zoom_fac = pt.zoom_factory()</span>
     <span class="c1"># fig.pan_fac = pt.pan_factory()</span>
     <span class="c1"># fig.show()</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python -m wbia.algo.preproc.preproc_occurrence</span>
-<span class="sd">    python -m wbia.algo.preproc.preproc_occurrence --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -679,17 +667,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -706,7 +692,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.control.DB_SCHEMA &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -49,23 +48,25 @@
 <span class="sd">CommandLine:</span>
 <span class="sd">    python -m wbia.control.DB_SCHEMA --test-autogen_db_schema</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_sql_helpers</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
+<span class="kn">from</span> <span class="nn">wbia.dtool.dump</span> <span class="kn">import</span> <span class="n">dumps</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">DB_SCHEMA_CURRENT</span>
+    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA_CURRENT</span>
 
     <span class="n">UPDATE_CURRENT</span> <span class="o">=</span> <span class="n">DB_SCHEMA_CURRENT</span><span class="o">.</span><span class="n">update_current</span>
     <span class="n">VERSION_CURRENT</span> <span class="o">=</span> <span class="n">DB_SCHEMA_CURRENT</span><span class="o">.</span><span class="n">VERSION_CURRENT</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
     <span class="n">UPDATE_CURRENT</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">VERSION_CURRENT</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!&#39;</span><span class="p">)</span>
 
 <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">profile</span>
 
@@ -312,12 +313,12 @@
 
 <div class="viewcode-block" id="post_1_0_0"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.DB_SCHEMA.post_1_0_0">[docs]</a><span class="k">def</span> <span class="nf">post_1_0_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># We are dropping the versions table and rather using the metadata table</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;applying post_1_0_0&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;applying post_1_0_0&#39;</span><span class="p">)</span>
     <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="post_1_2_0"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.DB_SCHEMA.post_1_2_0">[docs]</a><span class="k">def</span> <span class="nf">post_1_2_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;applying post_1_2_0&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;applying post_1_2_0&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">schema_1_2_0_postprocess_fixuuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -457,7 +458,7 @@
         <span class="p">),</span> <span class="s1">&#39;cannot update to 1_2_0 species length error&#39;</span>
 
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">(</span><span class="n">speciesid_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... returning No information in lblannot table to transfer&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... returning No information in lblannot table to transfer&#39;</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="c1"># Make sure information has not gotten out of sync</span>
@@ -488,14 +489,14 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_rowid_constants</span><span class="p">()</span>
         <span class="n">schema_1_2_0_postprocess_fixuuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;warning: ibs is None, so cannot apply name/species column fixes to existing database&#39;</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="post_1_2_1"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.DB_SCHEMA.post_1_2_1">[docs]</a><span class="k">def</span> <span class="nf">post_1_2_1</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;applying post_1_2_1&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;applying post_1_2_1&#39;</span><span class="p">)</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
         <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -727,7 +728,7 @@
                 <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">dupxs</span><span class="p">)</span>
                 <span class="n">dupaids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aids</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
             <span class="n">toremove_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dupaids_list</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;About to delete toremove_aids=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">toremove_aids</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;About to delete toremove_aids=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">toremove_aids</span><span class="p">,))</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">toremove_aids</span><span class="p">)</span>
 
             <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_staged</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -1053,7 +1054,7 @@
     <span class="c1">#    val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)</span>
     <span class="c1">#    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)</span>
     <span class="c1">#    ibs.update_annot_visual_uuids(aid_list)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;executing update_1_3_4&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;executing update_1_3_4&#39;</span><span class="p">)</span>
     <span class="n">TAU</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">TAU</span>
 
     <span class="k">def</span> <span class="nf">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">angle</span><span class="p">):</span>
@@ -1084,7 +1085,7 @@
         <span class="n">yaw</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">angle</span> <span class="o">+</span> <span class="p">(</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="o">%</span> <span class="n">TAU</span>
         <span class="k">return</span> <span class="n">yaw</span>
 
-    <span class="kn">from</span> <span class="nn">wbia.dtool.sql_control</span> <span class="k">import</span> <span class="n">SQLDatabaseController</span>
+    <span class="kn">from</span> <span class="nn">wbia.dtool.sql_control</span> <span class="kn">import</span> <span class="n">SQLDatabaseController</span>
 
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">SQLDatabaseController</span><span class="p">)</span>
 
@@ -1454,7 +1455,7 @@
 <span class="sd">        ibs (wbia.IBEISController):</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">tag_funcs</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
 
         <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">()</span>
         <span class="n">id_iter</span> <span class="o">=</span> <span class="n">annotmatch_rowids</span>
@@ -1552,7 +1553,7 @@
             <span class="s1">&#39;seals_spotted&#39;</span><span class="p">:</span> <span class="s1">&#39;seal_spotted&#39;</span><span class="p">,</span>
             <span class="s1">&#39;seals_saimma_ringed&#39;</span><span class="p">:</span> <span class="s1">&#39;seal_saimma_ringed&#39;</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 
         <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
         <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
@@ -1682,14 +1683,14 @@
 
 <div class="viewcode-block" id="post_1_5_2"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.DB_SCHEMA.post_1_5_2">[docs]</a><span class="k">def</span> <span class="nf">post_1_5_2</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
-        <span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_image</span> <span class="k">import</span> <span class="n">parse_exif</span>
-        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">fix_annotation_orientation_issue</span> <span class="k">as</span> <span class="n">faoi</span>
-        <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span>
+        <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="n">parse_exif</span>
+        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">fix_annotation_orientation_issue</span> <span class="k">as</span> <span class="n">faoi</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
 
         <span class="k">def</span> <span class="nf">_parse_orient</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[db_update (1.5.2)]     Parsing: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[db_update (1.5.2)]     Parsing: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,))</span>
             <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>  <span class="c1"># NOQA</span>
             <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">orient</span> <span class="o">=</span> <span class="n">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>  <span class="c1"># Read exif tags</span>
             <span class="k">return</span> <span class="n">orient</span>
@@ -1704,7 +1705,7 @@
         <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">)</span>
         <span class="n">gid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">orient</span> <span class="ow">in</span> <span class="n">zipped</span> <span class="k">if</span> <span class="n">orient</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_all</span><span class="p">),</span> <span class="n">valid_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[db_update (1.5.2)] Parsing Exif orientations for </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> images (skipping </span><span class="si">%d</span><span class="s1">)&#39;</span>
             <span class="o">%</span> <span class="n">args</span>
         <span class="p">)</span>
@@ -1773,7 +1774,7 @@
         <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">where_colnames</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;annotmatch_truth&#39;</span><span class="p">,),</span>
     <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Setting </span><span class="si">%d</span><span class="s1"> old unknown values to NULL&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ams</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting </span><span class="si">%d</span><span class="s1"> old unknown values to NULL&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ams</span><span class="p">)))</span>
     <span class="c1"># if ibs is not None:</span>
     <span class="c1">#     assert ibs.get_dbname() in [&#39;PZ_PB_RF_TRAIN&#39;, &#39;WWF_Lynx&#39;, &#39;EWT_Cheetahs&#39;], (</span>
     <span class="c1">#         &#39;this is a hacked state. to fix bug where EVIDENCE_DECISION.UNKNOWN was 2&#39;)</span>
@@ -1851,7 +1852,7 @@
 
 <div class="viewcode-block" id="post_1_6_4"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.DB_SCHEMA.post_1_6_4">[docs]</a><span class="k">def</span> <span class="nf">post_1_6_4</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
+        <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 
         <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_staged</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="c1"># Get old yaw values</span>
@@ -1935,7 +1936,7 @@
 
 <div class="viewcode-block" id="post_1_7_0"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.DB_SCHEMA.post_1_7_0">[docs]</a><span class="k">def</span> <span class="nf">post_1_7_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
+        <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 
         <span class="n">aids</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
 
@@ -2119,7 +2120,7 @@
 <span class="sd">        ibs.db.set_metadata_val(&#39;contributors_superkeys&#39;, &quot;[(&#39;contributor_tag&#39;,)]&quot;)</span>
 
 <span class="sd">        # Made a mistake</span>
-<span class="sd">        print(ibs.db.get_table_csv_header(&#39;metadata&#39;))</span>
+<span class="sd">        logger.info(ibs.db.get_table_csv_header(&#39;metadata&#39;))</span>
 <span class="sd">        badrowid = ibs.db.get_rowid_from_superkey(&#39;metadata&#39;, [(&#39;contributors_superkey&#39;,)], (&#39;metadata_key&#39;,))</span>
 <span class="sd">        assert len(badrowid) == 1</span>
 <span class="sd">        ibs.db.delete(&#39;metadata&#39;, [badrowid[0]])</span>
@@ -2143,7 +2144,7 @@
     <span class="n">ibs2</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="s1">&#39;1.0.3&#39;</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">ibs2</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">print_schema</span><span class="p">()</span>
     <span class="k">assert</span> <span class="s1">&#39;contributors&#39;</span> <span class="ow">in</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_schema_current_autogeneration_str</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_schema_current_autogeneration_str</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">))</span>
 
     <span class="k">assert</span> <span class="s1">&#39;contributors_superkeys&#39;</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_metadata_items</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span>
 
@@ -2183,8 +2184,8 @@
 <span class="sd">        &gt;&gt;&gt; from wbia.control.DB_SCHEMA import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; autogen_db_schema()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">DB_SCHEMA</span>
-    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">_sql_helpers</span>
+    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA</span>
+    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
 
     <span class="n">n</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">schema_spec</span> <span class="o">=</span> <span class="n">DB_SCHEMA</span>
@@ -2197,32 +2198,19 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m wbia.control.DB_SCHEMA dump_schema_sql</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span> <span class="k">as</span> <span class="n">dt</span>
-    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">DB_SCHEMA_CURRENT</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span> <span class="k">as</span> <span class="n">dt</span>
+    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA_CURRENT</span>
 
-    <span class="n">db</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">fpath</span><span class="o">=</span><span class="s1">&#39;:memory:&#39;</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="s1">&#39;:memory:&#39;</span><span class="p">)</span>
     <span class="n">DB_SCHEMA_CURRENT</span><span class="o">.</span><span class="n">update_current</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
-    <span class="n">dump_str</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">dump_to_string</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">dump_str</span><span class="p">)</span>
+    <span class="n">dump_str</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">dump_str</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">():</span>
         <span class="n">autogen_dict</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_autogen_dict</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
         <span class="n">coldef_list</span> <span class="o">=</span> <span class="n">autogen_dict</span><span class="p">[</span><span class="s1">&#39;coldef_list&#39;</span><span class="p">]</span>
         <span class="n">str_</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">_make_add_table_sqlstr</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">coldef_list</span><span class="o">=</span><span class="n">coldef_list</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">    &#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python -m wbia.algo.preproc.preproc_chip</span>
-<span class="sd">    python -m wbia.control.DB_SCHEMA --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -2260,17 +2248,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -2287,7 +2273,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

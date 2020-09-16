@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.viz.interact.interact_chip &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -41,16 +40,17 @@
 <span class="sd">CommandLine:</span>
 <span class="sd">    python -m wbia.viz.interact.interact_chip --test-ishow_chip --show --aid 2</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">viz</span>
-<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">viz</span>
+<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="interact_multichips"><a class="viewcode-back" href="../../../../wbia.viz.interact.html#wbia.viz.interact.interact_chip.interact_multichips">[docs]</a><span class="k">def</span> <span class="nf">interact_multichips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -181,9 +181,9 @@
         <span class="k">def</span> <span class="nf">_wrp</span><span class="p">():</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">refresh_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no refresh func&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;no refresh func&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;calling refresh_func=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refresh_func</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;calling refresh_func=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refresh_func</span><span class="p">,))</span>
                 <span class="n">refresh_func</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">ret</span>
 
@@ -202,14 +202,14 @@
     <span class="nd">@refresh_wrp</span>
     <span class="k">def</span> <span class="nf">toggle_exemplar_func</span><span class="p">():</span>
         <span class="n">new_flag</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">is_exemplar</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;set_annot_exemplar(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">new_flag</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;set_annot_exemplar(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">new_flag</span><span class="p">))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">new_flag</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">set_viewpoint_func</span><span class="p">(</span><span class="n">view_code</span><span class="p">):</span>
         <span class="c1"># @refresh_wrp()</span>
         <span class="k">def</span> <span class="nf">_wrap_view</span><span class="p">():</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoint_codes</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">view_code</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;set_annot_yaw(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">view_code</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;set_annot_yaw(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">view_code</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">_wrap_view</span>
 
@@ -217,7 +217,7 @@
         <span class="c1"># @refresh_wrp()</span>
         <span class="k">def</span> <span class="nf">_wrp_qual</span><span class="p">():</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_quality_texts</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">qualtext</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;set_annot_quality(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">qualtext</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;set_annot_quality(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">qualtext</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">_wrp_qual</span>
 
@@ -225,7 +225,7 @@
         <span class="c1"># @refresh_wrp()</span>
         <span class="k">def</span> <span class="nf">_wrp</span><span class="p">():</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_multiple</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">flag</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;set_annot_multiple(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">flag</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;set_annot_multiple(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">flag</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">_wrp</span>
 
@@ -248,7 +248,7 @@
         <span class="c1">#    (&#39;Interact name&#39;, partial(interact_name.ishow_name, ibs,</span>
         <span class="c1">#                                        nid, fnum=None))</span>
         <span class="c1"># )</span>
-        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_graph2</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_graph2</span>
 
         <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">callback_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -260,7 +260,7 @@
 
     <span class="k">if</span> <span class="n">with_interact_image</span><span class="p">:</span>
         <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="k">import</span> <span class="n">interact_annotations2</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="kn">import</span> <span class="n">interact_annotations2</span>
 
         <span class="n">callback_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="p">(</span>
@@ -270,7 +270,7 @@
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">viz</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">viz</span>
 
         <span class="n">callback_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="p">(</span>
@@ -352,7 +352,7 @@
 
     <span class="n">with_tags</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="n">with_tags</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">tag_funcs</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
 
         <span class="n">case_list</span> <span class="o">=</span> <span class="n">tag_funcs</span><span class="o">.</span><span class="n">get_available_annot_tags</span><span class="p">()</span>
         <span class="n">tags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_case_tags</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
@@ -362,10 +362,12 @@
 
         <span class="k">def</span> <span class="nf">_wrap_set_annot_prop</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">toggle_val</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[SETTING] Clicked set prop=</span><span class="si">%r</span><span class="s1"> to val=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">toggle_val</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;[SETTING] Clicked set prop=</span><span class="si">%r</span><span class="s1"> to val=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">toggle_val</span><span class="p">,)</span>
+                <span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_prop</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">toggle_val</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[SETTING] done&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[SETTING] done&#39;</span><span class="p">)</span>
 
         <span class="n">annot_tag_options</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">case</span><span class="p">,</span> <span class="n">case_hotlink</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">case_list</span><span class="p">,</span> <span class="n">case_hotlink_list</span><span class="p">):</span>
@@ -395,7 +397,7 @@
         <span class="n">name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">newname</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">user_input</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;edit name&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">newname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ctx] _setname_callback aid=</span><span class="si">%r</span><span class="s1"> resp=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">newname</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ctx] _setname_callback aid=</span><span class="si">%r</span><span class="s1"> resp=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">newname</span><span class="p">))</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_texts</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">newname</span><span class="p">])</span>
 
     <span class="n">callback_list</span> <span class="o">+=</span> <span class="p">[(</span><span class="s1">&#39;Set name&#39;</span><span class="p">,</span> <span class="n">_setname_callback</span><span class="p">)]</span>
@@ -412,24 +414,24 @@
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">print_annot_info</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[interact_chip] Annotation Info = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">annot_info</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config2_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config2_</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[interact_chip] Annotation Info = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">annot_info</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config2_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config2_</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config2_.__dict__ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">config2_</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config2_.__dict__ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">config2_</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">),))</span>
 
     <span class="n">dev_callback_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">dev_edit_annot_tags</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ibs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ibs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_text</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">resp</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">user_input</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;edit tags&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">resp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;resp = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resp</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ctx] set_annot_tag_text aid=</span><span class="si">%r</span><span class="s1"> resp=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;resp = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resp</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ctx] set_annot_tag_text aid=</span><span class="si">%r</span><span class="s1"> resp=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
                 <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_tag_text</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">resp</span><span class="p">)</span>
                 <span class="n">new_text</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_text</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new_text = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_text</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;new_text = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_text</span><span class="p">,))</span>
                 <span class="k">assert</span> <span class="n">new_text</span> <span class="o">==</span> <span class="n">resp</span><span class="p">,</span> <span class="s1">&#39;should have had text change&#39;</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;error in dev edit tags&#39;</span><span class="p">)</span>
@@ -440,11 +442,11 @@
         <span class="n">resp</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">user_input</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;edit species&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">resp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;resp = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resp</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ctx] set_annot_tag_text aid=</span><span class="si">%r</span><span class="s1"> resp=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;resp = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resp</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ctx] set_annot_tag_text aid=</span><span class="si">%r</span><span class="s1"> resp=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
                 <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">resp</span><span class="p">)</span>
                 <span class="n">new_text</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new_text = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_text</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;new_text = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_text</span><span class="p">,))</span>
                 <span class="k">assert</span> <span class="n">new_text</span> <span class="o">==</span> <span class="n">resp</span><span class="p">,</span> <span class="s1">&#39;should have had text change&#39;</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;error in dev edit species&#39;</span><span class="p">)</span>
@@ -459,8 +461,8 @@
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
 
         <span class="k">def</span> <span class="nf">dev_debug</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config2_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config2_</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;aid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config2_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config2_</span><span class="p">,))</span>
 
         <span class="k">def</span> <span class="nf">dev_embed</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">):</span>
             <span class="c1"># import wbia.plottool as pt</span>
@@ -486,7 +488,7 @@
 <span class="c1">#        pass</span>
 <span class="c1">#    else:</span>
 <span class="c1">#        viztype = vh.get_ibsdat(ax, &#39;viztype&#39;)</span>
-<span class="c1">#        print(&#39;[ic] viztype=%r&#39; % viztype)</span>
+<span class="c1">#        logger.info(&#39;[ic] viztype=%r&#39; % viztype)</span>
 <span class="c1">#        if viztype == &#39;chip&#39;:</span>
 <span class="c1">#            if event.button == 3:   # right-click</span>
 <span class="c1">#                from wbia.viz.interact import interact_chip</span>
@@ -549,7 +551,7 @@
     <span class="n">mode_ptr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_select_fxth_kpt</span><span class="p">(</span><span class="n">fx</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia.plottool.viz_featrow</span> <span class="k">import</span> <span class="n">draw_feat_row</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool.viz_featrow</span> <span class="kn">import</span> <span class="n">draw_feat_row</span>
 
         <span class="c1"># Get the fx-th keypiont</span>
         <span class="n">chip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
@@ -563,7 +565,7 @@
         <span class="n">draw_feat_row</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_chip_view</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... _chip_view mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... _chip_view mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
 
@@ -574,11 +576,11 @@
         <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s1">&#39;Chip View&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_on_chip_click</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inter] clicked chip&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[inter] clicked chip&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
         <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_outside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">ischild</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... out of axis&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... out of axis&#39;</span><span class="p">)</span>
                 <span class="n">mode_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">mode_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
                 <span class="n">_chip_view</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -604,7 +606,7 @@
                 <span class="c1">#    with_interact_chip=False, config2_=config2_)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">viztype</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ic] viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ic] viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;chip&#39;</span> <span class="ow">and</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;shift&#39;</span><span class="p">:</span>
                     <span class="n">_chip_view</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                     <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">)</span>
@@ -612,10 +614,10 @@
                     <span class="n">kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">fx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">nearest_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">conflict_mode</span><span class="o">=</span><span class="s1">&#39;next&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... clicked fx=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fx</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... clicked fx=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fx</span><span class="p">)</span>
                         <span class="n">_select_fxth_kpt</span><span class="p">(</span><span class="n">fx</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... len(kpts) == 0&#39;</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... len(kpts) == 0&#39;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">viztype</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;warped&#39;</span><span class="p">,</span> <span class="s1">&#39;unwarped&#39;</span><span class="p">]:</span>
                     <span class="n">fx</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;fx&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">fx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;warped&#39;</span><span class="p">:</span>
@@ -623,7 +625,7 @@
                             <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
                         <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...Unknown viztype: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...Unknown viztype: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
 
         <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 
@@ -637,20 +639,6 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ischild</span><span class="p">:</span>
         <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="n">_on_chip_click</span><span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.viz.interact.interact_chip</span>
-<span class="sd">        python -m wbia.viz.interact.interact_chip --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -690,17 +678,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -717,7 +703,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

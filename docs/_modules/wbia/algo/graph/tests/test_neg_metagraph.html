@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.graph.tests.test_neg_metagraph &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
    
@@ -41,10 +40,13 @@
 <span class="sd">Consider moving to pytest and using xdoctest (because regular doctest does not</span>
 <span class="sd">accept the syntax of IBEIS doctests)</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="test_neg_metagraph_simple_add_remove"><a class="viewcode-back" href="../../../../../wbia.algo.graph.tests.html#wbia.algo.graph.tests.test_neg_metagraph.test_neg_metagraph_simple_add_remove">[docs]</a><span class="k">def</span> <span class="nf">test_neg_metagraph_simple_add_remove</span><span class="p">():</span>
@@ -52,22 +54,22 @@
 <span class="sd">    Test that the negative metagraph tracks the number of negative edges</span>
 <span class="sd">    between PCCs through non-label-changing operations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">demo</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">demo</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
 
     <span class="c1"># Create a graph with 5-sized CCs, with 3-pos-redun, and no negative edges</span>
     <span class="n">infr</span> <span class="o">=</span> <span class="n">demo</span><span class="o">.</span><span class="n">demodata_infr</span><span class="p">(</span>
         <span class="n">num_pccs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pcc_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pos_redun</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ignore_pair</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">infer</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
-    <span class="n">cc_a</span><span class="p">,</span> <span class="n">cc_b</span><span class="p">,</span> <span class="n">cc_c</span><span class="p">,</span> <span class="n">cc_d</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">()</span>
+    <span class="n">cc_a</span><span class="p">,</span> <span class="n">cc_b</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">()</span>
     <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a4</span><span class="p">,</span> <span class="n">a5</span> <span class="o">=</span> <span class="n">cc_a</span>
     <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b3</span><span class="p">,</span> <span class="n">b4</span><span class="p">,</span> <span class="n">b5</span> <span class="o">=</span> <span class="n">cc_b</span>
 
     <span class="n">nmg</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">neg_metagraph</span>
 
-    <span class="c1"># Check there are 4 meta-nodes and no edges</span>
+    <span class="c1"># Check there are 2 meta-nodes and no edges</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
-    <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span>
+    <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span>
 
     <span class="c1"># Should add 1 edge to the negative metagraph</span>
     <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">a1</span><span class="p">,</span> <span class="n">b1</span>
@@ -75,7 +77,7 @@
     <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
-    <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span>
+    <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span>
 
     <span class="c1"># Adding a second time should do nothing</span>
     <span class="n">edge</span> <span class="o">=</span> <span class="n">a1</span><span class="p">,</span> <span class="n">b1</span>
@@ -83,7 +85,7 @@
     <span class="n">name_edge</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">name_edge</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
-    <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span>
+    <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span>
 
     <span class="c1"># But adding a second between different nodes will increase the weight</span>
     <span class="n">edge</span> <span class="o">=</span> <span class="n">a1</span><span class="p">,</span> <span class="n">b2</span>
@@ -91,7 +93,7 @@
     <span class="n">name_edge</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">name_edge</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
-    <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span>
+    <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span>
 
     <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">NEGTV</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">name_edge</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
@@ -107,13 +109,14 @@
     <span class="n">infr</span><span class="o">.</span><span class="n">assert_neg_metagraph</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="test_neg_metagraph_merge"><a class="viewcode-back" href="../../../../../wbia.algo.graph.tests.html#wbia.algo.graph.tests.test_neg_metagraph.test_neg_metagraph_merge">[docs]</a><span class="k">def</span> <span class="nf">test_neg_metagraph_merge</span><span class="p">():</span>
+<span class="c1"># FIXME failing-test (22-Jul-2020) This test is failing and it&#39;s not clear how to fix it</span>
+<span class="k">def</span> <span class="nf">_test_neg_metagraph_merge</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test that the negative metagraph tracks the number of negative edges</span>
 <span class="sd">    between PCCs through label-changing merge operations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">demo</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">demo</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
 
     <span class="c1"># Create a graph with 4 CCs, with 3-pos-redun, and no negative edges</span>
     <span class="n">infr</span> <span class="o">=</span> <span class="n">demo</span><span class="o">.</span><span class="n">demodata_infr</span><span class="p">(</span>
@@ -165,7 +168,7 @@
     <span class="c1"># should not have a self-loop weight weight 2</span>
     <span class="c1"># (it decreased because we changed a previously neg edge to pos)</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">edges</span><span class="p">[(</span><span class="n">AB</span><span class="p">,</span> <span class="n">AB</span><span class="p">)][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">nmg</span><span class="o">.</span><span class="n">selfloop_edges</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">selfloop_edges</span><span class="p">(</span><span class="n">nmg</span><span class="p">)))</span> <span class="o">==</span> <span class="mi">1</span>
 
     <span class="c1"># nothing should change between C and D</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">edges</span><span class="p">[(</span><span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">)][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
@@ -194,7 +197,7 @@
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="k">assert</span> <span class="n">nmg</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="n">nmg</span><span class="o">.</span><span class="n">edges</span><span class="p">[(</span><span class="n">ABCD</span><span class="p">,</span> <span class="n">ABCD</span><span class="p">)][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>
-    <span class="n">infr</span><span class="o">.</span><span class="n">assert_neg_metagraph</span><span class="p">()</span></div>
+    <span class="n">infr</span><span class="o">.</span><span class="n">assert_neg_metagraph</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="test_neg_metagraph_split_neg"><a class="viewcode-back" href="../../../../../wbia.algo.graph.tests.html#wbia.algo.graph.tests.test_neg_metagraph.test_neg_metagraph_split_neg">[docs]</a><span class="k">def</span> <span class="nf">test_neg_metagraph_split_neg</span><span class="p">():</span>
@@ -202,8 +205,8 @@
 <span class="sd">    Test that the negative metagraph tracks the number of negative edges</span>
 <span class="sd">    between PCCs through label-changing split operations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">demo</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">demo</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
 
     <span class="c1"># Create a graph with 4 CCs, with 3-pos-redun, and no negative edges</span>
     <span class="n">infr</span> <span class="o">=</span> <span class="n">demo</span><span class="o">.</span><span class="n">demodata_infr</span><span class="p">(</span>
@@ -223,8 +226,8 @@
 
 
 <div class="viewcode-block" id="test_neg_metagraph_split_incomp"><a class="viewcode-back" href="../../../../../wbia.algo.graph.tests.html#wbia.algo.graph.tests.test_neg_metagraph.test_neg_metagraph_split_incomp">[docs]</a><span class="k">def</span> <span class="nf">test_neg_metagraph_split_incomp</span><span class="p">():</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">demo</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">demo</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
 
     <span class="n">infr</span> <span class="o">=</span> <span class="n">demo</span><span class="o">.</span><span class="n">demodata_infr</span><span class="p">(</span>
         <span class="n">num_pccs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">pcc_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pos_redun</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ignore_pair</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">infer</span><span class="o">=</span><span class="kc">True</span>
@@ -246,8 +249,8 @@
 <span class="sd">    Test that the negative metagraph tracks the number of negative edges</span>
 <span class="sd">    between PCCs through label-changing split and merge operations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">demo</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">demo</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
 
     <span class="c1"># Create a graph with 4 CCs, with 3-pos-redun, and no negative edges</span>
     <span class="n">infr</span> <span class="o">=</span> <span class="n">demo</span><span class="o">.</span><span class="n">demodata_infr</span><span class="p">(</span>
@@ -344,17 +347,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -371,7 +372,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

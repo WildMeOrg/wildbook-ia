@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.smk.script_smk &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -199,22 +198,23 @@
 <span class="sd">the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="k">import</span> <span class="n">inverted_index</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="k">import</span> <span class="n">smk_funcs</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="k">import</span> <span class="n">smk_pipeline</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">inverted_index</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">smk_funcs</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">smk_pipeline</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="SMK"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.script_smk.SMK">[docs]</a><span class="k">class</span> <span class="nc">SMK</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">smk</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">smk</span><span class="o">.</span><span class="n">method</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">smk</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;asmk&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">smk</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;asmk&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">smk</span><span class="o">.</span><span class="n">wx_to_weight</span> <span class="o">=</span> <span class="n">wx_to_weight</span>
         <span class="n">smk</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
         <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;asmk&#39;</span><span class="p">:</span>
@@ -290,13 +290,13 @@
 
 
 <div class="viewcode-block" id="SparseVector"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.script_smk.SparseVector">[docs]</a><span class="k">class</span> <span class="nc">SparseVector</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_dict</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_dict</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dict</span> <span class="o">=</span> <span class="n">_dict</span>
 
     <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> nonzero values&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="p">),)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
         <span class="n">vals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">vals</span>
 
@@ -326,7 +326,7 @@
 
 <span class="sd">    &gt;&gt;&gt; from wbia.algo.smk.script_smk import *  # NOQA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 
@@ -396,7 +396,7 @@
             <span class="n">query_uri</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;oxc1_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
             <span class="n">query_uri_order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query_uri</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;converting to invV&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;converting to invV&#39;</span><span class="p">)</span>
         <span class="n">all_kpts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">convert_kptsZ_to_kpts</span><span class="p">(</span><span class="n">kpts_Z</span><span class="p">)</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
@@ -432,11 +432,11 @@
 <span class="sd">    # Remember that matlab is 1 indexed!</span>
 <span class="sd">    # DONT FORGET TO CONVERT TO 0 INDEXING!</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">yael.ynumpy</span> <span class="k">import</span> <span class="n">fvecs_read</span>
-    <span class="kn">from</span> <span class="nn">yael.yutils</span> <span class="k">import</span> <span class="n">load_ext</span>
+    <span class="kn">from</span> <span class="nn">yael.ynumpy</span> <span class="kn">import</span> <span class="n">fvecs_read</span>
+    <span class="kn">from</span> <span class="nn">yael.yutils</span> <span class="kn">import</span> <span class="n">load_ext</span>
     <span class="kn">import</span> <span class="nn">scipy.io</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;/raid/work/Oxford/&#39;</span><span class="p">)</span>
     <span class="n">datadir</span> <span class="o">=</span> <span class="n">dbdir</span> <span class="o">+</span> <span class="s1">&#39;/smk_data_iccv_2013/data/&#39;</span>
@@ -468,10 +468,10 @@
     <span class="n">test_geom_invV_fname</span> <span class="o">=</span> <span class="n">test_geom_fname</span> <span class="o">+</span> <span class="s1">&#39;.invV.pkl&#39;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">all_kpts</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">test_geom_invV_fname</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;loaded invV keypoints&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;loaded invV keypoints&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
         <span class="n">oxford_kptsZ</span> <span class="o">=</span> <span class="n">load_ext</span><span class="p">(</span><span class="n">test_geom_fname</span><span class="p">,</span> <span class="n">ndims</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;converting to invV keypoints&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;converting to invV keypoints&#39;</span><span class="p">)</span>
         <span class="n">all_kpts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">convert_kptsZ_to_kpts</span><span class="p">(</span><span class="n">oxford_kptsZ</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">save_data</span><span class="p">(</span><span class="n">test_geom_invV_fname</span><span class="p">,</span> <span class="n">all_kpts</span><span class="p">)</span>
 
@@ -544,7 +544,7 @@
 
 
 <div class="viewcode-block" id="get_annots_imgid"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.script_smk.get_annots_imgid">[docs]</a><span class="k">def</span> <span class="nf">get_annots_imgid</span><span class="p">(</span><span class="n">_annots</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
 
     <span class="n">_images</span> <span class="o">=</span> <span class="n">_annots</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">_annots</span><span class="o">.</span><span class="n">gids</span><span class="p">)</span>
     <span class="n">intern_uris</span> <span class="o">=</span> <span class="p">[</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">uri</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">uri</span> <span class="ow">in</span> <span class="n">_images</span><span class="o">.</span><span class="n">uris_original</span><span class="p">]</span>
@@ -625,7 +625,7 @@
         <span class="n">nAssign</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="k">class</span> <span class="nc">SMKCacher</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">Cacher</span><span class="p">):</span>
-            <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s1">&#39;.cPkl&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s1">&#39;.cPkl&#39;</span><span class="p">):</span>
                 <span class="n">relevant_params</span> <span class="o">=</span> <span class="n">relevance</span><span class="p">[</span><span class="n">fname</span><span class="p">]</span>
                 <span class="n">relevant_cfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">relevant_params</span><span class="p">)</span>
                 <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">relevant_cfg</span><span class="p">)</span>
@@ -662,7 +662,7 @@
         <span class="n">all_vecs</span> <span class="o">=</span> <span class="n">feats_cacher</span><span class="o">.</span><span class="n">tryload</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">all_vecs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;float32&#39;</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Converting vecs to float32&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Converting vecs to float32&#39;</span><span class="p">)</span>
                 <span class="n">proc_vecs</span> <span class="o">=</span> <span class="n">proc_vecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">proc_vecs</span> <span class="o">=</span> <span class="n">proc_vecs</span>
@@ -718,7 +718,7 @@
                         <span class="n">clusterer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">all_vecs</span><span class="p">)</span>
                         <span class="n">words</span> <span class="o">=</span> <span class="n">clusterer</span><span class="o">.</span><span class="n">cluster_centers_</span>
                     <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;kmeans_impl&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;yael&#39;</span><span class="p">:</span>
-                        <span class="kn">from</span> <span class="nn">yael</span> <span class="k">import</span> <span class="n">ynumpy</span>
+                        <span class="kn">from</span> <span class="nn">yael</span> <span class="kn">import</span> <span class="n">ynumpy</span>
 
                         <span class="n">centroids</span><span class="p">,</span> <span class="n">qerr</span><span class="p">,</span> <span class="n">dis</span><span class="p">,</span> <span class="n">assign</span><span class="p">,</span> <span class="n">nassign</span> <span class="o">=</span> <span class="n">ynumpy</span><span class="o">.</span><span class="n">kmeans</span><span class="p">(</span>
                             <span class="n">all_vecs</span><span class="p">,</span>
@@ -740,7 +740,7 @@
             <span class="n">idx_to_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">idx_to_wxs</span><span class="p">)</span>
             <span class="n">idx_to_maws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">idx_to_maws</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="k">import</span> <span class="n">vocab_indexer</span>
+            <span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">vocab_indexer</span>
 
             <span class="n">vocab</span> <span class="o">=</span> <span class="n">vocab_indexer</span><span class="o">.</span><span class="n">VisualVocab</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
             <span class="n">dassign_cacher</span> <span class="o">=</span> <span class="n">SMKCacher</span><span class="p">(</span><span class="s1">&#39;assign&#39;</span><span class="p">)</span>
@@ -799,11 +799,11 @@
             <span class="n">flags</span> <span class="o">=</span> <span class="n">kpts_inside_bbox</span><span class="p">(</span><span class="n">kpts_</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">only_xy</span><span class="o">=</span><span class="n">only_xy</span><span class="p">)</span>
             <span class="n">query_flags_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Queries are crops of existing database images.&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Looking at average percents&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Queries are crops of existing database images.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Looking at average percents&#39;</span><span class="p">)</span>
         <span class="n">percent_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">flags_</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">flags_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">flags_</span> <span class="ow">in</span> <span class="n">query_flags_list</span><span class="p">]</span>
         <span class="n">percent_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">percent_list</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;percent_stats = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">percent_stats</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;percent_stats = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">percent_stats</span><span class="p">),))</span>
 
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 
@@ -838,7 +838,7 @@
         <span class="c1"># ======================</span>
         <span class="c1"># Add in some groundtruth</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Add in some groundtruth&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Add in some groundtruth&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">Y</span><span class="p">,</span> <span class="n">nid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Y_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">daids</span><span class="p">)):</span>
             <span class="n">Y</span><span class="o">.</span><span class="n">nid</span> <span class="o">=</span> <span class="n">nid</span>
 
@@ -864,7 +864,7 @@
             <span class="n">X</span><span class="o">.</span><span class="n">vecs</span> <span class="o">=</span> <span class="n">vecs</span>
 
         <span class="c1"># ======================</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Building inverted list&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building inverted list&#39;</span><span class="p">)</span>
         <span class="n">daids</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span><span class="o">.</span><span class="n">aid</span> <span class="k">for</span> <span class="n">Y</span> <span class="ow">in</span> <span class="n">Y_list</span><span class="p">]</span>
         <span class="c1"># wx_list = sorted(ut.list_union(*[Y.wx_list for Y in Y_list]))</span>
         <span class="n">wx_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">Y</span><span class="o">.</span><span class="n">wx_set</span> <span class="k">for</span> <span class="n">Y</span> <span class="ow">in</span> <span class="n">Y_list</span><span class="p">]))</span>
@@ -876,14 +876,14 @@
         <span class="p">)</span>
 
         <span class="c1"># Compute IDF weights</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Compute IDF weights&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Compute IDF weights&#39;</span><span class="p">)</span>
         <span class="n">ndocs_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
         <span class="c1"># Use only the unique number of words</span>
         <span class="n">ndocs_per_word</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wx_to_aids</span><span class="p">[</span><span class="n">wx</span><span class="p">]))</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_list</span><span class="p">])</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ndocs_perword stats: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">ndocs_per_word</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ndocs_perword stats: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">ndocs_per_word</span><span class="p">)))</span>
         <span class="n">idf_per_word</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">inv_doc_freq</span><span class="p">(</span><span class="n">ndocs_total</span><span class="p">,</span> <span class="n">ndocs_per_word</span><span class="p">)</span>
         <span class="n">wx_to_weight</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_list</span><span class="p">,</span> <span class="n">idf_per_word</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;idf stats: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">wx_to_weight</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;idf stats: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">wx_to_weight</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
 
         <span class="c1"># Filter junk</span>
         <span class="n">Y_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span> <span class="k">for</span> <span class="n">Y</span> <span class="ow">in</span> <span class="n">Y_list</span> <span class="k">if</span> <span class="n">Y</span><span class="o">.</span><span class="n">qual</span> <span class="o">!=</span> <span class="s1">&#39;junk&#39;</span><span class="p">]</span>
@@ -1004,7 +1004,7 @@
             <span class="n">avep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avep</span><span class="p">)</span>
         <span class="n">avep_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">avep_list</span><span class="p">)</span>
         <span class="n">mAP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">avep_list</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mAP  = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mAP</span><span class="p">,))</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;mAP  = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mAP</span><span class="p">,))</span></div>
 
 
 <div class="viewcode-block" id="new_external_annot"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.script_smk.new_external_annot">[docs]</a><span class="k">def</span> <span class="nf">new_external_annot</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">fx_to_wxs</span><span class="p">,</span> <span class="n">fx_to_maws</span><span class="p">,</span> <span class="n">int_rvec</span><span class="p">):</span>
@@ -1186,7 +1186,7 @@
         <span class="c1"># Visualize queries</span>
         <span class="c1"># Look at the standard query images here</span>
         <span class="c1"># http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf</span>
-        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_chip</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
         <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 
         <span class="n">pt</span><span class="o">.</span><span class="n">qt4ensure</span><span class="p">()</span>
@@ -1242,7 +1242,7 @@
     <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
     <span class="n">ave_precisions</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">get_annot_ave_precision</span><span class="p">()</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
     <span class="n">mAP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ave_precisions</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mAP = </span><span class="si">%.3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mAP</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;mAP = </span><span class="si">%.3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mAP</span><span class="p">,))</span>
     <span class="n">cm</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span></div>
 
@@ -1260,8 +1260,8 @@
     <span class="n">gamma1s</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">gamma2s</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Y_list_</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Y_list_</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">))</span>
 
     <span class="n">dinva</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span>
     <span class="n">bady</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1275,8 +1275,8 @@
             <span class="n">gamma2s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gamma2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">bady</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Y</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">nid</span><span class="p">)</span>
-            <span class="c1"># print(Y.qual)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">nid</span><span class="p">)</span>
+            <span class="c1"># logger.info(Y.qual)</span>
 
     <span class="c1"># ibs = qreq_.ibs</span>
     <span class="c1"># z = ibs.annots([a.aid for a in bady])</span>
@@ -1297,7 +1297,7 @@
 <span class="sd">    i = 12</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 
     <span class="n">imgdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;/raid/work/Oxford/oxbuild_images&#39;</span><span class="p">)</span>
     <span class="n">gpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">data_uri_order</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">)</span>
@@ -1320,7 +1320,7 @@
 <span class="sd">    Check if any keypoints go out of bounds wrt their associated images</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 
     <span class="n">imgdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;/raid/work/Oxford/oxbuild_images&#39;</span><span class="p">)</span>
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">imgid</span> <span class="o">+</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">imgid</span> <span class="ow">in</span> <span class="n">data_uri_order</span><span class="p">]</span>
@@ -1340,8 +1340,8 @@
 
 
 <div class="viewcode-block" id="hyrule_vocab_test"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.script_smk.hyrule_vocab_test">[docs]</a><span class="k">def</span> <span class="nf">hyrule_vocab_test</span><span class="p">():</span>
-    <span class="kn">from</span> <span class="nn">yael.yutils</span> <span class="k">import</span> <span class="n">load_ext</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">yael.yutils</span> <span class="kn">import</span> <span class="n">load_ext</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
     <span class="kn">import</span> <span class="nn">sklearn.cluster</span>
 
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;/raid/work/Oxford/&#39;</span><span class="p">)</span>
@@ -1351,7 +1351,7 @@
     <span class="n">test_sift_fname</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;oxford_sift.uint8&#39;</span><span class="p">)</span>
     <span class="c1"># test_nf_fname = join(datadir, &#39;oxford_nsift.uint32&#39;)</span>
     <span class="n">all_vecs</span> <span class="o">=</span> <span class="n">load_ext</span><span class="p">(</span><span class="n">test_sift_fname</span><span class="p">,</span> <span class="n">ndims</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">print_object_size</span><span class="p">(</span><span class="n">all_vecs</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">print_object_size</span><span class="p">(</span><span class="n">all_vecs</span><span class="p">))</span>
     <span class="c1"># nfeats_list = load_ext(test_nf_fname, verbose=True)</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
@@ -1377,7 +1377,7 @@
         <span class="p">)</span>
         <span class="n">clusterer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">all_vecs</span><span class="p">)</span>
         <span class="n">words</span> <span class="o">=</span> <span class="n">clusterer</span><span class="o">.</span><span class="n">cluster_centers_</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
@@ -1425,17 +1425,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1452,7 +1450,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

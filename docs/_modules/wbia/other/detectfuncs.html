@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.other.detectfuncs &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -44,18 +43,19 @@
 <span class="sd">    then there are also convineience functions that need to be ordered at least</span>
 <span class="sd">    within this file</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
 <span class="kn">import</span> <span class="nn">tqdm</span>
 
 <span class="c1"># Inject utool functions</span>
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[other.detectfuncs]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">SAMPLES</span> <span class="o">=</span> <span class="mi">1000</span>
 <span class="n">AP_SAMPLE_POINTS</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">SAMPLES</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">SAMPLES</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
@@ -68,7 +68,7 @@
 
 <span class="k">def</span> <span class="nf">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t_height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">,))</span>
     <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">image</span>
@@ -90,7 +90,7 @@
 
 
 <div class="viewcode-block" id="simple_code"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.simple_code">[docs]</a><span class="k">def</span> <span class="nf">simple_code</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="k">import</span> <span class="n">YAWALIAS</span><span class="p">,</span> <span class="n">SPECIES_MAPPING</span>
+    <span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="kn">import</span> <span class="n">YAWALIAS</span><span class="p">,</span> <span class="n">SPECIES_MAPPING</span>
 
     <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;ignore&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="s1">&#39;IGNORE&#39;</span>
@@ -161,7 +161,7 @@
             <span class="n">tpr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tpr</span><span class="p">)</span>
             <span class="n">fpr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fpr</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Zero division error (</span><span class="si">%r</span><span class="s1">) - tp: </span><span class="si">%r</span><span class="s1"> tn: </span><span class="si">%r</span><span class="s1"> fp: </span><span class="si">%r</span><span class="s1"> fn: </span><span class="si">%r</span><span class="s1">&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span><span class="p">,)</span>
             <span class="p">)</span>
@@ -264,7 +264,9 @@
                 <span class="k">break</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">best_conf_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: Multiple best operating points found </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_conf_list</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;WARNING: Multiple best operating points found </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_conf_list</span><span class="p">,)</span>
+        <span class="p">)</span>
 
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">best_conf_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
     <span class="n">best_conf</span> <span class="o">=</span> <span class="n">best_conf_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -575,7 +577,7 @@
         <span class="n">species_set</span> <span class="o">=</span> <span class="n">species_set</span> <span class="o">|</span> <span class="n">species_set</span>
         <span class="n">gt_dict</span><span class="p">[</span><span class="n">uuid</span><span class="p">]</span> <span class="o">=</span> <span class="n">gt_list</span>
 
-    <span class="c1"># print(&#39;General Parse GT species_set = %r&#39; % (species_set, ))</span>
+    <span class="c1"># logger.info(&#39;General Parse GT species_set = %r&#39; % (species_set, ))</span>
     <span class="k">return</span> <span class="n">gt_dict</span></div>
 
 
@@ -632,7 +634,7 @@
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;features_lazy&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 
         <span class="k">def</span> <span class="nf">features_lazy_func</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
             <span class="n">vector_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
@@ -660,7 +662,7 @@
 
     <span class="c1"># Get updated confidences for boxes</span>
     <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;classify&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using alternate classifications&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using alternate classifications&#39;</span><span class="p">)</span>
         <span class="c1"># depc.delete_property(&#39;localizations_classifier&#39;, test_gid_list, config=kwargs)</span>
         <span class="n">confss_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
             <span class="s1">&#39;localizations_classifier&#39;</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">kwargs</span>
@@ -668,7 +670,7 @@
 
     <span class="c1"># Get updated confidences for boxes</span>
     <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interest&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using alternate AoI interest flags&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using alternate AoI interest flags&#39;</span><span class="p">)</span>
         <span class="n">interests_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
             <span class="s1">&#39;localizations_classifier&#39;</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">kwargs</span>
         <span class="p">)</span>
@@ -728,10 +730,10 @@
 
     <span class="n">test_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Ground-Truth&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Ground-Truth&#39;</span><span class="p">)</span>
     <span class="n">gt_dict</span> <span class="o">=</span> <span class="n">general_parse_gt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">test_gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Predictions&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Predictions&#39;</span><span class="p">)</span>
     <span class="n">pred_dict</span> <span class="o">=</span> <span class="n">localizer_parse_pred</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">test_gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="n">species_set</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;species_set&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -862,20 +864,20 @@
         <span class="n">tp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tp_counter</span><span class="p">)</span>
         <span class="n">fp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fp_counter</span><span class="p">)</span>
 
-    <span class="c1"># print(&#39;\t tps  [:10]     : %r&#39; % (tp_list[:10], ))</span>
-    <span class="c1"># print(&#39;\t fps  [:10]     : %r&#39; % (fp_list[:10], ))</span>
-    <span class="c1"># print(&#39;\t con  [:10]     : %r&#39; % (conf_list[:10], ))</span>
-    <span class="c1"># print(&#39;\t tps [-10:]     : %r&#39; % (tp_list[-10:], ))</span>
-    <span class="c1"># print(&#39;\t fps [-10:]     : %r&#39; % (fp_list[-10:], ))</span>
-    <span class="c1"># print(&#39;\t con [-10:]     : %r&#39; % (conf_list[-10:], ))</span>
-    <span class="c1"># print(&#39;\t num_annotations: %r&#39; % (total, ))</span>
+    <span class="c1"># logger.info(&#39;\t tps  [:10]     : %r&#39; % (tp_list[:10], ))</span>
+    <span class="c1"># logger.info(&#39;\t fps  [:10]     : %r&#39; % (fp_list[:10], ))</span>
+    <span class="c1"># logger.info(&#39;\t con  [:10]     : %r&#39; % (conf_list[:10], ))</span>
+    <span class="c1"># logger.info(&#39;\t tps [-10:]     : %r&#39; % (tp_list[-10:], ))</span>
+    <span class="c1"># logger.info(&#39;\t fps [-10:]     : %r&#39; % (fp_list[-10:], ))</span>
+    <span class="c1"># logger.info(&#39;\t con [-10:]     : %r&#39; % (conf_list[-10:], ))</span>
+    <span class="c1"># logger.info(&#39;\t num_annotations: %r&#39; % (total, ))</span>
 
     <span class="k">return</span> <span class="n">conf_list</span><span class="p">,</span> <span class="n">tp_list</span><span class="p">,</span> <span class="n">fp_list</span><span class="p">,</span> <span class="n">total</span></div>
 
 
 <div class="viewcode-block" id="localizer_precision_recall_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.localizer_precision_recall_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">localizer_precision_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span> <span class="o">=</span> <span class="n">localizer_precision_recall_algo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">general_area_best_conf</span><span class="p">(</span><span class="n">conf_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -898,10 +900,10 @@
     <span class="k">if</span> <span class="n">ignore_filter_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ignore_filter_func</span> <span class="o">=</span> <span class="n">_ignore_filter_identity_func</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Ground-Truth&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Ground-Truth&#39;</span><span class="p">)</span>
     <span class="n">gt_dict</span> <span class="o">=</span> <span class="n">general_parse_gt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">test_gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Predictions&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Predictions&#39;</span><span class="p">)</span>
     <span class="n">pred_dict</span> <span class="o">=</span> <span class="n">localizer_parse_pred</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">test_gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="n">species_set</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;species_set&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -954,7 +956,9 @@
         <span class="p">)</span>
         <span class="n">best_conf_list</span><span class="p">,</span> <span class="n">best_re_list</span><span class="p">,</span> <span class="n">best_pr_list</span><span class="p">,</span> <span class="n">best_length</span> <span class="o">=</span> <span class="n">best_tup</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">best_conf_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: Multiple best operating points found </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_conf_list</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;WARNING: Multiple best operating points found </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_conf_list</span><span class="p">,)</span>
+            <span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">best_conf_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
         <span class="n">best_re_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">best_re_list</span><span class="p">)</span>
@@ -970,7 +974,7 @@
 
 <div class="viewcode-block" id="localizer_iou_recall_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.localizer_iou_recall_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">localizer_iou_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing IoU-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing IoU-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">iou_list</span><span class="p">,</span> <span class="n">recall_list</span> <span class="o">=</span> <span class="n">localizer_iou_recall_algo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">general_area_best_conf</span><span class="p">(</span>
         <span class="n">conf_list</span><span class="p">,</span> <span class="n">iou_list</span><span class="p">,</span> <span class="n">recall_list</span><span class="p">,</span> <span class="n">interpolate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
@@ -979,7 +983,7 @@
 
 <span class="c1"># def localizer_iou_precision_algo_plot(ibs, **kwargs):</span>
 <span class="c1">#     label = kwargs[&#39;label&#39;]</span>
-<span class="c1">#     print(&#39;Processing Precision-Recall for: %r&#39; % (label, ))</span>
+<span class="c1">#     logger.info(&#39;Processing Precision-Recall for: %r&#39; % (label, ))</span>
 <span class="c1">#     conf_list, iou_list, pr_list, re_list = localizer_iou_precision_recall_algo(ibs, **kwargs)</span>
 <span class="c1"># return general_area_best_conf(conf_list, iou_list, re_list, **kwargs)</span>
 
@@ -992,10 +996,10 @@
 
     <span class="n">test_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Ground-Truth&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Ground-Truth&#39;</span><span class="p">)</span>
     <span class="n">gt_dict</span> <span class="o">=</span> <span class="n">general_parse_gt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">test_gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Predictions&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Predictions&#39;</span><span class="p">)</span>
     <span class="n">pred_dict</span> <span class="o">=</span> <span class="n">localizer_parse_pred</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">test_gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="n">species_set</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;species_set&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -1043,7 +1047,7 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">, Accuracy = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
         <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">best_conf</span><span class="p">,</span> <span class="n">best_accuracy</span><span class="p">,)</span>
     <span class="p">)</span>
@@ -1078,7 +1082,7 @@
 <span class="p">):</span>
     <span class="k">if</span> <span class="n">config_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">test_gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using </span><span class="si">%d</span><span class="s1"> test gids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using </span><span class="si">%d</span><span class="s1"> test gids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">),))</span>
 
         <span class="c1"># species_mapping = {  # NOQA</span>
         <span class="c1">#     &#39;giraffe_masai&#39;       : &#39;giraffe&#39;,</span>
@@ -2228,7 +2232,7 @@
 <span class="k">def</span> <span class="nf">localizer_precision_recall_algo_display_animate</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
         <span class="n">min_overlap</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="mf">10.0</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">min_overlap</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">min_overlap</span><span class="p">,))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">localizer_precision_recall_algo_display</span><span class="p">(</span>
             <span class="n">config_list</span><span class="p">,</span> <span class="n">min_overlap</span><span class="o">=</span><span class="n">min_overlap</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">)</span></div>
@@ -2284,15 +2288,15 @@
 <span class="c1">#                                                         min_overlap=0.25,</span>
 <span class="c1">#                                                         write_images=False,</span>
 <span class="c1">#                                                         **kwargs):</span>
-<span class="c1">#     print(&#39;Processing Confusion Matrix for: %r (Conf = %0.02f)&#39; % (label, conf, ))</span>
+<span class="c1">#     logger.info(&#39;Processing Confusion Matrix for: %r (Conf = %0.02f)&#39; % (label, conf, ))</span>
 
 <span class="c1">#     test_gid_list = general_get_imageset_gids(ibs, &#39;TEST_SET&#39;, **kwargs)</span>
 <span class="c1">#     test_uuid_list = ibs.get_image_uuids(test_gid_list)</span>
 
-<span class="c1">#     print(&#39;\tGather Ground-Truth&#39;)</span>
+<span class="c1">#     logger.info(&#39;\tGather Ground-Truth&#39;)</span>
 <span class="c1">#     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)</span>
 
-<span class="c1">#     print(&#39;\tGather Predictions&#39;)</span>
+<span class="c1">#     logger.info(&#39;\tGather Predictions&#39;)</span>
 <span class="c1">#     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)</span>
 
 <span class="c1">#     if write_images:</span>
@@ -2466,7 +2470,7 @@
 
 <div class="viewcode-block" id="classifier_cameratrap_precision_recall_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.classifier_cameratrap_precision_recall_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">classifier_cameratrap_precision_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="p">(</span>
         <span class="n">conf_list</span><span class="p">,</span>
         <span class="n">pr_list</span><span class="p">,</span>
@@ -2479,7 +2483,7 @@
 
 <div class="viewcode-block" id="classifier_cameratrap_roc_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.classifier_cameratrap_roc_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">classifier_cameratrap_roc_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="p">(</span>
         <span class="n">conf_list</span><span class="p">,</span>
         <span class="n">pr_list</span><span class="p">,</span>
@@ -2502,7 +2506,7 @@
     <span class="n">output_cases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
     <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
     <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">test_gid_set_</span><span class="p">)</span>
@@ -2749,21 +2753,21 @@
 
 <span class="c1"># def classifier_binary_precision_recall_algo_plot(ibs, **kwargs):</span>
 <span class="c1">#     label = kwargs[&#39;label&#39;]</span>
-<span class="c1">#     print(&#39;Processing Precision-Recall for: %r&#39; % (label, ))</span>
+<span class="c1">#     logger.info(&#39;Processing Precision-Recall for: %r&#39; % (label, ))</span>
 <span class="c1">#     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_binary_precision_recall_algo(ibs, **kwargs)</span>
 <span class="c1">#     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)</span>
 
 
 <span class="c1"># def classifier_binary_roc_algo_plot(ibs, **kwargs):</span>
 <span class="c1">#     label = kwargs[&#39;label&#39;]</span>
-<span class="c1">#     print(&#39;Processing ROC for: %r&#39; % (label, ))</span>
+<span class="c1">#     logger.info(&#39;Processing ROC for: %r&#39; % (label, ))</span>
 <span class="c1">#     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_binary_precision_recall_algo(ibs, **kwargs)</span>
 <span class="c1">#     return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,</span>
 <span class="c1">#                                   target=(0.0, 1.0), **kwargs)</span>
 
 
 <span class="c1"># def classifier_binary_confusion_matrix_algo_plot(ibs, label, color, conf, category_set, **kwargs):</span>
-<span class="c1">#     print(&#39;Processing Confusion Matrix for: %r (Conf = %0.02f)&#39; % (label, conf, ))</span>
+<span class="c1">#     logger.info(&#39;Processing Confusion Matrix for: %r (Conf = %0.02f)&#39; % (label, conf, ))</span>
 <span class="c1">#     depc = ibs.depc_image</span>
 <span class="c1">#     test_gid_set = set(general_get_imageset_gids(ibs, &#39;TEST_SET&#39;))</span>
 <span class="c1">#     test_gid_set = list(test_gid_set)</span>
@@ -2913,7 +2917,7 @@
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">test_gid</span><span class="p">,</span> <span class="n">thumbnail</span><span class="p">,</span> <span class="n">species_set</span><span class="p">,</span> <span class="n">confidence_dict</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
             <span class="n">zipped</span>
         <span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
             <span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species_set</span><span class="p">)</span>
             <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">confidence_dict</span><span class="p">:</span>
@@ -2934,7 +2938,7 @@
 
 <div class="viewcode-block" id="classifier2_precision_recall_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.classifier2_precision_recall_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">classifier2_precision_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">classifier2_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
@@ -2943,7 +2947,7 @@
 
 <div class="viewcode-block" id="classifier2_roc_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.classifier2_roc_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">classifier2_roc_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">classifier2_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
@@ -3101,9 +3105,9 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_set</span> <span class="o">^</span> <span class="n">species_set_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">correct</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">test_gid</span><span class="p">,</span> <span class="n">confidence_dict</span><span class="p">,</span> <span class="n">species_set</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Accuracy: </span><span class="si">%0.04f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">correct</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> using op_dict = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op_dict</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">test_gid</span><span class="p">,</span> <span class="n">confidence_dict</span><span class="p">,</span> <span class="n">species_set</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Accuracy: </span><span class="si">%0.04f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">correct</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> using op_dict = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op_dict</span><span class="p">,))</span>
 
     <span class="n">fig_filename</span> <span class="o">=</span> <span class="s1">&#39;classifier2-precision-recall-roc.png&#39;</span>
     <span class="n">fig_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="n">fig_filename</span><span class="p">)))</span>
@@ -3174,13 +3178,15 @@
 
     <span class="n">value1_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">label_list</span><span class="p">)</span>
     <span class="n">value2_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">probability_dict_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">value1_list</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">value2_list</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">value1_list</span> <span class="o">-</span> <span class="n">value2_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">value2_list</span> <span class="o">-</span> <span class="n">value1_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
     <span class="n">conf_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
     <span class="n">label_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">value1_list</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
         <span class="n">conf_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">confidence_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">probability_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">probability_dict</span> <span class="ow">in</span> <span class="n">probability_dict_list</span>
@@ -3239,7 +3245,7 @@
             <span class="n">tpr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tpr</span><span class="p">)</span>
             <span class="n">fpr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fpr</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Zero division error (</span><span class="si">%r</span><span class="s1">) - tp: </span><span class="si">%r</span><span class="s1"> tn: </span><span class="si">%r</span><span class="s1"> fp: </span><span class="si">%r</span><span class="s1"> fn: </span><span class="si">%r</span><span class="s1">&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span><span class="p">,)</span>
             <span class="p">)</span>
@@ -3250,7 +3256,7 @@
 <div class="viewcode-block" id="labeler_precision_recall_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.labeler_precision_recall_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">labeler_precision_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
     <span class="n">category_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;category_list&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1"> (category_list = </span><span class="si">%r</span><span class="s1">)&#39;</span>
         <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,)</span>
     <span class="p">)</span>
@@ -3263,7 +3269,7 @@
 <div class="viewcode-block" id="labeler_roc_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.labeler_roc_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">labeler_roc_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
     <span class="n">category_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;category_list&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1"> (category_list = </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1"> (category_list = </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">labeler_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
@@ -3281,7 +3287,7 @@
     <span class="n">test_gid_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix&#39;</span><span class="p">)</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
 
     <span class="k">if</span> <span class="n">test_gid_set</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -3364,7 +3370,7 @@
         <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">]</span>
         <span class="n">category_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">)))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Compiling raw numbers...&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Compiling raw numbers...&#39;</span><span class="p">)</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;densenet&#39;</span>
     <span class="k">if</span> <span class="n">labeler_weight_filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># kwargs[&#39;labeler_weight_filepath&#39;] = &#39;zebra_v1&#39;</span>
@@ -3554,7 +3560,7 @@
 
 <div class="viewcode-block" id="canonical_precision_recall_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.canonical_precision_recall_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">canonical_precision_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">canonical_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
@@ -3563,7 +3569,7 @@
 
 <div class="viewcode-block" id="canonical_roc_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.canonical_roc_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">canonical_roc_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">canonical_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
@@ -3575,7 +3581,7 @@
 <div class="viewcode-block" id="canonical_confusion_matrix_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.canonical_confusion_matrix_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">canonical_confusion_matrix_algo_plot</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">output_cases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
 
     <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
@@ -3782,7 +3788,7 @@
 
 
 <span class="k">def</span> <span class="nf">_canonical_get_boxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.web.appfuncs</span> <span class="k">import</span> <span class="n">CANONICAL_PART_TYPE</span>
+    <span class="kn">from</span> <span class="nn">wbia.web.appfuncs</span> <span class="kn">import</span> <span class="n">CANONICAL_PART_TYPE</span>
 
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annotation_set</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
@@ -3830,7 +3836,7 @@
     <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
     <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="n">species</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Deviation for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Deviation for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
 
     <span class="k">if</span> <span class="n">attribute</span> <span class="o">==</span> <span class="s1">&#39;x0&#39;</span><span class="p">:</span>
@@ -3924,7 +3930,7 @@
         <span class="k">return</span> <span class="n">retval</span>
 
     <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="n">species</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing IoU for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing IoU for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
 
     <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
@@ -4012,7 +4018,7 @@
 <span class="p">):</span>
     <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="n">species</span><span class="p">]</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">color_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Renderings for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Renderings for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
 
     <span class="n">color_list_</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">color_list</span><span class="p">:</span>
@@ -4366,7 +4372,7 @@
     <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">image_list</span><span class="p">,</span> <span class="n">chip_list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">zipped</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
         <span class="n">blended</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">blend_images_multiply</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
         <span class="n">blended</span> <span class="o">*=</span> <span class="mf">255.0</span>
@@ -4413,7 +4419,7 @@
 
 <div class="viewcode-block" id="aoi2_precision_recall_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.aoi2_precision_recall_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">aoi2_precision_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">aoi2_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
@@ -4422,7 +4428,7 @@
 
 <div class="viewcode-block" id="aoi2_roc_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.aoi2_roc_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">aoi2_roc_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">aoi2_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
@@ -4441,7 +4447,7 @@
     <span class="n">test_gid_set_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
     <span class="k">if</span> <span class="n">test_gid_set_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">)</span>
@@ -4726,7 +4732,7 @@
 <span class="c1">#         uuid_ : result_list</span>
 <span class="c1">#         for uuid_, result_list in zip(uuid_list, results_list)</span>
 <span class="c1">#     }</span>
-<span class="c1">#     # print(pred_dict)</span>
+<span class="c1">#     # logger.info(pred_dict)</span>
 <span class="c1">#     return pred_dict</span>
 
 
@@ -4734,13 +4740,13 @@
 <span class="c1">#     test_gid_list = general_get_imageset_gids(ibs, &#39;TEST_SET&#39;, **kwargs)</span>
 <span class="c1">#     uuid_list = ibs.get_image_uuids(test_gid_list)</span>
 
-<span class="c1">#     print(&#39;\tGather Ground-Truth&#39;)</span>
+<span class="c1">#     logger.info(&#39;\tGather Ground-Truth&#39;)</span>
 <span class="c1">#     gt_dict = detector_parse_gt(ibs, test_gid_list=test_gid_list)</span>
 
-<span class="c1">#     print(&#39;\tGather Predictions&#39;)</span>
+<span class="c1">#     logger.info(&#39;\tGather Predictions&#39;)</span>
 <span class="c1">#     pred_dict = detector_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)</span>
 
-<span class="c1">#     print(&#39;\tGenerate Curves...&#39;)</span>
+<span class="c1">#     logger.info(&#39;\tGenerate Curves...&#39;)</span>
 <span class="c1">#     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]</span>
 <span class="c1">#     conf_list = sorted(conf_list, reverse=True)</span>
 
@@ -4764,7 +4770,7 @@
 <span class="c1">#         pr_list.append(pr)</span>
 <span class="c1">#         re_list.append(re)</span>
 
-<span class="c1">#     print(&#39;...complete&#39;)</span>
+<span class="c1">#     logger.info(&#39;...complete&#39;)</span>
 <span class="c1">#     return conf_list_, pr_list, re_list</span>
 
 
@@ -4789,21 +4795,21 @@
 
 <span class="c1"># def detector_precision_recall_algo_plot(ibs, **kwargs):</span>
 <span class="c1">#     label = kwargs[&#39;label&#39;]</span>
-<span class="c1">#     print(&#39;Processing Precision-Recall for: %r&#39; % (label, ))</span>
+<span class="c1">#     logger.info(&#39;Processing Precision-Recall for: %r&#39; % (label, ))</span>
 <span class="c1">#     conf_list, pr_list, re_list = detector_precision_recall_algo(ibs, **kwargs)</span>
 <span class="c1">#     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)</span>
 
 
 <span class="c1"># def detector_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):</span>
-<span class="c1">#     print(&#39;Processing Confusion Matrix for: %r (Conf = %0.02f)&#39; % (label, conf, ))</span>
+<span class="c1">#     logger.info(&#39;Processing Confusion Matrix for: %r (Conf = %0.02f)&#39; % (label, conf, ))</span>
 
 <span class="c1">#     test_gid_list = general_get_imageset_gids(ibs, &#39;TEST_SET&#39;, **kwargs)</span>
 <span class="c1">#     uuid_list = ibs.get_image_uuids(test_gid_list)</span>
 
-<span class="c1">#     print(&#39;\tGather Ground-Truth&#39;)</span>
+<span class="c1">#     logger.info(&#39;\tGather Ground-Truth&#39;)</span>
 <span class="c1">#     gt_dict = detector_parse_gt(ibs, test_gid_list=test_gid_list)</span>
 
-<span class="c1">#     print(&#39;\tGather Predictions&#39;)</span>
+<span class="c1">#     logger.info(&#39;\tGather Predictions&#39;)</span>
 <span class="c1">#     pred_dict = detector_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)</span>
 
 <span class="c1">#     label_list = []</span>
@@ -4981,19 +4987,6 @@
 <span class="c1">#     ibs.localizer_precision_recall_algo_display()</span>
 <span class="c1">#     ibs.labeler_precision_recall_algo_display()</span>
 <span class="c1">#     ibs.detector_precision_recall_algo_display()</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.other.detectfuncs</span>
-<span class="sd">        python -m wbia.other.detectfuncs --allexamples</span>
-<span class="sd">        python -m wbia.other.detectfuncs --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -5031,17 +5024,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -5058,7 +5049,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

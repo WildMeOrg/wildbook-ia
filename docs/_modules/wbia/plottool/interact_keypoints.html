@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.plottool.interact_keypoints &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,17 +33,18 @@
             
   <h1>Source code for wbia.plottool.interact_keypoints</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool.viz_featrow</span> <span class="k">import</span> <span class="n">draw_feat_row</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool.viz_keypoints</span> <span class="k">import</span> <span class="n">show_keypoints</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">abstract_interaction</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool.viz_featrow</span> <span class="kn">import</span> <span class="n">draw_feat_row</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool.viz_keypoints</span> <span class="kn">import</span> <span class="n">show_keypoints</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">abstract_interaction</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="KeypointInteraction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_keypoints.KeypointInteraction">[docs]</a><span class="k">class</span> <span class="nc">KeypointInteraction</span><span class="p">(</span><span class="n">abstract_interaction</span><span class="o">.</span><span class="n">AbstractInteraction</span><span class="p">):</span>
@@ -68,7 +68,7 @@
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">chip</span> <span class="o">=</span> <span class="n">chip</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span> <span class="o">=</span> <span class="n">kpts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vecs</span> <span class="o">=</span> <span class="n">vecs</span>
@@ -86,7 +86,7 @@
             <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figtitle</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_select_ith_kpt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fx</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[interact] viewing ith=</span><span class="si">%r</span><span class="s1"> keypoint&#39;</span> <span class="o">%</span> <span class="n">fx</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[interact] viewing ith=</span><span class="si">%r</span><span class="s1"> keypoint&#39;</span> <span class="o">%</span> <span class="n">fx</span><span class="p">)</span>
         <span class="c1"># Get the fx-th keypiont</span>
         <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span><span class="p">[</span><span class="n">fx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vecs</span><span class="p">[</span><span class="n">fx</span><span class="p">]</span>
         <span class="c1"># Draw the image with keypoint fx highlighted</span>
@@ -99,7 +99,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
         <span class="n">ell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... default kpts view mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... default kpts view mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">ell</span><span class="o">=</span><span class="n">ell</span><span class="p">,</span> <span class="n">pts</span><span class="o">=</span><span class="n">pts</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
 
@@ -107,15 +107,15 @@
         <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 
         <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ik] viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ik] viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">viztype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">elif</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;keypoints&#39;</span><span class="p">:</span>
             <span class="n">kpts</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="p">[])</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...nokpts&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nokpts&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...nearest&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nearest&#39;</span><span class="p">)</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
                 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 
@@ -133,7 +133,7 @@
         <span class="k">elif</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;colorbar&#39;</span><span class="p">):</span>
             <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...unhandled&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...unhandled&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div></div>
 
 
@@ -172,7 +172,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">vecs</span> <span class="o">=</span> <span class="n">vecs</span>
 
     <span class="k">def</span> <span class="nf">_select_ith_kpt</span><span class="p">(</span><span class="n">fx</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[interact] viewing ith=</span><span class="si">%r</span><span class="s1"> keypoint&#39;</span> <span class="o">%</span> <span class="n">fx</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[interact] viewing ith=</span><span class="si">%r</span><span class="s1"> keypoint&#39;</span> <span class="o">%</span> <span class="n">fx</span><span class="p">)</span>
         <span class="c1"># Get the fx-th keypiont</span>
         <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span> <span class="o">=</span> <span class="n">kpts</span><span class="p">[</span><span class="n">fx</span><span class="p">],</span> <span class="n">vecs</span><span class="p">[</span><span class="n">fx</span><span class="p">]</span>
         <span class="c1"># Draw the image with keypoint fx highlighted</span>
@@ -188,24 +188,24 @@
             <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_on_keypoints_click</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz] clicked keypoint view&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz] clicked keypoint view&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">annote_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">annote_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
             <span class="n">mode</span> <span class="o">=</span> <span class="n">annote_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">ell</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span>
             <span class="n">pts</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... default kpts view mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... default kpts view mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
             <span class="n">_viz_keypoints</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="n">ell</span><span class="o">=</span><span class="n">ell</span><span class="p">,</span> <span class="n">pts</span><span class="o">=</span><span class="n">pts</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># MAYBE: remove kwargs</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
             <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ik] viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ik] viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;keypoints&#39;</span><span class="p">:</span>
                 <span class="n">kpts</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="p">[])</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...nokpts&#39;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nokpts&#39;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...nearest&#39;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nearest&#39;</span><span class="p">)</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
                     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 
@@ -229,13 +229,13 @@
                 <span class="c1"># mx = sortx[idx]</span>
                 <span class="c1"># (fx1, fx2) = self.fm[mx]</span>
                 <span class="c1"># (fx1, fx2) = self.fm[mx]</span>
-                <span class="c1"># print(&#39;... selected score at rank idx=%r&#39; % (idx,))</span>
-                <span class="c1"># print(&#39;... selected score with fs=%r&#39; % (self.fs[mx],))</span>
-                <span class="c1"># print(&#39;... resolved to mx=%r&#39; % mx)</span>
-                <span class="c1"># print(&#39;... fx1, fx2 = %r, %r&#39; % (fx1, fx2,))</span>
+                <span class="c1"># logger.info(&#39;... selected score at rank idx=%r&#39; % (idx,))</span>
+                <span class="c1"># logger.info(&#39;... selected score with fs=%r&#39; % (self.fs[mx],))</span>
+                <span class="c1"># logger.info(&#39;... resolved to mx=%r&#39; % mx)</span>
+                <span class="c1"># logger.info(&#39;... fx1, fx2 = %r, %r&#39; % (fx1, fx2,))</span>
                 <span class="c1"># self.select_ith_match(mx)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...unhandled&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...unhandled&#39;</span><span class="p">)</span>
         <span class="n">ph</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 
     <span class="c1"># Draw without keypoints the first time</span>
@@ -243,21 +243,6 @@
     <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="n">_on_keypoints_click</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">nodraw</span><span class="p">:</span>
         <span class="n">ph</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.plottool.interact_keypoints</span>
-<span class="sd">        python -m wbia.plottool.interact_keypoints --allexamples</span>
-<span class="sd">        python -m wbia.plottool.interact_keypoints --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -295,17 +280,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -322,7 +305,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

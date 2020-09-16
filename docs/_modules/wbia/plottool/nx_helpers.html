@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.plottool.nx_helpers &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -57,21 +56,22 @@
 <span class="sd">    python3 -c &quot;import pygraphviz; print(pygraphviz.__file__)&quot;</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">import</span> <span class="nn">six</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span> <span class="k">as</span> <span class="n">dt</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span> <span class="k">as</span> <span class="n">dt</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="k">pass</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
 <span class="c1"># from wbia.plottool import colorfuncs</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">reduce</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">LARGE_GRAPH</span> <span class="o">=</span> <span class="mi">100</span>
@@ -177,11 +177,11 @@
     <span class="n">use_image</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_image&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Getting layout&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Getting layout&#39;</span><span class="p">)</span>
     <span class="n">layout_info</span> <span class="o">=</span> <span class="n">get_nx_layout</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Drawing graph&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Drawing graph&#39;</span><span class="p">)</span>
     <span class="c1"># zoom = kwargs.pop(&#39;zoom&#39;, .4)</span>
     <span class="n">framewidth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
     <span class="n">patch_dict</span> <span class="o">=</span> <span class="n">draw_network2</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">layout_info</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -217,7 +217,7 @@
 
     <span class="k">if</span> <span class="n">use_image</span> <span class="ow">and</span> <span class="n">img_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">img_dict</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Drawing images&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Drawing images&#39;</span><span class="p">)</span>
         <span class="n">node_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">img_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">pos_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">node_pos</span><span class="p">,</span> <span class="n">node_list</span><span class="p">)</span>
         <span class="n">img_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">img_dict</span><span class="p">,</span> <span class="n">node_list</span><span class="p">)</span>
@@ -238,7 +238,7 @@
         <span class="n">layout_info</span><span class="p">[</span><span class="s1">&#39;imgdat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imgdat</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Not drawing images&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Not drawing images&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
@@ -343,14 +343,14 @@
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">}:</span>
         <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Used By&#39;</span><span class="p">]]</span>
         <span class="n">typed_keys</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">flags</span><span class="p">][</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">format_single_paragraph_sentences</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">typed_keys</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">])))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">format_single_paragraph_sentences</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">typed_keys</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">])))</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">full_df</span><span class="p">[</span><span class="n">neato_</span><span class="p">]</span>
     <span class="n">neato_keys</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">}:</span>
         <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Used By&#39;</span><span class="p">]]</span>
         <span class="n">neato_keys</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">flags</span><span class="p">][</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">format_single_paragraph_sentences</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">neato_keys</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">])))</span></div>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">format_single_paragraph_sentences</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">neato_keys</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">])))</span></div>
 
 
 <div class="viewcode-block" id="GRAPHVIZ_KEYS"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.nx_helpers.GRAPHVIZ_KEYS">[docs]</a><span class="k">class</span> <span class="nc">GRAPHVIZ_KEYS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
@@ -787,7 +787,7 @@
 
 <span class="sd">        Use keyword args to add additional arguments to graphviz programs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">pygraphviz.agraph</span> <span class="k">import</span> <span class="n">shlex</span><span class="p">,</span> <span class="n">subprocess</span><span class="p">,</span> <span class="n">PipeReader</span><span class="p">,</span> <span class="n">warnings</span>
+        <span class="kn">from</span> <span class="nn">pygraphviz.agraph</span> <span class="kn">import</span> <span class="n">shlex</span><span class="p">,</span> <span class="n">subprocess</span><span class="p">,</span> <span class="n">PipeReader</span><span class="p">,</span> <span class="n">warnings</span>
 
         <span class="n">runprog</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_prog</span><span class="p">(</span><span class="n">prog</span><span class="p">)</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">runprog</span><span class="p">,</span> <span class="n">args</span><span class="p">])</span>
@@ -840,7 +840,9 @@
     <span class="n">is_large</span> <span class="o">=</span> <span class="n">num_nodes</span> <span class="o">&gt;</span> <span class="n">LARGE_GRAPH</span>
 
     <span class="k">if</span> <span class="n">is_large</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Making agraph for large graph </span><span class="si">%d</span><span class="s1"> nodes. &#39;</span> <span class="s1">&#39;May take time&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_nodes</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Making agraph for large graph </span><span class="si">%d</span><span class="s1"> nodes. &#39;</span> <span class="s1">&#39;May take time&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_nodes</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="n">ut</span><span class="o">.</span><span class="n">nx_ensure_agraph_color</span><span class="p">(</span><span class="n">graph_</span><span class="p">)</span>
     <span class="c1"># Reduce size to be in inches not pixels</span>
@@ -984,7 +986,7 @@
         <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">graph_</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">graph_</span>
-        <span class="c1"># print(&#39;WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING&#39;)</span>
+        <span class="c1"># logger.info(&#39;WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING&#39;)</span>
 
 
 <div class="viewcode-block" id="nx_agraph_layout"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.nx_helpers.nx_agraph_layout">[docs]</a><span class="k">def</span> <span class="nf">nx_agraph_layout</span><span class="p">(</span>
@@ -1011,6 +1013,8 @@
 <span class="sd">        python -m wbia.plottool.nx_helpers nx_agraph_layout --show</span>
 
 <span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; # FIXME failing-test (22-Jul-2020) This test is failing and it&#39;s not clear how to fix it</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +SKIP</span>
 <span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:pygraphviz)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.plottool.nx_helpers import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
@@ -1103,19 +1107,19 @@
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">verbose</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">is_large</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[nx_agraph_layout] args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nx_agraph_layout] args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
     <span class="c1"># Convert to agraph format</span>
 
     <span class="n">agraph</span> <span class="o">=</span> <span class="n">make_agraph</span><span class="p">(</span><span class="n">graph_</span><span class="p">)</span>
 
     <span class="c1"># Run layout</span>
-    <span class="c1"># print(&#39;prog = %r&#39; % (prog,))</span>
+    <span class="c1"># logger.info(&#39;prog = %r&#39; % (prog,))</span>
 
     <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;BEFORE LAYOUT</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">agraph</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;BEFORE LAYOUT</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">agraph</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">is_large</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Preforming agraph layout on graph with </span><span class="si">%d</span><span class="s1"> nodes.&#39;</span>
             <span class="s1">&#39;May take time&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_nodes</span><span class="p">)</span>
         <span class="p">)</span>
@@ -1128,7 +1132,7 @@
     <span class="c1"># for node in graph_.nodes():</span>
     <span class="c1">#    anode = pygraphviz.Node(agraph, node)</span>
     <span class="c1">#    ptstr_ = anode.attr[&#39;pos&#39;]</span>
-    <span class="c1">#    print(&#39;ptstr_ = %r&#39; % (ptstr_,))</span>
+    <span class="c1">#    logger.info(&#39;ptstr_ = %r&#39; % (ptstr_,))</span>
 
     <span class="c1"># FIXME; This spits out warnings on weird color input</span>
     <span class="c1"># import warnings</span>
@@ -1150,14 +1154,14 @@
     <span class="c1">#    utool.embed()</span>
 
     <span class="k">if</span> <span class="n">is_large</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finished agraph layout.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished agraph layout.&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">test_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/test_graphviz_draw.png&#39;</span><span class="p">)</span>
         <span class="n">agraph</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">test_fpath</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">test_fpath</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;AFTER LAYOUT</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">agraph</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;AFTER LAYOUT</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">agraph</span><span class="p">))</span>
 
     <span class="c1"># TODO: just replace with a single dict of attributes</span>
     <span class="n">node_layout_attrs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
@@ -1198,13 +1202,13 @@
                 <span class="n">agraph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">iedge</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;BEFORE IMPLICIT LAYOUT</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">agraph</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;BEFORE IMPLICIT LAYOUT</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">agraph</span><span class="p">))</span>
             <span class="c1"># Route the implicit edges (must use neato)</span>
 
             <span class="n">control_node</span> <span class="o">=</span> <span class="n">pygraphviz</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">agraph</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
-            <span class="c1"># print(&#39;control_node = %r&#39; % (control_node,))</span>
+            <span class="c1"># logger.info(&#39;control_node = %r&#39; % (control_node,))</span>
             <span class="n">node1_attr1</span> <span class="o">=</span> <span class="n">parse_anode_layout_attrs</span><span class="p">(</span><span class="n">control_node</span><span class="p">)</span>
-            <span class="c1"># print(&#39;node1_attr1 = %r&#39; % (node1_attr1,))</span>
+            <span class="c1"># logger.info(&#39;node1_attr1 = %r&#39; % (node1_attr1,))</span>
 
             <span class="n">implicit_kw</span> <span class="o">=</span> <span class="n">layoutkw</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">implicit_kw</span><span class="p">[</span><span class="s1">&#39;overlap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
@@ -1213,31 +1217,33 @@
             <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argparts</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">is_large</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;[nx_agraph_layout] About to draw implicit layout &#39;</span> <span class="s1">&#39;for large graph.&#39;</span>
                 <span class="p">)</span>
 
             <span class="n">agraph</span><span class="o">.</span><span class="n">layout</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="s1">&#39;-n &#39;</span> <span class="o">+</span> <span class="n">args</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">is_large</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[nx_agraph_layout] done with implicit layout for &#39;</span> <span class="s1">&#39;large graph.&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;[nx_agraph_layout] done with implicit layout for &#39;</span> <span class="s1">&#39;large graph.&#39;</span>
+                <span class="p">)</span>
 
             <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
                 <span class="n">agraph</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/implicit_test_graphviz_draw.png&#39;</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;AFTER IMPLICIT LAYOUT</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">agraph</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;AFTER IMPLICIT LAYOUT</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">agraph</span><span class="p">))</span>
 
             <span class="n">control_node</span> <span class="o">=</span> <span class="n">pygraphviz</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">agraph</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
-            <span class="c1"># print(&#39;control_node = %r&#39; % (control_node,))</span>
+            <span class="c1"># logger.info(&#39;control_node = %r&#39; % (control_node,))</span>
             <span class="n">node1_attr2</span> <span class="o">=</span> <span class="n">parse_anode_layout_attrs</span><span class="p">(</span><span class="n">control_node</span><span class="p">)</span>
-            <span class="c1"># print(&#39;node1_attr2 = %r&#39; % (node1_attr2,))</span>
+            <span class="c1"># logger.info(&#39;node1_attr2 = %r&#39; % (node1_attr2,))</span>
 
             <span class="c1"># graph positions shifted</span>
             <span class="c1"># This is not the right place to divide by 72</span>
             <span class="n">translation</span> <span class="o">=</span> <span class="n">node1_attr1</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">node1_attr2</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span>
-            <span class="c1"># print(&#39;translation = %r&#39; % (translation,))</span>
+            <span class="c1"># logger.info(&#39;translation = %r&#39; % (translation,))</span>
             <span class="c1"># translation = np.array([0, 0])</span>
-            <span class="c1"># print(&#39;translation = %r&#39; % (translation,))</span>
+            <span class="c1"># logger.info(&#39;translation = %r&#39; % (translation,))</span>
 
             <span class="c1"># for iedge in all_edges:</span>
             <span class="k">for</span> <span class="n">iedge</span> <span class="ow">in</span> <span class="n">implicit_edges</span><span class="p">:</span>
@@ -1305,7 +1311,7 @@
         <span class="n">translation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
     <span class="n">edge_attrs</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">apos</span> <span class="o">=</span> <span class="n">aedge</span><span class="o">.</span><span class="n">attr</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span>
-    <span class="c1"># print(&#39;apos = %r&#39; % (apos,))</span>
+    <span class="c1"># logger.info(&#39;apos = %r&#39; % (apos,))</span>
     <span class="n">end_pt</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">start_pt</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1"># if &#39;-&#39; in apos:</span>
@@ -1409,8 +1415,8 @@
 
     <span class="c1"># TODO: get font properties from nodes as well</span>
     <span class="n">font_prop</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">parse_fontkw</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="c1"># print(&#39;font_prop = %r&#39; % (font_prop,))</span>
-    <span class="c1"># print(&#39;font_prop.get_name() = %r&#39; % (font_prop.get_name() ,))</span>
+    <span class="c1"># logger.info(&#39;font_prop = %r&#39; % (font_prop,))</span>
+    <span class="c1"># logger.info(&#39;font_prop.get_name() = %r&#39; % (font_prop.get_name() ,))</span>
 
     <span class="n">node_pos</span> <span class="o">=</span> <span class="n">layout_info</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">node_size</span> <span class="o">=</span> <span class="n">layout_info</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="p">{})</span>
@@ -1472,7 +1478,7 @@
             <span class="n">rounded</span> <span class="o">=</span> <span class="s1">&#39;rounded&#39;</span> <span class="ow">in</span> <span class="n">node_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
             <span class="n">isdiag</span> <span class="o">=</span> <span class="s1">&#39;diagonals&#39;</span> <span class="ow">in</span> <span class="n">node_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
-            <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">patches</span>
+            <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">patches</span>
 
             <span class="k">if</span> <span class="n">rounded</span><span class="p">:</span>
                 <span class="n">rpad</span> <span class="o">=</span> <span class="mi">20</span>
@@ -1538,7 +1544,7 @@
                 <span class="n">framecolor</span> <span class="o">=</span> <span class="n">nattrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;framecolor&#39;</span><span class="p">,</span> <span class="n">node_color</span><span class="p">)</span>
                 <span class="n">framecolor</span> <span class="o">=</span> <span class="n">ensure_nonhex_color</span><span class="p">(</span><span class="n">framecolor</span><span class="p">)</span>
 
-                <span class="c1"># print(&#39;framecolor = %r&#39; % (framecolor,))</span>
+                <span class="c1"># logger.info(&#39;framecolor = %r&#39; % (framecolor,))</span>
                 <span class="k">if</span> <span class="n">framecolor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">framecolor</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">BLACK</span>
                     <span class="n">framealpha</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -1675,7 +1681,7 @@
                 <span class="n">width</span> <span class="o">=</span> <span class="n">graphsize</span> <span class="o">/</span> <span class="mi">15</span>
                 <span class="n">width</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--arrow-width&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
                 <span class="n">lw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--line-width&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">lw</span><span class="p">)</span>
-                <span class="c1"># print(&#39;width = %r&#39; % (width,))</span>
+                <span class="c1"># logger.info(&#39;width = %r&#39; % (width,))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">width</span> <span class="o">=</span> <span class="mf">0.5</span>
                 <span class="n">lw</span> <span class="o">=</span> <span class="mf">1.0</span>
@@ -1714,7 +1720,7 @@
             <span class="n">full_lw</span> <span class="o">=</span> <span class="n">lw</span>
 
             <span class="c1"># effects = data.get(&#39;stroke&#39;, None)</span>
-            <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">patheffects</span>
+            <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">patheffects</span>
 
             <span class="n">path_effects</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1764,14 +1770,14 @@
                     <span class="n">path_effects</span> <span class="o">+=</span> <span class="p">[</span><span class="n">patheffects</span><span class="o">.</span><span class="n">SimpleLineShadow</span><span class="p">(</span><span class="o">**</span><span class="n">shadowkw_</span><span class="p">)]</span>
 
             <span class="c1"># for vert, code in path.iter_segments():</span>
-            <span class="c1">#    print(&#39;code = %r&#39; % (code,))</span>
-            <span class="c1">#    print(&#39;vert = %r&#39; % (vert,))</span>
+            <span class="c1">#    logger.info(&#39;code = %r&#39; % (code,))</span>
+            <span class="c1">#    logger.info(&#39;vert = %r&#39; % (vert,))</span>
             <span class="c1">#    if code == MOVETO:</span>
             <span class="c1">#        pass</span>
 
             <span class="c1"># for verts, code in path.cleaned().iter_segments():</span>
-            <span class="c1">#    print(&#39;code = %r&#39; % (code,))</span>
-            <span class="c1">#    print(&#39;verts = %r&#39; % (verts,))</span>
+            <span class="c1">#    logger.info(&#39;code = %r&#39; % (code,))</span>
+            <span class="c1">#    logger.info(&#39;verts = %r&#39; % (verts,))</span>
             <span class="c1">#    pass</span>
             <span class="n">path_effects</span> <span class="o">+=</span> <span class="p">[</span><span class="n">patheffects</span><span class="o">.</span><span class="n">Normal</span><span class="p">()]</span>
 
@@ -1890,9 +1896,9 @@
             <span class="c1"># ax.add_patch(patch)</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding </span><span class="si">%r</span><span class="s1"> node patches &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;node_patch_dict&#39;</span><span class="p">],)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding </span><span class="si">%r</span><span class="s1"> edge patches &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;edge_patch_dict&#39;</span><span class="p">],)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_invis_edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_invis_edge</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding </span><span class="si">%r</span><span class="s1"> node patches &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;node_patch_dict&#39;</span><span class="p">],)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding </span><span class="si">%r</span><span class="s1"> edge patches &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;edge_patch_dict&#39;</span><span class="p">],)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;n_invis_edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_invis_edge</span><span class="p">,))</span>
 
     <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;patch_frame_dict&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
@@ -1968,20 +1974,6 @@
 <span class="c1">#                                  xytext=xytext[::-1], textcoords=textcoords[::-1],</span>
 <span class="c1">#                                  ha=&#39;center&#39;, va=va, arrowprops=arrowprops)</span>
 <span class="c1">#     return xarrow, yarrow</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.plottool.nx_helpers</span>
-<span class="sd">        python -m wbia.plottool.nx_helpers --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -2019,17 +2011,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -2046,7 +2036,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

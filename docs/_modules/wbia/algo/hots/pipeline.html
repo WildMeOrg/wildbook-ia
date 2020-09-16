@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.algo.hots.pipeline &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -76,19 +75,20 @@
 <span class="sd">    * Don&#39;t preload the nn-indexer in case the nearest neighbors have already</span>
 <span class="sd">    been computed?</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">hstypes</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">chip_match</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">nn_weights</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">scoring</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="c1"># =================</span>
@@ -132,7 +132,7 @@
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;qaid&#39;</span><span class="p">,</span> <span class="s1">&#39;qfx_list&#39;</span><span class="p">,</span> <span class="s1">&#39;neighb_idxs&#39;</span><span class="p">,</span> <span class="s1">&#39;neighb_dists&#39;</span><span class="p">]</span>
 
     <span class="c1"># TODO: replace with named tuple?</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">qfxs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">qfxs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qfx_list</span> <span class="o">=</span> <span class="n">qfxs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">neighb_idxs</span> <span class="o">=</span> <span class="n">idxs</span>
@@ -145,10 +145,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qfx_list</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_dists</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_dists</span><span class="p">)[</span><span class="n">index</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -213,14 +213,14 @@
     <span class="c1"># Load data for nearest neighbors</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">[hs] +--- STARTING HOTSPOTTER PIPELINE ---&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">(),</span> <span class="s1">&#39;[hs] &#39;</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">[hs] +--- STARTING HOTSPOTTER PIPELINE ---&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">(),</span> <span class="s1">&#39;[hs] &#39;</span><span class="p">))</span>
 
     <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">(),</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;pipeline qaids&#39;</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">(),</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;pipeline daids&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s1">&#39;smk&#39;</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia.algo.hots.smk</span> <span class="k">import</span> <span class="n">smk_match</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
 
         <span class="c1"># Alternative to naive bayes matching:</span>
         <span class="c1"># Selective match kernel</span>
@@ -269,7 +269,7 @@
             <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;invalid pipeline root </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;invalid pipeline root </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
 
     <span class="c1"># Spatial verification (cm_list) (TODO: cython)</span>
     <span class="c1"># * prunes chip results and feature matches</span>
@@ -285,7 +285,7 @@
     <span class="n">scoring</span><span class="o">.</span><span class="n">score_chipmatch_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">score_method</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">VERB_PIPELINE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] L___ FINISHED HOTSPOTTER PIPELINE ___&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] L___ FINISHED HOTSPOTTER PIPELINE ___&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">cm_list</span></div>
 
@@ -318,11 +318,12 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &gt;&gt;&gt; assert np.all(qreq_.qaids == [1, 4, 5, 6])</span>
 <span class="sd">        &gt;&gt;&gt; assert np.all(qreq_.daids == [1, 2, 3, 4, 5, 6])</span>
+<span class="sd">        ...</span>
 <span class="sd">        impossible_daids_list=[[1], [4], [5, 6], [5, 6]],</span>
 <span class="sd">        Kpad_list=[1, 1, 2, 2],</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 0) Build impossible matches&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] Step 0) Build impossible matches&#39;</span><span class="p">)</span>
 
     <span class="n">can_match_sameimg</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_sameimg</span>
     <span class="n">can_match_samename</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_samename</span>
@@ -446,7 +447,7 @@
 <span class="sd">            &#39;nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6&#39;,</span>
 <span class="sd">        ]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="k">import</span> <span class="n">Config</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="kn">import</span> <span class="n">Config</span>
 
     <span class="n">chip_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfgstr</span>
     <span class="n">feat_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
@@ -481,7 +482,7 @@
     <span class="n">nn_mid_cacheid</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
         <span class="p">[</span><span class="n">data_hashid</span><span class="p">,</span> <span class="n">nn_cfgstr</span><span class="p">,</span> <span class="n">chip_cfgstr</span><span class="p">,</span> <span class="n">feat_cfgstr</span><span class="p">,</span> <span class="n">flann_cfgstr</span><span class="p">,</span> <span class="n">aug_cfgstr</span><span class="p">]</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;nn_mid_cacheid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_mid_cacheid</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;nn_mid_cacheid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_mid_cacheid</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">HACK_KCFG</span><span class="p">:</span>
         <span class="n">kbase</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span><span class="p">)</span>
@@ -499,7 +500,7 @@
     <span class="c1"># ut.unixjoin(qreq_.ibs.get_cachedir(), &#39;neighborcache2&#39;)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">nn_cachedir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;nn_mid_cacheid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_mid_cacheid</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;nn_mid_cacheid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_mid_cacheid</span><span class="p">,))</span>
         <span class="k">pass</span>
     <span class="k">return</span> <span class="n">nn_cachedir</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span></div>
 
@@ -564,7 +565,7 @@
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] depth(qvecs_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] depth(qvecs_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">),))</span>
     <span class="c1"># Mark progress ane execute nearest indexer nearest neighbor code</span>
     <span class="n">prog_hook</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">requery</span><span class="p">:</span>
@@ -723,7 +724,9 @@
     <span class="c1"># checks = qreq_.qparams.checks</span>
     <span class="c1"># Get both match neighbors (including padding) and normalizing neighbors</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 1) Assign nearest neighbors: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[hs] Step 1) Assign nearest neighbors: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span><span class="p">,)</span>
+        <span class="p">)</span>
 
     <span class="n">prog_hook</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">()</span>
     <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">)</span>
@@ -791,7 +794,7 @@
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nnvalid0_list[0].sum(), 1000, 10000)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 2) Baseline neighbor filter&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] Step 2) Baseline neighbor filter&#39;</span><span class="p">)</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="c1"># Find which annotations each query matched against</span>
     <span class="n">neighb_aids_iter</span> <span class="o">=</span> <span class="p">(</span>
@@ -890,11 +893,11 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 3) Weight neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nnweight_cfgstr</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] Step 3) Weight neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nnweight_cfgstr</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] depth(nns_list) &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] depth(nns_list) &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)))</span>
 
-    <span class="c1"># print(WEIGHT_LBL)</span>
+    <span class="c1"># logger.info(WEIGHT_LBL)</span>
     <span class="c1"># intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,</span>
     <span class="c1">#                                   **PROGKW)</span>
 
@@ -921,7 +924,7 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] normalizing feat scores&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] normalizing feat scores&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ScoreNormalizer</span><span class="p">()</span>
                 <span class="c1"># qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)</span>
@@ -1125,7 +1128,7 @@
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">pipeline_root</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 4) Building chipmatches </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pipeline_root</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] Step 4) Building chipmatches </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pipeline_root</span><span class="p">,))</span>
 
     <span class="c1"># Iterate over INTERNAL query annotation ids</span>
     <span class="n">prog_hook</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">()</span>
@@ -1338,7 +1341,7 @@
     <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list_FILT</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 5) Spatial verification: off&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] Step 5) Spatial verification: off&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cm_list</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">cm_list_SVER</span> <span class="o">=</span> <span class="n">_spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
@@ -1352,7 +1355,7 @@
 <span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.pipeline import *  # NOQA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 5) Spatial verification: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_cfgstr</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[hs] Step 5) Spatial verification: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_cfgstr</span><span class="p">)</span>
 
     <span class="c1"># dbg info (can remove if there is a speed issue)</span>
     <span class="n">score_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_method</span>
@@ -1652,26 +1655,6 @@
     <span class="c1"># [kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]</span>
     <span class="n">dlen_sqrd_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_kpts_dlen_sqrd</span><span class="p">(</span><span class="n">kpts2_m</span><span class="p">)</span> <span class="k">for</span> <span class="n">kpts2_m</span> <span class="ow">in</span> <span class="n">kpts2_m_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">dlen_sqrd_list</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python -m wbia.algo.hots.pipeline --verb-test</span>
-<span class="sd">    python -m wbia.algo.hots.pipeline --test-build_chipmatches</span>
-<span class="sd">    python -m wbia.algo.hots.pipeline --test-spatial-verification</span>
-<span class="sd">    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0 --show</span>
-<span class="sd">    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --show</span>
-<span class="sd">    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --show --db NAUT_test</span>
-<span class="sd">    python -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:1 --db NAUT_test --noindent</span>
-<span class="sd">    python -m wbia.algo.hots.pipeline --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
-    <span class="c1"># if ut.get_argflag(&#39;--show&#39;):</span>
-    <span class="c1">#     import wbia.plottool as pt</span>
-    <span class="c1">#     exec(pt.present())</span>
 </pre></div>
 
           </div>
@@ -1711,17 +1694,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1738,7 +1719,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

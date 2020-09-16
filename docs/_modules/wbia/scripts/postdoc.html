@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.scripts.postdoc &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,27 +33,28 @@
             
   <h1>Source code for wbia.scripts.postdoc</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">vsone</span>
-<span class="kn">from</span> <span class="nn">wbia.scripts._thesis_helpers</span> <span class="k">import</span> <span class="n">DBInputs</span>
-<span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="k">import</span> <span class="n">Sampler</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia.scripts._thesis_helpers</span> <span class="k">import</span> <span class="n">Tabular</span><span class="p">,</span> <span class="n">upper_one</span><span class="p">,</span> <span class="n">ave_str</span>
-<span class="kn">from</span> <span class="nn">wbia.scripts._thesis_helpers</span> <span class="k">import</span> <span class="n">dbname_to_species_nice</span>
-<span class="kn">from</span> <span class="nn">wbia.scripts._thesis_helpers</span> <span class="k">import</span> <span class="n">TMP_RC</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">DPI</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">vsone</span>
+<span class="kn">from</span> <span class="nn">wbia.scripts._thesis_helpers</span> <span class="kn">import</span> <span class="n">DBInputs</span>
+<span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="kn">import</span> <span class="n">Sampler</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.scripts._thesis_helpers</span> <span class="kn">import</span> <span class="n">Tabular</span><span class="p">,</span> <span class="n">upper_one</span><span class="p">,</span> <span class="n">ave_str</span>
+<span class="kn">from</span> <span class="nn">wbia.scripts._thesis_helpers</span> <span class="kn">import</span> <span class="n">dbname_to_species_nice</span>
+<span class="kn">from</span> <span class="nn">wbia.scripts._thesis_helpers</span> <span class="kn">import</span> <span class="n">TMP_RC</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">DPI</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLF</span> <span class="o">=</span> <span class="s1">&#39;VAMP&#39;</span>
@@ -69,7 +69,7 @@
     <span class="n">infr</span><span class="o">.</span><span class="n">reset_feedback</span><span class="p">(</span><span class="s1">&#39;staging&#39;</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">infr</span><span class="o">.</span><span class="n">relabel_using_reviews</span><span class="p">(</span><span class="n">rectify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="c1"># infr.apply_nondynamic_update()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()))</span>
 
     <span class="n">infr</span><span class="o">.</span><span class="n">wbia_delta_info</span><span class="p">()</span>
 
@@ -282,8 +282,8 @@
         <span class="n">pred_confusion</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;confusion&#39;</span><span class="p">])</span>
         <span class="n">pred_confusion</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;real&#39;</span>
         <span class="n">pred_confusion</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pred&#39;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Edge confusion&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">pred_confusion</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Edge confusion&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">pred_confusion</span><span class="p">)</span>
 
         <span class="n">expt_data</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;real_ccs&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">nid_to_gt_cc</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
@@ -927,7 +927,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_precollect</span><span class="p">()</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;VerifierExpt _setup()&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;VerifierExpt _setup()&#39;</span><span class="p">)</span>
 
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
 
@@ -981,7 +981,7 @@
         <span class="n">cfg_prefix</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="p">))</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">hyper_params</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup_links</span><span class="p">(</span><span class="n">cfg_prefix</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finished setup&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished setup&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="VerifierExpt.agg_dbstats"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.postdoc.VerifierExpt.agg_dbstats">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">agg_dbstats</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
@@ -1016,14 +1016,14 @@
             <span class="c1"># labels.append(self.species_nice.capitalize())</span>
 
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dfs</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;df =</span><span class="se">\n</span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;df =</span><span class="se">\n</span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">)</span>
         <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">tabular</span> <span class="o">=</span> <span class="n">Tabular</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">colfmt</span><span class="o">=</span><span class="s1">&#39;numeric&#39;</span><span class="p">)</span>
         <span class="n">tabular</span><span class="o">.</span><span class="n">theadify</span> <span class="o">=</span> <span class="mi">16</span>
         <span class="n">enc_text</span> <span class="o">=</span> <span class="n">tabular</span><span class="o">.</span><span class="n">as_tabular</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">enc_text</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">enc_text</span><span class="p">)</span>
 
         <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">base_dpath</span><span class="p">,</span> <span class="s1">&#39;agg-dbstats.tex&#39;</span><span class="p">),</span> <span class="n">enc_text</span><span class="p">)</span>
 
@@ -1179,21 +1179,21 @@
                     <span class="n">rank_tpr_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">nice</span><span class="p">,</span> <span class="n">algo</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;tpr@fpr=0&#39;</span><span class="p">]</span>
                     <span class="n">rank_thesh_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">nice</span><span class="p">,</span> <span class="n">algo</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;thresh@fpr=0&#39;</span><span class="p">]</span>
 
-        <span class="kn">from</span> <span class="nn">utool.experimental.pandas_highlight</span> <span class="k">import</span> <span class="n">to_string_monkey</span>
+        <span class="kn">from</span> <span class="nn">utool.experimental.pandas_highlight</span> <span class="kn">import</span> <span class="n">to_string_monkey</span>
 
         <span class="n">nums</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-----&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;AUC at rank = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;-----&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;AUC at rank = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
             <span class="n">rank_auc_df</span> <span class="o">=</span> <span class="n">rank_auc_tables</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">rank_auc_df</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">rank_auc_df</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">))</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;===============&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;===============&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-----&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TPR at rank = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;-----&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TPR at rank = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
             <span class="n">rank_tpr_df</span> <span class="o">=</span> <span class="n">rank_tpr_tables</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">rank_tpr_df</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">rank_tpr_df</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">))</span>
 
         <span class="k">def</span> <span class="nf">_bf_best</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -1226,7 +1226,7 @@
                 <span class="o">+</span> <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">column_parts</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]]</span>
             <span class="p">)</span>
 
-            <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">_thesis_helpers</span>
+            <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">_thesis_helpers</span>
 
             <span class="n">tabular</span> <span class="o">=</span> <span class="n">_thesis_helpers</span><span class="o">.</span><span class="n">Tabular</span><span class="p">(</span><span class="n">all_stats</span><span class="p">,</span> <span class="n">colfmt</span><span class="o">=</span><span class="n">colfmt</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">tabular</span><span class="o">.</span><span class="n">add_multicolumn_header</span><span class="p">(</span><span class="n">multi_header</span><span class="p">)</span>
@@ -1242,7 +1242,7 @@
                 <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">mathbf{&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s1">&#39;num&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;}$&#39;</span><span class="p">,</span>
                 <span class="n">tex_text</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">tex_text</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">tex_text</span><span class="p">)</span>
             <span class="c1"># tex_text = tex_text.replace(&#39;\\mathbf{$&#39;, &#39;$\\mathbf{&#39;)</span>
             <span class="c1"># tex_text = tex_text.replace(&#39;$}&#39;, &#39;}$&#39;)</span>
 
@@ -1260,13 +1260,13 @@
             <span class="c1"># Tables</span>
             <span class="n">rank1_auc_table</span> <span class="o">=</span> <span class="n">rank_auc_tables</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">rank1_tpr_table</span> <span class="o">=</span> <span class="n">rank_tpr_tables</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">rank1_auc_table =</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">rank1_auc_table</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">))</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">rank1_tpr_table =</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">rank1_tpr_table</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">))</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">rank1_cmc_table =</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">rank1_cmc_table</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">))</span>
             <span class="p">)</span>
 
@@ -1291,7 +1291,7 @@
                 <span class="o">+</span> <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">column_parts</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]]</span>
             <span class="p">)</span>
 
-            <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">_thesis_helpers</span>
+            <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">_thesis_helpers</span>
 
             <span class="n">tabular</span> <span class="o">=</span> <span class="n">_thesis_helpers</span><span class="o">.</span><span class="n">Tabular</span><span class="p">(</span><span class="n">all_stats</span><span class="p">,</span> <span class="n">colfmt</span><span class="o">=</span><span class="n">colfmt</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">tabular</span><span class="o">.</span><span class="n">add_multicolumn_header</span><span class="p">(</span><span class="n">multi_header</span><span class="p">)</span>
@@ -1307,8 +1307,8 @@
                 <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">mathbf{&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s1">&#39;num&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;}$&#39;</span><span class="p">,</span>
                 <span class="n">tex_text</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">tex_text</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">tex_text</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">tex_text</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">tex_text</span><span class="p">)</span>
             <span class="c1"># tex_text = tex_text.replace(&#39;\\mathbf{$&#39;, &#39;$\\mathbf{&#39;)</span>
             <span class="c1"># tex_text = tex_text.replace(&#39;$}&#39;, &#39;}$&#39;)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">base_dpath</span><span class="p">,</span> <span class="s1">&#39;agg-results.tex&#39;</span><span class="p">),</span> <span class="n">tex_text</span><span class="p">)</span>
@@ -1593,8 +1593,8 @@
                     <span class="k">continue</span>
 
                 <span class="c1"># Find auto thresholds</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-----&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dbname = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dbname</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;-----&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;dbname = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dbname</span><span class="p">))</span>
                 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">y_test_bin</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
                     <span class="n">class_k_truth</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">y_test_bin</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
                     <span class="n">class_k_probs</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">clf_probs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
@@ -1609,10 +1609,10 @@
                     <span class="p">)</span>
                     <span class="c1"># thresh = cfsm_scores_rank.get_metric_at_metric(</span>
                     <span class="c1">#     &#39;thresh&#39;, &#39;fpr&#39;, 0, tiebreaker=&#39;minthresh&#39;)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;state = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tpr = </span><span class="si">{:.3f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tpr</span><span class="p">))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+--&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-----&#39;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;state = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;tpr = </span><span class="si">{:.3f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tpr</span><span class="p">))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;+--&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;-----&#39;</span><span class="p">)</span>
 
                 <span class="c1"># aggregate results</span>
                 <span class="n">y_pred</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">clf_probs</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -1624,7 +1624,7 @@
                 <span class="p">),</span> <span class="s1">&#39;classes are inconsistent&#39;</span>
                 <span class="n">agg_class_names</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span>
 
-            <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">sklearn_utils</span>
+            <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">sklearn_utils</span>
 
             <span class="n">agg_report</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">classification_report2</span><span class="p">(</span>
                 <span class="n">agg_y_true</span><span class="p">,</span> <span class="n">agg_y_pred</span><span class="p">,</span> <span class="n">agg_class_names</span><span class="p">,</span> <span class="n">agg_sample_weight</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
@@ -1637,8 +1637,8 @@
             <span class="n">multiclass_mcc</span> <span class="o">=</span> <span class="n">agg_report</span><span class="p">[</span><span class="s1">&#39;mcc&#39;</span><span class="p">]</span>
             <span class="n">metric_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;combined&#39;</span><span class="p">,</span> <span class="s1">&#39;mcc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">multiclass_mcc</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="n">metric_df</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">confusion_df</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">metric_df</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">confusion_df</span><span class="p">)</span>
 
             <span class="n">dpath</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dpath</span><span class="p">)</span>
             <span class="n">confusion_fname</span> <span class="o">=</span> <span class="s1">&#39;agg_confusion_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">task_key</span><span class="p">)</span>
@@ -1665,7 +1665,7 @@
             <span class="n">latex_str</span> <span class="o">=</span> <span class="n">latex_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">sum_pred</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\sum$ predicted&#39;</span><span class="p">)</span>
             <span class="n">latex_str</span> <span class="o">=</span> <span class="n">latex_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">sum_real</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\sum$ real&#39;</span><span class="p">)</span>
             <span class="n">confusion_tex</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">latex_str</span><span class="p">,</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">confusion_tex</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">confusion_tex</span><span class="p">)</span>
 
             <span class="n">ut</span><span class="o">.</span><span class="n">render_latex</span><span class="p">(</span><span class="n">confusion_tex</span><span class="p">,</span> <span class="n">dpath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dpath</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">confusion_fname</span><span class="p">)</span>
 
@@ -1690,7 +1690,7 @@
             <span class="n">latex_str</span> <span class="o">=</span> <span class="n">tabular</span><span class="o">.</span><span class="n">as_tabular</span><span class="p">()</span>
             <span class="n">latex_str</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; -0.00 &#39;</span><span class="p">,</span> <span class="s1">&#39;  0.00 &#39;</span><span class="p">,</span> <span class="n">latex_str</span><span class="p">)</span>
             <span class="n">metrics_tex</span> <span class="o">=</span> <span class="n">latex_str</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">metrics_tex</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">metrics_tex</span><span class="p">)</span>
 
             <span class="n">confusion_tex</span> <span class="o">=</span> <span class="n">confusion_tex</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Incomparable&#39;</span><span class="p">,</span> <span class="s1">&#39;Incomp.&#39;</span><span class="p">)</span>
             <span class="n">confusion_tex</span> <span class="o">=</span> <span class="n">confusion_tex</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;predicted&#39;</span><span class="p">,</span> <span class="s1">&#39;pred&#39;</span><span class="p">)</span>
@@ -1707,22 +1707,26 @@
         <span class="n">cmc_diff</span> <span class="o">=</span> <span class="n">new_cmc</span> <span class="o">-</span> <span class="n">old_cmc</span>
         <span class="n">cmc_change</span> <span class="o">=</span> <span class="n">cmc_diff</span> <span class="o">/</span> <span class="n">old_cmc</span>
         <span class="n">improved</span> <span class="o">=</span> <span class="n">cmc_diff</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> / </span><span class="si">{}</span><span class="s1"> datasets saw CMC improvement&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">improved</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmc_diff</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CMC average absolute diff: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmc_diff</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CMC average percent change: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmc_change</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> / </span><span class="si">{}</span><span class="s1"> datasets saw CMC improvement&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">improved</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmc_diff</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CMC average absolute diff: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmc_diff</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CMC average percent change: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmc_change</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Average AUC:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank1_auc_table</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Average AUC:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank1_auc_table</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Average TPR:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank1_tpr_table</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Average TPR:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank1_tpr_table</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span>
 
         <span class="n">old_tpr</span> <span class="o">=</span> <span class="n">rank1_tpr_table</span><span class="p">[</span><span class="n">LNBNN</span><span class="p">]</span>
         <span class="n">new_tpr</span> <span class="o">=</span> <span class="n">rank1_tpr_table</span><span class="p">[</span><span class="n">CLF</span><span class="p">]</span>
         <span class="n">tpr_diff</span> <span class="o">=</span> <span class="n">new_tpr</span> <span class="o">-</span> <span class="n">old_tpr</span>
         <span class="n">tpr_change</span> <span class="o">=</span> <span class="n">tpr_diff</span> <span class="o">/</span> <span class="n">old_tpr</span>
         <span class="n">improved</span> <span class="o">=</span> <span class="n">tpr_diff</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> / </span><span class="si">{}</span><span class="s1"> datasets saw TPR improvement&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">improved</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">tpr_diff</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TPR average absolute diff: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tpr_diff</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TPR average percent change: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tpr_change</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> / </span><span class="si">{}</span><span class="s1"> datasets saw TPR improvement&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">improved</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">tpr_diff</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TPR average absolute diff: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tpr_diff</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TPR average percent change: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tpr_change</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span></div>
 
 <div class="viewcode-block" id="VerifierExpt.measure_dbstats"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.postdoc.VerifierExpt.measure_dbstats">[docs]</a>    <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">measure_dbstats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1785,7 +1789,7 @@
             <span class="n">annot_info</span><span class="p">[</span><span class="s1">&#39;enc_time_deltas&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">enc_deltas</span><span class="p">)</span>
             <span class="n">annot_info</span><span class="p">[</span><span class="s1">&#39;n_enc_per_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">n_enc_per_name</span><span class="p">)</span>
             <span class="n">annot_info</span><span class="p">[</span><span class="s1">&#39;n_annot_per_enc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">n_annot_per_enc</span><span class="p">)</span>
-            <span class="c1"># print(ut.repr4(annot_info, si=True, nl=1, precision=2))</span>
+            <span class="c1"># logger.info(ut.repr4(annot_info, si=True, nl=1, precision=2))</span>
             <span class="k">return</span> <span class="n">annot_info</span>
 
         <span class="n">enc_info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">()</span>
@@ -1811,8 +1815,8 @@
         <span class="n">info</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qual_info</span>
         <span class="n">info</span><span class="p">[</span><span class="s1">&#39;view&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">view_info</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Annotation Pool DBStats&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Annotation Pool DBStats&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
 
         <span class="k">def</span> <span class="nf">_ave_str2</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1843,7 +1847,7 @@
         <span class="n">tabular</span> <span class="o">=</span> <span class="n">Tabular</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">colfmt</span><span class="o">=</span><span class="s1">&#39;numeric&#39;</span><span class="p">)</span>
         <span class="n">tabular</span><span class="o">.</span><span class="n">theadify</span> <span class="o">=</span> <span class="mi">16</span>
         <span class="n">enc_text</span> <span class="o">=</span> <span class="n">tabular</span><span class="o">.</span><span class="n">as_tabular</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">enc_text</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">enc_text</span><span class="p">)</span>
 
         <span class="c1"># ut.render_latex(enc_text, dpath=self.dpath, fname=&#39;dbstats&#39;,</span>
         <span class="c1">#                         preamb_extra=[&#39;\\usepackage{makecell}&#39;])</span>
@@ -1934,7 +1938,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_results</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
         <span class="n">eval_task_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;task_combo_res&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;eval_task_keys = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">eval_task_keys</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;eval_task_keys = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">eval_task_keys</span><span class="p">))</span>
         <span class="n">task_key</span> <span class="o">=</span> <span class="s1">&#39;match_state&#39;</span>
 
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--cases&#39;</span><span class="p">):</span>
@@ -2039,7 +2043,7 @@
 
             <span class="n">auc_text</span> <span class="o">=</span> <span class="s1">&#39;AUC when restricting to the top `num` LNBNN ranks:&#39;</span>
             <span class="n">auc_text</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">rank_auc_df</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">auc_text</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">auc_text</span><span class="p">)</span>
             <span class="n">roc_info_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="n">auc_text</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
@@ -2057,7 +2061,7 @@
                 <span class="n">tpr_info</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">8</span><span class="p">))]</span>
 
             <span class="n">tpr_text</span> <span class="o">=</span> <span class="s1">&#39;Metric TPR relationships</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tpr_info</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">tpr_text</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">tpr_text</span><span class="p">)</span>
 
             <span class="n">roc_info_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="n">tpr_text</span><span class="p">]</span>
 
@@ -2075,13 +2079,13 @@
                 <span class="n">fpr_info</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">8</span><span class="p">))]</span>
 
             <span class="n">fpr_text</span> <span class="o">=</span> <span class="s1">&#39;Metric FPR relationships</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fpr_info</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">fpr_text</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">fpr_text</span><span class="p">)</span>
 
             <span class="n">roc_info_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="n">fpr_text</span><span class="p">]</span>
 
         <span class="n">roc_info_text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">roc_info_lines</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;roc_info.txt&#39;</span><span class="p">),</span> <span class="n">roc_info_text</span><span class="p">)</span>
-        <span class="c1"># print(roc_info_text)</span>
+        <span class="c1"># logger.info(roc_info_text)</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># NOQA</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
@@ -2101,7 +2105,7 @@
         <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;roc_</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">task_key</span><span class="p">)</span>
         <span class="n">fig_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">),</span> <span class="n">fname</span><span class="p">)</span>
         <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">fig_fpath</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">render_figure_to_image</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">DPI</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;wrote roc figure to fig_fpath= </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fig_fpath</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;wrote roc figure to fig_fpath= </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fig_fpath</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]:</span>
             <span class="n">roc_curves_</span> <span class="o">=</span> <span class="p">[</span><span class="n">rank_clf_roc_curve</span><span class="p">[</span><span class="n">num</span><span class="p">],</span> <span class="n">rank_lnbnn_roc_curve</span><span class="p">[</span><span class="n">num</span><span class="p">]]</span>
@@ -2125,7 +2129,7 @@
             <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;rank_</span><span class="si">{}</span><span class="s1">_roc_</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">task_key</span><span class="p">)</span>
             <span class="n">fig_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">),</span> <span class="n">fname</span><span class="p">)</span>
             <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">fig_fpath</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">render_figure_to_image</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">DPI</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;wrote roc figure to fig_fpath= </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fig_fpath</span><span class="p">))</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;wrote roc figure to fig_fpath= </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fig_fpath</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="VerifierExpt.draw_rerank"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.postdoc.VerifierExpt.draw_rerank">[docs]</a>    <span class="k">def</span> <span class="nf">draw_rerank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">TMP_RC</span><span class="p">)</span>
@@ -2177,7 +2181,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">viewpoint_aware</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">thesis</span>
+        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">thesis</span>
 
         <span class="n">qaids</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span> <span class="n">info_list</span> <span class="o">=</span> <span class="n">thesis</span><span class="o">.</span><span class="n">Sampler</span><span class="o">.</span><span class="n">_varied_inputs</span><span class="p">(</span>
             <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">viewpoint_aware</span><span class="o">=</span><span class="n">viewpoint_aware</span>
@@ -2277,7 +2281,7 @@
         <span class="c1"># These are not gaurenteed to be comparable</span>
         <span class="n">viewpoint_aware</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;RotanTurtles&#39;</span>
 
-        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">thesis</span>
+        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">thesis</span>
 
         <span class="n">qaids</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span> <span class="n">info_list</span> <span class="o">=</span> <span class="n">thesis</span><span class="o">.</span><span class="n">Sampler</span><span class="o">.</span><span class="n">_varied_inputs</span><span class="p">(</span>
             <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">viewpoint_aware</span><span class="o">=</span><span class="n">viewpoint_aware</span>
@@ -2398,21 +2402,21 @@
         <span class="n">grid_output</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">dial</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">grid_output</span><span class="p">[</span><span class="s1">&#39;baseline&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_optimize</span><span class="p">(</span><span class="n">dial</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SO FAR: &#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SO FAR: &#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">grid_output</span><span class="p">,</span> <span class="s1">&#39;vals&#39;</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">dial</span> <span class="ow">in</span> <span class="n">combos</span><span class="p">:</span>
             <span class="n">score</span> <span class="o">=</span> <span class="n">to_optimize</span><span class="p">(</span><span class="n">dial</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FINISHED: &#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;score = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">score</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dial = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dial</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;FINISHED: &#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;score = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">score</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;dial = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dial</span><span class="p">))</span>
             <span class="n">hashdial</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashdict</span><span class="p">(</span><span class="n">dial</span><span class="p">)</span>
             <span class="n">grid_output</span><span class="p">[</span><span class="n">hashdial</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SO FAR: &#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SO FAR: &#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">grid_output</span><span class="p">,</span> <span class="s1">&#39;vals&#39;</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">2</span>
                 <span class="p">)</span>
@@ -2447,9 +2451,9 @@
 <span class="sd">            &gt;&gt;&gt; self._setup()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;pblm&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need to setup before measuring hard cases&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Need to setup before measuring hard cases&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Measuring hard cases&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Measuring hard cases&#39;</span><span class="p">)</span>
 
         <span class="n">pblm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pblm</span>
 
@@ -2457,14 +2461,14 @@
 
         <span class="n">res</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">task_combo_res</span><span class="p">[</span><span class="n">task_key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">clf_key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">]</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;task_key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task_key</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;task_key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task_key</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">task_key</span> <span class="o">==</span> <span class="s1">&#39;photobomb_state&#39;</span><span class="p">:</span>
             <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;max-mcc&#39;</span>
             <span class="n">method</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">get_thresholds</span><span class="p">(</span><span class="s1">&#39;mcc&#39;</span><span class="p">,</span> <span class="s1">&#39;maximize&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using thresholds: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using thresholds: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;argmax&#39;</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using argmax&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using argmax&#39;</span><span class="p">)</span>
 
         <span class="n">case_df</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">hardness_analysis</span><span class="p">(</span><span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
         <span class="c1"># group = case_df.sort_values([&#39;real_conf&#39;, &#39;easiness&#39;])</span>
@@ -2473,10 +2477,10 @@
         <span class="c1"># failure_cases = case_df[(case_df[&#39;real_conf&#39;] &gt; 0) &amp; case_df[&#39;failed&#39;]]</span>
         <span class="n">failure_cases</span> <span class="o">=</span> <span class="n">case_df</span><span class="p">[</span><span class="n">case_df</span><span class="p">[</span><span class="s1">&#39;failed&#39;</span><span class="p">]]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failure_cases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No reviewed failures exist. Do pblm.qt_review_hardcases&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No reviewed failures exist. Do pblm.qt_review_hardcases&#39;</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">{}</span><span class="s1"> failure cases&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failure_cases</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">{}</span><span class="s1"> failure cases&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failure_cases</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;With average hardness </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">stats_dict</span><span class="p">(</span><span class="n">failure_cases</span><span class="p">[</span><span class="s1">&#39;hardness&#39;</span><span class="p">]),</span> <span class="n">strkeys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span>
@@ -2491,7 +2495,7 @@
             <span class="n">flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_percentile_parts</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s1">&#39;easiness&#39;</span><span class="p">],</span> <span class="n">front</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
             <span class="n">subgroup</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span>
 
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Selected </span><span class="si">{}</span><span class="s1"> r(</span><span class="si">{}</span><span class="s1">)-p(</span><span class="si">{}</span><span class="s1">) cases&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="nb">len</span><span class="p">(</span><span class="n">subgroup</span><span class="p">),</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">real</span><span class="p">],</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span><span class="p">[</span><span class="n">pred</span><span class="p">]</span>
                 <span class="p">)</span>
@@ -2517,7 +2521,7 @@
                     <span class="p">}</span>
                 <span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Selected </span><span class="si">%d</span><span class="s1"> cases in total&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cases</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Selected </span><span class="si">%d</span><span class="s1"> cases in total&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cases</span><span class="p">)))</span>
 
         <span class="c1"># Augment cases with their one-vs-one matches</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span>
@@ -2544,7 +2548,7 @@
 
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">),</span> <span class="n">task_key</span> <span class="o">+</span> <span class="s1">&#39;_hard_cases.pkl&#39;</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">save_data</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">cases</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Hard case space on disk: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_file_nBytes_str</span><span class="p">(</span><span class="n">fpath</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Hard case space on disk: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_file_nBytes_str</span><span class="p">(</span><span class="n">fpath</span><span class="p">)))</span>
 
         <span class="c1"># if False:</span>
         <span class="c1">#     ybin_df = res.target_bin_df</span>
@@ -2576,8 +2580,8 @@
 
         <span class="c1">#     # infr.verbose = 100</span>
         <span class="c1">#     # for edge in missing:</span>
-        <span class="c1">#     #     print(edge[0] in infr.aids)</span>
-        <span class="c1">#     #     print(edge[1] in infr.aids)</span>
+        <span class="c1">#     #     logger.info(edge[0] in infr.aids)</span>
+        <span class="c1">#     #     logger.info(edge[1] in infr.aids)</span>
 
         <span class="c1">#     # fix = [</span>
         <span class="c1">#     #     (1184, 1185),</span>
@@ -2635,7 +2639,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_precollect</span><span class="p">()</span>
 
         <span class="n">cases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_results</span><span class="p">(</span><span class="n">task_key</span> <span class="o">+</span> <span class="s1">&#39;_hard_cases&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> hard cases&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cases</span><span class="p">),</span> <span class="n">task_key</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loaded </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> hard cases&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cases</span><span class="p">),</span> <span class="n">task_key</span><span class="p">))</span>
 
         <span class="n">subdir</span> <span class="o">=</span> <span class="s1">&#39;cases_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">task_key</span><span class="p">)</span>
         <span class="n">dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">),</span> <span class="n">subdir</span><span class="p">)</span>
@@ -2737,7 +2741,7 @@
         <span class="n">sample_weight</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">sample_weight</span>
         <span class="n">target_names</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">class_names</span>
 
-        <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">sklearn_utils</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">sklearn_utils</span>
 
         <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn_utils</span><span class="o">.</span><span class="n">classification_report2</span><span class="p">(</span>
             <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">target_names</span><span class="p">,</span> <span class="n">sample_weight</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
@@ -2748,8 +2752,8 @@
         <span class="n">multiclass_mcc</span> <span class="o">=</span> <span class="n">report</span><span class="p">[</span><span class="s1">&#39;mcc&#39;</span><span class="p">]</span>
         <span class="n">metric_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;combined&#39;</span><span class="p">,</span> <span class="s1">&#39;mcc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">multiclass_mcc</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="n">metric_df</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">confusion_df</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">metric_df</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">confusion_df</span><span class="p">)</span>
 
         <span class="c1"># df = self.task_confusion[task_key]</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">confusion_df</span>
@@ -2768,7 +2772,7 @@
         <span class="n">latex_str</span> <span class="o">=</span> <span class="n">latex_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">sum_pred</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\sum$ predicted&#39;</span><span class="p">)</span>
         <span class="n">latex_str</span> <span class="o">=</span> <span class="n">latex_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">sum_real</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\sum$ real&#39;</span><span class="p">)</span>
         <span class="n">confusion_tex</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">latex_str</span><span class="p">,</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">confusion_tex</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">confusion_tex</span><span class="p">)</span>
 
         <span class="n">df</span> <span class="o">=</span> <span class="n">metric_df</span>
         <span class="c1"># df = self.task_metrics[task_key]</span>
@@ -2791,7 +2795,7 @@
         <span class="n">latex_str</span> <span class="o">=</span> <span class="n">tabular</span><span class="o">.</span><span class="n">as_tabular</span><span class="p">()</span>
         <span class="n">latex_str</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; -0.00 &#39;</span><span class="p">,</span> <span class="s1">&#39;  0.00 &#39;</span><span class="p">,</span> <span class="n">latex_str</span><span class="p">)</span>
         <span class="n">metrics_tex</span> <span class="o">=</span> <span class="n">latex_str</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">metrics_tex</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">metrics_tex</span><span class="p">)</span>
 
         <span class="n">dpath</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">)</span>
         <span class="n">confusion_fname</span> <span class="o">=</span> <span class="s1">&#39;confusion_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">task_key</span><span class="p">)</span>
@@ -3016,7 +3020,7 @@
         <span class="n">rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">()</span>
         <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_tag_text</span><span class="p">(</span><span class="n">rowids</span><span class="p">)]</span>
         <span class="n">tags</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">t</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tags</span><span class="p">))))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tags</span><span class="p">))))</span>
 
         <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">query_tag</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">]</span>
         <span class="n">filtered_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
@@ -3103,7 +3107,7 @@
 
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_annots</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
 
         <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;augment_orientation&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -3163,20 +3167,6 @@
         <span class="n">dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">),</span> <span class="n">subdir</span><span class="p">)</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">fname</span> <span class="o">+</span> <span class="s1">&#39;_custom.jpg&#39;</span><span class="p">)</span>
         <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">render_figure_to_image</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">DPI</span><span class="p">))</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.scripts.postdoc</span>
-<span class="sd">        python -m wbia.scripts.postdoc --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -3212,17 +3202,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -3239,7 +3227,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

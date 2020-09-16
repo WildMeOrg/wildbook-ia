@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wbia.web.apis_query &#8212; wbia 3.0.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -40,22 +39,23 @@
 <span class="sd">SeeAlso:</span>
 <span class="sd">    routes.turk_identification</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">pipeline</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">exists</span>
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
     <span class="vm">__name__</span>
@@ -104,7 +104,7 @@
 <span class="sd">        python -m wbia.web.apis_query --test-query_chips_simple_dict:0 --humpbacks</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.control.IBEISControl import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
 <span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
@@ -126,24 +126,14 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; # FIXME failing-test (04-Aug-2020) This test hangs when running together with the test above</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.control.IBEISControl import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import time</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
-<span class="sd">        &gt;&gt;&gt; import requests</span>
 <span class="sd">        &gt;&gt;&gt; # Start up the web instance</span>
-<span class="sd">        &gt;&gt;&gt; web_instance = wbia.opendb_in_background(db=&#39;testdb1&#39;, web=True, browser=False)</span>
-<span class="sd">        &gt;&gt;&gt; time.sleep(10)</span>
-<span class="sd">        &gt;&gt;&gt; web_port = ibs.get_web_port_via_scan()</span>
-<span class="sd">        &gt;&gt;&gt; if web_port is None:</span>
-<span class="sd">        &gt;&gt;&gt;     raise ValueError(&#39;IA web server is not running on any expected port&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; baseurl = &#39;http://127.0.1.1:%s&#39; % (web_port, )</span>
-<span class="sd">        &gt;&gt;&gt; data = dict(qaid_list=[1])</span>
-<span class="sd">        &gt;&gt;&gt; resp = requests.get(baseurl + &#39;/api/query/chip/simple/dict/&#39;, data=data)</span>
-<span class="sd">        &gt;&gt;&gt; print(resp)</span>
-<span class="sd">        &gt;&gt;&gt; web_instance.terminate()</span>
-<span class="sd">        &gt;&gt;&gt; json_dict = resp.json()</span>
-<span class="sd">        &gt;&gt;&gt; cmdict_list = json_dict[&#39;response&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(db=&#39;testdb1&#39;, managed=True) as web_ibs:</span>
+<span class="sd">        ...     cmdict_list = web_ibs.send_wbia_request(&#39;/api/query/chip/dict/simple/&#39;, type_=&#39;get&#39;, qaid_list=[1], daid_list=[1, 2, 3])</span>
+<span class="sd">        &gt;&gt;&gt; print(cmdict_list)</span>
 <span class="sd">        &gt;&gt;&gt; assert &#39;score_list&#39; in cmdict_list[0]</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -277,7 +267,7 @@
 <span class="sd">        &gt;&gt;&gt; pt.imshow(image)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">id_review_api</span>
+    <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="kn">import</span> <span class="n">id_review_api</span>
 
     <span class="c1"># Get thumb path</span>
     <span class="n">match_thumb_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_match_thumbdir</span><span class="p">()</span>
@@ -291,7 +281,7 @@
     <span class="p">)</span>
     <span class="n">match_thumb_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">match_thumb_path</span><span class="p">,</span> <span class="n">match_thumb_filename</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">match_thumb_filepath</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">match_thumb_filepath</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">match_thumb_filepath</span><span class="p">):</span>
         <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">match_thumb_filepath</span><span class="p">)</span>
@@ -368,7 +358,7 @@
 <span class="sd">        python -m wbia.web.apis_query review_graph_match_html --show --domain=localhost</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.web.apis_query import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
 <span class="sd">        &gt;&gt;&gt; web_ibs = wbia.opendb_bg_web(&#39;testdb1&#39;)  # , domain=&#39;http://52.33.105.88&#39;)</span>
@@ -465,7 +455,7 @@
 <span class="sd">        &gt;&gt;&gt; ut.render_html(html_str)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">chip_match</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
 
     <span class="c1"># from wbia.algo.hots.query_request import QueryRequest</span>
 
@@ -498,7 +488,7 @@
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="c1"># ??? HACK</span>
         <span class="c1"># FIXME:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!!!!] review_pair = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">review_pair</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[!!!!] review_pair = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">review_pair</span><span class="p">,))</span>
         <span class="n">review_pair</span> <span class="o">=</span> <span class="n">review_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">annot_uuid_1</span> <span class="o">=</span> <span class="n">review_pair</span><span class="p">[</span><span class="s1">&#39;annot_uuid_1&#39;</span><span class="p">]</span>
         <span class="n">annot_uuid_2</span> <span class="o">=</span> <span class="n">review_pair</span><span class="p">[</span><span class="s1">&#39;annot_uuid_2&#39;</span><span class="p">]</span>
@@ -545,7 +535,7 @@
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">apis_query</span>
+        <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">apis_query</span>
 
         <span class="n">root_path</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">apis_query</span><span class="o">.</span><span class="vm">__file__</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
@@ -696,7 +686,7 @@
     <span class="c1"># except Exception:</span>
     <span class="c1">#     #??? HACK</span>
     <span class="c1">#     # FIXME:</span>
-    <span class="c1">#     print(&#39;[!!!!] review_pair = %r&#39; % (review_pair,))</span>
+    <span class="c1">#     logger.info(&#39;[!!!!] review_pair = %r&#39; % (review_pair,))</span>
     <span class="c1">#     review_pair = review_pair[0]</span>
     <span class="c1">#     annot_uuid_1 = review_pair[&#39;annot_uuid_1&#39;]</span>
     <span class="c1">#     annot_uuid_2 = review_pair[&#39;annot_uuid_2&#39;]</span>
@@ -758,7 +748,7 @@
 <span class="sd">        &gt;&gt;&gt; result_dict = ibs.query_chips_test()</span>
 <span class="sd">        &gt;&gt;&gt; print(result_dict)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">random</span> <span class="k">import</span> <span class="n">shuffle</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">shuffle</span>  <span class="c1"># NOQA</span>
 
     <span class="c1"># Compile test data</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
@@ -821,7 +811,7 @@
     <span class="n">return_summary</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.unstable.orig_graph_iden</span> <span class="k">import</span> <span class="n">OrigAnnotInference</span>
+    <span class="kn">from</span> <span class="nn">wbia.unstable.orig_graph_iden</span> <span class="kn">import</span> <span class="n">OrigAnnotInference</span>
     <span class="kn">import</span> <span class="nn">theano</span>  <span class="c1"># NOQA</span>
     <span class="kn">import</span> <span class="nn">uuid</span>
 
@@ -835,16 +825,16 @@
 
     <span class="n">proot</span> <span class="o">=</span> <span class="n">query_config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pipeline_root&#39;</span><span class="p">,</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">)</span>
     <span class="n">proot</span> <span class="o">=</span> <span class="n">query_config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proot&#39;</span><span class="p">,</span> <span class="n">proot</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;query_config_dict = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">query_config_dict</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;query_config_dict = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">query_config_dict</span><span class="p">,))</span>
 
     <span class="n">curvrank_daily_tag</span> <span class="o">=</span> <span class="n">query_config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;curvrank_daily_tag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">curvrank_daily_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">curvrank_daily_tag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">144</span><span class="p">:</span>
             <span class="n">curvrank_daily_tag_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">curvrank_daily_tag</span><span class="p">)</span>
             <span class="n">curvrank_daily_tag_</span> <span class="o">=</span> <span class="s1">&#39;wbia-shortened-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curvrank_daily_tag_</span><span class="p">,)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[WARNING] curvrank_daily_tag too long (Probably an old job)&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[WARNING] Original: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curvrank_daily_tag</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[WARNING] Shortened: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curvrank_daily_tag_</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[WARNING] curvrank_daily_tag too long (Probably an old job)&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[WARNING] Original: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curvrank_daily_tag</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[WARNING] Shortened: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curvrank_daily_tag_</span><span class="p">,))</span>
             <span class="n">query_config_dict</span><span class="p">[</span><span class="s1">&#39;curvrank_daily_tag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">curvrank_daily_tag_</span>
 
     <span class="n">num_qaids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
@@ -858,12 +848,12 @@
     <span class="n">num_daids_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">num_qaids</span> <span class="o">!=</span> <span class="n">num_qaids_</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;len(qaid_list)  = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_qaids</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;len(qaid_list_) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_qaids_</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;len(qaid_list)  = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_qaids</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;len(qaid_list_) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_qaids_</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">num_daids</span> <span class="o">!=</span> <span class="n">num_daids_</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;len(daid_list)  = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_daids</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;len(daid_list_) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_daids_</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;len(daid_list)  = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_daids</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;len(daid_list_) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_daids_</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">num_qaids_</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;There are 0 valid query aids, </span><span class="si">%d</span><span class="s1"> were provided&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_qaids</span><span class="p">,))</span>
@@ -910,7 +900,7 @@
             <span class="n">daid_list_</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span>
 
             <span class="c1"># Get best names</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Visualizing name matches&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Visualizing name matches&#39;</span><span class="p">)</span>
             <span class="n">DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME</span> <span class="o">=</span> <span class="mi">3</span>
 
             <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">unique_nids</span>
@@ -919,7 +909,7 @@
             <span class="n">zipped</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">name_score_list</span><span class="p">,</span> <span class="n">unique_nids</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">n_</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">zipped</span><span class="p">))</span>
             <span class="n">zipped</span> <span class="o">=</span> <span class="n">zipped</span><span class="p">[:</span><span class="n">n_</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Top </span><span class="si">%d</span><span class="s1"> names: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_</span><span class="p">,</span> <span class="n">zipped</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Top </span><span class="si">%d</span><span class="s1"> names: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_</span><span class="p">,</span> <span class="n">zipped</span><span class="p">,))</span>
             <span class="n">dnid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">zipped</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
             <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">dnid_set</span><span class="p">)</span>
 
@@ -938,7 +928,7 @@
                     <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
                     <span class="n">limit</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Filtering NID </span><span class="si">%d</span><span class="s1"> from </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Filtering NID </span><span class="si">%d</span><span class="s1"> from </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
                 <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[:</span><span class="n">limit</span><span class="p">]</span>
                 <span class="n">daid_set</span> <span class="o">+=</span> <span class="n">aid_list</span>
 
@@ -946,7 +936,7 @@
                 <span class="nb">len</span><span class="p">(</span><span class="n">daid_set</span><span class="p">),</span>
                 <span class="n">daid_set</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> candidate name aids: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> candidate name aids: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
             <span class="n">daid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">daid_set</span><span class="p">)</span>
             <span class="n">name_daid_set</span> <span class="o">=</span> <span class="n">daid_set</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">daid_list_</span><span class="p">)</span>  <span class="c1"># Filter by supplied query daids</span>
 
@@ -955,33 +945,33 @@
                 <span class="nb">len</span><span class="p">(</span><span class="n">dnid_set</span><span class="p">),</span>
                 <span class="n">name_daid_set</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> overlapping aids for </span><span class="si">%d</span><span class="s1"> nids: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> overlapping aids for </span><span class="si">%d</span><span class="s1"> nids: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
 
             <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="nb">len</span><span class="p">(</span><span class="n">name_daid_set</span><span class="p">),</span>
                 <span class="nb">len</span><span class="p">(</span><span class="n">dnid_set</span><span class="p">),</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Visualizing </span><span class="si">%d</span><span class="s1"> annotations for best </span><span class="si">%d</span><span class="s1"> names&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Visualizing </span><span class="si">%d</span><span class="s1"> annotations for best </span><span class="si">%d</span><span class="s1"> names&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
 
             <span class="c1"># Get best annotations</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Visualizing annotation matches&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Visualizing annotation matches&#39;</span><span class="p">)</span>
             <span class="n">zipped</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">score_list</span><span class="p">,</span> <span class="n">daid_list_</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">n_</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">zipped</span><span class="p">))</span>
             <span class="n">zipped</span> <span class="o">=</span> <span class="n">zipped</span><span class="p">[:</span><span class="n">n_</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Top </span><span class="si">%d</span><span class="s1"> annots: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_</span><span class="p">,</span> <span class="n">zipped</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Top </span><span class="si">%d</span><span class="s1"> annots: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_</span><span class="p">,</span> <span class="n">zipped</span><span class="p">,))</span>
             <span class="n">annot_daid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">zipped</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 
             <span class="c1"># Combine names and annotations</span>
             <span class="n">daid_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">name_daid_set</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">annot_daid_set</span><span class="p">)</span>
             <span class="n">daid_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">daid_set</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Visualizing </span><span class="si">%d</span><span class="s1"> annots: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daid_set</span><span class="p">),</span> <span class="n">daid_set</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Visualizing </span><span class="si">%d</span><span class="s1"> annots: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daid_set</span><span class="p">),</span> <span class="n">daid_set</span><span class="p">,))</span>
 
             <span class="n">extern_flag_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">daid_list_</span><span class="p">:</span>
                 <span class="n">extern_flag</span> <span class="o">=</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">daid_set</span>
 
                 <span class="k">if</span> <span class="n">extern_flag</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Rendering match images to disk for daid=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">daid</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Rendering match images to disk for daid=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">daid</span><span class="p">,))</span>
                     <span class="n">duuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">daid</span><span class="p">)</span>
 
                     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">duuid</span><span class="p">,)</span>
@@ -1149,11 +1139,11 @@
 <span class="k">def</span> <span class="nf">query_chips_graph_match_thumb</span><span class="p">(</span>
     <span class="n">extern_reference</span><span class="p">,</span> <span class="n">query_annot_uuid</span><span class="p">,</span> <span class="n">database_annot_uuid</span><span class="p">,</span> <span class="n">version</span>
 <span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-    <span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
-    <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">cStringIO</span> <span class="k">as</span> <span class="n">StringIO</span>
-    <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">send_file</span>
+    <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+    <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cStringIO</span> <span class="k">as</span> <span class="n">StringIO</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">send_file</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
@@ -1327,8 +1317,8 @@
     <span class="c1"># The qaid and daid objects are allowed to be None if qreq_ is</span>
     <span class="c1"># specified</span>
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;do not specify qaids and qreq&#39;</span>
-        <span class="k">assert</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;do not specify daids and qreq&#39;</span>
+        <span class="k">assert</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Need to specify qaids&#39;</span>
+        <span class="k">assert</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Need to specify daids&#39;</span>
         <span class="n">qaid_list</span><span class="p">,</span> <span class="n">was_scalar</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">wrap_iterable</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
@@ -1404,7 +1394,7 @@
 
 
 <div class="viewcode-block" id="query_graph_v2_callback"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_query.query_graph_v2_callback">[docs]</a><span class="k">def</span> <span class="nf">query_graph_v2_callback</span><span class="p">(</span><span class="n">graph_client</span><span class="p">,</span> <span class="n">callback_type</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.web.graph_server</span> <span class="k">import</span> <span class="n">ut_to_json_encode</span>
+    <span class="kn">from</span> <span class="nn">wbia.web.graph_server</span> <span class="kn">import</span> <span class="n">ut_to_json_encode</span>
 
     <span class="k">assert</span> <span class="n">callback_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;review&#39;</span><span class="p">,</span> <span class="s1">&#39;finished&#39;</span><span class="p">]</span>
     <span class="n">callback_tuple</span> <span class="o">=</span> <span class="n">graph_client</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">callback_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -1448,7 +1438,7 @@
 <span class="sd">        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/graph/</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.web.apis_query import *</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
 <span class="sd">        &gt;&gt;&gt; # Open local instance</span>
@@ -1478,9 +1468,9 @@
 <span class="sd">        &gt;&gt;&gt; # Reset context</span>
 <span class="sd">        &gt;&gt;&gt; query_chips_graph_v2.__globals__[&#39;current_app&#39;] = old</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.web.graph_server</span> <span class="k">import</span> <span class="n">GraphClient</span>
+    <span class="kn">from</span> <span class="nn">wbia.web.graph_server</span> <span class="kn">import</span> <span class="n">GraphClient</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[apis_query] Creating GraphClient&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[apis_query] Creating GraphClient&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
@@ -1524,7 +1514,7 @@
             <span class="s1">&#39;algo.quickstart&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">query_config_dict</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[apis_query] graph_client.config = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">config</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[apis_query] graph_client.config = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">config</span><span class="p">)))</span>
         <span class="n">graph_client</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
 
         <span class="c1"># Ensure no race-conditions</span>
@@ -1567,8 +1557,8 @@
 <span class="k">def</span> <span class="nf">review_graph_match_config_v2</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">graph_uuid</span><span class="p">,</span> <span class="n">aid1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">view_orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="n">view_version</span><span class="o">=</span><span class="mi">1</span>
 <span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">pairfeat</span>
-    <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">session</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">pairfeat</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">session</span>
 
     <span class="n">EDGES_KEY</span> <span class="o">=</span> <span class="s1">&#39;_EDGES_&#39;</span>
     <span class="n">EDGES_MAX</span> <span class="o">=</span> <span class="mi">10</span>
@@ -1592,7 +1582,7 @@
         <span class="k">if</span> <span class="n">EDGES_KEY</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
             <span class="n">session</span><span class="p">[</span><span class="n">EDGES_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">previous_edge_list</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="n">EDGES_KEY</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Using previous_edge_list</span><span class="se">\n\t</span><span class="s1">User: </span><span class="si">%s</span><span class="se">\n\t</span><span class="s1">List: </span><span class="si">%r</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">previous_edge_list</span><span class="p">,)</span>
         <span class="p">)</span>
@@ -1618,7 +1608,7 @@
             <span class="n">cutoff</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">EDGES_MAX</span><span class="p">)</span>
             <span class="n">previous_edge_list</span> <span class="o">=</span> <span class="n">previous_edge_list</span><span class="p">[</span><span class="n">cutoff</span><span class="p">:]</span>
         <span class="n">session</span><span class="p">[</span><span class="n">EDGES_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">previous_edge_list</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Updating previous_edge_list</span><span class="se">\n\t</span><span class="s1">User: </span><span class="si">%s</span><span class="se">\n\t</span><span class="s1">List: </span><span class="si">%r</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">previous_edge_list</span><span class="p">,)</span>
         <span class="p">)</span>
@@ -1627,8 +1617,8 @@
         <span class="n">edge</span><span class="p">,</span>
         <span class="n">priority</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Sampled edge </span><span class="si">%r</span><span class="s1"> with priority </span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">data_dict</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Sampled edge </span><span class="si">%r</span><span class="s1"> with priority </span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">data_dict</span><span class="p">))</span>
 
     <span class="n">feat_extract_config</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;match_config&#39;</span><span class="p">:</span> <span class="p">(</span>
@@ -1645,7 +1635,7 @@
     <span class="c1"># image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,</span>
     <span class="c1">#                                        view_orientation=view_orientation)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using View Version: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">view_version</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using View Version: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">view_version</span><span class="p">,))</span>
     <span class="k">if</span> <span class="n">view_version</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">image_heatmask</span> <span class="o">=</span> <span class="n">ensure_review_image_v2</span><span class="p">(</span>
             <span class="n">ibs</span><span class="p">,</span> <span class="n">match</span><span class="p">,</span> <span class="n">draw_heatmask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">view_orientation</span><span class="o">=</span><span class="n">view_orientation</span>
@@ -1716,7 +1706,7 @@
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">apis_query</span>
+        <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">apis_query</span>
 
         <span class="n">root_path</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">apis_query</span><span class="o">.</span><span class="vm">__file__</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1841,8 +1831,8 @@
             <span class="s1">&#39;timestamp_c2&#39;</span><span class="p">:</span> <span class="n">user_times</span><span class="p">[</span><span class="s1">&#39;client_time_end&#39;</span><span class="p">],</span>
             <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">)),</span>
         <span class="p">}</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;POSTING GRAPH CLIENT REVIEW:&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">payload</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;POSTING GRAPH CLIENT REVIEW:&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">payload</span><span class="p">))</span>
     <span class="n">graph_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
 
     <span class="c1"># Clean any old continue_reviews</span>
@@ -2015,10 +2005,10 @@
 <div class="viewcode-block" id="query_graph_v2_latest_logs"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_query.query_graph_v2_latest_logs">[docs]</a><span class="k">def</span> <span class="nf">query_graph_v2_latest_logs</span><span class="p">(</span><span class="n">future</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">future</span><span class="o">.</span><span class="n">cancelled</span><span class="p">():</span>
         <span class="n">logs</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- &lt;LOG DUMP&gt; ---&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;--- &lt;LOG DUMP&gt; ---&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">msg</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">logs</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;[web.infr] &#39;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- &lt;</span><span class="se">\\</span><span class="s1">LOG DUMP&gt; ---&#39;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;--- &lt;</span><span class="se">\\</span><span class="s1">LOG DUMP&gt; ---&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="query_graph_v2_on_request_review"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_query.query_graph_v2_on_request_review">[docs]</a><span class="k">def</span> <span class="nf">query_graph_v2_on_request_review</span><span class="p">(</span><span class="n">future</span><span class="p">):</span>
@@ -2032,21 +2022,6 @@
             <span class="n">graph_client</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
             <span class="n">callback_type</span> <span class="o">=</span> <span class="s1">&#39;finished&#39;</span>
         <span class="n">query_graph_v2_callback</span><span class="p">(</span><span class="n">graph_client</span><span class="p">,</span> <span class="n">callback_type</span><span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.web.app</span>
-<span class="sd">        python -m wbia.web.app --allexamples</span>
-<span class="sd">        python -m wbia.web.app --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -2082,17 +2057,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -2109,7 +2082,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
