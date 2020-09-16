@@ -293,7 +293,7 @@ class TestAPI:
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
-        result = self.ctrlr.executeone(f'SELECT id, y FROM {table_name}')
+        result = self.ctrlr.executeone(text(f'SELECT id, y FROM {table_name}'))
 
         assert result == [(i + 1, i) for i in range(0, 10)]
 
@@ -313,14 +313,16 @@ class TestAPI:
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
-        result = self.ctrlr.executeone(f'INSERT INTO {table_name} (y) VALUES (?)', (10,))
+        result = self.ctrlr.executeone(
+            text(f'INSERT INTO {table_name} (y) VALUES (:y)'), {'y': 10}
+        )
 
         # Cursory check that the result is a single int value
         assert result == [11]  # the result list with one unwrapped value
 
         # Check for the actual value associated with the resulting id
         inserted_value = self.ctrlr.connection.execute(
-            f'SELECT id, y FROM {table_name} WHERE rowid = :rowid', rowid=result[0],
+            text(f'SELECT id, y FROM {table_name} WHERE rowid = :rowid'), rowid=result[0],
         ).fetchone()
         assert inserted_value == (11, 10,)
 
@@ -340,8 +342,8 @@ class TestAPI:
 
         # Call the testing target
         results = self.ctrlr.executemany(
-            f'SELECT id, y FROM {table_name} where x = ?',
-            (['even'], ['odd']),
+            text(f'SELECT id, y FROM {table_name} where x = :x'),
+            ({'x': 'even'}, {'x': 'odd'}),
             unpack_scalars=False,
         )
 
@@ -355,14 +357,14 @@ class TestAPI:
         self.make_table(table_name)
 
         # Test a failure to execute in the transaction to test the transaction boundary.
-        insert = f'INSERT INTO {table_name} (x, y, z) VALUES (?, ?, ?)'
+        insert = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, y:, :z)')
         params = [
-            ('even', 0, 0.0),
-            ('odd', 1, 1.01),
-            ('oops', 2.02),  # error
-            ('odd', 3, 3.03),
+            dict(x='even', y=0, z=0.0),
+            dict(x='odd', y=1, z=1.01),
+            dict(x='oops', z=2.02),  # error
+            dict(x='odd', y=3, z=3.03),
         ]
-        with pytest.raises(sqlalchemy.exc.ProgrammingError):
+        with pytest.raises(sqlalchemy.exc.OperationalError):
             # Call the testing target
             results = self.ctrlr.executemany(insert, params)
 
@@ -386,7 +388,7 @@ class TestAPI:
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
-        result = self.ctrlr.executeone(f'SELECT y FROM {table_name}')
+        result = self.ctrlr.executeone(text(f'SELECT y FROM {table_name}'))
 
         # Note the unwrapped values, rather than [(i,) ...]
         assert result == [i for i in range(0, 10)]
@@ -395,7 +397,6 @@ class TestAPI:
         table_name = 'test_add'
         self.make_table(table_name)
 
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
         parameter_values = []
         for i in range(0, 10):
             x, y, z = (
@@ -450,7 +451,7 @@ class TestAPI:
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
-        results = self.ctrlr.get_where(table_name, ['id', 'y'], ([1]), 'id = ?',)
+        results = self.ctrlr.get_where(table_name, ['id', 'y'], ({'id': 1},), 'id = :id',)
         evens = results[0]
 
         # Verify query
@@ -474,8 +475,8 @@ class TestAPI:
         results = self.ctrlr.get_where(
             table_name,
             ['id', 'y'],
-            (['even'], ['odd']),
-            'x = ?',
+            ({'x': 'even'}, {'x': 'odd'}),
+            'x = :x',
             unpack_scalars=False,  # this makes it more than one row of results
         )
         evens = results[0]
