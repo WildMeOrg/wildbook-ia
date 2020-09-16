@@ -40,7 +40,7 @@ RUN set -ex \
 # WBIA repository
 RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_cnn;        from wbia_cnn.__main__ import wbia_cnn_main as main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia;            from wbia.__main__ import main;                      main()"
+ && /virtualenv/env3/bin/python -c "import wbia;            from wbia.__main__ import smoke_test as main;        main()"
 
 ##########################################################################################
 FROM wildme/wbia-base:latest as org.wildme.wbia.install
@@ -60,11 +60,14 @@ ADD ./provision/_config/embed.sh /bin/embed
 # Add Python health check
 ADD ./provision/_config/healthcheck.py /bin/healthcheck.py
 
-RUN mkdir /data
+RUN set -x \
+    && mkdir -p /data\
+    && chown wbia:wbia /data \
+    && chmod 755 /data
 
-VOLUME /data
+WORKDIR /data
 
-RUN /virtualenv/env3/bin/python -m wbia --set-workdir /data
+RUN /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data
 
 ##########################################################################################
 FROM org.wildme.wbia.install as org.wildme.wbia.deploy
@@ -73,7 +76,7 @@ MAINTAINER Wild Me <dev@wildme.org>
 
 LABEL autoheal=true
 
-ENTRYPOINT ["/virtualenv/env3/bin/python", "-m", "wbia" "--dbdir", "/data/db", "--logdir", "/data/logs", "--web", "--port", "5000", "--web-deterministic-ports", "--cpudark", "--containerized", "--production"]
+ENTRYPOINT ["/virtualenv/env3/bin/python", "-m", "wbia.dev" "--dbdir", "/data/db", "--logdir", "/data/logs", "--web", "--port", "5000", "--web-deterministic-ports", "--cpudark", "--containerized", "--production"]
 
 # Ports for the frontend web server
 EXPOSE 5000

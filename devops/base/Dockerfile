@@ -6,24 +6,46 @@ ENV LC_ALL C.UTF-8
 
 ENV LANG C.UTF-8
 
+USER root 
+
+# Create runtime user "wbia" (aka WildBook IA)
+RUN set -x \
+    && addgroup --system wbia \
+    && adduser --system --group wbia
+
 # Install package updates and dependencies
 RUN set -ex \
  && apt update \
  && apt upgrade -y \
  && apt dist-upgrade -y \
- && apt clean \
- && apt autoclean \
- && apt autoremove -y \
  && apt install -y \
-        # Install requirements - Pegged to Version 3.7 to support TensorFlow 1.15.3
+        # Install build requirements 
         ca-certificates \
         build-essential \
         pkg-config \
+        # Install Python 3.7 - Pegged to Version 3.7 to support TensorFlow 1.15.3
         python3.7 \
         python3.7-dev \
         python3.7-gdbm \
         python3-pip \
-        # Install developer tools
+        # Install dependencies for NVTOP
+        libncurses5-dev \
+        libncursesw5-dev \
+        # Install dependencies for OpenCV
+        libgflags-dev \
+        libeigen3-dev \
+        libgtk2.0-dev \
+        # Install dependencies for PyHesaff
+        libhdf5-serial-dev \
+        # Install dependencies for PyFLANN
+        liblz4-dev \
+        # Install dependencies for pygraphviz
+        graphviz \
+        libgraphviz-dev \
+        # Install run-time tools
+        gosu \
+        xvfb \
+        # Install handy developer tools
         curl \
         git \
         htop \
@@ -32,7 +54,9 @@ RUN set -ex \
         unzip \
         vim \
         wget \
-        xvfb \
+ && apt clean \
+ && apt autoclean \
+ && apt autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Docker CE
@@ -56,8 +80,20 @@ RUN set -ex \
 
 # Install PyPI packages
 RUN set -ex \
- && /virtualenv/env3/bin/pip install --upgrade pip \
- && /virtualenv/env3/bin/pip install --upgrade cmake ninja scikit-build setuptools
+ && /virtualenv/env3/bin/pip install --upgrade \
+        pip \
+ && /virtualenv/env3/bin/pip install --upgrade \
+        # Install build requirements 
+        cmake!=3.18.2 \
+        ninja \
+        scikit-build \
+        setuptools>=42 \
+        setuptools_scm[toml]>=3.4 \
+        cython \
+        # Install OpenCV dependencies
+        numpy \
+        # Install handy developer tools
+        ipython
 
 # Install CNMeM
 RUN set -ex \
@@ -76,8 +112,6 @@ RUN set -ex \
 # Install NVTOP
 RUN set -ex \
  && . /virtualenv/env3/bin/activate \
- && apt update \
- && apt install -y libncurses5-dev libncursesw5-dev \
  && git clone https://github.com/Syllo/nvtop.git /tmp/nvtop \
  && cd /tmp/nvtop/ \
  && mkdir -p /tmp/nvtop/build \
@@ -86,8 +120,7 @@ RUN set -ex \
  && make -j4 \
  && make install \
  && cd .. \
- && rm -rf /tmp/nvtop \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /tmp/nvtop
 
 # Set CUDA-specific environment paths
 ENV PATH "/usr/local/cuda/bin:${PATH}"

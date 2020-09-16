@@ -74,22 +74,14 @@ RUN set -ex \
 
 # WBIA third-party toolkits
 RUN set -ex \
- && apt update \
- && apt install -y \
-     libhdf5-serial-dev \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
      && cd /wbia/wbia-tpl-pyhesaff \
-     && /bin/bash run_developer_setup.sh' \
- && rm -rf /var/lib/apt/lists/*
+     && /bin/bash run_developer_setup.sh'
 
 RUN set -ex \
- && apt update \
- && apt install -y \
-     liblz4-dev \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
      && cd /wbia/wbia-tpl-pyflann \
-     && /bin/bash run_developer_setup.sh' \
- && rm -rf /var/lib/apt/lists/*
+     && /bin/bash run_developer_setup.sh'
 
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \

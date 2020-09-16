@@ -4,22 +4,6 @@ MAINTAINER Wild Me <dev@wildme.org>
 
 ARG OPENCV_VERSION=3.4.11
 
-# Install basic Python dependencies
-RUN set -ex \
- && /virtualenv/env3/bin/pip install \
-        numpy \
-        ipython \
-        cython
-
-# Install OpenCV requirements
-RUN set -ex \
- && apt update \
- && apt install -y \
-        libgflags-dev \
-        libeigen3-dev \
-        libgtk2.0-dev \
- && rm -rf /var/lib/apt/lists/*
-
 # Install OpenCV
 RUN set -ex \
  && . /virtualenv/env3/bin/activate \
@@ -117,9 +101,6 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install -e . \
  && rm -rf /wbia/libgpuarray/build
 
-# Install pygraphviz (for developer use)
+# Fix install pygraphviz (for developer use)
 RUN set -ex \
- && apt update \
- && apt install -y graphviz libgraphviz-dev \
- && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/" \
- && rm -rf /var/lib/apt/lists/*
+ && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"

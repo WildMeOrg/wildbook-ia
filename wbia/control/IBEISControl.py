@@ -103,12 +103,19 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'wbia.core_parts',
     'wbia.algo.smk.vocab_indexer',
     'wbia.algo.smk.smk_pipeline',
-    # (('--no-cnn', '--nocnn'), 'wbia_cnn'),
     (('--no-cnn', '--nocnn'), 'wbia_cnn._plugin'),
-    (('--no-fluke', '--nofluke'), 'wbia_flukematch.plugin'),
-    (('--no-curvrank', '--nocurvrank'), 'wbia_curvrank._plugin'),
-    # 'wbia_plugin_identification_example',
 ]
+
+
+if ut.get_argflag('--flukematch'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-flukematch', '--noflukematch'), 'wbia_flukematch.plugin'),
+    ]
+
+if ut.get_argflag('--curvrank'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-curvrank', '--nocurvrank'), 'wbia_curvrank._plugin'),
+    ]
 
 if ut.get_argflag('--deepsense'):
     AUTOLOAD_PLUGIN_MODNAMES += [
