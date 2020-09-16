@@ -5,6 +5,10 @@ MAINTAINER Wild Me <dev@wildme.org>
 # Set up xvfb for running gui doctests
 ENV DISPLAY :1
 
+# Make a copy of our build OpenCV
+RUN set -ex \
+ && cp -r /virtualenv/env3/lib/python3.7/site-packages/cv2 /tmp/cv2
+
 # Clone WBIA repository
 RUN set -ex \
  && cd /wbia \
@@ -30,7 +34,10 @@ RUN set -ex \
 # Clone first-party WBIA plug-in repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-cnn.git \
+ && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-cnn.git
+
+RUN set -ex \
+ && cd /wbia \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-flukematch.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-finfindr.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-deepsense.git \
@@ -55,22 +62,17 @@ RUN set -ex \
 # git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-lca.git
 
 # WBIA Toolkits
-
-# Build and install wbia-utool
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-utool \
  && /bin/bash run_developer_setup.sh'
 
-# Build and install wbia-vtool
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-vtool \
  && /bin/bash run_developer_setup.sh'
 
 # WBIA third-party toolkits
-
-# Build and install wbia-pyhesaff
 RUN set -ex \
  && apt update \
  && apt install -y \
@@ -80,7 +82,6 @@ RUN set -ex \
      && /bin/bash run_developer_setup.sh' \
  && rm -rf /var/lib/apt/lists/*
 
-# Build and install wbia-pyflann
 RUN set -ex \
  && apt update \
  && apt install -y \
@@ -90,44 +91,33 @@ RUN set -ex \
      && /bin/bash run_developer_setup.sh' \
  && rm -rf /var/lib/apt/lists/*
 
-# Build and install wbia-pydarknet
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
      && cd /wbia/wbia-tpl-pydarknet \
      && /bin/bash run_developer_setup.sh'
 
-# Build and install wbia-pyrf
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
      && cd /wbia/wbia-tpl-pyrf \
      && /bin/bash run_developer_setup.sh'
 
-# Build and install brambox
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-deprecate-tpl-brambox \
  && pip install -e .'
 
-# Build and install lightnet
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-deprecate-tpl-lightnet \
  && /virtualenv/env3/bin/pip install -r develop.txt \
  && pip install -e .'
 
 # Wildbook IA
-
-# Build and install wildbook-ia
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && pip install -e .'
 
 # WBIA third-party plug-ins
-
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-cnn \
- && pip install -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-flukematch \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
@@ -143,11 +133,52 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-curvrank \
+ && cd /wbia/wbia-plugin-kaggle7 \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-kaggle7 \
+ && cd /wbia/wbia-plugin-flukematch \
+ && ./unix_build.sh \
  && pip install -e .'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-curvrank \
+ && ./unix_build.sh \
+ && pip install -e .'
+
+RUN set -ex \
+ && /virtualenv/env3/bin/pip uninstall -y \
+        opencv-python \
+        opencv-python-headless \
+ && /virtualenv/env3/bin/pip uninstall -y \
+        dtool-ibeis \
+        guitool-ibeis \
+        plottool-ibeis \
+        utool-ibeis \
+        vtool-ibeis \
+ && /virtualenv/env3/bin/pip uninstall -y \
+        dtool \
+        guitool \
+        plottool \
+        utool \
+        vtool \
+ && /virtualenv/env3/bin/pip uninstall -y \
+        tensorflow \
+        tensorflow-gpu \
+        tensorflow-estimator \
+        tensorboard \
+        tensorboard-plugin-wit \
+        keras
+
+RUN set -ex \
+ && /virtualenv/env3/bin/pip install \
+        tensorflow-gpu==1.15 \
+        keras==2.2.5
+
+# Restore copy of our build OpenCV
+RUN set -ex \
+ && rm -rf /virtualenv/env3/lib/python3.7/site-packages/cv2* \
+ && cp -r /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2 \
+ && rm -rf /tmp/cv2
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]

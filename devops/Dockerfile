@@ -3,62 +3,44 @@ FROM wildme/wbia-provision:latest as org.wildme.wbia.build
 MAINTAINER Wild Me <dev@wildme.org>
 
 # Remove all git association from the code
-RUN find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf
-
 RUN set -ex \
- && /virtualenv/env3/bin/pip uninstall -y \
-        opencv-python \
-        opencv-python-headless \
- && /virtualenv/env3/bin/pip uninstall -y \
-        dtool-ibeis \
-        guitool-ibeis \
-        plottool-ibeis \
-        utool-ibeis \
-        vtool-ibeis \
- && /virtualenv/env3/bin/pip uninstall -y \
-        dtool \
-        guitool \
-        plottool \
-        utool \
-        vtool \
- && /virtualenv/env3/bin/pip uninstall -y \
-        tensorflow \
-        tensorflow-gpu \
-        tensorflow-estimator \
-        tensorboard \
-        tensorboard-plugin-wit \
-        keras
+ && git config --global user.email "dev@wildme.org" \
+ && git config --global user.name "Wild Me" \
+ && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c 'cd {} && cd .. && echo $(pwd) && (git stash && git pull && git stash pop || git reset --hard origin/develop)' \
+ && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
+ && git stash && git pull && git stash pop || git reset --hard origin/develop \
+ && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf
 
+# Run smoke tests
+# WBIA toolkit repositories
 RUN set -ex \
- && /virtualenv/env3/bin/pip install \
-        # opencv-python==3.4.11.41 \
-        tensorflow-gpu==1.15 \
-        keras==2.2.5
-
-# Run smoke test
-RUN set -ex \
- # WBIA toolkit repositories
  && /virtualenv/env3/bin/python -c "import utool;           from utool.__main__ import main;            main()" \
- && /virtualenv/env3/bin/python -c "import vtool;           from vtool.__main__ import main;            main()" \
- # WBIA third-party toolkit repositories 
+ && /virtualenv/env3/bin/python -c "import vtool;           from vtool.__main__ import main;            main()"
+
+# WBIA third-party toolkit repositories 
+RUN set -ex \
  && /virtualenv/env3/bin/python -c "import pyhesaff;        from pyhesaff.__main__ import main;         main()" \
  && /virtualenv/env3/bin/python -c "import pyflann;         from pyflann.__main__ import main;          main()" \
  && /virtualenv/env3/bin/python -c "import pydarknet;       from pydarknet.__main__ import main;        main()" \
  && /virtualenv/env3/bin/python -c "import pyrf;            from pyrf.__main__ import main;             main()" \
  && /virtualenv/env3/bin/python -c "import brambox;         from brambox import __version__, __file__;  print('Brambox: %r, %r' % (__version__, __file__, ))" \
- && /virtualenv/env3/bin/python -c "import lightnet;        from lightnet import __version__, __file__; print('Lightnet: %r, %r' % (__version__, __file__, ))" \
- # first-party WBIA plug-in repositories
- && /virtualenv/env3/bin/python -c "import wbia_cnn;        from wbia_cnn.__main__ import main;         main()" \
- && /virtualenv/env3/bin/python -c "import wbia_flukematch; from wbia_flukematch.plugin import *" \
- && /virtualenv/env3/bin/python -c "import wbia_finfindr;   from wbia_finfindr._plugin import *" \
- && /virtualenv/env3/bin/python -c "import wbia_deepsense;  from wbia_deepsense.__main__ import main;   main()" \
- && /virtualenv/env3/bin/python -c "import wbia_pie;        from wbia_pie.__main__ import main;         main()" \
- # third-party WBIA plug-in repositories
- && /virtualenv/env3/bin/python -c "import wbia_curvrank;   from wbia_curvrank.__main__ import main;    main()" \
- && /virtualenv/env3/bin/python -c "import wbia_kaggle7;    from wbia_kaggle7.__main__ import main;     main()" \
- # WBIA repository
- && /virtualenv/env3/bin/python -c "import wbia;            from wbia.__main__ import main;             main()" \
+ && /virtualenv/env3/bin/python -c "import lightnet;        from lightnet import __version__, __file__; print('Lightnet: %r, %r' % (__version__, __file__, ))"
 
+# first-party WBIA plug-in repositories
+RUN set -ex \
+ && /virtualenv/env3/bin/python -c "import wbia_pie;        from wbia_pie.__main__ import main;         main()"
+
+RUN set -ex \
+ && /virtualenv/env3/bin/python -c "import wbia_flukematch; from wbia_flukematch.plugin import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_curvrank;   from wbia_curvrank._plugin import *"\
+ && /virtualenv/env3/bin/python -c "import wbia_finfindr;   from wbia_finfindr._plugin import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_kaggle7;    from wbia_kaggle7._plugin import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_deepsense;  from wbia_deepsense._plugin import *"
+
+# WBIA repository
+RUN set -ex \
+ && /virtualenv/env3/bin/python -c "import wbia_cnn;        from wbia_cnn.__main__ import wbia_cnn_main as main; main()" \
+ && /virtualenv/env3/bin/python -c "import wbia;            from wbia.__main__ import main;                      main()"
 
 ##########################################################################################
 FROM wildme/wbia-base:latest as org.wildme.wbia.install
