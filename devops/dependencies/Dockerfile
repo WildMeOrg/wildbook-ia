@@ -94,7 +94,7 @@ RUN set -ex \
  && cd .. \
  && rm -rf /tmp/*
 
-RUN ln -s /virtualenv/env3/lib/python3.7/site-packages/cv2/python-3.7/cv2.cpython-37-x86_64-linux-gnu.so /virtualenv/env3/lib/python3.7/site-packages/cv2.so
+# RUN ln -s /virtualenv/env3/lib/python3.7/site-packages/cv2/python-3.7/cv2.cpython-37-x86_64-linux-gnu.so /virtualenv/env3/lib/python3.7/site-packages/cv2.so
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate && python3 -c "import cv2; print(cv2.getBuildInformation()); print(cv2.__version__)"'
 

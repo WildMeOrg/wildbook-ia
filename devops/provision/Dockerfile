@@ -8,7 +8,7 @@ ENV DISPLAY :1
 # Clone WBIA repository
 RUN set -ex \
  && cd /wbia \
- && git clone --branch develop https://github.com/WildbookOrg/wildbook-ia.git
+ && git clone --branch build-process-merge https://github.com/WildbookOrg/wildbook-ia.git
 
 # Clone WBIA toolkit repositories
 RUN set -ex \
@@ -30,7 +30,7 @@ RUN set -ex \
 # Clone first-party WBIA plug-in repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-cnn.git \
+ && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-cnn.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-flukematch.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-finfindr.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-deepsense.git \

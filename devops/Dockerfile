@@ -37,27 +37,28 @@ RUN set -ex \
 
 # Run smoke test
 RUN set -ex \
- # WBIA repository
- && /virtualenv/env3/bin/python -c "import wbia            as check; from check.__main__ import main; main()" \
- # WBIA toolkit repositories      
- && /virtualenv/env3/bin/python -c "import utool           as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import vtool           as check; from check.__main__ import main; main()" \
- # WBIA third-party toolkit repositories      
- && /virtualenv/env3/bin/python -c "import pyhesaff        as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import pyflann         as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import pydarknet       as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import pyrf            as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import brambox         as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import lightnet        as check; from check.__main__ import main; main()" \
+ # WBIA toolkit repositories
+ && /virtualenv/env3/bin/python -c "import utool;           from utool.__main__ import main;            main()" \
+ && /virtualenv/env3/bin/python -c "import vtool;           from vtool.__main__ import main;            main()" \
+ # WBIA third-party toolkit repositories 
+ && /virtualenv/env3/bin/python -c "import pyhesaff;        from pyhesaff.__main__ import main;         main()" \
+ && /virtualenv/env3/bin/python -c "import pyflann;         from pyflann.__main__ import main;          main()" \
+ && /virtualenv/env3/bin/python -c "import pydarknet;       from pydarknet.__main__ import main;        main()" \
+ && /virtualenv/env3/bin/python -c "import pyrf;            from pyrf.__main__ import main;             main()" \
+ && /virtualenv/env3/bin/python -c "import brambox;         from brambox import __version__, __file__;  print('Brambox: %r, %r' % (__version__, __file__, ))" \
+ && /virtualenv/env3/bin/python -c "import lightnet;        from lightnet import __version__, __file__; print('Lightnet: %r, %r' % (__version__, __file__, ))" \
  # first-party WBIA plug-in repositories
- && /virtualenv/env3/bin/python -c "import wbia_cnn        as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_flukematch as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_finfindr   as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_deepsense  as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_pie        as check; from check.__main__ import main; main()" \
+ && /virtualenv/env3/bin/python -c "import wbia_cnn;        from wbia_cnn.__main__ import main;         main()" \
+ && /virtualenv/env3/bin/python -c "import wbia_flukematch; from wbia_flukematch.plugin import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_finfindr;   from wbia_finfindr._plugin import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_deepsense;  from wbia_deepsense.__main__ import main;   main()" \
+ && /virtualenv/env3/bin/python -c "import wbia_pie;        from wbia_pie.__main__ import main;         main()" \
  # third-party WBIA plug-in repositories
- && /virtualenv/env3/bin/python -c "import wbia_curvrank   as check; from check.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_kaggle7    as check; from check.__main__ import main; main()"
+ && /virtualenv/env3/bin/python -c "import wbia_curvrank;   from wbia_curvrank.__main__ import main;    main()" \
+ && /virtualenv/env3/bin/python -c "import wbia_kaggle7;    from wbia_kaggle7.__main__ import main;     main()" \
+ # WBIA repository
+ && /virtualenv/env3/bin/python -c "import wbia;            from wbia.__main__ import main;             main()" \
+
 
 ##########################################################################################
 FROM wildme/wbia-base:latest as org.wildme.wbia.install

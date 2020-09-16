@@ -15,7 +15,7 @@ while [ $# -ge 1 ]; do
     elif [ "$1" == "wbia-dependencies" ]; then
         docker build -t wildme/wbia-dependencies:latest dependencies
     elif [ "$1" == "wbia-provision" ]; then
-        docker build -t wildme/wbia-provision:latest provision
+        docker build --no-cache -t wildme/wbia-provision:latest provision
     elif [ "$1" == "wbia" ]; then
         docker build -t wildme/wbia:latest .
     elif [ "$1" == "wildbook-ia" ]; then

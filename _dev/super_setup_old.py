@@ -426,9 +426,9 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         # CNN Dependencies
         tpl_rman.add_repos(
             [
-                'https://github.com/Theano/Theano.git',
+                # 'https://github.com/Theano/Theano.git',
                 # 'https://github.com/lisa-lab/pylearn2.git',
-                'https://github.com/Lasagne/Lasagne.git',
+                # 'https://github.com/Lasagne/Lasagne.git',
             ]
         )
 
@@ -475,7 +475,7 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
     DEVICE="cuda" python -c "import pygpu;pygpu.test()"
     python -c "import theano; print(theano.__file__)"
     # python -c "import pylearn2; print(pylearn2.__file__)"
-    python -c "import lasagne; print(lasagne.__file__)"
+    python -c "import wbia_cnn.__LASAGNE__ as lasagne; print(lasagne.__file__)"
     python -c "import wbia_cnn; print(wbia_cnn.__file__)"
     python -c "import detecttools; print(detecttools.__file__)"
 
@@ -1440,7 +1440,8 @@ def main():
         print('python super_setup.py --flann')
 
     try:
-        import theano, lasagne  # NOQA
+        import theano  # NOQA
+        import wbia_cnn.__LASAGNE__ as lasagne  # NOQA
     except ImportError:
         print('Need to install Theano/Lasagne/Pylearn2')
         print('python super_setup.py --dcnn')
