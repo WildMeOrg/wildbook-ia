@@ -7,6 +7,8 @@ RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c 'cd {} && cd .. && echo $(pwd) && (git stash && git pull && git stash pop || git reset --hard origin/develop)' \
+ && cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
+ && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf
