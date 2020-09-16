@@ -78,9 +78,11 @@ MAINTAINER Wild Me <dev@wildme.org>
 
 LABEL autoheal=true
 
-ENTRYPOINT ["/virtualenv/env3/bin/python", "-m", "wbia.dev" "--dbdir", "/data/db", "--logdir", "/data/logs", "--web", "--port", "5000", "--web-deterministic-ports", "--cpudark", "--containerized", "--production"]
+COPY entrypoint.sh /entrypoint.sh
 
-# Ports for the frontend web server
+ENTRYPOINT ["/entrypoint.sh", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/logs --web --containerized --production"]
+
+# Port for the web server
 EXPOSE 5000
 
 HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h \
