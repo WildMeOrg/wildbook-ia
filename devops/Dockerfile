@@ -54,20 +54,20 @@ COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 COPY --from=org.wildme.wbia.build /wbia /wbia
 
 # Add theano configuration file
-ADD ./provision/_config/theanorc /root/.theanorc
+ADD ./_config/theanorc /root/.theanorc
 
 # Add embed script for python development
-ADD ./provision/_config/embed.sh /bin/embed
+ADD ./_config/embed.sh /bin/embed
 
 # Add Python health check
-ADD ./provision/_config/healthcheck.py /bin/healthcheck.py
+ADD ./_config/healthcheck.py /bin/healthcheck.py
 
 RUN set -x \
     && mkdir -p /data\
     && chown wbia:wbia /data \
     && chmod 755 /data
 
-WORKDIR /data
+WORKDIR /wbia
 
 RUN /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data
 
@@ -78,9 +78,9 @@ MAINTAINER Wild Me <dev@wildme.org>
 
 LABEL autoheal=true
 
-COPY entrypoint.sh /entrypoint.sh
+COPY ./_config/entrypoint.sh /bin/entrypoint
 
-ENTRYPOINT ["/entrypoint.sh", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/logs --web --containerized --production"]
+ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/logs --web --containerized --production"]
 
 # Port for the web server
 EXPOSE 5000

@@ -928,8 +928,11 @@ class JobInterface(object):
                     [jobiface.id_] * num_records,
                 )
             )
-            values_list = ut.util_parallel.generate2(initialize_process_record, arg_iter,)
-            values_list = list(values_list)
+            if len(arg_iter) > 0:
+                values_list = ut.util_parallel.generate2(initialize_process_record, arg_iter,)
+                values_list = list(values_list)
+            else:
+                values_list = []
 
             restart_jobcounter_list = []
             restart_jobid_list = []

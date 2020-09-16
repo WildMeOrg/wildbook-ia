@@ -1,0 +1,60 @@
+name: Docker
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  # Push container image to GitHub Packages and Docker Hub.
+  # See also https://docs.docker.com/docker-hub/builds/
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    strategy:
+      matrix:
+        images:
+          - wildbook-ia
+          - wbia-base wbia-dependencies wbia-provision wbia
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Build images
+      - name: Build images
+        run: bash devops/build.sh ${{ matrix.images }}
+
+      # Log into container registries
+      - name: Log into Docker Hub
+        run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
+      
+      - name: Log into GitHub Packages
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      # Push containers out to container registries
+      - name: Push to GitHub Packages
+        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        run: |
+          VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
+          bash devops/publish.sh -t ${VERSION} -r docker.pkg.github.com ${{ matrix.images }}
+          bash devops/publish.sh -t latest -r docker.pkg.github.com ${{ matrix.images }}
+      
+      - name: Push to Docker Hub
+        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        run: |
+          VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
+          bash devops/publish.sh -t ${VERSION} ${{ matrix.images }}
+          bash devops/publish.sh -t latest ${{ matrix.images }}
+
+      # Notify status in Slack
+      - name: Slack Notification
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_CHANNEL: ia-development
+          SLACK_COLOR: '#FF0000'
+          SLACK_ICON: https://avatars.slack-edge.com/2020-03-02/965719891842_db87aa21ccb61076f236_44.png
+          SLACK_MESSAGE: 'Latest (tagged) build failed :sob:'
+          SLACK_USERNAME: "Latest"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
