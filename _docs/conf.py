@@ -31,10 +31,10 @@ copyright = '2020, Wild Me'
 author = 'Jon Crall, Jason Parham, WildMe Developers'
 
 # The short X.Y version
-version = '3.0.2'
+version = '3.3.0'
 
 # The full version, including alpha/beta/rc tags
-release = '3.0.2'
+release = '3.3.0'
 
 
 # -- General configuration ---------------------------------------------------

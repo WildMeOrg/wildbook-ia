@@ -164,7 +164,7 @@ RUN set -ex \
         tensorboard \
         tensorboard-plugin-wit \
         keras \
- && /virtualenv/env3/bin/pip install -y \
+ && /virtualenv/env3/bin/pip install \
         tensorflow-gpu==1.15 \
         keras==2.2.5
 
